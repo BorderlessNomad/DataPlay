@@ -70,6 +70,9 @@
       <!-- Wikidata -->
       <div class="container wikidata">
         <h2> History </h2>
+        <div class="demo-container" style="width: 300px;">
+          <div id="placeholder" class="demo-placeholder" style="width:250px;"></div>
+        </div>
         <p>Blah blah blah people get <b>stabbed</b></p>
       </div>
     </div> <!-- /container -->
@@ -82,38 +85,68 @@
     <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtGeKRpMVbjE1LBLnA6y4TZat4D7H-GCw&sensor=false&libraries=visualization"></script>
     <script src="js/GMapsTheme.js"></script>
     <script type="text/javascript">
-    // When the window has finished loading create our google map below
-    google.maps.event.addDomListener(window, 'load', init);
-    taxiData = [];
-    function init() {
-      for (var i = 0; i < 1000; i++) {
-        taxiData.push(new google.maps.LatLng(51 + Math.random(), Math.random() * -1))
-      };
-      // Basic options for a simple Google Map
-      // For more options see: https://developers.google.com/maps/documentation/javascript/reference#MapOptions
-      var mapOptions = {
-          zoom: 11,
-          center: new google.maps.LatLng(51.519813,-0.071144),
-          styles: GMapsTheme
-      };
+      // When the window has finished loading create our google map below
+      google.maps.event.addDomListener(window, 'load', init);
+      taxiData = [];
+      function init() {
+        for (var i = 0; i < 1000; i++) {
+          taxiData.push(new google.maps.LatLng(51 + Math.random(), Math.random() * -1))
+        };
+        // Basic options for a simple Google Map
+        // For more options see: https://developers.google.com/maps/documentation/javascript/reference#MapOptions
+        var mapOptions = {
+            zoom: 11,
+            center: new google.maps.LatLng(51.519813,-0.071144),
+            styles: GMapsTheme
+        };
 
-      // Get the HTML DOM element that will contain your map 
-      // We are using a div with id="map" seen below in the <body>
-      var mapElement = document.getElementById('map');
+        // Get the HTML DOM element that will contain your map 
+        // We are using a div with id="map" seen below in the <body>
+        var mapElement = document.getElementById('map');
 
-      // Create the Google Map using out element and options defined above
-      var map = new google.maps.Map(mapElement, mapOptions);
+        // Create the Google Map using out element and options defined above
+        var map = new google.maps.Map(mapElement, mapOptions);
 
-      var pointArray = new google.maps.MVCArray(taxiData);
+        var pointArray = new google.maps.MVCArray(taxiData);
 
-      heatmap = new google.maps.visualization.HeatmapLayer({
-        data: pointArray
-      });
-      heatmap.set('radius', heatmap.get('radius') ? null : 20);
-      heatmap.setMap(map);
-    }
-
+        heatmap = new google.maps.visualization.HeatmapLayer({
+          data: pointArray
+        });
+        heatmap.set('radius', heatmap.get('radius') ? null : 20);
+        heatmap.setMap(map);
+      }
     </script>
+    <script type="text/javascript">
+
+      $(function() {
+        var y = 1988;
+        var datasets = [
+          {
+              data: []
+          }
+        ];
+        // [1988, 3813], [1989, 3719], [1990, 3722], [1991, 3789], [1992, 3720], [1993, 3730], [1994, 3636], [1995, 3598], [1996, 3610], [1997, 3655], [1998, 3695], [1999, 3673], [2000, 3553], [2001, 3774], [2002, 3728], [2003, 3618], [2004, 3638], [2005, 3467], [2006, 3770]
+        for (var i = 0; i < 18; i++) {
+          datasets[0].data.push([y+i,Math.sin(i/6)]);
+        };
+
+
+        function plotAccordingToChoices() {
+
+          if (datasets.length > 0) {
+            $.plot("#placeholder", datasets, {
+              yaxis: {
+                min: 0
+              },
+              xaxis: {
+                tickDecimals: 0
+              }
+            });
+          }
+        }
+
+        plotAccordingToChoices();
+      });    </script>
 
   </body>
 </html>
