@@ -1,0 +1,712 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"mysql_",
+				"mysql_connect"
+			],
+			[
+				"for",
+				"for	for (…) {…} (Improved Native For-Loop)"
+			],
+			[
+				"start",
+				"startfile"
+			],
+			[
+				"Aud",
+				"AudioContext"
+			],
+			[
+				"fu",
+				"fun	Function"
+			],
+			[
+				"f",
+				"f	Anonymous Function"
+			],
+			[
+				"functio",
+				"function"
+			],
+			[
+				"Pro",
+				"processedLine"
+			],
+			[
+				"if",
+				"if_box"
+			],
+			[
+				"pro",
+				"processedLine"
+			],
+			[
+				"rule",
+				"ruletext"
+			],
+			[
+				"fun",
+				"fun	Function"
+			],
+			[
+				"p",
+				"Println	n int, err error ƒ"
+			],
+			[
+				"str_rep",
+				"str_replace  (function)"
+			],
+			[
+				"get",
+				"getURL"
+			],
+			[
+				"ca",
+				"cacheread"
+			],
+			[
+				"oj",
+				"objlist"
+			],
+			[
+				"jpg",
+				"jpglist"
+			],
+			[
+				"file",
+				"filelist"
+			],
+			[
+				"adm",
+				"admin1codes"
+			],
+			[
+				"wp_en",
+				"wp_enqueue_script  (function)"
+			],
+			[
+				"C",
+				"Cont"
+			],
+			[
+				"the_modi",
+				"the_modified_date"
+			],
+			[
+				"post",
+				"post_id"
+			],
+			[
+				"class",
+				"class_exists"
+			],
+			[
+				"fa",
+				"false"
+			],
+			[
+				"get_taxo",
+				"get_taxonomy"
+			],
+			[
+				"im",
+				"Importee"
+			],
+			[
+				"print",
+				"print_r"
+			],
+			[
+				"AN_",
+				"an_suggestions"
+			],
+			[
+				"view",
+				"view_inbox"
+			],
+			[
+				"get_edit",
+				"get_edit_post_link"
+			],
+			[
+				"arr",
+				"array	$… = array (…)"
+			],
+			[
+				"val",
+				"value"
+			],
+			[
+				"exp",
+				"explode"
+			],
+			[
+				"em",
+				"empty"
+			],
+			[
+				"namea",
+				"nameascii"
+			],
+			[
+				"State",
+				"StateCodes"
+			],
+			[
+				"GeoOD",
+				"GeoIDCodePlace"
+			],
+			[
+				"geoname",
+				"geonameid"
+			],
+			[
+				"count",
+				"country"
+			],
+			[
+				"loca",
+				"location"
+			],
+			[
+				"dis",
+				"discover"
+			],
+			[
+				"di",
+				"DisableNavAway"
+			],
+			[
+				"admin",
+				"admin1"
+			],
+			[
+				"coun",
+				"country"
+			],
+			[
+				"pop",
+				"population"
+			],
+			[
+				"Stat",
+				"StateCodes"
+			],
+			[
+				"json_",
+				"json_encode"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 292.0,
+		"selected_items":
+		[
+			[
+				"git comm",
+				"Git: Commit"
+			],
+			[
+				"git add",
+				"Git: Add Current File"
+			],
+			[
+				"set py",
+				"Set Syntax: Python"
+			],
+			[
+				"json ",
+				"Pretty JSON: Reformat (Pretty Print) JSON"
+			],
+			[
+				"set pro",
+				"Set Syntax: Prolog"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"9o",
+				"GoSublime: Activate 9o"
+			],
+			[
+				"9",
+				"GoSublime: Activate 9o"
+			],
+			[
+				"set st go",
+				"Set Syntax: GoSublime: 9o"
+			],
+			[
+				"act",
+				"GoSublime: Activate 9o"
+			],
+			[
+				"set json",
+				"Set Syntax: JSON"
+			],
+			[
+				"git stat",
+				"Git: Status"
+			],
+			[
+				"git in",
+				"Git: Init"
+			],
+			[
+				"git ",
+				"Git: Init"
+			],
+			[
+				"git",
+				"Git: Init"
+			],
+			[
+				"git i",
+				"Git: Init"
+			],
+			[
+				"set synta go",
+				"Set Syntax: GoSublime: Go"
+			],
+			[
+				"set mark",
+				"Set Syntax: Markdown"
+			],
+			[
+				"set apa",
+				"Set Syntax: Apiary Blueprint"
+			],
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
+			[
+				"set ph",
+				"Set Syntax: PHP"
+			],
+			[
+				"GIT COMM",
+				"Git: Commit"
+			],
+			[
+				"gt comm",
+				"Git: Commit"
+			],
+			[
+				"set bash",
+				"Set Syntax: Shell Script (Bash)"
+			],
+			[
+				"GIT ADD	",
+				"Git: Add Current File"
+			],
+			[
+				"json",
+				"Pretty JSON: Reformat (Pretty Print) JSON"
+			],
+			[
+				"set javasc",
+				"Set Syntax: JavaScript"
+			],
+			[
+				"set java",
+				"Set Syntax: Java"
+			],
+			[
+				"disable",
+				"Package Control: Disable Package"
+			],
+			[
+				":w",
+				":w - Save"
+			],
+			[
+				"enable",
+				"Package Control: Enable Package"
+			],
+			[
+				"wrap",
+				"Word Wrap: Toggle"
+			],
+			[
+				"install ",
+				"Package Control: Install Package"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 584.0
+	},
+	"console":
+	{
+		"height": 146.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/C/Users/Ben Cox/PredictionIO-Vagrant-0.6.3/pio-0.6.3-vagrant.sh",
+		"/C/Users/Ben Cox/Documents/bochs/bochs/memory/memory.cc",
+		"/C/Users/Ben Cox/Documents/Predicingaround/CrimeUsers.csv",
+		"/V/home/vagrant/PredictionIO-PHP-SDK/examples/SampleTasks.php",
+		"/V/home/vagrant/PredictionIO-PHP-SDK/examples/SampleImport.php",
+		"/C/Users/Ben Cox/Documents/Predicingaround/CrimeTypes.csv",
+		"/C/Users/Ben Cox/Documents/Predicingaround/UserImportTest.php",
+		"/C/Users/Ben Cox/Documents/HxProto/rules.js",
+		"/C/Users/Ben Cox/Documents/QuestGen/quests/start.json",
+		"/C/Users/Ben Cox/Documents/QuestGen/quests/videotask.json",
+		"/C/Users/Ben Cox/Documents/QuestGen/quests/makevideo.json",
+		"/C/Users/Ben Cox/Documents/breaking build/server.js",
+		"/C/Users/Ben Cox/Documents/QuestGen/quests/publishblog.json",
+		"/C/Users/Ben Cox/Documents/QuestGen/quests/comment.json",
+		"/C/Users/Ben Cox/Documents/QuestGen/quests/proofread.json",
+		"/C/Users/Ben Cox/Documents/QuestGen/quests/writeblog.json",
+		"/C/Users/Ben Cox/Documents/QuestGen/quests/otherread.json",
+		"/C/Users/Ben Cox/Documents/Visual Studio 2012/Projects/QuestGen/QuestGen/quests/SlayDragon.quest.json",
+		"/C/Users/Ben Cox/Documents/reactor-client/js/game/main.js",
+		"/C/Users/Ben Cox/Documents/HxProto/test.rules",
+		"/C/Users/Ben Cox/Documents/reactor-client/server.js",
+		"/C/Users/Ben Cox/AppData/Roaming/Sublime Text 2/Packages/GoSublime/GoSublime.sublime-settings",
+		"/C/Users/Ben Cox/Documents/Projects/an/server/wp-content/plugins/an-trending/class-an-trending.php",
+		"/C/Users/Ben Cox/Documents/what.xml",
+		"/C/Users/Ben Cox/Documents/Projects/an/server/wp-content/plugins/an-trending/an-trending.php",
+		"/C/Users/Ben Cox/Documents/GNomicsPrototype/main.go",
+		"/C/Users/Ben Cox/Documents/nools/examples/sudoku/lib/rules/validate.nools",
+		"/C/Users/Ben Cox/Documents/nools/examples/browser/rules/conways.nools",
+		"/C/Users/Ben Cox/Documents/nools/examples/sudoku/lib/rules/sudoku.nools",
+		"/C/Users/Ben Cox/Documents/hexagons/hexagons.js",
+		"/Z/_Root/2200_CHERMUG/Builds/CHERMUG_Part1_Hypothesis_A01/hexagons.js",
+		"/C/Users/Ben Cox/Documents/WHAT.txt",
+		"/C/Users/Ben Cox/Desktop/Diks.csv",
+		"/C/Users/Ben Cox/Documents/nools/examples/sudoku/index.js",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/intro_coolant_pump.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/js/game/easy.js",
+		"/C/Users/Ben Cox/Documents/reactor-client/js/game/hard.js",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/steam_generator.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/intro_steam_generator.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/turbine_high.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/intro_turbine_high.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/intro_turbine_low.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/turbine_low.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/generator.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/intro_generator.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/steam_condenser.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/fission.html",
+		"/C/Users/Ben Cox/Desktop/b64.txt",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/pressuriser.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/intro_pressuriser.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/intro_control_rods.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/intro_fuel.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/intro_how_to_play.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/intro_pressure_vessel.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/how_to_play.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/fuel.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/control_rods.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/pressure_vessel.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/coolant_pump.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/parts/intro_steam_condenser.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/js/flashcards.js",
+		"/C/Users/Ben Cox/Documents/reactor-client/js/intro.js",
+		"/C/Users/Ben Cox/Documents/reactor-client/index.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/js/ui/graph.js",
+		"/C/Users/Ben Cox/Documents/reactor-client/js/game/surveymonkey.js",
+		"/C/Users/Ben Cox/Documents/reactor-client/docs/readme_compiled.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/js/ui.js",
+		"/C/Users/Ben Cox/Documents/reactor-client/admin.html",
+		"/C/Users/Ben Cox/Desktop/daltonsnapshot/index.html",
+		"/C/Users/Ben Cox/Documents/reactor-client/js/game/scoresmanager.js",
+		"/C/Users/Ben Cox/Documents/reactor-client/js/dalton.js",
+		"/C/Users/Ben Cox/Documents/reactor-client/docs/readme.md",
+		"/C/Users/Ben Cox/Documents/nrip/tiles.py",
+		"/C/Users/Ben Cox/Dropbox/benmodels/testfiles/GrabViewport.ms",
+		"/C/Users/Ben Cox/Documents/nrip/.gitignore",
+		"/C/Users/Ben Cox/Documents/prog-1-jan-2005/fuckeverything/out-2-0.obj",
+		"/C/Users/Ben Cox/Documents/prog-1-jan-2005/fuckeverything/test.obj",
+		"/E/fuckeverything/removedupe.py",
+		"/E/fuckeverything/tiles.py",
+		"/C/Users/Ben Cox/Documents/python/NokiaWebGL/tiles.py",
+		"/C/Users/Ben Cox/Documents/nrip/removedupe.py",
+		"/C/Users/Ben Cox/Documents/Projects/an/server/wp-content/plugins/an-base/class-an-locations.php",
+		"/C/Users/Ben Cox/Documents/Projects/an/server/wp-content/plugins/advanced-custom-fields/README.md",
+		"/C/Users/Ben Cox/Documents/aaa",
+		"/C/Users/Ben Cox/Dropbox/forPlayGen/a-n.wordpress.2013-08-31.xml",
+		"/M/var/www/index.html",
+		"/C/Users/Ben/Documents/Projects/Nuke/reactor-client/index.html",
+		"/U/Test/demo/index.php",
+		"/U/Test/simple.php",
+		"/C/Users/Ben/Documents/Projects/an/server/wp-content/plugins/an-trending/class-an-trending.php",
+		"/C/Users/Ben/Documents/Visual Studio 2012/Projects/AngelCo_Scraper/AngelCo_Scraper/bin/Debug/26786.html",
+		"/C/Users/Ben/Documents/Projects/an/server/wp-content/themes/a-n/footer.php",
+		"/C/Users/Ben/Documents/Visual Studio 2012/Projects/JamesThing/JamesThing/bin/Debug/FuckYouCLI.csv",
+		"/C/Users/Ben/Documents/Fiddler2/Captures/LondonStartups/Boom.html",
+		"/C/Users/Ben/Documents/Visual Studio 2012/Projects/IBringDaEmails/IBringDaEmails/Program.cs",
+		"/C/Users/Ben/Documents/Visual Studio 2012/Projects/AngelCo_Scraper/AngelCo_Scraper/bin/Debug/2704.html",
+		"/C/Users/Ben/Documents/Visual Studio 2012/Projects/AngelCo_Scraper/AngelCo_Scraper/bin/Debug/2359.html",
+		"/C/Users/Ben/Documents/Visual Studio 2012/Projects/AngelCo_Scraper/AngelCo_Scraper/bin/Debug/161998.html",
+		"/C/Users/Ben/Documents/Projects/an/server/wp-content/plugins/an-trending/simple.php",
+		"/U/Test/config.php",
+		"/C/Users/Ben/Documents/Projects/an/server/wp-content/plugins/an-appreciations/class-an-appreciations.php",
+		"/C/Users/Ben/Documents/Visual Studio 2012/Projects/JamesThing/JamesThing/bin/Debug/json.json",
+		"/C/Users/Ben/Pictures/bang.csv",
+		"/C/Users/Ben/Pictures/startups.csv",
+		"/C/Users/Ben/Documents/Visual Studio 2012/Projects/AngelCo_Scraper/AngelCo_Scraper/bin/Debug/155451",
+		"/C/Users/Ben/Documents/Visual Studio 2012/Projects/AngelCo_Scraper/AngelCo_Scraper/bin/Debug/155656",
+		"/C/Users/Ben/Documents/Visual Studio 2012/Projects/AngelCo_Scraper/AngelCo_Scraper/bin/Debug/157086",
+		"/C/Users/Ben/Documents/Projects/an/server/4122.sublime-workspace",
+		"/C/Users/Ben/Documents/Projects/an/server/wp-content/themes/a-n/includes/template-tags.php",
+		"/C/Users/Ben/Documents/Projects/an/server/wp-content/plugins/an-base/class-an-logging.php",
+		"/C/Users/Ben/Documents/Projects/mpslive/wp-content/themes/striking/location.php",
+		"/C/Users/Ben/Documents/Projects/an/server/wp-content/themes/a-n/author.php",
+		"/C/Users/Ben/Documents/Projects/an/server/wp-content/plugins/an-base/class-an-locations.php",
+		"/C/Users/Ben/Documents/Projects/mpslive/wp-content/themes/striking/template_application_data.php",
+		"/C/Users/Ben/Documents/Projects/mpslive/wp-content/themes/striking/template_application_logic.php",
+		"/C/Users/Ben/Documents/Projects/mpslive/wp-content/themes/striking/template_application.php",
+		"/C/Users/Ben/Documents/Projects/an/server/wp-content/plugins/an-groups/class-an-groups.php",
+		"/C/Users/Ben/Documents/Projects/an/server/wp-content/plugins/an-base/an-base.php",
+		"/C/Users/Ben/Documents/Projects/an/server/wp-content/plugins/an-trending/an-trending.php",
+		"/C/Users/Ben/Desktop/GB.txt",
+		"/C/Users/Ben/Documents/Projects/an/server/wp-content/themes/a-n/includes/widgets/widget_blog_author.php",
+		"/C/Users/Ben/Documents/Projects/an/server/wp-content/plugins/an-base/class-an-posts.php",
+		"/C/Users/Ben/Documents/Projects/an/server/wp-content/plugins/an-collections/class-an-collections.php",
+		"/C/Users/Ben/Documents/Projects/mpslive/wp-content/themes/striking/js/jquery.application.js",
+		"/C/Users/Ben/Documents/Projects/an/server/wp-content/themes/a-n/includes/widgets/widget_blog.php",
+		"/C/Users/Ben/Documents/Projects/an/server/wp-content/plugins/co-authors-plus/php/class-wp-cli.php",
+		"/C/Users/Ben/Documents/Projects/an/server/wp-content/plugins/co-authors-plus/php/class-coauthors-wp-list-table.php",
+		"/C/Users/Ben/Documents/Projects/an/server/wp-content/plugins/co-authors-plus/php/class-coauthors-template-filters.php"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 97.0,
+		"where_history":
+		[
+			"C:\\Users\\Ben Cox\\Documents\\bochs",
+			"Z:\\Temp4\\MafiaWarsScriptV2\\",
+			"Z:\\Temp4\\MafiaWarsScriptV2\\*",
+			"",
+			"*.html",
+			"",
+			"U:\\Test",
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"bx_phy_address",
+			"Wycomb",
+			"Wycombe 024",
+			"exec",
+			"\\r\\n",
+			"9o",
+			"Final_Func",
+			"cleanupline",
+			"parts",
+			"User",
+			"input:not",
+			";",
+			"fine",
+			"coolent",
+			"-",
+			"reload",
+			"window",
+			"window.rea",
+			"Reset",
+			"this.SpeedMultiplyer",
+			"points",
+			"ine",
+			"Plugin",
+			";",
+			"\\n",
+			"http://",
+			"Location",
+			"relevanssi_date_queries",
+			"wpdb",
+			"Common Queries",
+			"Last 30 days",
+			"Common Queries",
+			"common",
+			"Common Queries",
+			"root# ",
+			"insert_your_oauth2_redirect_uri",
+			"0,,,",
+			"\\r\\n0,,,",
+			" = \"\";",
+			"public string ",
+			"public string",
+			"\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"",
+			"<?",
+			"Newcastle",
+			"Newcasle",
+			"Ashton",
+			"TODO",
+			"an_appreciation_count",
+			"an_footer_meta",
+			"appreciations.js",
+			"wp_enqu",
+			"\\n</li><li>",
+			"an_appreciate_button",
+			"data-page_id",
+			"data-post",
+			"authors/",
+			"angel",
+			"inbox.php",
+			"reply",
+			"prevpage_link",
+			"999",
+			"			locationWindow.setShadowStyle(1);",
+			"^([^\\t]+)\\.",
+			"get_var",
+			"wp_in"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"\n",
+			"Rule",
+			";\n",
+			".\nPlugin",
+			"Plugin\n",
+			";\n",
+			";\\r\\n",
+			"\\r\\n",
+			"",
+			" = Part..Replace(\"\\\"\",\"\\\\\\\"\");",
+			" = Part..Replace(\"\\\"\",\"\\\\\\\")",
+			"Part.",
+			"</li>\\n<li>",
+			"data-profile",
+			"\\1\\t"
+		],
+		"reverse": true,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": false
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 30.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.9o://C:\\Users\\Ben Cox\\Documents\\GNomicsPrototype":
+	{
+		"height": 116.0
+	},
+	"output.9o://C:\\Users\\Ben Cox\\Documents\\HxProto":
+	{
+		"height": 166.0
+	},
+	"output.GoSublime-main-output":
+	{
+		"height": 98.0
+	},
+	"output.git":
+	{
+		"height": 89.0
+	},
+	"replace":
+	{
+		"height": 66.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"template-t",
+				"a-n/includes/template-tags.php"
+			],
+			[
+				"appres",
+				"plugins/an-appreciations/js/appreciations.js"
+			],
+			[
+				"class-an-s",
+				"an-suggestions/class-an-suggestions.php"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 244.0,
+	"status_bar_visible": true
+}
