@@ -22,6 +22,11 @@ body {
     background-color: #303030;
 }
 
+.online {
+    background-color: #a1c659 !important;
+    color: #303030 !important;
+}
+
 .base00 { color: #000000; }
 .base01 { color: #303030; }
 .base02 { color: #505050; }
