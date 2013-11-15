@@ -63,3 +63,11 @@ body {
     font-size: 14px;
     line-height: 1.2em;
 }
+
+.wikidata {
+   position: absolute;
+   width: 20%;
+   left: 80%;
+   top: 50px;
+   background-color: #202020;
+}
