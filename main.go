@@ -9,35 +9,47 @@ import (
 )
 
 func main() {
+	what := setupDatabase()
+	what.Ping()
+	_, e := what.Exec("SHOW TABLES")
+	check(e)
 	fmt.Println("DataCon Server")
 	m := martini.Classic()
 	// m.Use("/", martini.Static("public/index.html"))
 	m.Get("/", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
-		what := setupDatabase()
-		what.Ping()
 		http.ServeFile(res, req, "public/index.html")
 		// res.WriteHeader(200) // HTTP 200
 	})
+	m.Use(checkAuth)
 	m.Run()
 }
 
 func setupDatabase() *sql.DB {
-	fmt.Println("HI I AM A DATABASE!")
-	con, err := sql.Open("mysql", "root:@10.0.0.2/DataCon")
-	defer con.Close()
+	fmt.Println("[database] Asked for MySQL connection")
+	con, err := sql.Open("mysql", "root:@tcp(10.0.0.2:3306)/DataCon")
+	check(err)
 	con.Ping()
-	con.Exec("SHOW TABLES", err)
-
-	if err != nil {
-		return con
-	} else {
-		panic(err)
-		fmt.Println("OH DEAR!")
-		return con
-	}
+	return con
 }
 
-func checkAuth(res http.ResponseWriter, req *http.Request) string {
+func checkAuth(res http.ResponseWriter, req *http.Request) {
 	cookie, _ := req.Cookie("session")
-	return cookie.String()
+	database := setupDatabase()
+	// fmt.Println(cookie.String())
+	if cookie.String() != "" {
+		rows, e := database.Query("SELECT userid FROM priv_sessions where token = ? LIMIT 1", cookie.String())
+		check(e)
+		var userid int
+		rows.Next()
+		e = rows.Scan(&userid)
+		if e != nil {
+			http.Error(res, "Not allowed", 403)
+		}
+	}
+	// return cookie.String()
+}
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
 }
