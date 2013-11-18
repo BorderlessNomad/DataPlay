@@ -6,6 +6,7 @@ import (
 	"github.com/codegangsta/martini"
 	_ "github.com/go-sql-driver/mysql"
 	"net/http"
+	"strings"
 )
 
 func main() {
@@ -40,17 +41,19 @@ func checkAuth(res http.ResponseWriter, req *http.Request) {
 	cookie, _ := req.Cookie("session")
 	database := setupDatabase()
 	// fmt.Println(cookie.String())
-	if cookie.String() != "" {
-		rows, e := database.Query("SELECT userid FROM priv_sessions where token = ? LIMIT 1", cookie.String())
-		check(e)
-		var userid int
-		rows.Next()
-		e = rows.Scan(&userid)
-		if e != nil {
+	if req.RequestURI != "/login" && !strings.HasPrefix(req.RequestURI, "/assets") {
+		if cookie.String() != "" {
+			rows, e := database.Query("SELECT userid FROM priv_sessions where token = ? LIMIT 1", cookie.String())
+			check(e)
+			var userid int
+			rows.Next()
+			e = rows.Scan(&userid)
+			if e != nil {
+				http.Redirect(res, req, "/login", http.StatusMovedPermanently)
+			}
+		} else {
 			http.Redirect(res, req, "/login", http.StatusMovedPermanently)
 		}
-	} else {
-		http.Redirect(res, req, "/login", http.StatusMovedPermanently)
 	}
 	// return cookie.String()
 }
