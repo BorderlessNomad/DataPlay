@@ -20,6 +20,10 @@ func main() {
 		http.ServeFile(res, req, "public/index.html")
 		// res.WriteHeader(200) // HTTP 200
 	})
+	m.Get("/login", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
+		http.ServeFile(res, req, "public/index.html")
+		// res.WriteHeader(200) // HTTP 200
+	})
 	m.Use(checkAuth)
 	m.Run()
 }
@@ -43,8 +47,10 @@ func checkAuth(res http.ResponseWriter, req *http.Request) {
 		rows.Next()
 		e = rows.Scan(&userid)
 		if e != nil {
-			http.Error(res, "Not allowed", 403)
+			http.Redirect(res, req, "/login", http.StatusMovedPermanently)
 		}
+	} else {
+		http.Redirect(res, req, "/login", http.StatusMovedPermanently)
 	}
 	// return cookie.String()
 }
