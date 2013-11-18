@@ -22,7 +22,7 @@ func main() {
 		// res.WriteHeader(200) // HTTP 200
 	})
 	m.Get("/login", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
-		http.ServeFile(res, req, "public/index.html")
+		http.ServeFile(res, req, "public/signin.html")
 		// res.WriteHeader(200) // HTTP 200
 	})
 	m.Use(checkAuth)
