@@ -29,8 +29,19 @@ func main() {
 }
 
 func HandleLogin(res http.ResponseWriter, req *http.Request) {
-	db := setupDatabase()
+	database := setupDatabase()
 	res.Write()
+	username := req.FormValue("username")
+	password := req.FormValue("password")
+	rows, e := database.Query("SELECT COUNT(*) as count FROM priv_users where email = ? and password = MD5(?) LIMIT 1", username, password)
+	check(e)
+	rows.Next()
+	var count int
+	e = rows.Scan(&count)
+	if count != 0 {
+		cookie := http.Cookie{"test", "tcookie", "/", nil, expire, expire.Format(time.UnixDate), 86400, true, true, "test=tcookie", []string{"test=tcookie"}}
+		http.SetCookie(res, cookie)
+	}
 }
 
 func setupDatabase() *sql.DB {
