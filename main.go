@@ -19,14 +19,18 @@ func main() {
 	// m.Use("/", martini.Static("public/index.html"))
 	m.Get("/", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
 		http.ServeFile(res, req, "public/index.html")
-		// res.WriteHeader(200) // HTTP 200
 	})
 	m.Get("/login", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
 		http.ServeFile(res, req, "public/signin.html")
-		// res.WriteHeader(200) // HTTP 200
 	})
+	m.Post("/noauth/login.json", HandleLogin)
 	m.Use(checkAuth)
 	m.Run()
+}
+
+func HandleLogin(res http.ResponseWriter, req *http.Request) {
+	db := setupDatabase()
+	res.Write()
 }
 
 func setupDatabase() *sql.DB {
@@ -41,7 +45,7 @@ func checkAuth(res http.ResponseWriter, req *http.Request) {
 	cookie, _ := req.Cookie("session")
 	database := setupDatabase()
 	// fmt.Println(cookie.String())
-	if req.RequestURI != "/login" && !strings.HasPrefix(req.RequestURI, "/assets") {
+	if req.RequestURI != "/login" && !strings.HasPrefix(req.RequestURI, "/assets") && !strings.HasPrefix(req.RequestURI, "/noauth") {
 		if cookie.String() != "" {
 			rows, e := database.Query("SELECT userid FROM priv_sessions where token = ? LIMIT 1", cookie.String())
 			check(e)
@@ -57,6 +61,7 @@ func checkAuth(res http.ResponseWriter, req *http.Request) {
 	}
 	// return cookie.String()
 }
+
 func check(e error) {
 	if e != nil {
 		panic(e)
