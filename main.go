@@ -21,11 +21,12 @@ var manager *session.SessionManager
 
 func main() {
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	manager := session.NewSessionManager(logger)
+	manager = session.NewSessionManager(logger)
 
 	manager.OnStart(func(session *session.Session) {
-		println("started new session")
+		println("started new session", session.Id, session.Value)
 	})
+	manager.SetTimeout(120)
 
 	what := setupDatabase()
 	what.Ping()
@@ -35,9 +36,12 @@ func main() {
 	m := martini.Classic()
 	// m.Use("/", martini.Static("public/index.html"))
 	m.Get("/", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
+		fmt.Println("r u shur")
 		http.ServeFile(res, req, "public/index.html")
 	})
 	m.Get("/login", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
+		session := manager.GetSession(res, req)
+		fmt.Println("hi", session.Id, session.Value, session)
 		http.ServeFile(res, req, "public/signin.html")
 	})
 	m.Post("/noauth/login.json", HandleLogin)
@@ -52,43 +56,53 @@ func main() {
 
 func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	database := setupDatabase()
+	fmt.Println("WHAT")
 	session := manager.GetSession(res, req)
-
+	fmt.Println("TAHW")
 	// res.Write()
 	username := req.FormValue("username")
 	password := req.FormValue("password")
-	rows, e := database.Query("SELECT COUNT(*) as count FROM priv_users where email = ? and password = MD5(?) LIMIT 1", username, password)
+	fmt.Println()
+	rows, e := database.Query("SELECT COUNT(*) as count FROM priv_users where email = ? and password = MD5( ? ) LIMIT 1", username, password)
 	check(e)
 	rows.Next()
 	var count int
 	e = rows.Scan(&count)
+	fmt.Println("SQL user", count)
 	if count != 0 {
 		// session := seshcookie.Session.Get(req)
 		// loggedin, _ := session["loggedin"].(int)
 		// loggedin := 1
 		// session["loggedin"] = loggedin
-		session.Value = "a"
+		fmt.Println("Authed user 1", count)
+		session.Value = "adf"
+		fmt.Println("Authed user 2", session.Value)
+		fmt.Println("hi", session.Id, session.Value, session)
 	}
 }
 
 func setupDatabase() *sql.DB {
 	fmt.Println("[database] Asked for MySQL connection")
-	con, err := sql.Open("mysql", "root:@tcp(10.0.0.2:3306)/DataCon")
+	con, err := sql.Open("mysql", "root:@tcp(10.0.0.2:3306)/DataCon?charset=utf8")
+	con.Exec("SET NAMES UTF8")
 	check(err)
 	con.Ping()
 	return con
 }
 
 func checkAuth(res http.ResponseWriter, req *http.Request) {
-	// cookie, _ := req.Cookie("session")
+	// fmt.Println(req.Cookies())
+	// cookie, _ := req.Cookie("SessionID")
 	// database := setupDatabase()
 	// fmt.Println(cookie.String())
 	if req.RequestURI != "/login" && !strings.HasPrefix(req.RequestURI, "/assets") && !strings.HasPrefix(req.RequestURI, "/noauth") {
 		session := manager.GetSession(res, req)
+
 		if session.Value != nil {
-			http.Redirect(res, req, "/", http.StatusMovedPermanently)
+			fmt.Println("The users sesion val is", session.Value, "so I am going let them pass")
 		} else {
-			http.Redirect(res, req, "/login", http.StatusMovedPermanently)
+			fmt.Println("The users sesion val is", session.Value, "so I am going to send them to the login page")
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
 		}
 	}
 }
