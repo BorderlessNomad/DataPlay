@@ -36,12 +36,12 @@ func main() {
 	m := martini.Classic()
 	// m.Use("/", martini.Static("public/index.html"))
 	m.Get("/", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
-		fmt.Println("r u shur")
+		// fmt.Println("r u shur")
 		http.ServeFile(res, req, "public/index.html")
 	})
 	m.Get("/login", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
 		session := manager.GetSession(res, req)
-		fmt.Println("hi", session.Id, session.Value, session)
+		// fmt.Println("hi", session.Id, session.Value, session)
 		http.ServeFile(res, req, "public/signin.html")
 	})
 	m.Post("/noauth/login.json", HandleLogin)
@@ -70,14 +70,10 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	e = rows.Scan(&count)
 	fmt.Println("SQL user", count)
 	if count != 0 {
-		// session := seshcookie.Session.Get(req)
-		// loggedin, _ := session["loggedin"].(int)
-		// loggedin := 1
 		// session["loggedin"] = loggedin
-		fmt.Println("Authed user 1", count)
+		// fmt.Println("Authed user 1", count)
 		session.Value = "adf"
-		fmt.Println("Authed user 2", session.Value)
-		fmt.Println("hi", session.Id, session.Value, session)
+		// fmt.Println("hi", session.Id, session.Value, session)
 		http.Redirect(res, req, "/?1=1", http.StatusSeeOther)
 	}
 }
@@ -92,17 +88,13 @@ func setupDatabase() *sql.DB {
 }
 
 func checkAuth(res http.ResponseWriter, req *http.Request) {
-	// fmt.Println(req.Cookies())
-	// cookie, _ := req.Cookie("SessionID")
-	// database := setupDatabase()
-	// fmt.Println(cookie.String())
 	if req.RequestURI != "/login" && !strings.HasPrefix(req.RequestURI, "/assets") && !strings.HasPrefix(req.RequestURI, "/noauth") {
 		session := manager.GetSession(res, req)
 
 		if session.Value != nil {
-			fmt.Println("The users sesion val is", session.Value, "so I am going let them pass")
+			// fmt.Println("The users sesion val is", session.Value, "so I am going let them pass")
 		} else {
-			fmt.Println("The users sesion val is", session.Value, "so I am going to send them to the login page")
+			// fmt.Println("The users sesion val is", session.Value, "so I am going to send them to the login page")
 			http.Redirect(res, req, "/login", http.StatusSeeOther)
 		}
 	}
