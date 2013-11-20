@@ -3,10 +3,12 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/bpowers/seshcookie"
 	"github.com/codegangsta/martini"
 	_ "github.com/go-sql-driver/mysql"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -30,7 +32,7 @@ func main() {
 
 func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	database := setupDatabase()
-	res.Write()
+	// res.Write()
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 	rows, e := database.Query("SELECT COUNT(*) as count FROM priv_users where email = ? and password = MD5(?) LIMIT 1", username, password)
@@ -38,9 +40,13 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	rows.Next()
 	var count int
 	e = rows.Scan(&count)
+	expire := time.Now()
+	expire.Add(time.Month)
 	if count != 0 {
-		cookie := http.Cookie{"test", "tcookie", "/", nil, expire, expire.Format(time.UnixDate), 86400, true, true, "test=tcookie", []string{"test=tcookie"}}
-		http.SetCookie(res, cookie)
+		session := seshcookie.Session.Get(req)
+		loggedin, _ := session["loggedin"].(int)
+		loggedin = 1
+		session["loggedin"] = loggedin
 	}
 }
 
@@ -57,20 +63,11 @@ func checkAuth(res http.ResponseWriter, req *http.Request) {
 	database := setupDatabase()
 	// fmt.Println(cookie.String())
 	if req.RequestURI != "/login" && !strings.HasPrefix(req.RequestURI, "/assets") && !strings.HasPrefix(req.RequestURI, "/noauth") {
-		if cookie.String() != "" {
-			rows, e := database.Query("SELECT userid FROM priv_sessions where token = ? LIMIT 1", cookie.String())
-			check(e)
-			var userid int
-			rows.Next()
-			e = rows.Scan(&userid)
-			if e != nil {
-				http.Redirect(res, req, "/login", http.StatusMovedPermanently)
-			}
-		} else {
+		session := seshcookie.Session.Get(req)
+		if session["loggedin"] != 1 {
 			http.Redirect(res, req, "/login", http.StatusMovedPermanently)
 		}
 	}
-	// return cookie.String()
 }
 
 func check(e error) {
