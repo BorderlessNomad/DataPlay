@@ -3,14 +3,30 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/bpowers/seshcookie"
 	"github.com/codegangsta/martini"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/mattn/go-session-manager"
+	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
+type AuthHandler struct {
+	http.Handler
+	Users map[string]string
+}
+
+var manager *session.SessionManager
+
 func main() {
+	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	manager := session.NewSessionManager(logger)
+
+	manager.OnStart(func(session *session.Session) {
+		println("started new session")
+	})
+
 	what := setupDatabase()
 	what.Ping()
 	_, e := what.Exec("SHOW TABLES")
@@ -25,12 +41,19 @@ func main() {
 		http.ServeFile(res, req, "public/signin.html")
 	})
 	m.Post("/noauth/login.json", HandleLogin)
+	// handler := seshcookie.NewSessionHandler(
+	// 	&AuthHandler{http.FileServer(contentDir), userDb},
+	// 	"session key, preferably a sequence of data from /dev/urandom",
+	// 	nil)
+	// m.Use(handler)
 	m.Use(checkAuth)
 	m.Run()
 }
 
 func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	database := setupDatabase()
+	session := manager.GetSession(res, req)
+
 	// res.Write()
 	username := req.FormValue("username")
 	password := req.FormValue("password")
@@ -40,10 +63,11 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	var count int
 	e = rows.Scan(&count)
 	if count != 0 {
-		session := seshcookie.Session.Get(req)
-		loggedin, _ := session["loggedin"].(int)
-		loggedin = 1
-		session["loggedin"] = loggedin
+		// session := seshcookie.Session.Get(req)
+		// loggedin, _ := session["loggedin"].(int)
+		// loggedin := 1
+		// session["loggedin"] = loggedin
+		session.Value = "a"
 	}
 }
 
@@ -60,8 +84,10 @@ func checkAuth(res http.ResponseWriter, req *http.Request) {
 	// database := setupDatabase()
 	// fmt.Println(cookie.String())
 	if req.RequestURI != "/login" && !strings.HasPrefix(req.RequestURI, "/assets") && !strings.HasPrefix(req.RequestURI, "/noauth") {
-		session := seshcookie.Session.Get(req)
-		if session["loggedin"] != 1 {
+		session := manager.GetSession(res, req)
+		if session.Value != nil {
+			http.Redirect(res, req, "/", http.StatusMovedPermanently)
+		} else {
 			http.Redirect(res, req, "/login", http.StatusMovedPermanently)
 		}
 	}
