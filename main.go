@@ -56,8 +56,8 @@ func setupDatabase() *sql.DB {
 }
 
 func checkAuth(res http.ResponseWriter, req *http.Request) {
-	cookie, _ := req.Cookie("session")
-	database := setupDatabase()
+	// cookie, _ := req.Cookie("session")
+	// database := setupDatabase()
 	// fmt.Println(cookie.String())
 	if req.RequestURI != "/login" && !strings.HasPrefix(req.RequestURI, "/assets") && !strings.HasPrefix(req.RequestURI, "/noauth") {
 		session := seshcookie.Session.Get(req)
