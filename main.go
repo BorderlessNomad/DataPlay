@@ -78,6 +78,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 		session.Value = "adf"
 		fmt.Println("Authed user 2", session.Value)
 		fmt.Println("hi", session.Id, session.Value, session)
+		http.Redirect(res, req, "/?1=1", http.StatusSeeOther)
 	}
 }
 
