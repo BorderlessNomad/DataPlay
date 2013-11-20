@@ -34,32 +34,20 @@ func main() {
 	check(e)
 	fmt.Println("DataCon Server")
 	m := martini.Classic()
-	// m.Use("/", martini.Static("public/index.html"))
 	m.Get("/", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
-		// fmt.Println("r u shur")
 		http.ServeFile(res, req, "public/index.html")
 	})
 	m.Get("/login", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
-		session := manager.GetSession(res, req)
-		// fmt.Println("hi", session.Id, session.Value, session)
 		http.ServeFile(res, req, "public/signin.html")
 	})
 	m.Post("/noauth/login.json", HandleLogin)
-	// handler := seshcookie.NewSessionHandler(
-	// 	&AuthHandler{http.FileServer(contentDir), userDb},
-	// 	"session key, preferably a sequence of data from /dev/urandom",
-	// 	nil)
-	// m.Use(handler)
 	m.Use(checkAuth)
 	m.Run()
 }
 
 func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	database := setupDatabase()
-	fmt.Println("WHAT")
 	session := manager.GetSession(res, req)
-	fmt.Println("TAHW")
-	// res.Write()
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 	fmt.Println()
