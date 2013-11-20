@@ -8,7 +8,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"net/http"
 	"strings"
-	"time"
 )
 
 func main() {
@@ -40,8 +39,6 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	rows.Next()
 	var count int
 	e = rows.Scan(&count)
-	expire := time.Now()
-	expire.Add(time.Month)
 	if count != 0 {
 		session := seshcookie.Session.Get(req)
 		loggedin, _ := session["loggedin"].(int)
