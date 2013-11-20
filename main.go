@@ -58,11 +58,9 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	e = rows.Scan(&count)
 	fmt.Println("SQL user", count)
 	if count != 0 {
-		// session["loggedin"] = loggedin
-		// fmt.Println("Authed user 1", count)
 		session.Value = "adf"
 		// fmt.Println("hi", session.Id, session.Value, session)
-		http.Redirect(res, req, "/?1=1", http.StatusSeeOther)
+		http.Redirect(res, req, "/?1=1", http.StatusTemporaryRedirect)
 	}
 }
 
@@ -83,7 +81,7 @@ func checkAuth(res http.ResponseWriter, req *http.Request) {
 			// fmt.Println("The users sesion val is", session.Value, "so I am going let them pass")
 		} else {
 			// fmt.Println("The users sesion val is", session.Value, "so I am going to send them to the login page")
-			http.Redirect(res, req, "/login", http.StatusSeeOther)
+			http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
 		}
 	}
 }
