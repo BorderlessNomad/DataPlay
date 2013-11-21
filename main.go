@@ -47,6 +47,9 @@ func main() {
 	})
 	m.Post("/noauth/login.json", HandleLogin)
 	m.Get("/api/user", api.CheckAuth)
+	m.Get("/api/search/:s", api.SearchForData)
+	m.Get("/api/getinfo/:id", api.GetEntry)
+
 	m.Use(checkAuth)
 	m.Use(ProabblyAPI)
 	m.Run()
