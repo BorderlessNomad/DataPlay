@@ -1,10 +1,12 @@
 package main
 
 import (
-	"database/sql"
+	// "./api"
+	msql "./databasefuncs"
+	// "database/sql"
 	"fmt"
 	"github.com/codegangsta/martini"
-	_ "github.com/go-sql-driver/mysql"
+	// _ "github.com/go-sql-driver/mysql"
 	"github.com/mattn/go-session-manager"
 	"log"
 	"net/http"
@@ -22,13 +24,14 @@ var manager *session.SessionManager
 func main() {
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	manager = session.NewSessionManager(logger)
+	manager.SetPath("/") // Thanks for telling me this is needed?
 
 	manager.OnStart(func(session *session.Session) {
 		println("started new session", session.Id, session.Value)
 	})
 	manager.SetTimeout(120)
 
-	what := setupDatabase()
+	what := msql.GetDB()
 	what.Ping()
 	_, e := what.Exec("SHOW TABLES")
 	check(e)
@@ -46,7 +49,7 @@ func main() {
 }
 
 func HandleLogin(res http.ResponseWriter, req *http.Request) {
-	database := setupDatabase()
+	database := msql.GetDB()
 	session := manager.GetSession(res, req)
 	username := req.FormValue("username")
 	password := req.FormValue("password")
@@ -64,14 +67,14 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func setupDatabase() *sql.DB {
-	fmt.Println("[database] Asked for MySQL connection")
-	con, err := sql.Open("mysql", "root:@tcp(10.0.0.2:3306)/DataCon?charset=utf8")
-	con.Exec("SET NAMES UTF8")
-	check(err)
-	con.Ping()
-	return con
-}
+// func setupDatabase() *sql.DB {
+// 	fmt.Println("[database] Asked for MySQL connection")
+// 	con, err := sql.Open("mysql", "root:@tcp(10.0.0.2:3306)/DataCon?charset=utf8")
+// 	con.Exec("SET NAMES UTF8")
+// 	check(err)
+// 	con.Ping()
+// 	return con
+// }
 
 func checkAuth(res http.ResponseWriter, req *http.Request) {
 	if req.RequestURI != "/login" && !strings.HasPrefix(req.RequestURI, "/assets") && !strings.HasPrefix(req.RequestURI, "/noauth") {
