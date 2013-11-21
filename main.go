@@ -46,8 +46,9 @@ func main() {
 		http.ServeFile(res, req, "public/signin.html")
 	})
 	m.Post("/noauth/login.json", HandleLogin)
-	m.Get("/testtest", api.CheckAuth)
+	m.Get("/api/user", api.CheckAuth)
 	m.Use(checkAuth)
+	m.Use(ProabblyAPI)
 	m.Run()
 }
 

@@ -31,7 +31,6 @@ func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params,
 		UserID:   intuid,
 	}
 	b, _ := json.Marshal(returnobj)
-	res.Header().Set("Content-Type", "application/json")
 	return string(b[:])
 	// return session.Cookie()
 }
