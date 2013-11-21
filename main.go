@@ -51,6 +51,12 @@ func main() {
 	m.Run()
 }
 
+func ProabblyAPI(res http.ResponseWriter, req *http.Request) { // Forces anything with /api to have a json doctype. Since it makes sence to
+	if strings.HasPrefix(req.RequestURI, "/api") {
+		res.Header().Set("Content-Type", "application/json")
+	}
+}
+
 func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	database := msql.GetDB()
 	session := manager.GetSession(res, req)
