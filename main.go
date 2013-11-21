@@ -67,15 +67,6 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// func setupDatabase() *sql.DB {
-// 	fmt.Println("[database] Asked for MySQL connection")
-// 	con, err := sql.Open("mysql", "root:@tcp(10.0.0.2:3306)/DataCon?charset=utf8")
-// 	con.Exec("SET NAMES UTF8")
-// 	check(err)
-// 	con.Ping()
-// 	return con
-// }
-
 func checkAuth(res http.ResponseWriter, req *http.Request) {
 	if req.RequestURI != "/login" && !strings.HasPrefix(req.RequestURI, "/assets") && !strings.HasPrefix(req.RequestURI, "/noauth") {
 		session := manager.GetSession(res, req)
