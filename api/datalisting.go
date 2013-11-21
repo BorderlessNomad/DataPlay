@@ -32,5 +32,4 @@ func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params,
 	}
 	b, _ := json.Marshal(returnobj)
 	return string(b[:])
-	// return session.Cookie()
 }
