@@ -85,9 +85,7 @@ func checkAuth(res http.ResponseWriter, req *http.Request) {
 		session := manager.GetSession(res, req)
 
 		if session.Value != nil {
-			fmt.Println("The users sesion val is", session.Value, "so I am going let them pass")
 		} else {
-			fmt.Println("The users sesion val is", session.Value, "so I am going to send them to the login page")
 			http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
 		}
 	}
