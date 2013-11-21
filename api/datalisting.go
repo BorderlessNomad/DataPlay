@@ -9,6 +9,7 @@ import (
 	"github.com/mattn/go-session-manager"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type AuthResponce struct {
@@ -100,6 +101,7 @@ func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) 
 	var Notes string
 	var ckan_url string
 	e := database.QueryRow("SELECT * FROM `index` WHERE GUID LIKE ? LIMIT 10", prams["id"]+"%").Scan(&GUID, &Name, &Title, &Notes, &ckan_url)
+	strings.Replace(ckan_url, "//", "/", -1)
 
 	returner := DataEntry{
 		GUID:     GUID,

@@ -49,6 +49,9 @@ func main() {
 	m.Get("/api/user", api.CheckAuth)
 	m.Get("/api/search/:s", api.SearchForData)
 	m.Get("/api/getinfo/:id", api.GetEntry)
+	m.Get("/view/:id", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
+		http.ServeFile(res, req, "public/displaydataset.html")
+	})
 
 	m.Use(checkAuth)
 	m.Use(ProabblyAPI)
