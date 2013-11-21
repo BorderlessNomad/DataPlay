@@ -60,7 +60,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	if count != 0 {
 		session.Value = "adf"
 		// fmt.Println("hi", session.Id, session.Value, session)
-		http.Redirect(res, req, "/?1=1", http.StatusTemporaryRedirect)
+		http.Redirect(res, req, "/?1=1", http.StatusFound)
 	}
 }
 
@@ -78,9 +78,9 @@ func checkAuth(res http.ResponseWriter, req *http.Request) {
 		session := manager.GetSession(res, req)
 
 		if session.Value != nil {
-			// fmt.Println("The users sesion val is", session.Value, "so I am going let them pass")
+			fmt.Println("The users sesion val is", session.Value, "so I am going let them pass")
 		} else {
-			// fmt.Println("The users sesion val is", session.Value, "so I am going to send them to the login page")
+			fmt.Println("The users sesion val is", session.Value, "so I am going to send them to the login page")
 			http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
 		}
 	}
