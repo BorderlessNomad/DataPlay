@@ -1,21 +1,36 @@
 package api
 
 import (
-	// msql "../databasefuncs"
+	msql "../databasefuncs"
 	// "database/sql"
-	// "fmt"
+	"encoding/json"
+	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/mattn/go-session-manager"
 	"net/http"
+	"strconv"
 )
 
 type AuthResponce struct {
 	Username string
-	UserID   string
+	UserID   int64
 }
 
 func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params, manager *session.SessionManager) string {
 	//This function is used to gather what is the
 	session := manager.GetSession(res, req)
-	return session.Cookie()
+	database := msql.GetDB()
+	var uid string
+	uid = fmt.Sprint(session.Value)
+	intuid, _ := strconv.ParseInt(uid, 10, 16)
+	var username string
+	database.QueryRow("select email from priv_useres where uid = ?", uid).Scan(&username)
+
+	returnobj := AuthResponce{
+		Username: username,
+		UserID:   intuid,
+	}
+	b, _ := json.Marshal(returnobj)
+	return string(b[:])
+	// return session.Cookie()
 }
