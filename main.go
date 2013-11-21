@@ -1,7 +1,7 @@
 package main
 
 import (
-	// "./api"
+	api "./api"
 	msql "./databasefuncs"
 	// "database/sql"
 	"fmt"
@@ -33,10 +33,12 @@ func main() {
 
 	what := msql.GetDB()
 	what.Ping()
+
 	_, e := what.Exec("SHOW TABLES")
 	check(e)
 	fmt.Println("DataCon Server")
 	m := martini.Classic()
+	m.Map(manager)
 	m.Get("/", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
 		http.ServeFile(res, req, "public/index.html")
 	})
@@ -44,6 +46,7 @@ func main() {
 		http.ServeFile(res, req, "public/signin.html")
 	})
 	m.Post("/noauth/login.json", HandleLogin)
+	m.Get("/testtest", api.CheckAuth)
 	m.Use(checkAuth)
 	m.Run()
 }
