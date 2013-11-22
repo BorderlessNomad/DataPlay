@@ -75,7 +75,29 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 		}
 		Results = append(Results, SR)
 	}
+	if len(Results) == 1 {
+		fmt.Println("falling back to overkill search")
+		rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", "%"+prams["s"]+"%")
 
+		if e != nil {
+			panic(e)
+		}
+		for rows.Next() {
+			var id string
+			var name string
+
+			err := rows.Scan(&id, &name)
+			if err != nil {
+				panic(err)
+			}
+
+			SR := SearchResult{
+				Title: name,
+				GUID:  id,
+			}
+			Results = append(Results, SR)
+		}
+	}
 	defer rows.Close()
 	b, _ := json.Marshal(Results)
 	return string(b[:])

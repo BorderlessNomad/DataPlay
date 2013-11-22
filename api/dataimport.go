@@ -69,10 +69,10 @@ func DownloadDataset(url string) {
 	response, _ := http.Get(url)
 	full, _ := ioutil.ReadAll(response.Body)
 	hash := sha1.New()
-	hash.Write(url)
+	hash.Write([]byte(url))
 	ioutil.WriteFile("./temp"+fmt.Sprintf("%x", url), full, 0667)
 	database := msql.GetDB()
 	defer database.Close()
-	rowlength := len(strings.Split(response, ","))
+	// rowlength := len(strings.Split(full, ","))
 
 }
