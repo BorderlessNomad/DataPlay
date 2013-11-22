@@ -29,7 +29,7 @@ func main() {
 	manager.OnStart(func(session *session.Session) {
 		println("started new session", session.Id, session.Value)
 	})
-	manager.SetTimeout(120)
+	manager.SetTimeout(120 * 60)
 
 	what := msql.GetDB()
 	what.Ping()
@@ -45,14 +45,31 @@ func main() {
 	m.Get("/login", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
 		http.ServeFile(res, req, "public/signin.html")
 	})
+	m.Get("/view/:id", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
+		http.ServeFile(res, req, "public/displaydataset.html")
+	})
+	m.Get("/import/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) { // res and req are injected by Martini
+		http.ServeFile(res, req, "public/processing.html")
+
+		if prams["id"] == "" {
+			http.Error(res, "There was no ID request", http.StatusBadRequest)
+		}
+		database := msql.GetDB()
+		defer database.Close()
+		var ckan_url string
+		fmt.Println("WHATTTTTT", prams["id"])
+		database.QueryRow("SELECT ckan_url FROM `index` WHERE GUID = ? LIMIT 1", prams["id"]).Scan(&ckan_url)
+		fmt.Println(ckan_url)
+		url := strings.Replace(strings.Replace(ckan_url, "//", "/", -1), "http:/", "http://", 1)
+
+		api.ImportAllDatasets(url)
+	})
 	m.Post("/noauth/login.json", HandleLogin)
 	m.Get("/api/user", api.CheckAuth)
 	m.Get("/api/search/:s", api.SearchForData)
 	m.Get("/api/getinfo/:id", api.GetEntry)
 	m.Get("/api/getquality/:id", api.CheckDataQuality)
-	m.Get("/view/:id", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
-		http.ServeFile(res, req, "public/displaydataset.html")
-	})
+	m.Get("/api/getimportstatus/:id", api.CheckImportStatus)
 
 	m.Use(checkAuth)
 	m.Use(ProabblyAPI)
