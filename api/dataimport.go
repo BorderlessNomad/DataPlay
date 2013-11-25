@@ -73,17 +73,19 @@ func DownloadDataset(url string) {
 		full, _ := ioutil.ReadAll(response.Body)
 		hash := sha1.New()
 		hash.Write([]byte(url))
-		ioutil.WriteFile("./temp"+fmt.Sprintf("%x", url), full, 0667)
+		ioutil.WriteFile("./temp"+fmt.Sprintf("%x", hash.Sum(nil)), full, 0667)
 		database := msql.GetDB()
 		defer database.Close()
 		rows := strings.Split(string(full[:]), "\n")
 		colcount := len(strings.Split(rows[0], ","))
 		var tablebuilder string
-		tablebuilder = "CREATE TABLE `" + fmt.Sprintf("%x", url) + "` ("
-		for i := 0; i < colcount+1; i++ {
+		tablebuilder = "CREATE TABLE `" + fmt.Sprintf("%x", hash.Sum(nil)) + "` ("
+		for i := 0; i < colcount; i++ {
 			tablebuilder = tablebuilder + "`Column " + fmt.Sprintf("%d", i) + "` TEXT NULL,"
 		}
+		tablebuilder = tablebuilder + "`Column " + fmt.Sprintf("%d", colcount) + "` TEXT NULL"
 		tablebuilder = tablebuilder + ") COLLATE='latin1_swedish_ci' ENGINE=InnoDB;"
+		fmt.Println(tablebuilder)
 		_, e := database.Exec(tablebuilder)
 		// panic(e)
 		if e != nil {
@@ -91,7 +93,7 @@ func DownloadDataset(url string) {
 		}
 		var tableloader string
 
-		tableloader = tableloader + "LOAD DATA INFILE '" + "./temp" + fmt.Sprintf("%x", hash.Sum(nil)) + "'\n"
+		tableloader = tableloader + "LOAD DATA LOCAL INFILE '" + "./temp" + fmt.Sprintf("%x", hash.Sum(nil)) + "'\n"
 		tableloader = tableloader + "INTO TABLE " + fmt.Sprintf("%x", hash.Sum(nil)) + "\n"
 		tableloader = tableloader + "FIELDS TERMINATED BY ','" + "\n"
 		tableloader = tableloader + "OPTIONALLY ENCLOSED BY '\"'" + "\n"
@@ -104,7 +106,9 @@ func DownloadDataset(url string) {
 		tableloader = tableloader + "`Column " + fmt.Sprintf("%d", colcount) + "`)"
 
 		_, e = database.Exec(tableloader)
-
+		if e != nil {
+			panic(e)
+		}
 		// LOAD DATA INFILE 'detection.csv'
 		// INTO TABLE calldetections
 		// FIELDS TERMINATED BY ','

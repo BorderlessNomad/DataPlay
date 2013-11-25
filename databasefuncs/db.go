@@ -35,7 +35,7 @@ func GetQueryMonstrosity(*sql.Rows) string {
 
 func GetDB() *sql.DB {
 	fmt.Println("[database] Asked for MySQL connection")
-	con, err := sql.Open("mysql", "root:@tcp(10.0.0.2:3306)/DataCon?charset=utf8")
+	con, err := sql.Open("mysql", "root:@tcp(10.0.0.2:3306)/DataCon?allowAllFiles=true")
 	con.Exec("SET NAMES UTF8")
 	mysql.RegisterLocalFile("./")
 	if err != nil {
