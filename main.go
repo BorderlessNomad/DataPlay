@@ -62,7 +62,7 @@ func main() {
 		fmt.Println(ckan_url)
 		url := strings.Replace(strings.Replace(ckan_url, "//", "/", -1), "http:/", "http://", 1)
 
-		api.ImportAllDatasets(url)
+		api.ImportAllDatasets(url, prams["id"])
 	})
 	m.Post("/noauth/login.json", HandleLogin)
 	m.Get("/api/user", api.CheckAuth)

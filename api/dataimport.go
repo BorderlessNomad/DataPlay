@@ -10,6 +10,7 @@ import (
 	"github.com/mattn/go-session-manager"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -44,7 +45,7 @@ func CheckImportStatus(res http.ResponseWriter, req *http.Request, prams martini
 	return string(b[:])
 }
 
-func ImportAllDatasets(url string) {
+func ImportAllDatasets(url string, guid string) {
 	var e error
 	var doc *goq.Document
 	fmt.Println("Loading URL", url)
@@ -58,13 +59,13 @@ func ImportAllDatasets(url string) {
 			html, _ := s.Html()
 			if exists && strings.Contains(html, "icon-download-alt") {
 				fmt.Println(url)
-				go DownloadDataset(url)
+				go DownloadDataset(url, guid)
 			}
 		})
 	})
 }
 
-func DownloadDataset(url string) {
+func DownloadDataset(url string, guid string) {
 	fmt.Println("Downloading dataset", url)
 	response, _ := http.Get(url)
 	fmt.Println(response.Header)
@@ -109,6 +110,8 @@ func DownloadDataset(url string) {
 		if e != nil {
 			panic(e)
 		}
+		database.Exec("INSERT INTO `priv_onlinedata` (`GUID`, `DatasetGUID`, `TableName`) VALUES (?, ?, ?);", guid, "IForGotWhatIwantedToPutHere", fmt.Sprintf("%x", hash.Sum(nil)))
+		os.Remove("./temp" + fmt.Sprintf("%x", hash.Sum(nil)))
 		// LOAD DATA INFILE 'detection.csv'
 		// INTO TABLE calldetections
 		// FIELDS TERMINATED BY ','
