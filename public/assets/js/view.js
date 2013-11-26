@@ -7,11 +7,10 @@ $( document ).ready(function() {
 		$('#FillInDataSet').html(data.Title);
 		$(".wikidata").html(data.Notes);
 	});
-	function PopulatedKeys (Keys) {
+	function populatedKeys (Keys) {
 		$("#pickxaxis").empty();
 		$("#pickyaxis").empty();
 		for (var i = 0; i < Keys.length; i++) {
-
 			$("#pickxaxis").append($("<option></option>").val(Keys[i]).text(Keys[i]));
 		}
 		for (var i = 0; i < Keys.length; i++) {
@@ -32,11 +31,11 @@ $( document ).ready(function() {
 			}
 			if(!HavePopulatedKeys) {
 				console.log("boop");
-				PopulatedKeys(Keys);
+				populatedKeys(Keys);
 				HavePopulatedKeys = true;
 			}
 			
-			DataPool.push([parseInt(Unit[Keys[0]]),parseInt(Unit[Keys[1]])]);
+			DataPool.push([parseFloat(Unit[Keys[0]]),parseFloat(Unit[Keys[1]])]);
 		}
 		console.log(DataPool);
 		$.plot("#placeholder", [ DataPool ]);
@@ -46,9 +45,16 @@ $( document ).ready(function() {
 		var data = window.DataSet;
 		for (var i = 0; i < data.length; i++) {
 			var Unit = data[i];
-			DataPool.push([ parseInt(Unit[$("#pickxaxis").val()]) , parseInt(Unit[$("#pickyaxis").val()]) ]);
+			DataPool.push([ parseFloat(Unit[$("#pickxaxis").val()]) , parseFloat(Unit[$("#pickyaxis").val()]) ]);
 		}
 
 		$.plot("#placeholder", [ DataPool ]);
 	};
+	$('#SetupOverlay').on("click",function() {
+		// Okay so we need to put into local storage the current GUID
+		// so when the overlay panal is called we can use it later on the
+		// overlay page.
+		localStorage['overlay1'] = guid;
+		window.location.href = '/search/overlay';
+	});
 });
