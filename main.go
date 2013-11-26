@@ -70,6 +70,7 @@ func main() {
 	m.Get("/api/getinfo/:id", api.GetEntry)
 	m.Get("/api/getquality/:id", api.CheckDataQuality)
 	m.Get("/api/getimportstatus/:id", api.CheckImportStatus)
+	m.Get("/api/getdata/:id", api.DumpTable)
 
 	m.Use(checkAuth)
 	m.Use(ProabblyAPI)

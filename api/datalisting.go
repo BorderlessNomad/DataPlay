@@ -7,9 +7,12 @@ import (
 	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/mattn/go-session-manager"
+	"io"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type AuthResponce struct {
@@ -162,4 +165,73 @@ func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) 
 
 	b, _ := json.Marshal(returner)
 	return string(b[:])
+}
+
+type DataResponce struct {
+	Results []interface{}
+	Name    string
+}
+
+func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params) {
+	if prams["id"] == "" {
+		http.Error(res, "u wot (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
+	}
+	database := msql.GetDB()
+	defer database.Close()
+	var table string
+	table = prams["id"]
+	rows, err := database.Query("SELECT * FROM " + table)
+	if err != nil {
+		panic(err)
+	}
+	columns, err := rows.Columns()
+	if err != nil {
+		panic(err)
+	}
+
+	scanArgs := make([]interface{}, len(columns))
+	values := make([]interface{}, len(columns))
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+
+	array := make([]map[string]interface{}, 0)
+	for rows.Next() {
+		err = rows.Scan(scanArgs...)
+		if err != nil {
+			panic(err)
+		}
+
+		record := make(map[string]interface{})
+
+		for i, col := range values {
+			if col != nil {
+				// fmt.Printf("\n%s: type= %s\n", columns[i], reflect.TypeOf(col))
+
+				switch t := col.(type) {
+				default:
+					fmt.Printf("Unexpected type %T\n", t)
+				case bool:
+					record[columns[i]] = col.(bool)
+				case int:
+					record[columns[i]] = col.(int)
+				case int64:
+					record[columns[i]] = col.(int64)
+				case float64:
+					record[columns[i]] = col.(float64)
+				case string:
+					record[columns[i]] = col.(string)
+				case []byte: // -- all cases go HERE!
+					record[columns[i]] = string(col.([]byte))
+				case time.Time:
+				}
+			}
+		}
+		array = append(array, record)
+		// fmt.Printf("\n type= %s\n", reflect.TypeOf(record))
+
+	}
+	s, _ := json.Marshal(array)
+	res.Write(s)
+	io.WriteString(res, "\n")
 }
