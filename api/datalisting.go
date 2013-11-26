@@ -9,7 +9,7 @@ import (
 	"github.com/mattn/go-session-manager"
 	"io"
 	"net/http"
-	"reflect"
+	// "reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -178,9 +178,16 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 	}
 	database := msql.GetDB()
 	defer database.Close()
-	var table string
-	table = prams["id"]
-	rows, err := database.Query("SELECT * FROM " + table)
+	// var table string
+	// table = prams["id"]
+
+	var tablename string
+	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["id"]).Scan(&tablename)
+	if tablename == "" {
+		http.Error(res, "Could not find that table", http.StatusNotFound)
+		return
+	}
+	rows, err := database.Query("SELECT * FROM " + tablename)
 	if err != nil {
 		panic(err)
 	}
