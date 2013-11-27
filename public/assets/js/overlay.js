@@ -80,6 +80,9 @@ $( document ).ready(function() {
 		}
 
 
-		$.plot("#placeholder", [ DataPool,DataPool2 ]);
+		$.plot("#placeholder", [ 
+			{ data: DataPool, label: $("#picky1axis").val() },
+			{ data: DataPool2, label: $("#picky2axis").val(), yaxis: 2 }
+		]);
 	};
 });
