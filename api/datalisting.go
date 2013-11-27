@@ -139,6 +139,8 @@ type DataEntry struct {
 }
 
 func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
+	// This function gets the extended infomation from the index, things like the notes are used
+	// in the "wiki" section of the page.
 	database := msql.GetDB()
 	defer database.Close()
 	if prams["id"] == "" {
@@ -173,13 +175,14 @@ type DataResponce struct {
 }
 
 func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params) {
+	// This function will empty a whole table out into JSON
+	// Due to what seems to be a golang bug, everything is outputted as a string.
+
 	if prams["id"] == "" {
 		http.Error(res, "u wot (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
 	}
 	database := msql.GetDB()
 	defer database.Close()
-	// var table string
-	// table = prams["id"]
 
 	var tablename string
 	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["id"]).Scan(&tablename)
@@ -213,7 +216,6 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 
 		for i, col := range values {
 			if col != nil {
-				// fmt.Printf("\n%s: type= %s\n", columns[i], reflect.TypeOf(col))
 
 				switch t := col.(type) {
 				default:
@@ -235,8 +237,6 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 			}
 		}
 		array = append(array, record)
-		// fmt.Printf("\n type= %s\n", reflect.TypeOf(record))
-
 	}
 	s, _ := json.Marshal(array)
 	res.Write(s)

@@ -7,7 +7,9 @@ import (
 )
 
 func SetDefaults(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	// Okay this is suppose to be a POST request that will spit back out a UUID
+	// The set Defaults function is there to save small bits of data that the client might set.
+	// things like "the key 'date' is a int" really does need to be stored. Thus these pair of calls
+	// allow the browser to put data next to the row and get it back with ease.
 
 	if prams["id"] == "" {
 		http.Error(res, "You didnt give me a id to store for", http.StatusBadRequest)

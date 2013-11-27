@@ -20,7 +20,7 @@ type CheckImportResponce struct {
 }
 
 func CheckImportStatus(res http.ResponseWriter, req *http.Request, prams martini.Params, manager *session.SessionManager) string {
-
+	// This function checks to see if the data has been imported yet or still is in need of importing
 	database := msql.GetDB()
 	defer database.Close()
 	if prams["id"] == "" {
@@ -46,13 +46,14 @@ func CheckImportStatus(res http.ResponseWriter, req *http.Request, prams martini
 }
 
 func ImportAllDatasets(url string, guid string) {
+	// This call is desgined to fetch all of the links that are needed to be downloaded (on data.gov.uk)
+	// And then fire off go routines to go and fetch them.
 	var e error
 	var doc *goq.Document
 	fmt.Println("Loading URL", url)
 	if doc, e = goq.NewDocument(url); e != nil {
 		panic("Unable to fetch page!")
 	}
-	// urls := make([]string, 0)
 	doc.Find(".dropdown-menu").Each(func(i int, s *goq.Selection) {
 		s.Find("a").Each(func(i int, s *goq.Selection) {
 			url, exists := s.Attr("href")
@@ -66,6 +67,9 @@ func ImportAllDatasets(url string, guid string) {
 }
 
 func DownloadDataset(url string, guid string) {
+	// This function will inhale a CSV file and if it is not formatted stupidly (ALA: most of the stuff on data.gov.uk)
+	// it will make a SQL table for it and then put the fact that the data exists in the online table allowing the client
+	// to move along and to ensure that it wont be downloaded twice.
 	fmt.Println("Downloading dataset", url)
 	response, _ := http.Get(url)
 	fmt.Println(response.Header)
@@ -75,6 +79,9 @@ func DownloadDataset(url string, guid string) {
 		hash := sha1.New()
 		hash.Write([]byte(url))
 		ioutil.WriteFile("./temp"+fmt.Sprintf("%x", hash.Sum(nil)), full, 0667)
+		// I download the file into temp<hashofurl> so that:
+		// (A) if it crashes I can look into what he hell broke it. Since the file is only removed at the end of the process.
+		// (B) it is hash named so no one can dick around with the file system.
 		database := msql.GetDB()
 		defer database.Close()
 		rows := strings.Split(string(full[:]), "\n")
@@ -88,7 +95,6 @@ func DownloadDataset(url string, guid string) {
 		tablebuilder = tablebuilder + ") COLLATE='latin1_swedish_ci' ENGINE=InnoDB;"
 		fmt.Println(tablebuilder)
 		_, e := database.Exec(tablebuilder)
-		// panic(e)
 		if e != nil {
 			panic(e)
 		}
@@ -110,30 +116,10 @@ func DownloadDataset(url string, guid string) {
 		if e != nil {
 			panic(e)
 		}
+		// This is the part where it is presumed that the import worked fine and nothing went wrong.
+		// While this is (in the case of data.gov.uk) wrong, it is a good first defence to fighting 404's
 		database.Exec("INSERT INTO `priv_onlinedata` (`GUID`, `DatasetGUID`, `TableName`) VALUES (?, ?, ?);", guid, "IForGotWhatIwantedToPutHere", fmt.Sprintf("%x", hash.Sum(nil)))
 		os.Remove("./temp" + fmt.Sprintf("%x", hash.Sum(nil)))
-		// LOAD DATA INFILE 'detection.csv'
-		// INTO TABLE calldetections
-		// FIELDS TERMINATED BY ','
-		// OPTIONALLY ENCLOSED BY '"'
-		// LINES TERMINATED BY ',,,\r\n'
-		// IGNORE 1 LINES
-		// (date, name, type, number, duration, addr, pin, city, state, country, lat, log)
-
-		// CREATE TABLE `removeme` (
-		// 	`Column 1` TEXT NULL,
-		// 	`Column 2` TEXT NULL,
-		// 	`Column 3` TEXT NULL,
-		// 	`Column 4` TEXT NULL,
-		// 	`Column 5` TEXT NULL,
-		// 	`Column 6` TEXT NULL,
-		// 	`Column 7` TEXT NULL,
-		// 	`Column 8` TEXT NULL,
-		// 	`Column 9` TEXT NULL
-		// )
-		// COLLATE='latin1_swedish_ci'
-		// ENGINE=InnoDB;
-		// fmt.Println(colcount)
 	}
 
 }

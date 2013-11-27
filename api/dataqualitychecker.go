@@ -18,6 +18,10 @@ type CheckDataQualityResponce struct {
 }
 
 func CheckDataQuality(res http.ResponseWriter, req *http.Request, prams martini.Params, manager *session.SessionManager) string {
+	// This will go and look on the data.gov page (Now not done but will be done in the future... [I hope])
+	// And will send back what it thinks the data quality is, Now its worth noting that the page can still
+	// lie about its quality, for example the link on the page could 404, thus not making this a 100% fail
+	// proof way of testing the data quality.
 
 	database := msql.GetDB()
 	defer database.Close()

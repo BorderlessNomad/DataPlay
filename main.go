@@ -110,7 +110,6 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 		e := database.QueryRow("SELECT uid FROM priv_users where email = ? and password = MD5( ? ) LIMIT 1", username, password).Scan(&uid)
 		check(e)
 		session.Value = fmt.Sprintf("%d", uid)
-		// fmt.Println("hi", session.Id, session.Value, session)
 		http.Redirect(res, req, "/?1=1", http.StatusFound)
 	}
 }
