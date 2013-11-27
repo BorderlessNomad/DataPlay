@@ -1,5 +1,37 @@
 'use strict';
 
+function drawGraph(data, data2) {
+	var options = {
+		xScale: "linear",
+		yScale: "linear",
+		type: "line",
+		main: [	
+			{
+		      	className: ".plot",
+		      	data: []
+		  	}
+		],
+		comp: [
+			{
+				className: ".plot2",
+		    	data: []
+			}
+		]
+	};
+	
+	data.forEach(function(entry) {
+		options.main[0].data.push({x: entry[0], y: entry[1]});
+	});
+
+	data2.forEach(function(entry) {
+		options.comp[0].data.push({x: entry[0], y: entry[1]});
+	});
+
+	console.log(JSON.stringify(options));
+
+	var myChart = new xChart('line', options, '#placeholder');
+}
+
 $( document ).ready(function() {
 	var HavePopulatedKeys = false;
 	var guid = window.location.href.split('/')[window.location.href.split('/').length - 1];
@@ -61,9 +93,11 @@ $( document ).ready(function() {
 				}
 				DataPool2.push([parseFloat(Unit[Keys2[0]]),parseFloat(Unit[Keys2[1]])]);
 			}
+			drawGraph(DataPool,DataPool2);
+			//$.plot("#placeholder", [ DataPool,DataPool2 ]);
 		});
 		
-		$.plot("#placeholder", [ DataPool,DataPool2 ]);
+		
 	});
 	window.ReJigGraph = function() {
 		var DataPool = [];
@@ -79,10 +113,12 @@ $( document ).ready(function() {
 			DataPool2.push([ parseFloat(Unit[$("#pickx2axis").val()]) , parseFloat(Unit[$("#picky2axis").val()]) ]);
 		}
 
-
+		drawGraph(DataPool,DataPool2);
+		/*
 		$.plot("#placeholder", [ 
 			{ data: DataPool, label: $("#picky1axis").val() },
 			{ data: DataPool2, label: $("#picky2axis").val(), yaxis: 2 }
 		]);
+		*/
 	};
 });

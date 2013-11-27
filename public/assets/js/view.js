@@ -2,7 +2,7 @@
 
 function drawGraph(data) {
 	var options = {
-		xScale: "ordinal",
+		xScale: "linear",
 		yScale: "linear",
 		type: "line",
 		main: [	
@@ -16,13 +16,10 @@ function drawGraph(data) {
 	data.forEach(function(entry) {
 		options.main[0].data.push({x: entry[0], y: entry[1]});
 	});
+
 	console.log(JSON.stringify(options));
-	var container = $('#placeholder'),
-		myChart = new xChart('line-dotted', options, '#placeholder');
 
-
-
-	
+	var myChart = new xChart('line', options, '#placeholder');
 }
 
 $( document ).ready(function() {
