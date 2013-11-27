@@ -7,8 +7,8 @@ function drawGraph(data) {
 		type: "line",
 		main: [	
 			{
-		      className: ".plot",
-		      data: []
+				className: ".plot",
+		    	data: []
 		  	}
 		]
 	};
@@ -17,18 +17,27 @@ function drawGraph(data) {
 		options.main[0].data.push({x: entry[0], y: entry[1]});
 	});
 
-	console.log(JSON.stringify(options));
-
+	//console.log(options);
 	var myChart = new xChart('line', options, '#placeholder');
 }
 
+function parseChartData(data, x, y) {
+	var DataPool = [];
+	for (var i = 0; i < data.length; i++) {
+		var Unit = data[i];
+		DataPool.push([ parseFloat(Unit[x]) , parseFloat(Unit[y]) ]);
+	}
+	return DataPool;
+}
+
 $( document ).ready(function() {
-	var HavePopulatedKeys = false;
 	var guid = window.location.href.split('/')[window.location.href.split('/').length - 1];
+
 	$.getJSON( "/api/getinfo/" + guid, function( data ) {
 		$('#FillInDataSet').html(data.Title);
 		$(".wikidata").html(data.Notes);
 	});
+
 	function populatedKeys (Keys) {
 		$("#pickxaxis").empty();
 		$("#pickyaxis").empty();
@@ -37,44 +46,33 @@ $( document ).ready(function() {
 		}
 		for (var i = 0; i < Keys.length; i++) {
 			$("#pickyaxis").append($("<option></option>").val(Keys[i]).text(Keys[i]));
+		}
+		if (Keys.length > 1) {
+			$("#pickyaxis").val(Keys[1]);
 		}		
 	}
+
 	$.getJSON( "/api/getdata/" + guid, function( data ) {
-		// $('#FillInDataSet').html(data.Title);
 		//console.log(data);
-		// so data is a array of shit.
+		// so data is an array of shit.
 		window.DataSet = data;
-		var DataPool = [];
-		for (var i = 0; i < data.length; i++) {
-			var Unit = data[i];
-			var Keys = [];
-			for(var key in Unit) {
+		var Keys = [];
+		if (data.length) {
+			for(var key in data[0]) {
 				Keys.push(key);
 			}
-			if(!HavePopulatedKeys) {
-				console.log("boop");
-				populatedKeys(Keys);
-				HavePopulatedKeys = true;
-			}
-			
-			DataPool.push([parseFloat(Unit[Keys[0]]),parseFloat(Unit[Keys[1]])]);
 		}
-		console.log(DataPool);
-
-		drawGraph(DataPool);
-
+		populatedKeys(Keys);
+		drawGraph(parseChartData(data, Keys[0], Keys[1]));
 		//$.plot("#placeholder", [ DataPool ]);
 	});
+
+	$.getJSON( "/api/getdefaults/" + guid, function( data ) {
+		//console.log(data);
+	});
+
 	window.ReJigGraph = function() {
-		var DataPool = [];
-		var data = window.DataSet;
-		for (var i = 0; i < data.length; i++) {
-			var Unit = data[i];
-			DataPool.push([ parseFloat(Unit[$("#pickxaxis").val()]) , parseFloat(Unit[$("#pickyaxis").val()]) ]);
-		}
-
-		drawGraph(DataPool);
-
+		drawGraph(parseChartData( window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()));
 		//$.plot("#placeholder", [ DataPool ]);
 	};
 	$('#SetupOverlay').on("click",function() {
@@ -82,6 +80,20 @@ $( document ).ready(function() {
 		// so when the overlay panal is called we can use it later on the
 		// overlay page.
 		localStorage['overlay1'] = guid;
+
+		$.ajax({
+	        type: "POST",
+	        //the url where you want to sent the userName and password to
+	        url: '/api/setdefaults/' + guid,
+	        dataType: 'json',
+	        async: false,
+	        //json object to sent to the authentication url
+	        data: JSON.stringify(window.DataSet),
+	        success: function (resp) {
+	       		 console.log(resp.result);
+	        }
+	    });
+
 		window.location.href = '/search/overlay';
 	});
 });
