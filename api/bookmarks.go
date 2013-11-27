@@ -2,13 +2,10 @@ package api
 
 import (
 	msql "../databasefuncs"
-	"encoding/json"
 	"fmt"
 	"github.com/codegangsta/martini"
-	"github.com/mattn/go-session-manager"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 func SetBookmark(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
@@ -20,10 +17,8 @@ func SetBookmark(res http.ResponseWriter, req *http.Request, prams martini.Param
 	if e != nil {
 		panic(e)
 	}
-	r, e := database.QueryRow("SELECT LAST_INSERT_ID()")
-	if e != nil {
-		panic(e)
-	}
+	r := database.QueryRow("SELECT LAST_INSERT_ID()")
+
 	var id int
 	r.Scan(&id)
 	return fmt.Sprint("%d", id)
@@ -36,13 +31,13 @@ func GetBookmark(res http.ResponseWriter, req *http.Request, prams martini.Param
 	if prams["id"] == "" {
 		http.Error(res, "You didnt give me a id to lookup", 404)
 	}
-	var input int
+	var input int64
 	var e error
-	input, e = strconv.ParseInt(prams["id"], 10, 16)
+	input, e = strconv.ParseInt(prams["id"], 10, 32)
 	if e == nil {
 		http.Error(res, "Thats not a number.", 500)
 	}
-	rows, e := database.QueryRow("SELECT jsoninfo FROM `priv_shares` WHERE shareid = ?", input)
+	rows := database.QueryRow("SELECT jsoninfo FROM `priv_shares` WHERE shareid = ?", input)
 	var output string
 	rows.Scan(&output)
 	return output

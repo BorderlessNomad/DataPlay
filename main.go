@@ -77,6 +77,8 @@ func main() {
 	m.Get("/api/getquality/:id", api.CheckDataQuality)
 	m.Get("/api/getimportstatus/:id", api.CheckImportStatus)
 	m.Get("/api/getdata/:id", api.DumpTable)
+	m.Post("/api/setboomark/", api.SetBookmark)
+	m.Get("/api/getbookmark/:id", api.GetBookmark)
 
 	m.Use(checkAuth)
 	m.Use(ProabblyAPI)
