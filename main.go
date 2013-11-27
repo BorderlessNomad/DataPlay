@@ -42,19 +42,19 @@ func main() {
 	m.Get("/", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
 		http.ServeFile(res, req, "public/index.html")
 	})
-	m.Get("/login", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
+	m.Get("/login", func(res http.ResponseWriter, req *http.Request) {
 		http.ServeFile(res, req, "public/signin.html")
 	})
-	m.Get("/view/:id", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
+	m.Get("/view/:id", func(res http.ResponseWriter, req *http.Request) {
 		http.ServeFile(res, req, "public/displaydataset.html")
 	})
-	m.Get("/search/overlay", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
+	m.Get("/search/overlay", func(res http.ResponseWriter, req *http.Request) {
 		http.ServeFile(res, req, "public/search.html")
 	})
-	m.Get("/overlay/:id", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
+	m.Get("/overlay/:id", func(res http.ResponseWriter, req *http.Request) {
 		http.ServeFile(res, req, "public/overlay.html")
 	})
-	m.Get("/import/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) { // res and req are injected by Martini
+	m.Get("/import/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		http.ServeFile(res, req, "public/processing.html")
 
 		if prams["id"] == "" {
