@@ -23,11 +23,12 @@ type AuthResponce struct {
 func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params, manager *session.SessionManager) string {
 	//This function is used to gather what is the username is
 
-	// The three holy commands to setup HTTP handlers
+	// This is used on the home page where it says "Welcome ..." and then replaces the ... with the user name, its also a nice check to see
+	// if you are still logged in or not
+
 	session := manager.GetSession(res, req)
 	database := msql.GetDB()
 	defer database.Close()
-	// End
 
 	var uid string
 	uid = fmt.Sprint(session.Value)
