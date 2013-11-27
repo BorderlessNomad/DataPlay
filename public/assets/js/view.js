@@ -1,5 +1,30 @@
 'use strict';
 
+function drawGraph(data) {
+	var options = {
+		xScale: "ordinal",
+		yScale: "linear",
+		type: "line",
+		main: [	
+			{
+		      className: ".plot",
+		      data: []
+		  	}
+		]
+	};
+	
+	data.forEach(function(entry) {
+		options.main[0].data.push({x: entry[0], y: entry[1]});
+	});
+	console.log(JSON.stringify(options));
+	var container = $('#placeholder'),
+		myChart = new xChart('line-dotted', options, '#placeholder');
+
+
+
+	
+}
+
 $( document ).ready(function() {
 	var HavePopulatedKeys = false;
 	var guid = window.location.href.split('/')[window.location.href.split('/').length - 1];
@@ -19,7 +44,7 @@ $( document ).ready(function() {
 	}
 	$.getJSON( "/api/getdata/" + guid, function( data ) {
 		// $('#FillInDataSet').html(data.Title);
-		console.log(data);
+		//console.log(data);
 		// so data is a array of shit.
 		window.DataSet = data;
 		var DataPool = [];
@@ -38,7 +63,10 @@ $( document ).ready(function() {
 			DataPool.push([parseFloat(Unit[Keys[0]]),parseFloat(Unit[Keys[1]])]);
 		}
 		console.log(DataPool);
-		$.plot("#placeholder", [ DataPool ]);
+
+		drawGraph(DataPool);
+
+		//$.plot("#placeholder", [ DataPool ]);
 	});
 	window.ReJigGraph = function() {
 		var DataPool = [];
@@ -48,7 +76,9 @@ $( document ).ready(function() {
 			DataPool.push([ parseFloat(Unit[$("#pickxaxis").val()]) , parseFloat(Unit[$("#pickyaxis").val()]) ]);
 		}
 
-		$.plot("#placeholder", [ DataPool ]);
+		drawGraph(DataPool);
+
+		//$.plot("#placeholder", [ DataPool ]);
 	};
 	$('#SetupOverlay').on("click",function() {
 		// Okay so we need to put into local storage the current GUID
