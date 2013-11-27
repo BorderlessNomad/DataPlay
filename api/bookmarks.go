@@ -34,7 +34,7 @@ func GetBookmark(res http.ResponseWriter, req *http.Request, prams martini.Param
 	var input int64
 	var e error
 	input, e = strconv.ParseInt(prams["id"], 10, 32)
-	if e == nil {
+	if e != nil {
 		http.Error(res, "Thats not a number.", 500)
 	}
 	rows := database.QueryRow("SELECT jsoninfo FROM `priv_shares` WHERE shareid = ?", input)
