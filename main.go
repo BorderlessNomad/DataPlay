@@ -1,5 +1,8 @@
 package main
 
+// Hi there. You can find the SQL layout in "layout.sql"
+// You can get the data from http://data.gov.uk/data/dumps
+// Not actually sure they want you to do that. But it works for now.
 import (
 	api "./api"
 	msql "./databasefuncs"
@@ -63,11 +66,10 @@ func main() {
 		database := msql.GetDB()
 		defer database.Close()
 		var ckan_url string
-		fmt.Println("WHATTTTTT", prams["id"])
 		database.QueryRow("SELECT ckan_url FROM `index` WHERE GUID = ? LIMIT 1", prams["id"]).Scan(&ckan_url)
-		fmt.Println(ckan_url)
 		url := strings.Replace(strings.Replace(ckan_url, "//", "/", -1), "http:/", "http://", 1)
-
+		// Because the data.gov.uk dataset is braindead it adds too many "/"'s on the end of the host,
+		// because the system can't cope with that I have to filter them all out.
 		api.ImportAllDatasets(url, prams["id"])
 	})
 	m.Post("/noauth/login.json", HandleLogin)
@@ -110,7 +112,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 		e := database.QueryRow("SELECT uid FROM priv_users where email = ? and password = MD5( ? ) LIMIT 1", username, password).Scan(&uid)
 		check(e)
 		session.Value = fmt.Sprintf("%d", uid)
-		http.Redirect(res, req, "/?1=1", http.StatusFound)
+		http.Redirect(res, req, "/", http.StatusFound)
 	}
 }
 
