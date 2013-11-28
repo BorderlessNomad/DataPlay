@@ -2,14 +2,12 @@ package api
 
 import (
 	msql "../databasefuncs"
-	// "database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/mattn/go-session-manager"
 	"io"
 	"net/http"
-	// "reflect"
 	"strconv"
 	"strings"
 	"time"
