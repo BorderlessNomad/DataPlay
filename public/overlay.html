@@ -13,8 +13,8 @@
 
   <!-- Bootstrap core CSS -->
   <link href="/assets/css/bootstrap.css" rel="stylesheet">
-  <link href="/assets/css/global.css" rel="stylesheet">
-  <link href="/assets/css/xcharts.css" rel="stylesheet">
+  <link href="/assets/css/layout.min.css" rel="stylesheet">
+  <link href="/assets/css/graphs.min.css" rel="stylesheet">
 
 
   <!-- Custom styles for this template -->
@@ -52,14 +52,22 @@
         </div>
       </div>
 
-      <div class="container">
+      <div id='mainContainer' class="container">
 
         <!-- Main component for a primary marketing message or call to action -->
         <div class="jumbotron">
           <h1>Viewing Dataset <font id="FillInDataSet">...</font></h1>
           <div class="demo-container">
-            <div id="placeholder" class="demo-placeholder" style="width:570px;"></div>
+            <div id="placeholder" class="demo-placeholder"></div>
+            <!-- Wikidata -->
+            <div class="container wikidata">
+              <h2> Loading... </h2>
+              <p>Hold on.</p>
+            </div>
           </div>
+
+        
+
           Override X1 Axis:
           <select id="pickx1axis" onchange="ReJigGraph()">
             <option>Loading...</option>
@@ -81,11 +89,7 @@
           </select>
       </div>
 
-      <!-- Wikidata -->
-      <div class="container wikidata">
-        <h2> Loading... </h2>
-        <p>Hold on.</p>
-        </div>
+      
       </div> <!-- /container -->
     <!-- Bootstrap core JavaScript
     ================================================== -->
@@ -95,6 +99,7 @@
     <script src="/assets/js/d3.v3.min.js" charset="utf-8"></script>
     <script src="/assets/js/xcharts.js"></script>
     <script src="/assets/js/bootstrap.min.js"></script>
+    <script src="/assets/js/common.js"></script>
     <script src="/assets/js/overlay.js"></script>
   </body>
   </html>

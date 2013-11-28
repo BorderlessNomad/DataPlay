@@ -4,7 +4,7 @@ function drawGraph(data) {
 	var options = {
 		xScale: "linear",
 		yScale: "linear",
-		type: "line",
+		type: "line-dotted",
 		main: [	
 			{
 				className: ".plot",
@@ -21,16 +21,15 @@ function drawGraph(data) {
 	var myChart = new xChart('line', options, '#placeholder');
 }
 
-function parseChartData(data, x, y) {
-	var DataPool = [];
-	for (var i = 0; i < data.length; i++) {
-		var Unit = data[i];
-		DataPool.push([ parseFloat(Unit[x]) , parseFloat(Unit[y]) ]);
-	}
-	return DataPool;
+function updateGraph() {
+	var DataPool = parseChartData( window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()); 	
+	$('#placeholder').html('');
+	drawGraph(DataPool);
 }
 
 $( document ).ready(function() {
+	$("#placeholder").height($(window).height()*0.8).width($(window).width()*0.6);
+	$(".wikidata").height($(window).height()*0.8).width($(window).width()*0.2);
 	var guid = window.location.href.split('/')[window.location.href.split('/').length - 1];
 
 	$.getJSON( "/api/getinfo/" + guid, function( data ) {
@@ -49,7 +48,9 @@ $( document ).ready(function() {
 		}
 		if (Keys.length > 1) {
 			$("#pickyaxis").val(Keys[1]);
-		}		
+		}	
+		// Get the last user preferences if any ...
+		getUserDefaults(guid, $("#pickxaxis"), $("#pickyaxis"));
 	}
 
 	$.getJSON( "/api/getdata/" + guid, function( data ) {
@@ -64,36 +65,27 @@ $( document ).ready(function() {
 		}
 		populatedKeys(Keys);
 		drawGraph(parseChartData(data, Keys[0], Keys[1]));
-		//$.plot("#placeholder", [ DataPool ]);
-	});
-
-	$.getJSON( "/api/getdefaults/" + guid, function( data ) {
-		//console.log(data);
 	});
 
 	window.ReJigGraph = function() {
 		drawGraph(parseChartData( window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()));
-		//$.plot("#placeholder", [ DataPool ]);
 	};
 	$('#SetupOverlay').on("click",function() {
 		// Okay so we need to put into local storage the current GUID
 		// so when the overlay panal is called we can use it later on the
 		// overlay page.
 		localStorage['overlay1'] = guid;
-
-		$.ajax({
-	        type: "POST",
-	        //the url where you want to sent the userName and password to
-	        url: '/api/setdefaults/' + guid,
-	        dataType: 'json',
-	        async: false,
-	        //json object to sent to the authentication url
-	        data: JSON.stringify(window.DataSet),
-	        success: function (resp) {
-	       		 console.log(resp.result);
-	        }
-	    });
-
 		window.location.href = '/search/overlay';
+	});
+
+	window.ReJigGraph = function() {
+		saveUserDefaults(guid, $("#pickxaxis").val(), $("#pickyaxis").val());
+		updateGraph();
+	};
+
+	$(window).resize(function() {    
+	    $("#placeholder").height($(window).height()*0.8).width($(window).width()*0.6);
+	    $(".wikidata").height($(window).height()*0.8).width($(window).width()*0.2);
+	    updateGraph();
 	});
 });
