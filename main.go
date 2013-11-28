@@ -93,9 +93,9 @@ func ProabblyAPI(res http.ResponseWriter, req *http.Request) { // Forces anythin
 	}
 }
 
-func HandleLogin(res http.ResponseWriter, req *http.Request) {
+func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 	database := msql.GetDB()
-	session := manager.GetSession(res, req)
+	session := monager.GetSession(res, req)
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 	fmt.Println()
@@ -114,9 +114,9 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func checkAuth(res http.ResponseWriter, req *http.Request) {
+func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 	if req.RequestURI != "/login" && !strings.HasPrefix(req.RequestURI, "/assets") && !strings.HasPrefix(req.RequestURI, "/noauth") {
-		session := manager.GetSession(res, req)
+		session := monager.GetSession(res, req)
 
 		if session.Value != nil {
 		} else {
