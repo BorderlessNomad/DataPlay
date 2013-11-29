@@ -1,3 +1,5 @@
+_.templateSettings.variable = "data"
+
 class window.PGChart 
   container: 'body'
   margin: {top: 50, right: 70, bottom: 50, left: 80}
@@ -122,11 +124,11 @@ class window.PGChart
           .attr('r', 5)
           .attr('fill', '#882244') 
       )
-      .on('click', (d) -> alert("(#{d[0]},#{d[1]})"))                  
+      .on('click', (d) => @getPointData(1, @scale.x(d[0]), @scale.y(d[1])))                  
       .append('title')
       .text((d) => "#{@axes.x}: #{d[0]}\n#{@axes.y}: #{d[1]}")
 
-    ###
+    ### This is for a second overlayed chart
 
     y2 = d3.scale.linear()
           .domain([
@@ -222,3 +224,39 @@ class window.PGChart
       .attr("cy", (d) => @scale.y(d[1]))
       .select('title')
       .text((d) => "#{@axes.x}: #{d[0]}\n#{@axes.y}: #{d[1]}")
+
+  getPointData: (id, x, y) ->
+    point = new PGChartPoint(id: id)   
+    jqxhr = point.fetch()
+    jqxhr.success (model, response, options) =>
+      console.log("Success!")
+      console.log(model)
+      console.log(response)
+      console.log(options)
+      @spawnPointDialog(model, x, y)
+    jqxhr.error (model, response, options) =>
+      console.log("Error!")
+      console.log(model)
+      console.log(response)
+      console.log(options)
+      @spawnPointDialog(point, x, y)
+
+
+  spawnPointDialog: (point, x, y) ->
+    pointTemplate = _.template $("#pointDataTemplate").html()
+    pointInfoTemplate = pointTemplate point.toJSON()
+    console.log pointInfoTemplate
+    pointInfo = $(@container).first().append(pointInfoTemplate).find('.pointInfo').last()
+
+    pointInfo.css('left', x).css('top', y)
+    pointInfo.find('submit').click () ->
+      title =  pointInfo.find('.pointInfoTitleInput').val()
+      text =  pointInfo.find('.pointInfoTextInput').val()
+      point.set {title: title, text: text}
+      point.save()
+      console.log(point)
+      pointInfo.remove()
+
+
+  # TODO: Neeeed for finish it!!!!!
+    

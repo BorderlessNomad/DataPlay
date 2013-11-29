@@ -12,7 +12,7 @@
   <title>DataCon - Home</title>
 
   <!-- Bootstrap core CSS -->
-  <link href="/assets/css/bootstrap.css" rel="stylesheet">
+  <link href="/assets/css/lib/bootstrap.css" rel="stylesheet">
   <link href="/assets/css/layout.min.css" rel="stylesheet">
   <link href="/assets/css/graphs.min.css" rel="stylesheet">
   <!--link href="/assets/css/xcharts.css" rel="stylesheet"-->
@@ -84,15 +84,36 @@
 
       
     </div> <!-- /container -->
+
+    <script type="text/html" id="pointDataTemplate">
+      <% 
+         !data.title && (data.title='');
+         !data.text && (data.text='');
+         console.log(data);
+      %>
+      <div class='pointDataContainer'>
+        <h4>Info</h4>
+        <div class='pointInfo'>
+          <form name="pointForm-<%= data.id %>" submit="javascript:void(0);">
+            <input type='text' id="pointInfoTitleInput-<%= data.id %>" name="pointInfoTitleInput-<%= data.id %>" class='pointInfoTitleInput' placeholder='Title' value="<%= data.title %>">
+            <input type='text' id="pointInfoTextInput-<%= data.id %>" name="pointInfoTextInput-<%= data.id %>" class='pointInfoTextInput' placeholder='Text' value="<%= data.text %>">
+            <input type="submit" value="Submit">
+          </form>
+        </div>
+      </div>
+    </script>
+
+
+
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="/assets/js/jquery-1.10.2.min.js"></script>
-    <!--script src="http://www.flotcharts.org/flot/jquery.flot.js"></script-->    
-    
-    <script src="/assets/js/d3.v3.min.js" charset="utf-8"></script>
-    <script src="/assets/js/bootstrap.min.js"></script>
-    <!--script src="/assets/js/xcharts.js"></script-->
+    <script src="/assets/js/lib/jquery-1.10.2.min.js"></script>    
+    <script src="/assets/js/lib/d3.v3.min.js" charset="utf-8"></script>
+    <script src="/assets/js/lib/bootstrap.min.js"></script>
+    <script src="/assets/js/lib/underscore.min.js"></script>
+    <script src="/assets/js/lib/backbone.min.js"></script>
+    <script src="/assets/js/PGChartPoint.js"></script>
     <script src="/assets/js/PGChart.js"></script>
     <script src="/assets/js/common.js"></script>
     <script src="/assets/js/view.js"></script>
