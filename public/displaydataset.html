@@ -14,11 +14,8 @@
   <!-- Bootstrap core CSS -->
   <link href="/assets/css/bootstrap.css" rel="stylesheet">
   <link href="/assets/css/layout.min.css" rel="stylesheet">
-  
-  <link href="/assets/css/xcharts.css" rel="stylesheet">
-
-  <!--link href="/assets/css/graphs.min.css" rel="stylesheet"-->
-
+  <link href="/assets/css/graphs.min.css" rel="stylesheet">
+  <!--link href="/assets/css/xcharts.css" rel="stylesheet"-->
 
   <!-- Custom styles for this template -->
   <!-- <link href="navbar-fixed-top.css" rel="stylesheet">-->
@@ -55,13 +52,18 @@
         </div>
       </div>
 
-      <div class="container">
+      <div id='mainContainer' class="container">
 
         <!-- Main component for a primary marketing message or call to action -->
         <div class="jumbotron">
           <h1>Viewing Dataset <font id="FillInDataSet">...</font></h1>
           <div class="demo-container">
-            <div id="placeholder" class="demo-placeholder" style="width:570px;"></div>
+            <div id="placeholder" class="demo-placeholder"></div>
+            <!-- Wikidata -->
+            <div class="container wikidata">
+              <h2> Loading... </h2>
+              <p>Hold on.</p>
+            </div>
           </div>
           Override X Axis:
           <select id="pickxaxis" onchange="ReJigGraph()">
@@ -80,22 +82,18 @@
         </p> -->
       </div>
 
-      <!-- Wikidata -->
-      <div class="container wikidata">
-        <h2> Wikipedia for GDP </h2>
-        <p>Gross domestic product (GDP) is the market value of all officially recognized final goods and services produced within a country in a given period of time. GDP per capita is often considered an indicator of a country's standard of living.
-          GDP per capita is not a measure of personal income (See Standard of living and GDP). Under economic theory, GDP per capita exactly equals the gross domestic income (GDI) per capita (See Gross domestic income).
-          GDP is related to national accounts, a subject in macroeconomics. GDP is not to be confused with gross national product (GNP) which allocates production based on ownership.</p>
-        </div>
-      </div> <!-- /container -->
+      
+    </div> <!-- /container -->
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="/assets/js/jquery-1.10.2.min.js"></script>
-    <script src="http://www.flotcharts.org/flot/jquery.flot.js"></script    
-    <script src="/assets/js/bootstrap.min.js"></script>
+    <!--script src="http://www.flotcharts.org/flot/jquery.flot.js"></script-->    
+    
     <script src="/assets/js/d3.v3.min.js" charset="utf-8"></script>
-    <script src="/assets/js/xcharts.js"></script>
+    <script src="/assets/js/bootstrap.min.js"></script>
+    <!--script src="/assets/js/xcharts.js"></script-->
+    <script src="/assets/js/PGChart.js"></script>
     <script src="/assets/js/common.js"></script>
     <script src="/assets/js/view.js"></script>
     <script src="/assets/js/jquery-annotate.js"></script>

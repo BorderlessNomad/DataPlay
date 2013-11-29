@@ -1,30 +1,12 @@
 'use strict';
 
-function drawGraph(data) {
-	var options = {
-		xScale: "linear",
-		yScale: "linear",
-		type: "line-dotted",
-		main: [	
-			{
-				className: ".plot",
-		    	data: []
-		  	}
-		]
-	};
-	
-	data.forEach(function(entry) {
-		options.main[0].data.push({x: entry[0], y: entry[1]});
-	});
-
-	//console.log(options);
-	var myChart = new xChart('line', options, '#placeholder');
-}
+window.DataCon || (window.DataCon = {})
 
 function updateGraph() {
-	var DataPool = parseChartData( window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()); 	
-	$('#placeholder').html('');
-	drawGraph(DataPool);
+	DataCon.graph.updateChart(
+		parseChartData( window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()), 
+		{x: $("#pickxaxis").val(), y: $("#pickyaxis").val()}
+	);
 }
 
 $( document ).ready(function() {
@@ -49,8 +31,8 @@ $( document ).ready(function() {
 		if (Keys.length > 1) {
 			$("#pickyaxis").val(Keys[1]);
 		}	
-		// Get the last user preferences if any ...
-		getUserDefaults(guid, $("#pickxaxis"), $("#pickyaxis"));
+		// Get the last user preferences if any ... and update graph
+		getUserDefaults(guid, $("#pickxaxis"), $("#pickyaxis"), updateGraph);
 	}
 
 	$.getJSON( "/api/getdata/" + guid, function( data ) {
@@ -64,12 +46,20 @@ $( document ).ready(function() {
 			}
 		}
 		populatedKeys(Keys);
-		drawGraph(parseChartData(data, Keys[0], Keys[1]));
+		DataCon.graph = new PGChart(
+			"#placeholder", 
+			null,
+			parseChartData(data, Keys[0], Keys[1]),
+			{x: Keys[0], y: Keys[1]}
+		);
+
+		//drawGraph(parseChartData(data, Keys[0], Keys[1]));
 	});
 
 	window.ReJigGraph = function() {
 		drawGraph(parseChartData( window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()));
 	};
+
 	$('#SetupOverlay').on("click",function() {
 		// Okay so we need to put into local storage the current GUID
 		// so when the overlay panal is called we can use it later on the
@@ -86,6 +76,13 @@ $( document ).ready(function() {
 	$(window).resize(function() {    
 	    $("#placeholder").height($(window).height()*0.8).width($(window).width()*0.6);
 	    $(".wikidata").height($(window).height()*0.8).width($(window).width()*0.2);
-	    updateGraph();
+	    $("#placeholder").html('');
+	    DataCon.graph = new PGChart(
+			"#placeholder", 
+			null,
+			parseChartData( window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()), 
+			{x: $("#pickxaxis").val(), y: $("#pickyaxis").val()}
+		);
 	});
+
 });

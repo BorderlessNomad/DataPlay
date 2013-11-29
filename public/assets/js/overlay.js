@@ -115,10 +115,31 @@ function drawGraph(data, data2) {
   var circles = svg.selectAll(".circle")
       .data(points)
       .enter().append("circle")
+      .attr("class", "circle1")
       .attr("cx", function(d) { return d.x })
       .attr("cy", function(d) { return d.y })
       .attr("r", 2)
-      .attr("class", "circle");
+      .attr("class", "circle")
+      .attr('fill', '#888888')
+      .on('mouseover', function(d) { 
+        d3.select(this)
+          .transition()
+          .duration(1000)
+          .attr('r', 20)
+          .attr('fill', '#444444')
+      })
+      .on('mouseout', function(d) {
+        d3.select(this)
+          .transition()
+          .duration(1000)
+          .attr('r', 5)
+          .attr('fill', '#888888') 
+      })
+      .on('click', function(d) { alert("(" + d[0] + "," + d[1] + ")")})
+      //.transition()
+      //.duration(1000)
+      .append('title')
+      .text(function(d) { return "(" + d[0] + "," + d[1] + ")"});
 
   console.log(point);
   console.log(point2);
