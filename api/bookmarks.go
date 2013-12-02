@@ -17,7 +17,7 @@ func SetBookmark(res http.ResponseWriter, req *http.Request, prams martini.Param
 	if e != nil {
 		panic(e)
 	}
-	r := database.QueryRow("SELECT LAST_INSERT_ID()")
+	r := database.QueryRow("SELECT `shareid` FROM priv_shares ORDER BY `shareid` DESC LIMIT 1")
 
 	var id int
 	r.Scan(&id)
