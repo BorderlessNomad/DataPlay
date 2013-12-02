@@ -21,7 +21,7 @@ func SetBookmark(res http.ResponseWriter, req *http.Request, prams martini.Param
 
 	var id int
 	r.Scan(&id)
-	return fmt.Sprint("%d", id)
+	return fmt.Sprintf("%d", id)
 }
 
 func GetBookmark(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
