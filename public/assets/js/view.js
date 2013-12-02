@@ -9,6 +9,16 @@ function updateGraph() {
 	);
 }
 
+window.Annotations = [];
+function SavePoint (x,y) {
+	var SaveObj = {
+		xax: $("#pickxaxis").val(),
+		yax: $("#pickyaxis").val(),
+		x: x,
+		y: y
+	};
+}
+
 $( document ).ready(function() {
 	$("#placeholder").height($(window).height()*0.8).width($(window).width()*0.6);
 	$(".wikidata").height($(window).height()*0.8).width($(window).width()*0.2);
