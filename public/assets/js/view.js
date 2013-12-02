@@ -27,15 +27,13 @@ function SavePoint (x,y) {
 		url: '/api/setbookmark/',
 		data: "data=" + JSON.stringify(Annotations),
 		success: function(resp) {
-			alert(resp);
+			window.history.pushState('page2', 'Title', '/viewbookmark/' + resp);
+			//Saved and sound
 		},
 		error: function(err) {
 			console.log(err);
 		}
 	});
-	
-	// Now set the URL bar to the correct URL...
-
 }
 
 $( document ).ready(function() {
