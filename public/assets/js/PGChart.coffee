@@ -97,37 +97,53 @@ class window.PGChart
        .attr("class", "line")
        .attr("d", (d) => @line(@dataset))
        .style("stroke", "#335577")
-    
+
+    # console.log(@dataset)
+
     circles1 = @chart.append('g')
       .attr('id', 'circles1')
       .attr('clip-path', 'url(#chart-area)')
       .selectAll(".circle1")
-      .data(@dataset)       
+      .data(@dataset)
       .enter()
-      .append("circle")        
-      .attr("class", "circle1")
-      .attr("cx", (d) => @scale.x(d[0]))
-      .attr("cy", (d) => @scale.y(d[1]))
-      .attr("r", 5)
-      .attr('fill', '#882244')
-      .on('mouseover', (d) -> 
-        d3.select(@)
-          .transition()
-          .duration(500)
-          .attr('r', 50)
-          .attr('fill', '#aa3377')
-      )
-      .on('mouseout', (d) ->
-        d3.select(@)
-          .transition()
-          .duration(1000)
-          .attr('r', 5)
-          .attr('fill', '#882244') 
-      )
-      .on('click', (d) => @getPointData(1, @scale.x(d[0]), @scale.y(d[1])))                  
-      .append('title')
-      .text((d) => "#{@axes.x}: #{d[0]}\n#{@axes.y}: #{d[1]}")
+        .append("circle")        
+        .attr("class", "circle1")
+        .attr("cx", (d) => @scale.x(d[0]))
+        .attr("cy", (d) => @scale.y(d[1]))
+        .attr("r", 5)
+        .attr('fill', '#882244')
+        .on('mouseover', (d) -> 
+          d3.select(@)
+            .transition()
+            .duration(500)
+            .attr('r', 50)
+            # .attr('fill', '#aa3377')
+        )
+        .on('mouseout', (d) ->
+          d3.select(@)
+            .transition()
+            .duration(1000)
+            .attr('r', 5)
+            # .attr('fill', '#882244') 
+        )
+        .on('mousedown', (d) -> 
 
+          SavePoint( d[0], d[1])
+          d3.select(@)
+            .transition()
+            .duration(100)
+            .attr('r', 5)
+            .attr('fill', '#DEADBE')
+
+          # @getPointData(1, @scale.x(d[0]), @scale.y(d[1]))
+        )
+    circles1
+        .append('title')
+        .text((d) => "#{@axes.x}: #{d[0]}\n#{@axes.y}: #{d[1]}")
+
+    # circles1.enter().attr('fill', "#00FF00");
+    window.fuckyoucoffescript = circles1;
+    #fuckyoucoffescript.data().forEach(function(datum, i) { if (datum[1] > 500000 && datum[1] < 1000000) fuckyoucoffescript[0][i].setAttribute('fill','red'); })
     ### This is for a second overlayed chart
 
     y2 = d3.scale.linear()

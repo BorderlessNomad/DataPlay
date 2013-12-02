@@ -86,19 +86,22 @@ window.PGChart = (function() {
     this.chart.selectAll("path").data(this.dataset).enter().append("path").attr("class", "line").attr("d", function(d) {
       return _this.line(_this.dataset);
     }).style("stroke", "#335577");
-    return circles1 = this.chart.append('g').attr('id', 'circles1').attr('clip-path', 'url(#chart-area)').selectAll(".circle1").data(this.dataset).enter().append("circle").attr("class", "circle1").attr("cx", function(d) {
+    circles1 = this.chart.append('g').attr('id', 'circles1').attr('clip-path', 'url(#chart-area)').selectAll(".circle1").data(this.dataset).enter().append("circle").attr("class", "circle1").attr("cx", function(d) {
       return _this.scale.x(d[0]);
     }).attr("cy", function(d) {
       return _this.scale.y(d[1]);
     }).attr("r", 5).attr('fill', '#882244').on('mouseover', function(d) {
-      return d3.select(this).transition().duration(500).attr('r', 50).attr('fill', '#aa3377');
+      return d3.select(this).transition().duration(500).attr('r', 50);
     }).on('mouseout', function(d) {
-      return d3.select(this).transition().duration(1000).attr('r', 5).attr('fill', '#882244');
-    }).on('click', function(d) {
-      return _this.getPointData(1, _this.scale.x(d[0]), _this.scale.y(d[1]));
-    }).append('title').text(function(d) {
+      return d3.select(this).transition().duration(1000).attr('r', 5);
+    }).on('mousedown', function(d) {
+      SavePoint(d[0], d[1]);
+      return d3.select(this).transition().duration(100).attr('r', 5).attr('fill', '#DEADBE');
+    });
+    circles1.append('title').text(function(d) {
       return "" + _this.axes.x + ": " + d[0] + "\n" + _this.axes.y + ": " + d[1];
     });
+    return window.fuckyoucoffescript = circles1;
     /* This is for a second overlayed chart
     
     y2 = d3.scale.linear()
