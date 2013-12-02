@@ -1,6 +1,7 @@
 'use strict';
 
 window.DataCon || (window.DataCon = {})
+var guid = window.location.href.split('/')[window.location.href.split('/').length - 1];
 
 function updateGraph() {
 	DataCon.graph.updateChart(
@@ -15,14 +16,31 @@ function SavePoint (x,y) {
 		xax: $("#pickxaxis").val(),
 		yax: $("#pickyaxis").val(),
 		x: x,
-		y: y
+		y: y,
+		guid: guid
 	};
+	Annotations.push(SaveObj);
+	// Save it as well and rewrite the titlebar URL to be the shareable one.
+	var responceid = "";
+	$.ajax({
+		type: "POST",
+		url: '/api/setbookmark/',
+		data: "data=" + JSON.stringify(Annotations),
+		success: function(resp) {
+			alert(resp);
+		},
+		error: function(err) {
+			console.log(err);
+		}
+	});
+	
+	// Now set the URL bar to the correct URL...
+
 }
 
 $( document ).ready(function() {
 	$("#placeholder").height($(window).height()*0.8).width($(window).width()*0.6);
 	$(".wikidata").height($(window).height()*0.8).width($(window).width()*0.2);
-	var guid = window.location.href.split('/')[window.location.href.split('/').length - 1];
 
 	$.getJSON( "/api/getinfo/" + guid, function( data ) {
 		$('#FillInDataSet').html(data.Title);
