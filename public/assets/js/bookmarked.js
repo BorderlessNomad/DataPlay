@@ -105,9 +105,6 @@ $(document).ready(function() {
     });
 
 
-
-
-
     $(window).resize(function() {
         $("#placeholder").height($(window).height() * 0.8).width($(window).width() * 0.6);
         $(".wikidata").height($(window).height() * 0.8).width($(window).width() * 0.2);

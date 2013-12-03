@@ -34,7 +34,13 @@ window.PGChart = (function() {
 
   PGChart.prototype.chart = null;
 
-  function PGChart(container, margin, dataset, axes) {
+  function PGChart(container, margin, dataset, axes, height, width) {
+    if (height == null) {
+      height = 600;
+    }
+    if (width == null) {
+      width = 800;
+    }
     if (!!container) {
       this.container = container;
     }
@@ -49,6 +55,8 @@ window.PGChart = (function() {
     if (!!axes) {
       this.axes = axes;
     }
+    this.width = width;
+    this.height = height;
     this.initChart();
   }
 

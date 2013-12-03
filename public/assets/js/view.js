@@ -21,7 +21,6 @@ function SavePoint (x,y) {
 	};
 	Annotations.push(SaveObj);
 	// Save it as well and rewrite the titlebar URL to be the shareable one.
-	var responceid = "";
 	$.ajax({
 		type: "POST",
 		url: '/api/setbookmark/',
