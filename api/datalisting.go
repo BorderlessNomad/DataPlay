@@ -241,3 +241,82 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 	res.Write(s)
 	io.WriteString(res, "\n")
 }
+
+func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.Params) {
+	// This function will empty a whole table out into JSON
+	// Due to what seems to be a golang bug, everything is outputted as a string.
+
+	if prams["id"] == "" {
+		http.Error(res, "u wot (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
+	}
+	database := msql.GetDB()
+	defer database.Close()
+
+	var tablename string
+	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["id"]).Scan(&tablename)
+	if tablename == "" {
+		http.Error(res, "Could not find that table", http.StatusNotFound)
+		return
+	}
+	rows, err := database.Query("SELECT * FROM " + tablename)
+	if err != nil {
+		panic(err)
+	}
+	columns, err := rows.Columns()
+	if err != nil {
+		panic(err)
+	}
+
+	var DataLength int
+	database.QueryRow("SELECT COUNT(*) FROM " + tablename).Scan(&DataLength)
+	DataLength = DataLength / 25
+	if DataLength < 1 {
+		DataLength = 1
+	}
+	var RowsScanned int
+	RowsScanned = 0
+	scanArgs := make([]interface{}, len(columns))
+	values := make([]interface{}, len(columns))
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+
+	array := make([]map[string]interface{}, 0)
+	for rows.Next() {
+		err = rows.Scan(scanArgs...)
+		if err != nil {
+			panic(err)
+		}
+		if RowsScanned%DataLength == 0 {
+			record := make(map[string]interface{})
+
+			for i, col := range values {
+				if col != nil {
+
+					switch t := col.(type) {
+					default:
+						fmt.Printf("Unexpected type %T\n", t)
+					case bool:
+						record[columns[i]] = col.(bool)
+					case int:
+						record[columns[i]] = col.(int)
+					case int64:
+						record[columns[i]] = col.(int64)
+					case float64:
+						record[columns[i]] = col.(float64)
+					case string:
+						record[columns[i]] = col.(string)
+					case []byte: // -- all cases go HERE!
+						record[columns[i]] = string(col.([]byte))
+					case time.Time:
+					}
+				}
+			}
+			array = append(array, record)
+		}
+		RowsScanned++
+	}
+	s, _ := json.Marshal(array)
+	res.Write(s)
+	io.WriteString(res, "\n")
+}
