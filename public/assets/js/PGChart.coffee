@@ -11,13 +11,15 @@ class window.PGChart
   scale: {x: 1, y: 1}
   chart: null
 
-  constructor: (container, margin, dataset, axes) ->
+  constructor: (container, margin, dataset, axes, height = 600, width = 800) ->
     @container = container unless not container
     @margin = margin unless not margin
     @width = $(container).width() - @margin.left - @margin.right
     @height = $(container).height() - @margin.top - @margin.bottom    
     @dataset = dataset unless not dataset    
     @axes = axes unless not axes
+    @width = width
+    @height = height
     @initChart()
 
   initChart: () ->
