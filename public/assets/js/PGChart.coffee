@@ -142,7 +142,8 @@ class window.PGChart
         .text((d) => "#{@axes.x}: #{d[0]}\n#{@axes.y}: #{d[1]}")
 
     # circles1.enter().attr('fill', "#00FF00");
-    window.fuckyoucoffescript = circles1;
+    window.GraphOBJ = circles1;
+    LightUpBookmarks();
     #fuckyoucoffescript.data().forEach(function(datum, i) { if (datum[1] > 500000 && datum[1] < 1000000) fuckyoucoffescript[0][i].setAttribute('fill','red'); })
     ### This is for a second overlayed chart
 

@@ -101,7 +101,8 @@ window.PGChart = (function() {
     circles1.append('title').text(function(d) {
       return "" + _this.axes.x + ": " + d[0] + "\n" + _this.axes.y + ": " + d[1];
     });
-    return window.fuckyoucoffescript = circles1;
+    window.GraphOBJ = circles1;
+    return LightUpBookmarks();
     /* This is for a second overlayed chart
     
     y2 = d3.scale.linear()

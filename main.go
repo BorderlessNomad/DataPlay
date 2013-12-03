@@ -51,6 +51,9 @@ func main() {
 	m.Get("/view/:id", func(res http.ResponseWriter, req *http.Request) {
 		http.ServeFile(res, req, "public/displaydataset.html")
 	})
+	m.Get("/viewbookmark/:id", func(res http.ResponseWriter, req *http.Request) {
+		http.ServeFile(res, req, "public/bookmarked.html")
+	})
 	m.Get("/search/overlay", func(res http.ResponseWriter, req *http.Request) {
 		http.ServeFile(res, req, "public/search.html")
 	})
