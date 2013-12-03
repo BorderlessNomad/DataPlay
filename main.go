@@ -61,11 +61,11 @@ func main() {
 		http.ServeFile(res, req, "public/overlay.html")
 	})
 	m.Get("/import/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-		http.ServeFile(res, req, "public/processing.html")
-
 		if prams["id"] == "" {
 			http.Error(res, "There was no ID request", http.StatusBadRequest)
 		}
+		http.ServeFile(res, req, "public/processing.html")
+
 		database := msql.GetDB()
 		defer database.Close()
 		var ckan_url string
