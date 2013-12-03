@@ -84,6 +84,8 @@ $( document ).ready(function() {
 
 	window.ReJigGraph = function() {
 		drawGraph(parseChartData( window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()));
+		saveUserDefaults(guid, $("#pickxaxis").val(), $("#pickyaxis").val());
+		updateGraph();
 	};
 
 	$('#SetupOverlay').on("click",function() {
@@ -93,11 +95,6 @@ $( document ).ready(function() {
 		localStorage['overlay1'] = guid;
 		window.location.href = '/search/overlay';
 	});
-
-	window.ReJigGraph = function() {
-		saveUserDefaults(guid, $("#pickxaxis").val(), $("#pickyaxis").val());
-		updateGraph();
-	};
 
 	$(window).resize(function() {    
 	    $("#placeholder").height($(window).height()*0.8).width($(window).width()*0.6);
