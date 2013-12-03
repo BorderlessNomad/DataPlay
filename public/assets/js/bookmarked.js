@@ -12,8 +12,6 @@ function updateGraph() {
     );
 }
 
-window.Annotations = [];
-
 function SavePoint(x, y) {
     var SaveObj = {
         xax: $("#pickxaxis").val(),
@@ -96,21 +94,14 @@ $(document).ready(function() {
             //drawGraph(parseChartData(data, Keys[0], Keys[1]));
         });
         window.Annotations = bookmarks;
-        window.LightUpBookmarks = function (argument) {
-            window.Annotations = bookmarks;
-            var WhatInTheHell = d3.select(window.GraphOBJ.data()).filter;
-            for (var i = bookmarks.length - 1; i >= 0; i--) {
-                var bm = bookmarks[i];
-                GraphOBJ.data().filterr = WhatInTheHell;
-                GraphOBJ.data().filterr(function(datum) {
-                    return datum[0] === bm.x && datum[1] === bm.y || Math.random() > 0.7;
-                }).attr("fill","#DEADBE");
-
-                // WhatInTheHell
-            }
+        window.LightUpBookmarks = function(argument) {
+            window.Annotations.forEach(function(bm) {
+                GraphOBJ.filter(function(datum) {
+                    console.log(datum[0] === bm.y );
+                    return datum[0] === bm.y;
+                }).attr("fill", "#DEADBE");
+            });
         };
-        
-        
     });
 
 
