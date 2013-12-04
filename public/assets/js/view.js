@@ -86,7 +86,8 @@ $( document ).ready(function() {
 	});
 
 	window.ReJigGraph = function() {
-		drawGraph(parseChartData( window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()));
+		DataCon.graph.updateChart(parseChartData( window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()))
+		// drawGraph();
 		saveUserDefaults(guid, $("#pickxaxis").val(), $("#pickyaxis").val());
 		updateGraph();
 	};
