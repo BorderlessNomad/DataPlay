@@ -95,8 +95,8 @@ $(document).ready(function() {
         window.LightUpBookmarks = function(argument) {
             window.Annotations.forEach(function(bm) {
                 GraphOBJ.filter(function(datum) {
-                    console.log(datum[0] === bm.y );
-                    return datum[0] === bm.y;
+                    console.log(datum[1] === bm.y && datum[0] === bm.x );
+                    return datum[1] === bm.y  && datum[0] === bm.x;
                 }).attr("fill", "#DEADBE");
             });
         };
