@@ -73,8 +73,6 @@ $(document).ready(function() {
         });
 
         $.getJSON("/api/getdata/" + guid, function(data) {
-            //console.log(data);
-            // so data is an array of shit.
             window.DataSet = data;
             var Keys = [];
             if (data.length) {
@@ -86,9 +84,9 @@ $(document).ready(function() {
             DataCon.graph = new PGChart(
                 "#placeholder",
                 null,
-                parseChartData(data, Keys[0], Keys[1]), {
-                    x: Keys[0],
-                    y: Keys[1]
+                parseChartData(data, bookmarks[0].xax, bookmarks[0].yax), {
+                    x: bookmarks[0].xax,
+                    y: bookmarks[0].yax
                 }
             );
             //drawGraph(parseChartData(data, Keys[0], Keys[1]));
