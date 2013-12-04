@@ -98,7 +98,7 @@ $(document).ready(function() {
             }
         }
         // populatedKeys(Keys);
-        var Entropy = Math.pow(2, Keys.length);
+        var Entropy = Math.pow(2, Keys.length - 1);
         var TableHandle = $('#GridTable')
         var count = 0;
         for (var i = 0; i < Entropy / 3; i++) {
