@@ -113,8 +113,10 @@ $(document).ready(function() {
                 k1 = 0;
                 k2++;
             }
-        };
-
+        }
+        window.dcg = DCG;
+        d3.selectAll('.axis .tick').remove() // Remove the axis to make it look more clean and less
+        // insane.
 
         //drawGraph(parseChartData(data, Keys[0], Keys[1]));
     });
