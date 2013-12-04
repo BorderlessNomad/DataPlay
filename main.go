@@ -60,6 +60,9 @@ func main() {
 	m.Get("/overlay/:id", func(res http.ResponseWriter, req *http.Request) {
 		http.ServeFile(res, req, "public/overlay.html")
 	})
+	m.Get("/grid/:id", func(res http.ResponseWriter, req *http.Request) {
+		http.ServeFile(res, req, "public/grid.html")
+	})
 	m.Get("/import/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		if prams["id"] == "" {
 			http.Error(res, "There was no ID request", http.StatusBadRequest)
