@@ -144,6 +144,7 @@ func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) 
 	defer database.Close()
 	if prams["id"] == "" {
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
+		return ""
 	}
 	var GUID string
 	var Name string
@@ -161,7 +162,7 @@ func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) 
 		Ckan_url: ckan_url,
 	}
 	if e != nil {
-		panic(e)
+		http.Error(res, "Could not find that data.", http.StatusNotFound)
 	}
 
 	b, _ := json.Marshal(returner)
