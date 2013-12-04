@@ -42,7 +42,8 @@ $(document).ready(function() {
     $(".wikidata").height($(window).height() * 0.8).width($(window).width() * 0.2);
 
     window.ReJigGraph = function() {
-        drawGraph(parseChartData(window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()));
+        // drawGraph(parseChartData(window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()));
+        DataCon.graph.updateChart(parseChartData( window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()))
         updateGraph();
     };
 
