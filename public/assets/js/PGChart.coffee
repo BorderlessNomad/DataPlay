@@ -11,7 +11,7 @@ class window.PGChart
   scale: {x: 1, y: 1}
   chart: null
 
-  constructor: (container, margin, dataset, axes, height = 600, width = 800) ->
+  constructor: (container, margin, dataset, axes, height = 600, width = 800, fontsize = 21) ->
     @container = container unless not container
     @margin = margin unless not margin
     @width = $(container).width() - @margin.left - @margin.right
@@ -74,14 +74,17 @@ class window.PGChart
        .append("text")
        .attr("id", "xLabel")
        .style("text-anchor", "start")
+       .style("font-size",@fontsize + "px")
        .text(@axes.x)
        .attr("transform", "translate(#{@width+20},0)")
+
 
     @chart.append("g")
       .attr("class", "y axis")
       .call(@axis.y)
       .attr("x", -20)
       .append("text")
+      .style("font-size",@fontsize + "px")
       .attr("id", "yLabel")
       .attr("y", -30)
       .attr("dy", ".71em")

@@ -34,12 +34,15 @@ window.PGChart = (function() {
 
   PGChart.prototype.chart = null;
 
-  function PGChart(container, margin, dataset, axes, height, width) {
+  function PGChart(container, margin, dataset, axes, height, width, fontsize) {
     if (height == null) {
       height = 600;
     }
     if (width == null) {
       width = 800;
+    }
+    if (fontsize == null) {
+      fontsize = 21;
     }
     if (!!container) {
       this.container = container;
@@ -82,8 +85,8 @@ window.PGChart = (function() {
     });
     this.chart = d3.select(this.container).append("svg").attr("width", this.width + this.margin.left + this.margin.right).attr("height", this.height + this.margin.top + this.margin.bottom).append("g").attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
     this.chart.append("clipPath").attr('id', 'chart-area').append('rect').attr('x', 0).attr('y', 0).attr('width', this.width).attr('height', this.height);
-    this.chart.append("g").attr("class", "x axis").attr("transform", "translate(0," + this.height + ")").call(this.axis.x).append("text").attr("id", "xLabel").style("text-anchor", "start").text(this.axes.x).attr("transform", "translate(" + (this.width + 20) + ",0)");
-    this.chart.append("g").attr("class", "y axis").call(this.axis.y).attr("x", -20).append("text").attr("id", "yLabel").attr("y", -30).attr("dy", ".71em").style("text-anchor", "end").text(this.axes.y);
+    this.chart.append("g").attr("class", "x axis").attr("transform", "translate(0," + this.height + ")").call(this.axis.x).append("text").attr("id", "xLabel").style("text-anchor", "start").style("font-size", this.fontsize + "px").text(this.axes.x).attr("transform", "translate(" + (this.width + 20) + ",0)");
+    this.chart.append("g").attr("class", "y axis").call(this.axis.y).attr("x", -20).append("text").style("font-size", this.fontsize + "px").attr("id", "yLabel").attr("y", -30).attr("dy", ".71em").style("text-anchor", "end").text(this.axes.y);
     /*
     point = @chart.selectAll(".point")
                .data(@dataset)
