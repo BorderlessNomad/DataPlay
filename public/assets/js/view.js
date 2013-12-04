@@ -10,6 +10,10 @@ function updateGraph() {
 	);
 }
 
+function LightUpBookmarks () {
+	// Do nothing
+}
+
 window.Annotations = [];
 function SavePoint (x,y) {
 	var SaveObj = {
