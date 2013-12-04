@@ -77,7 +77,9 @@ class window.PGChart
        .style("font-size",@fontsize + "px")
        .text(@axes.x)
        .attr("transform", "translate(#{@width+20},0)")
-
+###
+.tick text { font-size: 10px; }
+###
 
     @chart.append("g")
       .attr("class", "y axis")
