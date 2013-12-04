@@ -16,7 +16,7 @@ $( document ).ready(function() {
 									$('#Note'+ dota.Request).html("<a>Cannot import in the middle of a overlay</a>");
 								} else {
 									if(guid !== "overlay")
-										$('#Note'+ dota.Request).html("<a href=\"/view/" + dota.Request + "\">View &raquo;</a>");
+										$('#Note'+ dota.Request).html("<a href=\"/view/" + dota.Request + "\">View &raquo;</a>&nbsp;<a href=\"/grid/" + dota.Request + "\">Grid &raquo;</a>");
 									else
 										$('#Note'+ dota.Request).html("<a href=\"/overlay/" + dota.Request + "\">Overlay &raquo;</a>");
 								}
