@@ -55,8 +55,8 @@ body {
   position: relative;
 }
 #mainContainer .demo-container #placeholder {
-  width: 50em;
-  height: 40em;
+  /*width: 50em;*/
+  /*height: 40em;*/
   font-size: 14px;
   line-height: 1.2em;
 }
