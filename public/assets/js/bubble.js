@@ -256,10 +256,8 @@ $(function() {
     text = texts[0];
   }
   $("#text-select").val(key);
-  d3.select("#text-select").on("change", function(e) {
-    key = $(this).val();
-    location.replace("#");
-    return location.search = encodeURIComponent(key);
+  d3.select("#pickxaxis").on("change", function(e) {
+    return key = $(this).val();
   });
   d3.select("#book-title").html(text.name);
   return d3.csv("/api/getcsvdata/hips/Hospital/60t69", display);

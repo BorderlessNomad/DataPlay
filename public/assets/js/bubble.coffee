@@ -439,11 +439,9 @@ $ ->
 
   # bind change in drop down to change the
   # search url and reset the hash url
-  d3.select("#text-select")
+  d3.select("#pickxaxis")
     .on "change", (e) ->
       key = $(this).val()
-      location.replace("#")
-      location.search = encodeURIComponent(key)
 
   # set the book title from the text name
   d3.select("#book-title").html(text.name)
