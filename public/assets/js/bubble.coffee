@@ -404,12 +404,7 @@ root.plotData = (selector, data, plot) ->
     .datum(data)
     .call(plot)
 
-texts = [
-  {key:"sherlock",file:"top_sherlock.csv",name:"The Adventures of Sherlock Holmes"}
-  {key:"aesop",file:"top_aesop.csv",name:"Aesop's Fables"}
-  {key:"alice",file:"alice.csv",name:"Alice's Adventures in Wonderland"}
-  {key:"gulliver",file:"top_gulliver.csv",name:"Gulliver's Travels"}
-]
+
 
 # ---
 # jQuery document ready.
@@ -428,11 +423,6 @@ $ ->
   # we are storing the current text in the search component
   # just to make things easy
   key = decodeURIComponent(location.search).replace("?","")
-  text = texts.filter((t) -> t.key == key)[0]
-
-  # default to the first text if something gets messed up
-  if !text
-    text = texts[0]
 
   # select the current text in the drop-down
   $("#text-select").val(key)
@@ -442,9 +432,6 @@ $ ->
   d3.select("#pickxaxis")
     .on "change", (e) ->
       key = $(this).val()
-
-  # set the book title from the text name
-  d3.select("#book-title").html(text.name)
 
   # load our data
   d3.csv("/api/getcsvdata/hips/Hospital/60t69", display)
