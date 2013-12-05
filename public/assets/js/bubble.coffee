@@ -43,7 +43,7 @@ Bubbles = () ->
   # acts
   # - jitter controls the 'jumpiness'
   #  of the collisions
-  jitter = 0.5
+  jitter = 0.245
 
   # ---
   # tweaks our dataset to get it into the
@@ -336,10 +336,10 @@ Bubbles = () ->
   updateActive = (id) ->
     node.classed("bubble-selected", (d) -> id == idValue(d))
     # if no node is selected, id will be empty
-    if id.length > 0
-      d3.select("#status").html("<h3>The word <span class=\"active\">#{id}</span> is now active</h3>")
-    else
-      d3.select("#status").html("<h3>No word is active</h3>")
+    # if id.length > 0
+    #   d3.select("#status").html("<h3>The word <span class=\"active\">#{id}</span> is now active</h3>")
+    # else
+    #   d3.select("#status").html("<h3>No word is active</h3>")
 
   # ---
   # hover event
@@ -437,12 +437,6 @@ $ ->
   # select the current text in the drop-down
   $("#text-select").val(key)
 
-  # bind change in jitter range slider
-  # to update the plot's jitter
-  d3.select("#jitter")
-    .on "input", () ->
-      plot.jitter(0.245)
-
   # bind change in drop down to change the
   # search url and reset the hash url
   d3.select("#text-select")
@@ -455,5 +449,5 @@ $ ->
   d3.select("#book-title").html(text.name)
 
   # load our data
-  d3.csv("data/#{text.file}", display)
+  d3.csv("/api/getcsvdata/hips/Hospital/60t69", display)
 

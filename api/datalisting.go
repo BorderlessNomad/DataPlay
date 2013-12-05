@@ -372,7 +372,7 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 	}
 
 	var output string
-	output = ""
+	output = "\"name\",\"word\",\"count\"\n"
 	scanArgs := make([]interface{}, len(columns))
 	values := make([]interface{}, len(columns))
 	for i := range values {
@@ -387,7 +387,7 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		}
 
 		record := make(map[string]interface{})
-		output = output + fmt.Sprintf("\"%s\",\"%s\"\n", values[xcol], values[ycol])
+		output = output + fmt.Sprintf("\"%s\",\"%s\",%s\n", values[xcol], values[xcol], values[ycol])
 		for i, col := range values {
 			if col != nil {
 

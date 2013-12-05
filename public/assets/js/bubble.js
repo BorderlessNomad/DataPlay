@@ -29,7 +29,7 @@ Bubbles = function() {
   };
   collisionPadding = 4;
   minCollisionRadius = 12;
-  jitter = 0.5;
+  jitter = 0.245;
   transformData = function(rawData) {
     rawData.forEach(function(d) {
       d.count = parseInt(d.count);
@@ -174,14 +174,9 @@ Bubbles = function() {
     return updateActive(id);
   };
   updateActive = function(id) {
-    node.classed("bubble-selected", function(d) {
+    return node.classed("bubble-selected", function(d) {
       return id === idValue(d);
     });
-    if (id.length > 0) {
-      return d3.select("#status").html("<h3>The word <span class=\"active\">" + id + "</span> is now active</h3>");
-    } else {
-      return d3.select("#status").html("<h3>No word is active</h3>");
-    }
   };
   mouseover = function(d) {
     return node.classed("bubble-hover", function(p) {
@@ -251,7 +246,7 @@ $(function() {
   var display, key, plot, text;
   plot = Bubbles();
   display = function(data) {
-    return plotData("#vis", data, plot);
+    return plotData("#placeholder", data, plot);
   };
   key = decodeURIComponent(location.search).replace("?", "");
   text = texts.filter(function(t) {
@@ -261,14 +256,11 @@ $(function() {
     text = texts[0];
   }
   $("#text-select").val(key);
-  d3.select("#jitter").on("input", function() {
-    return plot.jitter(parseFloat(this.output.value));
-  });
   d3.select("#text-select").on("change", function(e) {
     key = $(this).val();
     location.replace("#");
     return location.search = encodeURIComponent(key);
   });
   d3.select("#book-title").html(text.name);
-  return d3.csv("data/" + text.file, display);
+  return d3.csv("/api/getcsvdata/hips/Hospital/60t69", display);
 });

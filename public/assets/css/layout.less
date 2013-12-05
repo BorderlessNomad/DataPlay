@@ -136,5 +136,47 @@ background-color: #90A959;
 
 
 
+#placeholder {
+  overflow: hidden;
+}
 
 
+#bubble-background {
+  fill: none;
+  pointer-events: all;
+}
+
+.bubble-node {
+  /* fill: #d1e0f3; */
+  fill: #b0b0b0;
+}
+
+.bubble-hover {
+  /* fill: #b8c7d9; */
+  fill: #d0d0d0;
+}
+
+.bubble-selected {
+  /* fill: #a8c8ee;  */
+  fill: #fc6d24;
+  /* stroke: #6081a3; */
+  stroke: #fc6d24;
+  stroke-width: 1.5px;
+}
+
+a.bubble-label {
+  // font-family: georgia, "times new roman", times, serif;
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  line-height: 1em;
+  position: absolute;
+}
+
+
+.bubble-label .bubble-label-value {
+  font: 9px sans-serif;
+  white-space: nowrap;
+}

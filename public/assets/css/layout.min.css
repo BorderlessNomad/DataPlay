@@ -1,1 +1,190 @@
-body{background-color:#151515;color:#d0d0d0}.navbar-default{background-color:#202020;border-color:#303030}.navbar .navbar-nav li a{color:#d0d0d0 !important;background-color:#be643c !important}.navbar .navbar-nav li a:hover{background-color:#ce744c !important}.navbar .navbar-nav li a.online{background-color:#a1c659 !important;color:#303030 !important}.navbar .navbar-nav li a.online:hover{background-color:#b1d669 !important}.navbar .navbar-header a.navbar-brand{padding-left:10px;background-color:#333;color:#eee}.navbar .navbar-header a.navbar-brand:hover{background-color:#555}#mainContainer{margin:10px;width:100%;height:100%}#mainContainer h1{font-size:35px}#mainContainer .demo-container{box-sizing:border-box;-moz-box-sizing:border-box;width:100%;height:100%;padding:15px 15px 15px 15px;margin:15px 15px 30px 15px;border:1px solid #505050;background:#303030;font-size:11px;position:relative}#mainContainer .demo-container #placeholder{width:50em;height:40em;font-size:14px;line-height:1.2em}#mainContainer .demo-container .wikidata{position:absolute;width:25%;left:70%;top:0;background-color:#202020;margin-right:20px;margin-top:20px;overflow:auto;font-weight:normal}.container .jumbotron{padding-right:40px;padding-left:40px;color:#e0e0e0;background-color:#303030}.table>thead>tr>td.danger,.table>tbody>tr>td.danger,.table>tfoot>tr>td.danger,.table>thead>tr>th.danger,.table>tbody>tr>th.danger,.table>tfoot>tr>th.danger,.table>thead>tr.danger>td,.table>tbody>tr.danger>td,.table>tfoot>tr.danger>td,.table>thead>tr.danger>th,.table>tbody>tr.danger>th,.table>tfoot>tr.danger>th{background-color:#ac4142}.table>thead>tr>td.success,.table>tbody>tr>td.success,.table>tfoot>tr>td.success,.table>thead>tr>th.success,.table>tbody>tr>th.success,.table>tfoot>tr>th.success,.table>thead>tr.success>td,.table>tbody>tr.success>td,.table>tfoot>tr.success>td,.table>thead>tr.success>th,.table>tbody>tr.success>th,.table>tfoot>tr.success>th{background-color:#90a959}.base00{color:#000}.base01{color:#303030}.base02{color:#505050}.base03{color:#b0b0b0}.base04{color:#d0d0d0}.base05{color:#e0e0e0}.base06{color:#f5f5f5}.base07{color:#fff}.base08{color:#fb0120}.base09{color:#fc6d24}.base0A{color:#fda331}.base0B{color:#a1c659}.base0C{color:#76c7b7}.base0D{color:#6fb3d2}.base0E{color:#d381c3}.base0F{color:#be643c}
+body {
+  background-color: #151515;
+  color: #D0D0D0;
+}
+.navbar-default {
+  background-color: #202020;
+  border-color: #303030;
+}
+/*
+.navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:hover, .navbar-default .navbar-nav > .active > a:focus {
+    color: #d0d0d0;
+    background-color: #be643c;
+}
+*/
+.navbar .navbar-nav li a {
+  color: #d0d0d0 !important;
+  background-color: #be643c !important;
+}
+.navbar .navbar-nav li a:hover {
+  background-color: #ce744c !important;
+}
+.navbar .navbar-nav li a.online {
+  background-color: #a1c659 !important;
+  color: #303030 !important;
+}
+.navbar .navbar-nav li a.online:hover {
+  background-color: #b1d669 !important;
+}
+.navbar .navbar-header a.navbar-brand {
+  padding-left: 10px;
+  background-color: #333333;
+  color: #eeeeee;
+}
+.navbar .navbar-header a.navbar-brand:hover {
+  background-color: #555555;
+}
+#mainContainer {
+  margin: 10px;
+  width: 100%;
+  height: 100%;
+}
+#mainContainer h1 {
+  font-size: 35px;
+}
+#mainContainer .demo-container {
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 15px 15px 15px 15px;
+  margin: 15px 15px 30px 15px;
+  border: 1px solid #505050;
+  background: #303030;
+  font-size: 11px;
+  position: relative;
+}
+#mainContainer .demo-container #placeholder {
+  width: 50em;
+  height: 40em;
+  font-size: 14px;
+  line-height: 1.2em;
+}
+#mainContainer .demo-container .wikidata {
+  position: absolute;
+  width: 25%;
+  left: 70%;
+  top: 0px;
+  background-color: #202020;
+  margin-right: 20px;
+  margin-top: 20px;
+  overflow: auto;
+  font-weight: normal;
+}
+.container .jumbotron {
+  padding-right: 40px;
+  padding-left: 40px;
+  color: #e0e0e0;
+  background-color: #303030;
+}
+.table > thead > tr > td.danger,
+.table > tbody > tr > td.danger,
+.table > tfoot > tr > td.danger,
+.table > thead > tr > th.danger,
+.table > tbody > tr > th.danger,
+.table > tfoot > tr > th.danger,
+.table > thead > tr.danger > td,
+.table > tbody > tr.danger > td,
+.table > tfoot > tr.danger > td,
+.table > thead > tr.danger > th,
+.table > tbody > tr.danger > th,
+.table > tfoot > tr.danger > th {
+  background-color: #AC4142;
+}
+.table > thead > tr > td.success,
+.table > tbody > tr > td.success,
+.table > tfoot > tr > td.success,
+.table > thead > tr > th.success,
+.table > tbody > tr > th.success,
+.table > tfoot > tr > th.success,
+.table > thead > tr.success > td,
+.table > tbody > tr.success > td,
+.table > tfoot > tr.success > td,
+.table > thead > tr.success > th,
+.table > tbody > tr.success > th,
+.table > tfoot > tr.success > th {
+  background-color: #90A959;
+}
+.base00 {
+  color: #000000;
+}
+.base01 {
+  color: #303030;
+}
+.base02 {
+  color: #505050;
+}
+.base03 {
+  color: #b0b0b0;
+}
+.base04 {
+  color: #d0d0d0;
+}
+.base05 {
+  color: #e0e0e0;
+}
+.base06 {
+  color: #f5f5f5;
+}
+.base07 {
+  color: #ffffff;
+}
+.base08 {
+  color: #fb0120;
+}
+.base09 {
+  color: #fc6d24;
+}
+.base0A {
+  color: #fda331;
+}
+.base0B {
+  color: #a1c659;
+}
+.base0C {
+  color: #76c7b7;
+}
+.base0D {
+  color: #6fb3d2;
+}
+.base0E {
+  color: #d381c3;
+}
+.base0F {
+  color: #be643c;
+}
+#placeholder {
+  overflow: hidden;
+}
+#bubble-background {
+  fill: none;
+  pointer-events: all;
+}
+.bubble-node {
+  /* fill: #d1e0f3; */
+  fill: #b0b0b0;
+}
+.bubble-hover {
+  /* fill: #b8c7d9; */
+  fill: #d0d0d0;
+}
+.bubble-selected {
+  /* fill: #a8c8ee;  */
+  fill: #fc6d24;
+  /* stroke: #6081a3; */
+  stroke: #fc6d24;
+  stroke-width: 1.5px;
+}
+a.bubble-label {
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  line-height: 1em;
+  position: absolute;
+}
+.bubble-label .bubble-label-value {
+  font: 9px sans-serif;
+  white-space: nowrap;
+}
