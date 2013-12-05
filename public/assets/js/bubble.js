@@ -5,7 +5,7 @@ root = typeof exports !== "undefined" && exports !== null ? exports : this;
 
 Bubbles = function() {
   var chart, clear, click, collide, collisionPadding, connectEvents, data, force, gravity, hashchange, height, idValue, jitter, label, margin, maxRadius, minCollisionRadius, mouseout, mouseover, node, rScale, rValue, textValue, tick, transformData, update, updateActive, updateLabels, updateNodes, width;
-  width = 980;
+  width = 1280;
   height = 510;
   data = [];
   node = null;
@@ -16,7 +16,7 @@ Bubbles = function() {
     bottom: 0,
     left: 0
   };
-  maxRadius = 65;
+  maxRadius = 20;
   rScale = d3.scale.sqrt().range([0, maxRadius]);
   rValue = function(d) {
     return parseInt(d.count);

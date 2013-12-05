@@ -4,14 +4,14 @@ root = exports ? this
 Bubbles = () ->
   # standard variables accessible to
   # the rest of the functions inside Bubbles
-  width = 980
+  width = 1280
   height = 510
   data = []
   node = null
   label = null
   margin = {top: 5, right: 0, bottom: 0, left: 0}
   # largest size for our bubbles
-  maxRadius = 65
+  maxRadius = 20
 
   # this scale will be used to size our bubbles
   rScale = d3.scale.sqrt().range([0,maxRadius])
