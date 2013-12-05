@@ -74,6 +74,7 @@ class window.PGChart
        .append("text")
        .attr("id", "xLabel")
        .style("text-anchor", "start")
+       .style("color","white") # warning does not actually work, is there a way to make this work? It would be nice.
        .style("font-size",@fontsize + "px")
        .text(@axes.x)
        .attr("transform", "translate(#{@width+20},0)")
