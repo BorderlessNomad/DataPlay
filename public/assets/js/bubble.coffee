@@ -423,7 +423,7 @@ $ ->
   # data is loaded
   # ---
   display = (data) ->
-    plotData("#vis", data, plot)
+    plotData("#placeholder", data, plot)
 
   # we are storing the current text in the search component
   # just to make things easy
@@ -441,7 +441,7 @@ $ ->
   # to update the plot's jitter
   d3.select("#jitter")
     .on "input", () ->
-      plot.jitter(parseFloat(this.output.value))
+      plot.jitter(0.245)
 
   # bind change in drop down to change the
   # search url and reset the hash url
