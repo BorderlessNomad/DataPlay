@@ -321,3 +321,98 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 	res.Write(s)
 	io.WriteString(res, "\n")
 }
+
+func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
+	// This function will empty a whole table out into JSON
+	// Due to what seems to be a golang bug, everything is outputted as a string.
+
+	if prams["id"] == "" {
+		http.Error(res, "u wot (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
+		return
+	}
+	if prams["x"] == "" || prams["y"] == "" {
+		http.Error(res, "I don't have a x and y to make the CSV for.", http.StatusBadRequest)
+		return
+	}
+
+	database := msql.GetDB()
+	defer database.Close()
+
+	var tablename string
+	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["id"]).Scan(&tablename)
+	if tablename == "" {
+		http.Error(res, "Could not find that table", http.StatusNotFound)
+		return
+	}
+	rows, err := database.Query("SELECT * FROM " + tablename)
+	if err != nil {
+		panic(err)
+	}
+	columns, err := rows.Columns()
+
+	if err != nil {
+		panic(err)
+	}
+	// We need to find the Columns to relay back.
+
+	var xcol int
+	var ycol int
+	xcol = 999
+	ycol = 999
+	for number, colname := range columns {
+		if colname == prams["x"] {
+			xcol = number
+		} else if colname == prams["y"] {
+			ycol = number
+		}
+	}
+	if xcol == 999 || ycol == 999 {
+		http.Error(res, "Could not find some of the columns that you asked for.", http.StatusNotFound)
+		return
+	}
+
+	var output string
+	output = ""
+	scanArgs := make([]interface{}, len(columns))
+	values := make([]interface{}, len(columns))
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+
+	array := make([]map[string]interface{}, 0)
+	for rows.Next() {
+		err = rows.Scan(scanArgs...)
+		if err != nil {
+			panic(err)
+		}
+
+		record := make(map[string]interface{})
+		output = output + fmt.Sprintf("\"%s\",\"%s\"\n", values[xcol], values[ycol])
+		for i, col := range values {
+			if col != nil {
+
+				switch t := col.(type) {
+				default:
+					fmt.Printf("Unexpected type %T\n", t)
+				case bool:
+					record[columns[i]] = col.(bool)
+				case int:
+					record[columns[i]] = col.(int)
+				case int64:
+					record[columns[i]] = col.(int64)
+				case float64:
+					record[columns[i]] = col.(float64)
+				case string:
+					record[columns[i]] = col.(string)
+				case []byte: // -- all cases go HERE!
+					record[columns[i]] = string(col.([]byte))
+				case time.Time:
+				}
+			}
+		}
+		array = append(array, record)
+	}
+	// s, _ := json.Marshal(array)
+	res.Write([]byte(output))
+	// io.WriteString(output, "\n")
+}
