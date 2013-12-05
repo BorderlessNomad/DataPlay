@@ -54,6 +54,9 @@ func main() {
 	m.Get("/viewbookmark/:id", func(res http.ResponseWriter, req *http.Request) {
 		http.ServeFile(res, req, "public/bookmarked.html")
 	})
+	m.Get("/bubble/:id", func(res http.ResponseWriter, req *http.Request) {
+		http.ServeFile(res, req, "public/bubble.html")
+	})
 	m.Get("/search/overlay", func(res http.ResponseWriter, req *http.Request) {
 		http.ServeFile(res, req, "public/search.html")
 	})
