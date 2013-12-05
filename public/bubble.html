@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link rel="shortcut icon" href="../../docs-assets/ico/favicon.png">
+
+  <title>DataCon - Home</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="/assets/css/lib/bootstrap.css" rel="stylesheet">
+  <link href="/assets/css/layout.min.css" rel="stylesheet">
+  <link href="/assets/css/graphs.min.css" rel="stylesheet">
+  <!--link href="/assets/css/xcharts.css" rel="stylesheet"-->
+
+  <!-- Custom styles for this template -->
+  <!-- <link href="navbar-fixed-top.css" rel="stylesheet">-->
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.assets/js/1.3.0/respond.min.js"></script>
+      <![endif]-->
+    </head>
+
+    <body>
+
+      <!-- Fixed navbar -->
+      <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">DataCon</a>
+          </div>
+          <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+              <li class="active"><a href="#">Home</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+              <li class="active"><a class="online" href="#">Online</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+
+      <div id='mainContainer' class="container">
+
+        <!-- Main component for a primary marketing message or call to action -->
+        <div class="jumbotron">
+          <h1>Viewing Dataset <font id="FillInDataSet">...</font></h1>
+          <div class="demo-container">
+            <div id="placeholder" class="demo-placeholder"></div>
+            <!-- Wikidata -->
+            <div class="container wikidata">
+              <h2> Loading... </h2>
+              <p>Hold on.</p>
+            </div>
+          </div>
+          Override X Axis:
+          <select id="pickxaxis" onchange="ReJigGraph()">
+            <option>Loading...</option>
+          </select>
+        </br>
+        Override Y Axis:
+        <select id="pickyaxis" onchange="ReJigGraph()">
+          <option>Loading...</option>
+        </select>
+        <p>
+          <a class="btn btn-lg btn-primary" href="#" id="SetupOverlay" role="button">Overlay data &raquo;</a>
+        </p>
+<!--         <p>
+          <a class="btn btn-lg btn-primary" href="../../components/#navbar" role="button">Add To Home &raquo;</a>
+        </p> -->
+      </div>
+
+      
+    </div> <!-- /container -->
+
+    <script type="text/html" id="pointDataTemplate">
+      <% 
+         !data.title && (data.title='');
+         !data.text && (data.text='');
+         console.log(data);
+      %>
+      <div class='pointDataContainer'>
+        <h4>Info</h4>
+        <div class='pointInfo'>
+          <form name="pointForm-<%= data.id %>" submit="javascript:void(0);">
+            <input type='text' id="pointInfoTitleInput-<%= data.id %>" name="pointInfoTitleInput-<%= data.id %>" class='pointInfoTitleInput' placeholder='Title' value="<%= data.title %>">
+            <input type='text' id="pointInfoTextInput-<%= data.id %>" name="pointInfoTextInput-<%= data.id %>" class='pointInfoTextInput' placeholder='Text' value="<%= data.text %>">
+            <input type="submit" value="Submit">
+          </form>
+        </div>
+      </div>
+    </script>
+
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/assets/js/lib/jquery-1.10.2.min.js"></script>    
+    <script src="/assets/js/lib/d3.v3.min.js" charset="utf-8"></script>
+    <script src="/assets/js/lib/bootstrap.min.js"></script>
+    <script src="/assets/js/lib/underscore.min.js"></script>
+    <script src="/assets/js/lib/backbone.min.js"></script>
+    <script src="/assets/js/PGChartPoint.js"></script>
+    <script src="/assets/js/PGChart.js"></script>
+    <script src="/assets/js/common.js"></script>
+    <script src="/assets/js/view.js"></script>
+
+  </body>
+  </html>
