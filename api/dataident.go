@@ -92,7 +92,7 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 	}
 
 	var tablename string
-	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["id"]).Scan(&tablename)
+	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["table"]).Scan(&tablename)
 	if tablename == "" {
 		http.Error(res, "Could not find that table", http.StatusNotFound)
 		return ""
@@ -112,19 +112,19 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 		// What that means for now is I am going to try and convert them all to ints and see if any of them breaks, If they do not, then I will suggest
 		// that they be ints!
 		rows, e := database.Query(fmt.Sprintf("SELECT `%s` FROM `%s`", prams["col"], tablename))
-		if e != nil {
-			http.Error(res, "Well somthing went wrong during the reading of that col, go and grab ben and show him this.", http.StatusInternalServerError)
+		if e == nil {
 			for rows.Next() {
 				var TestSubject string
 				rows.Scan(&TestSubject)
 				_, e := strconv.ParseInt(TestSubject, 10, 64)
 				if e != nil {
+					fmt.Println("I failed to parse " + TestSubject + " So its a false")
 					return "false"
 				}
 			}
 			return "true"
 		}
-
+		http.Error(res, fmt.Sprintf("Well somthing went wrong during the reading of that col, go and grab ben and show him this. %s", e), http.StatusInternalServerError)
 	} else {
 		http.Error(res, "You have requested a col that does not exist. Please avoid doing this in the future.", http.StatusBadRequest)
 		return "" // Shut up go
@@ -140,7 +140,9 @@ func CheckIfColExists(createcode string, targettable string) bool {
 		if c != 0 { // Clipping off the create part since its useless for me.
 			results := BuildREArrayForCreateTable(line)
 			if len(results) == 3 {
-				if results[1] == targettable {
+				fmt.Println(results[1])
+				fmt.Println(targettable)
+				if results[1] == "`"+targettable+"`" {
 					return true
 				}
 			}
