@@ -94,6 +94,7 @@ func main() {
 	m.Get("/api/getbookmark/:id", api.GetBookmark)
 	m.Post("/api/setdefaults/:id", api.SetDefaults)
 	m.Get("/api/getdefaults/:id", api.GetDefaults)
+	m.Get("/api/identifydata/:id", api.IdentifyTable)
 	m.Use(checkAuth)
 	m.Use(ProabblyAPI)
 	m.Run()
