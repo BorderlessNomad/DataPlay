@@ -3,10 +3,11 @@ package api
 import (
 	msql "../databasefuncs"
 	"encoding/json"
-	// "fmt"
+	"fmt"
 	"github.com/codegangsta/martini"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -86,7 +87,7 @@ type SuggestionResponce struct {
 func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
 	database := msql.GetDB()
 	defer database.Close()
-	if prams["id"] == "" {
+	if prams["table"] == "" || prams["col"] == "" {
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
 	}
 
@@ -105,7 +106,24 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 		Check if someone have been messing around in the database.`, http.StatusBadRequest)
 		return ""
 	}
-	return "" // Shut up go
+	if CheckIfColExists(createcode, prams["col"]) {
+		// Alrighty so I am now going to go though the whole table
+		// and check what the data looks like
+		// What that means for now is I am going to try and convert them all to ints and see if any of them breaks, If they do not, then I will suggest
+		// that they be ints!
+		rows, e := database.Query(fmt.Sprintf("SELECT `%s` FROM `%s`", prams["col"], tablename))
+		if e != nil {
+			http.Error(res, "Well somthing went wrong during the reading of that col, go and grab ben and show him this.", http.StatusInternalServerError)
+			for rows.Next() {
+				var TestSubject string
+			}
+		}
+
+	} else {
+		http.Error(res, "You have requested a col that does not exist. Please avoid doing this in the future.", http.StatusBadRequest)
+		return "" // Shut up go
+	}
+
 }
 
 func CheckIfColExists(createcode string, targettable string) bool {
