@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/codegangsta/martini"
 	"net/http"
+	"regexp"
 	"strings"
 	// "strconv"
 
@@ -68,11 +69,15 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Par
 // // ) ENGINE=InnoDB DEFAULT CHARSET=latin1
 
 func ParseCreateTableSQL(input string) []ColType {
+	re := ".*?(`.*?`).*?((?:[a-z][a-z]+))" // http://i.imgur.com/dkbyB.jpg
+	var sqlRE = regexp.MustCompile(re)
 	returnerr := make([]ColType, 0) // Setup the array that I will be append()ing to.
 	SQLLines := strings.Split(input, "\n")
 	for c, line := range SQLLines {
 		if c != 0 { // Clipping off the create part since its useless for me.
-			fmt.Println(line)
+			results := sqlRE.FindAllString(line, -1)
+			fmt.Println(len(results))
+
 		}
 	}
 	return returnerr
