@@ -2,16 +2,24 @@ package api
 
 import (
 	msql "../databasefuncs"
-	// "fmt"
+	"encoding/json"
+	"fmt"
 	"github.com/codegangsta/martini"
 	"net/http"
+	"strings"
 	// "strconv"
+
 )
 
-// type IdentifyResponce struct {
-// 	State   string
-// 	Request string
-// }
+type IdentifyResponce struct {
+	Cols    []ColType
+	Request string
+}
+
+type ColType struct {
+	Name    string
+	sqltype string
+}
 
 func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
 	// This function checks to see if the data has been imported yet or still is in need of importing
@@ -30,14 +38,20 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Par
 
 	var createcode string
 	database.QueryRow("SHOW CREATE TABLE "+tablename).Scan(&tablename, &createcode)
-	return createcode
+	if createcode == "" {
+		http.Error(res, `Uhh, That table does not seem to acutally exist.
+		this really should not happen. 
+		Check if someone have been messing around in the database.`, http.StatusBadRequest)
+		return ""
+	}
+	results := ParseCreateTableSQL(createcode)
 
-	// returnobj := CheckImportResponce{
-	// 	State:   state,
-	// 	Request: prams["id"],
-	// }
-	// b, _ := json.Marshal(returnobj)
-	// return string(b[:])
+	returnobj := IdentifyResponce{
+		Cols:    results,
+		Request: prams["id"],
+	}
+	b, _ := json.Marshal(returnobj)
+	return string(b[:])
 }
 
 // Okay so, The best case is that the system has already tagged the
@@ -52,3 +66,14 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Par
 // //   `90p` int(11) DEFAULT NULL,
 // //   PRIMARY KEY (`Hospital`)
 // // ) ENGINE=InnoDB DEFAULT CHARSET=latin1
+
+func ParseCreateTableSQL(input string) []ColType {
+	returnerr := make([]ColType, 0) // Setup the array that I will be append()ing to.
+	SQLLines := strings.Split(input, "\n")
+	for c, line := range SQLLines {
+		if c != 0 { // Clipping off the create part since its useless for me.
+			fmt.Println(line)
+		}
+	}
+	return returnerr
+}
