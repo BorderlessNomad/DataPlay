@@ -3,7 +3,7 @@ package api
 import (
 	msql "../databasefuncs"
 	"encoding/json"
-	"fmt"
+	// "fmt"
 	"github.com/codegangsta/martini"
 	"net/http"
 	"regexp"
@@ -19,7 +19,7 @@ type IdentifyResponce struct {
 
 type ColType struct {
 	Name    string
-	sqltype string
+	Sqltype string
 }
 
 func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
@@ -75,9 +75,18 @@ func ParseCreateTableSQL(input string) []ColType {
 	SQLLines := strings.Split(input, "\n")
 	for c, line := range SQLLines {
 		if c != 0 { // Clipping off the create part since its useless for me.
-			results := sqlRE.FindAllString(line, -1)
-			fmt.Println(len(results))
-
+			results := sqlRE.FindStringSubmatch(line)
+			if len(results) == 3 {
+				NewCol := ColType{
+					Name:    results[1],
+					Sqltype: results[2],
+				}
+				returnerr = append(returnerr, NewCol)
+			}
+			// fmt.Println(len(results))
+			// for k, v := range results {
+			// 	fmt.Printf("%d. %s\n", k, v)
+			// }
 		}
 	}
 	return returnerr
