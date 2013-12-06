@@ -116,7 +116,13 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 			http.Error(res, "Well somthing went wrong during the reading of that col, go and grab ben and show him this.", http.StatusInternalServerError)
 			for rows.Next() {
 				var TestSubject string
+				rows.Scan(&TestSubject)
+				_, e := strconv.ParseInt(TestSubject, 10, 64)
+				if e != nil {
+					return "false"
+				}
 			}
+			return "true"
 		}
 
 	} else {
