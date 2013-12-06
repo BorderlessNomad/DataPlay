@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
-	// "strconv"
-
 )
 
 type IdentifyResponce struct {
@@ -55,19 +53,6 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Par
 	return string(b[:])
 }
 
-// Okay so, The best case is that the system has already tagged the
-// data with the correct SQL feilds, So at first we will try and ident
-// that and see what happens, We can find this below:
-
-// // CREATE TABLE `hips` (
-// //   `Hospital` varchar(50) NOT NULL,
-// //   `60t69` int(11) DEFAULT NULL,
-// //   `70t79` int(11) DEFAULT NULL,
-// //   `80t89` int(11) DEFAULT NULL,
-// //   `90p` int(11) DEFAULT NULL,
-// //   PRIMARY KEY (`Hospital`)
-// // ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-
 func ParseCreateTableSQL(input string) []ColType {
 	re := ".*?(`.*?`).*?((?:[a-z][a-z]+))" // http://i.imgur.com/dkbyB.jpg
 	var sqlRE = regexp.MustCompile(re)
@@ -83,10 +68,6 @@ func ParseCreateTableSQL(input string) []ColType {
 				}
 				returnerr = append(returnerr, NewCol)
 			}
-			// fmt.Println(len(results))
-			// for k, v := range results {
-			// 	fmt.Printf("%d. %s\n", k, v)
-			// }
 		}
 	}
 	return returnerr
