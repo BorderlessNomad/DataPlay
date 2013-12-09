@@ -9,15 +9,15 @@ body {
 }
 
 /*
-.navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:hover, .navbar-default .navbar-nav > .active > a:focus {
+.navbar-default .navbar-nav > .active > a, 
+.navbar-default .navbar-nav > .active > a:hover, 
+.navbar-default .navbar-nav > .active > a:focus {
     color: #d0d0d0;
     background-color: #be643c;
 }
 */
 
-
 .navbar {
-
 
     .navbar-nav li a {
         color: #d0d0d0 !important;
@@ -40,81 +40,75 @@ body {
     .navbar-header a.navbar-brand {
         padding-left: 10px;       
         background-color: #333333;
-
-            color: #eeeeee;
+        color: #eeeeee;
 
         &:hover {
             background-color: #555555;
         }
     }
-
 }
 
-
-#mainContainer {
-    margin: 10px;
-    width: 100%;
-    height: 100%;
-
-    h1 {
-      font-size: 35px;  
-    }
-
-    .demo-container {
-        box-sizing: border-box;
-        -moz-box-sizing:border-box;
-        width: 100%;
-        height: 100%;
-        padding: 15px 15px 15px 15px;
-        margin: 15px 15px 30px 15px;
-        border: 1px solid #505050;
-        background: #303030;
-        font-size: 11px;
-        //font-weight: normal;
-        //line-height: 2;
-        position: relative;
-
-        #placeholder {
-            // width: 50em;
-            // height: 40em;
-            font-size: 14px;
-            line-height: 1.2em;
-        }
-
-        .wikidata {
-           position: absolute;
-           width: 25%;
-           left: 70%;
-           top: 0px;
-           background-color: #202020;
-           margin-right: 20px;
-           margin-top: 20px;
-           overflow: auto;
-           font-weight: normal;
-        }
-    }
-}
-
-.container .jumbotron {
-    padding-right: 40px;
-    padding-left: 40px;
-    color: #e0e0e0;
+.jumbotron {
     background-color: #303030;
+
+    .container {
+        color: #e0e0e0; 
+        padding-top: 10px;   
+
+        #data-container {
+            //box-sizing: border-box;
+            //-moz-box-sizing:border-box;
+            border: 1px solid #505050;
+            background: #303030;
+            
+            #chart {
+                height: 40em;
+                font-size: 14px;
+                line-height: 1.2em;
+            }
+
+            #wikidata {
+                background-color: #202020;
+                font-weight: normal;
+                font-size: 11px;
+                h1 {
+                    padding-top: 5px;
+                    font-size: 24px;
+                }
+            }
+        }
+
+    }
 }
 
-
-// FIXME: What is this for ??????
-
-
-
-.table > thead > tr > td.danger, .table > tbody > tr > td.danger, .table > tfoot > tr > td.danger, .table > thead > tr > th.danger, .table > tbody > tr > th.danger, .table > tfoot > tr > th.danger, .table > thead > tr.danger > td, .table > tbody > tr.danger > td, .table > tfoot > tr.danger > td, .table > thead > tr.danger > th, .table > tbody > tr.danger > th, .table > tfoot > tr.danger > th {
-background-color: #AC4142;
+// Search result rows ...
+.table {
+    thead, tbody, tfoot {
+        tr {
+            th, td {
+                &.danger {
+                    background-color: #AC4142;
+                }
+                &.success {
+                    background-color: #90A959;
+                }
+            }
+            &.danger {
+                th, td {
+                    background-color: #AC4142;
+                }
+            }
+            &.success {
+                th, td {
+                    background-color: #90A959;
+                }
+            }
+        }
+    }
 }
 
-.table > thead > tr > td.success, .table > tbody > tr > td.success, .table > tfoot > tr > td.success, .table > thead > tr > th.success, .table > tbody > tr > th.success, .table > tfoot > tr > th.success, .table > thead > tr.success > td, .table > tbody > tr.success > td, .table > tfoot > tr.success > td, .table > thead > tr.success > th, .table > tbody > tr.success > th, .table > tfoot > tr.success > th {
-background-color: #90A959;
-}
-
+// Do we use this????
+/*
 .base00 { color: #000000; }
 .base01 { color: #303030; }
 .base02 { color: #505050; }
@@ -131,6 +125,7 @@ background-color: #90A959;
 .base0D { color: #6fb3d2; }
 .base0E { color: #d381c3; }
 .base0F { color: #be643c; }
+*/
 
 
 

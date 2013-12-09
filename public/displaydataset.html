@@ -14,7 +14,7 @@
   <!-- Bootstrap core CSS -->
   <link href="/assets/css/lib/bootstrap.css" rel="stylesheet">
   <link href="/assets/css/layout.min.css" rel="stylesheet">
-  <link href="/assets/css/graphs.min.css" rel="stylesheet">
+  <link href="/assets/css/charts.min.css" rel="stylesheet">
   <!--link href="/assets/css/xcharts.css" rel="stylesheet"-->
 
   <!-- Custom styles for this template -->
@@ -52,38 +52,44 @@
         </div>
       </div>
 
-      <div id='mainContainer' class="container">
-
-        <!-- Main component for a primary marketing message or call to action -->
-        <div class="jumbotron">
-          <h1>Viewing Dataset <font id="FillInDataSet">...</font></h1>
-          <div class="demo-container">
-            <div id="placeholder" class="demo-placeholder"></div>
+      <div class="jumbotron">
+        <div class="container">
+          <h2>Viewing Dataset <font id="FillInDataSet">...</font></h2>
+          <div id='data-container' class="row">
+            <!-- Chart -->
+            <div id="chart" class="col-md-9">
+              <h2>Loading Chart ...</h2>
+              <p>Hold on.</p>
+            </div>
             <!-- Wikidata -->
-            <div class="container wikidata">
-              <h2> Loading... </h2>
+            <div id='wikidata' class="col-md-3">
+              <h2>Loading data ...</h2>
               <p>Hold on.</p>
             </div>
           </div>
-          Override X Axis:
-          <select id="pickxaxis" onchange="ReJigGraph()">
-            <option>Loading...</option>
-          </select>
-        </br>
-        Override Y Axis:
-        <select id="pickyaxis" onchange="ReJigGraph()">
-          <option>Loading...</option>
-        </select>
-        <p>
-          <a class="btn btn-lg btn-primary" href="#" id="SetupOverlay" role="button">Overlay data &raquo;</a>
-        </p>
-<!--         <p>
-          <a class="btn btn-lg btn-primary" href="../../components/#navbar" role="button">Add To Home &raquo;</a>
-        </p> -->
-      </div>
 
-      
-    </div> <!-- /container -->
+          <div class="row">
+            Override X Axis:
+            <select id="pickxaxis" onchange="ReJigGraph()">
+              <option>Loading...</option>
+            </select>
+          </div>
+          <div class="row">
+            Override Y Axis:
+            <select id="pickyaxis" onchange="ReJigGraph()">
+              <option>Loading...</option>
+            </select>
+          </div>
+          <div class="row">
+              <a class="btn btn-lg btn-primary" href="#" id="SetupOverlay" role="button">Overlay data &raquo;</a>
+          </div>
+          <!--
+          <div class="row">
+            <a class="btn btn-lg btn-primary" href="../../components/#navbar" role="button">Add To Home &raquo;</a>
+          </div>
+          -->
+      </div> <!-- /container -->     
+    </div> <!-- /jumbotron -->
 
     <script type="text/html" id="pointDataTemplate">
       <% 
@@ -91,14 +97,16 @@
          !data.text && (data.text='');
          console.log(data);
       %>
-      <div class='pointDataContainer'>
-        <h4>Info</h4>
-        <div class='pointInfo'>
-          <form name="pointForm-<%= data.id %>" submit="javascript:void(0);">
-            <input type='text' id="pointInfoTitleInput-<%= data.id %>" name="pointInfoTitleInput-<%= data.id %>" class='pointInfoTitleInput' placeholder='Title' value="<%= data.title %>">
-            <input type='text' id="pointInfoTextInput-<%= data.id %>" name="pointInfoTextInput-<%= data.id %>" class='pointInfoTextInput' placeholder='Text' value="<%= data.text %>">
-            <input type="submit" value="Submit">
-          </form>
+      <h4>Info</h4>
+      <div class='pointInfo'>
+          <input type='text' class='pointInfoTitleInput form-control' placeholder='Title' value="<%= data.title %>">
+          <textarea type='text' class='pointInfoTextInput form-control' placeholder='Text' value="<%= data.text %>">
+            <%= data.text %>
+          </textarea>
+        <div class="btn-group">
+          <button class='pointSave btn btn-success'>Save</button>
+          <button class='pointRemove btn btn-danger'>Remove</button>
+          <button class='pointCancel btn btn-info'>Cancel</button>
         </div>
       </div>
     </script>
@@ -113,9 +121,13 @@
     <script src="/assets/js/lib/bootstrap.min.js"></script>
     <script src="/assets/js/lib/underscore.min.js"></script>
     <script src="/assets/js/lib/backbone.min.js"></script>
-    <script src="/assets/js/PGChartPoint.js"></script>
-    <script src="/assets/js/PGChart.js"></script>
+
     <script src="/assets/js/common.js"></script>
+    <script src="/assets/js/PGChartPoint.js"></script>
+    <script src="/assets/js/PGChartPointView.js"></script>
+    <script src="/assets/js/PGChart.js"></script>
+    <script src="/assets/js/PGLinesChart.js"></script>
+    <script src="/assets/js/PGPanChart.js"></script>    
     <script src="/assets/js/view.js"></script>
 
   </body>

@@ -4,10 +4,14 @@ window.DataCon || (window.DataCon = {})
 var guid = window.location.href.split('/')[window.location.href.split('/').length - 1];
 
 function updateGraph() {
-	DataCon.graph.updateChart(
-		parseChartData( window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()), 
-		{x: $("#pickxaxis").val(), y: $("#pickyaxis").val()}
-	);
+	var graphData = parseChartData( window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()),
+	    graphAxes = {x: $("#pickxaxis").val(), y: $("#pickyaxis").val()};
+	if (!DataCon.graph) {
+		$("#chart").html('');
+		DataCon.graph = new PGLinesChart("#chart", null, graphData, graphAxes, null);
+	} else {
+		DataCon.graph.updateChart(graphData, graphAxes);
+	}
 }
 
 function LightUpBookmarks () {
@@ -40,12 +44,10 @@ function SavePoint (x,y) {
 }
 
 $( document ).ready(function() {
-	$("#placeholder").height($(window).height()*0.8).width($(window).width()*0.6);
-	$(".wikidata").height($(window).height()*0.8).width($(window).width()*0.2);
 
 	$.getJSON( "/api/getinfo/" + guid, function( data ) {
 		$('#FillInDataSet').html(data.Title);
-		$(".wikidata").html(data.Notes);
+		$("#wikidata").html(data.Notes);
 	});
 
 	function populatedKeys (Keys) {
@@ -70,46 +72,31 @@ $( document ).ready(function() {
 		window.DataSet = data;
 		var Keys = [];
 		if (data.length) {
+			DataCon.patterns = {}
 			for(var key in data[0]) {
-				Keys.push(key);
+				Keys.push(key);				
+				// Pattern recognition
+				DataCon.patterns[key] =  getPattern(data[0][key]);
 			}
 		}
 		populatedKeys(Keys);
-		DataCon.graph = new PGChart(
-			"#placeholder", 
-			null,
-			parseChartData(data, Keys[0], Keys[1]),
-			{x: Keys[0], y: Keys[1]}
-		);
-
-		//drawGraph(parseChartData(data, Keys[0], Keys[1]));
 	});
 
-	window.ReJigGraph = function() {
-		DataCon.graph.updateChart(parseChartData( window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()))
-		// drawGraph();
-		saveUserDefaults(guid, $("#pickxaxis").val(), $("#pickyaxis").val());
-		updateGraph();
-	};
-
 	$('#SetupOverlay').on("click",function() {
-		// Okay so we need to put into local storage the current GUID
-		// so when the overlay panal is called we can use it later on the
-		// overlay page.
+		// Okay so we need to put into local storage the current GUID so when 
+		// the overlay panal is called we can use it later on the overlay page.
 		localStorage['overlay1'] = guid;
 		window.location.href = '/search/overlay';
 	});
 
-	$(window).resize(function() {    
-	    $("#placeholder").height($(window).height()*0.8).width($(window).width()*0.6);
-	    $(".wikidata").height($(window).height()*0.8).width($(window).width()*0.2);
-	    $("#placeholder").html('');
-	    DataCon.graph = new PGChart(
-			"#placeholder", 
-			null,
-			parseChartData( window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()), 
-			{x: $("#pickxaxis").val(), y: $("#pickyaxis").val()}
-		);
+	window.ReJigGraph = function() {
+		saveUserDefaults(guid, $("#pickxaxis").val(), $("#pickyaxis").val());
+		updateGraph();
+	};
+
+	$(window).resize(function() {    	    
+	    DataCon.graph = null;
+	    updateGraph();
 	});
 
 });

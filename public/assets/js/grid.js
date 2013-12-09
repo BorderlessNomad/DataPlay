@@ -3,15 +3,6 @@
 window.DataCon || (window.DataCon = {})
 var guid = window.location.href.split('/')[window.location.href.split('/').length - 1];
 
-function updateGraph() {
-    DataCon.graph.updateChart(
-        parseChartData(window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()), {
-            x: $("#pickxaxis").val(),
-            y: $("#pickyaxis").val()
-        }
-    );
-}
-
 window.Annotations = [];
 
 function SavePoint(x, y) {
@@ -68,41 +59,33 @@ $(document).ready(function() {
 
     $.getJSON("/api/getinfo/" + guid, function(data) {
         $('#FillInDataSet').html(data.Title);
-        $(".wikidata").html(data.Notes);
+        $("#wikidata").html(data.Notes);
     });
 
-    function populatedKeys(Keys) {
-        $("#pickxaxis").empty();
-        $("#pickyaxis").empty();
-        for (var i = 0; i < Keys.length; i++) {
-            $("#pickxaxis").append($("<option></option>").val(Keys[i]).text(Keys[i]));
-        }
-        for (var i = 0; i < Keys.length; i++) {
-            $("#pickyaxis").append($("<option></option>").val(Keys[i]).text(Keys[i]));
-        }
-        if (Keys.length > 1) {
-            $("#pickyaxis").val(Keys[1]);
-        }
-        // Get the last user preferences if any ... and update graph
-        getUserDefaults(guid, $("#pickxaxis"), $("#pickyaxis"), updateGraph);
-    }
 
     $.getJSON("/api/getreduceddata/" + guid, function(data) {
         //console.log(data);
         // so data is an array of shit.
         window.DataSet = data;
         var Keys = [];
+        DataCon.patterns = {}
         if (data.length) {
             for (var key in data[0]) {
                 Keys.push(key);
+                // Pattern recognition
+                DataCon.patterns[key] =  getPattern(data[0][key]);
             }
         }
-        // populatedKeys(Keys);
         var Entropy = Math.pow(2, Keys.length - 1);
         var TableHandle = $('#GridTable')
         var count = 0;
         for (var i = 0; i < Entropy / 3; i++) {
-            $('#GridTable').append('<tr><td><div style="width: 250px;" id="Cell' + count + '"></div></td><td><div style="width: 250px;" id="Cell' + (count + 1) + '"></div></td><td><div style="width: 250px;" id="Cell' + (count + 2) + '"></div></td></tr>');
+            $('#GridTable').append(
+                '<tr>' + 
+                    '<td><div class="gridCell" id="Cell' + count + '"></div></td>' + 
+                    '<td><div class="gridCell" id="Cell' + (count + 1) + '"></div></td>' + 
+                    '<td><div class="gridCell" id="Cell' + (count + 2) + '"></div></td>' + 
+                '</tr>');
             count = count + 3;
         }
         var CellCount = 0;
@@ -111,18 +94,14 @@ $(document).ready(function() {
         var DCG = [];
         for (var i = 0; i < Entropy; i++) {
             console.log(i)
-            DCG[i] = new PGChart(
+            DCG[i] = new PGLinesChart(
                 "#Cell" + i,
-                null,
-                parseChartData(data, Keys[k1], Keys[k2]), {
-                    x: Keys[k1],
-                    y: Keys[k2]
-                },
-                100,
-                100,
-                1
+                {top: 5, right: 5, bottom: 5, left: 5},
+                parseChartData(data, Keys[k1], Keys[k2]),
+                { x: Keys[k1], y: Keys[k2]},
+                null
             );
-            $('#Cell' + i).append('<a onclick="SetAndGo(\''+Keys[k1]+'\',\'' + Keys[k2] + '\');">View</a>');
+            $('#Cell' + i).parent().append('<a onclick="SetAndGo(\''+Keys[k1]+'\',\'' + Keys[k2] + '\');">View</a>');
             k1++;
             if (k1 === k2) {
                 k1++;
@@ -141,13 +120,6 @@ $(document).ready(function() {
         // Or I could just set the defaults as you click on it. that could be worse. It would work better though, minus the whole
         // over writing part of it </braindump>
 
-        //drawGraph(parseChartData(data, Keys[0], Keys[1]));
     });
-
-    // window.ReJigGraph = function() {
-    //  drawGraph(parseChartData( window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()));
-    //  saveUserDefaults(guid, $("#pickxaxis").val(), $("#pickyaxis").val());
-    //  updateGraph();
-    // };
 
 });

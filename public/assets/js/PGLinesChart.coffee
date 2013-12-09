@@ -51,7 +51,15 @@ class window.PGLinesChart extends PGChart
       .attr('fill', '#882244')
       .on('click', (d) => @newPointDialog(x, y))                  
       .append('title')
-      .text((d) => "#{@axes.x}: #{x}\n#{@axes.y}: #{y}")
+      .text((d) => "#{@axes.x}: #{@scale.x.invert(x)}\n#{@axes.y}: #{@scale.y.invert(y)}")
+
+
+    # FIXME: Ask Ben for this Stuff!!!  
+    # circles1.enter().attr('fill', "#00FF00");
+    #window.GraphOBJ = circles1;
+    #LightUpBookmarks();
+    #fuckyoucoffescript.data().forEach(function(datum, i) { if (datum[1] > 500000 && datum[1] < 1000000) fuckyoucoffescript[0][i].setAttribute('fill','red'); })
+
 
   newPointDialog: (x, y) ->
     # TODO: get id from server, saving it before, as it's new
