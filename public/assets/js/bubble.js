@@ -231,7 +231,10 @@ $(function() {
   key = decodeURIComponent(location.search).replace("?", "");
   $("#text-select").val(key);
   d3.select("#pickxaxis").on("change", function(e) {
-    return key = $(this).val();
+    return d3.csv(GetURL(), display);
   });
-  return d3.csv("/api/getcsvdata/hips/Hospital/60t69", display);
+  d3.select("#pickyaxis").on("change", function(e) {
+    return d3.csv(GetURL(), display);
+  });
+  return d3.csv(GetURL(), display);
 });

@@ -431,8 +431,11 @@ $ ->
   # search url and reset the hash url
   d3.select("#pickxaxis")
     .on "change", (e) ->
-      key = $(this).val()
+      d3.csv(GetURL(), display)
 
+  d3.select("#pickyaxis")
+    .on "change", (e) ->
+      d3.csv(GetURL(), display)
   # load our data
-  d3.csv("/api/getcsvdata/hips/Hospital/60t69", display)
+  d3.csv(GetURL(), display)
 
