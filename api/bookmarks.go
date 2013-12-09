@@ -2,18 +2,32 @@ package api
 
 import (
 	msql "../databasefuncs"
+	"encoding/json"
 	"fmt"
 	"github.com/codegangsta/martini"
+	"github.com/mattn/go-session-manager"
 	"net/http"
 	"strconv"
 )
 
-func SetBookmark(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
+type BookmarkInternalMetadata struct {
+	owner  int
+	parent string
+}
+
+func SetBookmark(res http.ResponseWriter, req *http.Request, prams martini.Params, session *session.Session) string {
 	// Okay this is suppose to be a POST request that will spit back out a UUID
 	database := msql.GetDB()
 	defer database.Close()
 	jsondata := req.FormValue("data")
-	_, e := database.Query("INSERT INTO `priv_shares` (`jsoninfo`) VALUES (?);", jsondata)
+	var ownerid int64
+	ownerid, _ = strconv.ParseInt(string(session.Value.(string)), 10, 0)
+	BMData := BookmarkInternalMetadata{
+		owner:  int(ownerid),
+		parent: "test",
+	}
+	privatejson, _ := json.Marshal(BMData)
+	_, e := database.Query("INSERT INTO `priv_shares` (`jsoninfo`,`privateinfo`) VALUES (?);", jsondata, string(privatejson))
 	if e != nil {
 		panic(e)
 	}
