@@ -69,8 +69,9 @@ func ParseCreateTableSQL(input string) []ColType {
 		if c != 0 { // Clipping off the create part since its useless for me.
 			results := BuildREArrayForCreateTable(line)
 			if len(results) == 3 {
+				DeQuoted := strings.Replace(results[1], "`", "", -1)
 				NewCol := ColType{
-					Name:    results[1],
+					Name:    DeQuoted,
 					Sqltype: results[2],
 				}
 				returnerr = append(returnerr, NewCol)
