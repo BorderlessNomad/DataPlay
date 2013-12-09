@@ -44,7 +44,11 @@ function SavePoint (x,y) {
 }
 
 $( document ).ready(function() {
-
+	$("#placeholder").height($(window).height()*0.8).width($(window).width()*0.6);
+	$(".wikidata").height($(window).height()*0.8).width($(window).width()*0.2);
+	$('#BubbleLink').click(function() {
+		location.href="/bubble/"+guid;
+	});
 	$.getJSON( "/api/getinfo/" + guid, function( data ) {
 		$('#FillInDataSet').html(data.Title);
 		$("#wikidata").html(data.Notes);
