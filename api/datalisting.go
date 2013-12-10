@@ -247,9 +247,16 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 	// This function will empty a whole table out into JSON
 	// Due to what seems to be a golang bug, everything is outputted as a string.
 
+	// :id/:x/:startx/:endx
+
 	if prams["id"] == "" {
 		http.Error(res, "u wot (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
 	}
+
+	if prams["x"] == "" || prams["startx"] == "" || prams["endx"] == "" {
+		http.Error(res, "You did not provide enough infomation to make this kind of request :id/:x/:startx/:endx", http.StatusBadRequest)
+	}
+
 	database := msql.GetDB()
 	defer database.Close()
 
@@ -259,7 +266,7 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 		http.Error(res, "Could not find that table", http.StatusNotFound)
 		return
 	}
-	rows, err := database.Query("SELECT * FROM " + tablename)
+	rows, err := database.Query("SELECT * FROM `" + tablename + "` LIMIT 1")
 	if err != nil {
 		panic(err)
 	}
@@ -268,6 +275,19 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 		panic(err)
 	}
 
+	var xcol int
+	xcol = 999
+	startx, starte := strconv.ParseInt(prams["startx"], 10, 64)
+	endx, ende := strconv.ParseInt(prams["startx"], 10, 64)
+	if starte != nil || ende != nil {
+		http.Error(res, "You didnt pass me proper numbers to start with.", http.StatusBadRequest)
+	}
+
+	for number, colname := range columns {
+		if colname == prams["x"] {
+			xcol = number
+		}
+	}
 	scanArgs := make([]interface{}, len(columns))
 	values := make([]interface{}, len(columns))
 	for i := range values {
@@ -282,30 +302,37 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 		}
 
 		record := make(map[string]interface{})
+		xvalue, e := strconv.ParseInt(string(values[xcol].([]byte)), 10, 0)
 
-		for i, col := range values {
-			if col != nil {
+		if e != nil {
+			http.Error(res, "Read loop error D: Looks like this is a lie.", http.StatusInternalServerError)
+		}
+		if xvalue > startx && xvalue < endx {
 
-				switch t := col.(type) {
-				default:
-					fmt.Printf("Unexpected type %T\n", t)
-				case bool:
-					record[columns[i]] = col.(bool)
-				case int:
-					record[columns[i]] = col.(int)
-				case int64:
-					record[columns[i]] = col.(int64)
-				case float64:
-					record[columns[i]] = col.(float64)
-				case string:
-					record[columns[i]] = col.(string)
-				case []byte: // -- all cases go HERE!
-					record[columns[i]] = string(col.([]byte))
-				case time.Time:
+			for i, col := range values {
+				if col != nil {
+
+					switch t := col.(type) {
+					default:
+						fmt.Printf("Unexpected type %T\n", t)
+					case bool:
+						record[columns[i]] = col.(bool)
+					case int:
+						record[columns[i]] = col.(int)
+					case int64:
+						record[columns[i]] = col.(int64)
+					case float64:
+						record[columns[i]] = col.(float64)
+					case string:
+						record[columns[i]] = col.(string)
+					case []byte: // -- all cases go HERE!
+						record[columns[i]] = string(col.([]byte))
+					case time.Time:
+					}
 				}
 			}
+			array = append(array, record)
 		}
-		array = append(array, record)
 	}
 	s, _ := json.Marshal(array)
 	res.Write(s)
