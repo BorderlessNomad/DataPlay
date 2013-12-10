@@ -16,7 +16,7 @@ type BookmarkInternalMetadata struct {
 }
 
 func SetBookmark(res http.ResponseWriter, req *http.Request, prams martini.Params, session *session.Session) string {
-	// Okay this is suppose to be a POST request that will spit back out a UUID
+	// Okay this is suppose to be a POST request that will spit back out a UUID.
 	database := msql.GetDB()
 	defer database.Close()
 	jsondata := req.FormValue("data")
