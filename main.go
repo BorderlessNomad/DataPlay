@@ -88,6 +88,7 @@ func main() {
 	m.Get("/api/getquality/:id", api.CheckDataQuality)
 	m.Get("/api/getimportstatus/:id", api.CheckImportStatus)
 	m.Get("/api/getdata/:id", api.DumpTable)
+	m.Get("/api/getdata/:id/:startx/:endx", api.DumpTableRange)
 	m.Get("/api/getcsvdata/:id/:x/:y", api.GetCSV)
 	m.Get("/api/getreduceddata/:id", api.DumpReducedTable)
 	m.Post("/api/setbookmark/", api.SetBookmark)
