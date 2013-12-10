@@ -11,8 +11,11 @@ import (
 	"github.com/codegangsta/martini"
 	// _ "github.com/go-sql-driver/mysql"
 	"github.com/mattn/go-session-manager"
+	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 )
@@ -46,7 +49,17 @@ func main() {
 		http.ServeFile(res, req, "public/index.html")
 	})
 	m.Get("/login", func(res http.ResponseWriter, req *http.Request) {
-		http.ServeFile(res, req, "public/signin.html")
+		failedstr := ""
+		queryprams, _ := url.ParseQuery(req.URL.String())
+
+		if queryprams.Get("failed") != "" {
+			failedstr = "Incorrect User Name or Password"
+		}
+		b, _ := ioutil.ReadFile("public/signin.html")
+		t := template.New("Loginpage")
+		t.Parse(string(b))
+		t.Execute(res, failedstr)
+		// http.ServeFile(res, req, "public/signin.html")
 	})
 	m.Get("/view/:id", func(res http.ResponseWriter, req *http.Request) {
 		http.ServeFile(res, req, "public/displaydataset.html")
@@ -127,12 +140,12 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 		session.Value = fmt.Sprintf("%d", uid)
 		http.Redirect(res, req, "/", http.StatusFound)
 	} else {
-		http.Redirect(res, req, "/login", http.StatusFound)
+		http.Redirect(res, req, "/login?failed=1", http.StatusFound)
 	}
 }
 
 func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
-	if req.RequestURI != "/login" && !strings.HasPrefix(req.RequestURI, "/assets") && !strings.HasPrefix(req.RequestURI, "/noauth") {
+	if !strings.HasPrefix(req.RequestURI, "/login") && !strings.HasPrefix(req.RequestURI, "/assets") && !strings.HasPrefix(req.RequestURI, "/noauth") {
 		session := monager.GetSession(res, req)
 
 		if session.Value != nil {
