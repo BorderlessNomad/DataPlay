@@ -95,7 +95,7 @@ func main() {
 	m.Get("/api/getbookmark/:id", api.GetBookmark)
 	m.Post("/api/setdefaults/:id", api.SetDefaults)
 	m.Get("/api/getdefaults/:id", api.GetDefaults)
-	m.Get("/api/identifydata/:id", api.IdentifyTable) // Well this seems to work.
+	m.Get("/api/identifydata/:id", api.IdentifyTable)
 	m.Get("/api/classifydata/:table/:col", api.SuggestColType)
 	m.Use(checkAuth)
 	m.Use(ProabblyAPI)

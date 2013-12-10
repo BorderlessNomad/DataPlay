@@ -307,7 +307,6 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 		if e != nil {
 			http.Error(res, "Read loop error D: Looks like int this is a imposter.", http.StatusInternalServerError)
 		}
-		// fmt.Printf("%d vs %d == %s and %d vs %d == %s", xvalue, startx, xvalue > startx, xvalue, endx, xvalue < endx)
 		if xvalue >= startx && xvalue <= endx {
 
 			for i, col := range values {
