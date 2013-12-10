@@ -97,7 +97,7 @@ $(document).ready(function() {
                 var Keys = [];
 
                 for (var i = 0; i < Cols.length; i++) {
-                    if (Cols[i].Sqltype === "int") {
+                    if (Cols[i].Sqltype === "int" || Cols[i].Sqltype === "bigint") {
                         Keys.push(Cols[i].Name);
                     }
                 }
