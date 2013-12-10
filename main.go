@@ -51,8 +51,7 @@ func main() {
 	m.Get("/login", func(res http.ResponseWriter, req *http.Request) {
 		failedstr := ""
 		queryprams, _ := url.ParseQuery(req.URL.String())
-
-		if queryprams.Get("failed") != "" {
+		if queryprams.Get("/login?failed") != "" {
 			failedstr = "Incorrect User Name or Password"
 		}
 		b, _ := ioutil.ReadFile("public/signin.html")
