@@ -126,6 +126,8 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 		check(e)
 		session.Value = fmt.Sprintf("%d", uid)
 		http.Redirect(res, req, "/", http.StatusFound)
+	} else {
+		http.Redirect(res, req, "/login", http.StatusFound)
 	}
 }
 
