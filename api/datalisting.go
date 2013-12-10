@@ -266,7 +266,7 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 		http.Error(res, "Could not find that table", http.StatusNotFound)
 		return
 	}
-	rows, err := database.Query("SELECT * FROM `" + tablename + "` LIMIT 1")
+	rows, err := database.Query("SELECT * FROM `" + tablename + "`")
 	if err != nil {
 		panic(err)
 	}
@@ -278,7 +278,7 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 	var xcol int
 	xcol = 999
 	startx, starte := strconv.ParseInt(prams["startx"], 10, 64)
-	endx, ende := strconv.ParseInt(prams["startx"], 10, 64)
+	endx, ende := strconv.ParseInt(prams["endx"], 10, 64)
 	if starte != nil || ende != nil {
 		http.Error(res, "You didnt pass me proper numbers to start with.", http.StatusBadRequest)
 	}
@@ -305,9 +305,10 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 		xvalue, e := strconv.ParseInt(string(values[xcol].([]byte)), 10, 0)
 
 		if e != nil {
-			http.Error(res, "Read loop error D: Looks like this is a lie.", http.StatusInternalServerError)
+			http.Error(res, "Read loop error D: Looks like int this is a imposter.", http.StatusInternalServerError)
 		}
-		if xvalue > startx && xvalue < endx {
+		// fmt.Printf("%d vs %d == %s and %d vs %d == %s", xvalue, startx, xvalue > startx, xvalue, endx, xvalue < endx)
+		if xvalue >= startx && xvalue <= endx {
 
 			for i, col := range values {
 				if col != nil {
