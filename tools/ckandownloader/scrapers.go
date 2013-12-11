@@ -6,9 +6,9 @@ import (
 	goq "github.com/PuerkitoBio/goquery"
 	"io/ioutil"
 	"net/http"
+	"runtime"
 	"strings"
-
-	// "time"
+	"time"
 )
 
 func ImportAllDatasets(url string, guid string) {
@@ -20,7 +20,8 @@ func ImportAllDatasets(url string, guid string) {
 	fmt.Println("Loading URL '" + url + "'")
 	if doc, e = goq.NewDocument(url); e == nil {
 		// fmt.Println(doc.Html())
-		// time.Sleep(time.Second * 1)
+		runtime.GC() // :( why is this a thing
+		time.Sleep(time.Millisecond * 250)
 		doc.Find(".dropdown-menu").Each(func(i int, s *goq.Selection) {
 			s.Find("a").Each(func(i int, s *goq.Selection) {
 				url, exists := s.Attr("href")
@@ -33,6 +34,7 @@ func ImportAllDatasets(url string, guid string) {
 			})
 		})
 	}
+	doc = nil
 }
 
 func DownloadDataset(url string, guid string) {
@@ -42,23 +44,26 @@ func DownloadDataset(url string, guid string) {
 	fmt.Println("Downloading dataset", url)
 	response, e := http.Get(url)
 	if e == nil {
-		fmt.Println(response.Header)
+		// fmt.Println(response.Header)
 		if response.Header.Get("Content-Type") == "text/csv" {
 
 			full, _ := ioutil.ReadAll(response.Body)
 			hash := sha1.New()
 			hash.Write([]byte(url))
-			ioutil.WriteFile("./"+guid+"_"+fmt.Sprintf("%x", hash.Sum(nil))+".csv", full, 0667)
+			ioutil.WriteFile("./data/"+guid+"_"+fmt.Sprintf("%x", hash.Sum(nil))+".csv", full, 0667)
+			full = nil
 		} else if response.Header.Get("Content-Type") == "application/vnd.ms-excel" {
 			full, _ := ioutil.ReadAll(response.Body)
 			hash := sha1.New()
 			hash.Write([]byte(url))
-			ioutil.WriteFile("./"+guid+"_"+fmt.Sprintf("%x", hash.Sum(nil))+".xlsx", full, 0667)
+			ioutil.WriteFile("./data/"+guid+"_"+fmt.Sprintf("%x", hash.Sum(nil))+".xlsx", full, 0667)
+			full = nil
 		} else {
 			full, _ := ioutil.ReadAll(response.Body)
 			hash := sha1.New()
 			hash.Write([]byte(url))
-			ioutil.WriteFile("./"+guid+"_"+fmt.Sprintf("%x", hash.Sum(nil))+".dunno", full, 0667)
+			ioutil.WriteFile("./data/"+guid+"_"+fmt.Sprintf("%x", hash.Sum(nil))+".dunno", full, 0667)
+			full = nil
 		}
 	}
 }
