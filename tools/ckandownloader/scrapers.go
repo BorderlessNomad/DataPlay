@@ -42,7 +42,7 @@ func DownloadDataset(url string, guid string) {
 		full, _ := ioutil.ReadAll(response.Body)
 		hash := sha1.New()
 		hash.Write([]byte(url))
-		ioutil.WriteFile("./"+guid+"_"+fmt.Sprintf("%x", hash.Sum(nil)), full, 0667)
+		ioutil.WriteFile("./"+guid+"_"+fmt.Sprintf("%x", hash.Sum(nil))+".csv", full, 0667)
 	}
 
 }
