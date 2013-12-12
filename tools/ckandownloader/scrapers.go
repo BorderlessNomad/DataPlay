@@ -11,14 +11,14 @@ import (
 	"time"
 )
 
-func ImportAllDatasets(url string, guid string) {
+func ImportAllDatasets(url string) {
 	// This call is desgined to fetch all of the links that are needed to be downloaded (on data.gov.uk)
 	// And then fire off go routines to go and fetch them.
-	url = strings.Replace(url, "\r", "", -1)
+	ourl := strings.Replace(url, "\r", "", -1)
 	var e error
 	var doc *goq.Document
 	fmt.Println("Loading URL '" + url + "'")
-	if doc, e = goq.NewDocument(url); e == nil {
+	if doc, e = goq.NewDocument(ourl); e == nil {
 		// fmt.Println(doc.Html())
 		runtime.GC() // :( why is this a thing
 		time.Sleep(time.Millisecond * 250)
@@ -29,7 +29,7 @@ func ImportAllDatasets(url string, guid string) {
 				// fmt.Println(html)
 				if exists && strings.Contains(html, "icon-download-alt") {
 					fmt.Println(url)
-					go DownloadDataset(url, guid)
+					go DownloadDataset(url, ourl)
 				}
 			})
 		})
@@ -37,33 +37,40 @@ func ImportAllDatasets(url string, guid string) {
 	doc = nil
 }
 
+func JustHashIt(input string) string {
+	hash := sha1.New()
+	hash.Write([]byte(input))
+	return fmt.Sprintf("%x", hash.Sum(nil))
+}
+
+func JustBloddyHashIt(input []byte) string {
+	hash := sha1.New()
+	hash.Write(input)
+	return fmt.Sprintf("%x", hash.Sum(nil))
+}
+
 func DownloadDataset(url string, guid string) {
 	// This function will inhale a CSV file and if it is not formatted stupidly (ALA: most of the stuff on data.gov.uk)
 	// it will make a SQL table for it and then put the fact that the data exists in the online table allowing the client
 	// to move along and to ensure that it wont be downloaded twice.
 	fmt.Println("Downloading dataset", url)
+
+	fmt.Println("Fuck you I am going to hash '" + guid + "' == " + JustHashIt(guid))
+	time.Sleep(time.Second * 10)
 	response, e := http.Get(url)
 	if e == nil {
 		// fmt.Println(response.Header)
+		full, _ := ioutil.ReadAll(response.Body)
+		filename := "./data/" + JustBloddyHashIt(full) + "_" + JustHashIt(guid)
 		if response.Header.Get("Content-Type") == "text/csv" {
-
-			full, _ := ioutil.ReadAll(response.Body)
-			hash := sha1.New()
-			hash.Write([]byte(url))
-			ioutil.WriteFile("./data/"+guid+"_"+fmt.Sprintf("%x", hash.Sum(nil))+".csv", full, 0667)
-			full = nil
+			ioutil.WriteFile(filename+".csv", full, 0667)
 		} else if response.Header.Get("Content-Type") == "application/vnd.ms-excel" {
-			full, _ := ioutil.ReadAll(response.Body)
-			hash := sha1.New()
-			hash.Write([]byte(url))
-			ioutil.WriteFile("./data/"+guid+"_"+fmt.Sprintf("%x", hash.Sum(nil))+".xlsx", full, 0667)
-			full = nil
+			ioutil.WriteFile(filename+".xlsx", full, 0667)
 		} else {
-			full, _ := ioutil.ReadAll(response.Body)
-			hash := sha1.New()
-			hash.Write([]byte(url))
-			ioutil.WriteFile("./data/"+guid+"_"+fmt.Sprintf("%x", hash.Sum(nil))+".dunno", full, 0667)
-			full = nil
+			ioutil.WriteFile(filename+".dunno", full, 0667)
 		}
+		full = nil     // Oh my god please GC I beg you
+		response = nil // I'm sorry that I did string(42) that one time
+		// just PLEASE GC
 	}
 }
