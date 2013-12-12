@@ -61,11 +61,12 @@ func main() {
 			if LookForItem(realfilename, defList) != -1 {
 				// a
 				filebytes := ioutil.ReadFile("./data/" + realfilename + ".csv")
-				tablecode := ConstructTable(string(filebytes), false)
+				tablecode, colcount := ConstructTable(string(filebytes), false)
 				_, e := database.Exec(tablecode)
 				if e != nil {
 					panic(e)
 				}
+				var tableloader string
 				tableloader = tableloader + "LOAD DATA LOCAL INFILE '" + "./" + realfilename + "'\n"
 				tableloader = tableloader + "INTO TABLE " + realfilename + "\n"
 				tableloader = tableloader + "FIELDS TERMINATED BY ','" + "\n"
@@ -101,7 +102,7 @@ func LookForItem(target string, list []ExecLogDef) int {
 	A Basic table will just make Column 1,  Column 2,  Column 3
 	rather than a non basic one will make sensible ones
 */
-func ConstructTable(csv string, basictable bool) string {
+func ConstructTable(csv string, basictable bool) (res string, colcount int) {
 	rows := strings.Split(string(csv), "\n")
 	var tablebuilder string
 	if !basictable {
@@ -113,5 +114,5 @@ func ConstructTable(csv string, basictable bool) string {
 		tablebuilder = tablebuilder + "`Column " + fmt.Sprintf("%d", colcount) + "` TEXT NULL"
 		tablebuilder = tablebuilder + ") COLLATE='latin1_swedish_ci' ENGINE=InnoDB;"
 	}
-	return tablebuilder
+	return tablebuilder, colcount
 }
