@@ -9,10 +9,9 @@ import (
 )
 
 type ExecLogDef struct {
-	origin        string
-	link          string
-	contents_hash string
-	url_hash      string
+	origin    string
+	link      string
+	hashchunk string
 }
 
 func main() {
@@ -42,14 +41,14 @@ func main() {
 				dlLink := spacesplit[2]
 				filename := spacesplit[4]
 				filteredname := strings.Replace(filename, "./data/", "", 1)
-				splitname := strings.Split(filteredname, "_")
-				contents_hash := splitname[0]
-				urlhash := splitname[1]
+				// splitname := strings.Split(filteredname, "_")
+				//contents_hash := splitname[0]
+				// urlhash := splitname[1]
 
 				appender := ExecLogDef{
 					origin:    origin,
 					link:      dlLink,
-					hashchunk: spacesplit[4],
+					hashchunk: filteredname,
 				}
 				defList = append(defList, appender)
 			}
@@ -60,9 +59,12 @@ func main() {
 			realfilename := strings.Split(file, ".")[0]
 			if LookForItem(realfilename, defList) != -1 {
 				// a
-				filebytes := ioutil.ReadFile("./data/" + realfilename + ".csv")
-				tablecode, colcount := ConstructTable(string(filebytes), false)
-				_, e := database.Exec(tablecode)
+				filebytes, e := ioutil.ReadFile("./data/" + realfilename + ".csv")
+				if e != nil {
+					panic(e)
+				}
+				tablecode, colcount := ConstructTable(string(filebytes), realfilename, false)
+				_, e = database.Exec(tablecode)
 				if e != nil {
 					panic(e)
 				}
@@ -91,7 +93,7 @@ func main() {
 
 func LookForItem(target string, list []ExecLogDef) int {
 	for i, item := range list {
-		if item.contents_hash == target {
+		if item.hashchunk == target {
 			return i
 		}
 	}
@@ -102,12 +104,12 @@ func LookForItem(target string, list []ExecLogDef) int {
 	A Basic table will just make Column 1,  Column 2,  Column 3
 	rather than a non basic one will make sensible ones
 */
-func ConstructTable(csv string, basictable bool) (res string, colcount int) {
+func ConstructTable(csv string, tablename string, basictable bool) (res string, colcount int) {
 	rows := strings.Split(string(csv), "\n")
 	var tablebuilder string
 	if !basictable {
 		colcount := len(strings.Split(rows[0], ","))
-		tablebuilder = "CREATE TABLE `" + fmt.Sprintf("%x", hash.Sum(nil)) + "` ("
+		tablebuilder = "CREATE TABLE `" + tablename + "` ("
 		for i := 0; i < colcount; i++ {
 			tablebuilder = tablebuilder + "`Column " + fmt.Sprintf("%d", i) + "` TEXT NULL,"
 		}
