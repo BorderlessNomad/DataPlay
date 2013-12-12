@@ -18,7 +18,7 @@ func main() {
 			lines := strings.Split(string(fileContents), "\n")
 			for i, line := range lines {
 				fmt.Printf("!!Downloading dataset %d/%d \n", i, len(lines))
-				ImportAllDatasets(line, fmt.Sprintf("%d", i))
+				ImportAllDatasets(line)
 			}
 		} else {
 			fmt.Println("Failed to load that file.")

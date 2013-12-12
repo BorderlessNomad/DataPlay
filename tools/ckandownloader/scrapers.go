@@ -17,7 +17,7 @@ func ImportAllDatasets(url string) {
 	ourl := strings.Replace(url, "\r", "", -1)
 	var e error
 	var doc *goq.Document
-	fmt.Println("Loading URL '" + url + "'")
+	// fmt.Println("Loading URL '" + url + "'")
 	if doc, e = goq.NewDocument(ourl); e == nil {
 		// fmt.Println(doc.Html())
 		runtime.GC() // :( why is this a thing
@@ -28,7 +28,7 @@ func ImportAllDatasets(url string) {
 				html, _ := s.Html()
 				// fmt.Println(html)
 				if exists && strings.Contains(html, "icon-download-alt") {
-					fmt.Println(url)
+					// fmt.Println(url)
 					go DownloadDataset(url, ourl)
 				}
 			})
@@ -54,14 +54,12 @@ func DownloadDataset(url string, guid string) {
 	// it will make a SQL table for it and then put the fact that the data exists in the online table allowing the client
 	// to move along and to ensure that it wont be downloaded twice.
 	fmt.Println("Downloading dataset", url)
-
-	fmt.Println("Fuck you I am going to hash '" + guid + "' == " + JustHashIt(guid))
-	time.Sleep(time.Second * 10)
 	response, e := http.Get(url)
 	if e == nil {
 		// fmt.Println(response.Header)
 		full, _ := ioutil.ReadAll(response.Body)
 		filename := "./data/" + JustBloddyHashIt(full) + "_" + JustHashIt(guid)
+		fmt.Println(guid + " | " + url + " => " + filename)
 		if response.Header.Get("Content-Type") == "text/csv" {
 			ioutil.WriteFile(filename+".csv", full, 0667)
 		} else if response.Header.Get("Content-Type") == "application/vnd.ms-excel" {
