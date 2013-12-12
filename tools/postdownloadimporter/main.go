@@ -1,6 +1,7 @@
 package main
 
 import (
+	msql "../../databasefuncs"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -15,6 +16,8 @@ type ExecLogDef struct {
 }
 
 func main() {
+	database := msql.GetDB()
+	defer database.Close()
 	if len(os.Args) == 3 {
 		execlogbytes, e := ioutil.ReadFile(os.Args[1])
 		if e != nil {
@@ -44,16 +47,71 @@ func main() {
 				urlhash := splitname[1]
 
 				appender := ExecLogDef{
-					origin:        origin,
-					link:          dlLink,
-					contents_hash: contents_hash,
-					url_hash:      urlhash,
+					origin:    origin,
+					link:      dlLink,
+					hashchunk: spacesplit[4],
 				}
 				defList = append(defList, appender)
+			}
+		}
+		// Okay so now we have parsed the log files :toot:
+		// Now we need to get the files out and import them into a database
+		for _, file := range filelist {
+			realfilename := strings.Split(file, ".")[0]
+			if LookForItem(realfilename, defList) != -1 {
+				// a
+				filebytes := ioutil.ReadFile("./data/" + realfilename + ".csv")
+				tablecode := ConstructTable(string(filebytes), false)
+				_, e := database.Exec(tablecode)
+				if e != nil {
+					panic(e)
+				}
+				tableloader = tableloader + "LOAD DATA LOCAL INFILE '" + "./" + realfilename + "'\n"
+				tableloader = tableloader + "INTO TABLE " + realfilename + "\n"
+				tableloader = tableloader + "FIELDS TERMINATED BY ','" + "\n"
+				tableloader = tableloader + "OPTIONALLY ENCLOSED BY '\"'" + "\n"
+				tableloader = tableloader + "LINES TERMINATED BY '\\r\\n'\n"
+				tableloader = tableloader + "IGNORE 1 LINES\n"
+				tableloader = tableloader + "("
+				for i := 0; i < colcount; i++ {
+					tableloader = tableloader + "`Column " + fmt.Sprintf("%d", i) + "`,"
+				}
+				tableloader = tableloader + "`Column " + fmt.Sprintf("%d", colcount) + "`)"
+
+				_, e = database.Exec(tableloader)
+
 			}
 		}
 
 	} else {
 		fmt.Println("$tool execlog listoffiles")
 	}
+}
+
+func LookForItem(target string, list []ExecLogDef) int {
+	for i, item := range list {
+		if item.contents_hash == target {
+			return i
+		}
+	}
+	return -1
+}
+
+/*
+	A Basic table will just make Column 1,  Column 2,  Column 3
+	rather than a non basic one will make sensible ones
+*/
+func ConstructTable(csv string, basictable bool) string {
+	rows := strings.Split(string(csv), "\n")
+	var tablebuilder string
+	if !basictable {
+		colcount := len(strings.Split(rows[0], ","))
+		tablebuilder = "CREATE TABLE `" + fmt.Sprintf("%x", hash.Sum(nil)) + "` ("
+		for i := 0; i < colcount; i++ {
+			tablebuilder = tablebuilder + "`Column " + fmt.Sprintf("%d", i) + "` TEXT NULL,"
+		}
+		tablebuilder = tablebuilder + "`Column " + fmt.Sprintf("%d", colcount) + "` TEXT NULL"
+		tablebuilder = tablebuilder + ") COLLATE='latin1_swedish_ci' ENGINE=InnoDB;"
+	}
+	return tablebuilder
 }
