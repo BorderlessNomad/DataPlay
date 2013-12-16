@@ -3,3 +3,4 @@
 *.xls
 *.xlsx
 *.dunno
+tools/ckandownloader/x*
