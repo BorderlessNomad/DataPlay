@@ -56,7 +56,7 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 	if prams["s"] == "" {
 		http.Error(res, "There was no search request", http.StatusBadRequest)
 	}
-	rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ?", prams["s"]+"%")
+	rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", prams["s"]+"%")
 
 	if e != nil {
 		panic(e)
