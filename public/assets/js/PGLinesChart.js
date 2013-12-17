@@ -12,36 +12,60 @@
       return _ref;
     }
 
-    PGLinesChart.prototype.drawLines = function() {
-      var that,
-        _this = this;
+    PGLinesChart.prototype.lines = null;
+
+    PGLinesChart.prototype.mode = 'cardinal';
+
+    PGLinesChart.prototype.modes = ['linear', 'linear-closed', 'step-before', 'step-after', 'basis', 'basis-open', 'basis-close', 'bundle', 'cardinal', 'cardinal-open', 'cardinal-closed', 'monotone'];
+
+    PGLinesChart.prototype.createModeButtons = function() {
+      var that;
+      this.modes.forEach(function(mode) {
+        return $('#modes').append("<button class='mode btn btn-info' data='" + mode + "'>" + mode + "</button>");
+      });
       that = this;
-      this.line = d3.svg.line().interpolate("cardinal").x(function(d) {
-        return _this.scale.x(d[0]);
-      }).y(function(d) {
-        return _this.scale.y(d[1]);
+      return $('button.mode').click(function() {
+        that.mode = $(this).attr('data');
+        return that.renderLines();
       });
-      return this.chart.append('g').attr('id', 'line01').attr('clip-path', 'url(#chart-area)').append("path").attr("class", "line").attr("d", this.line(this.currDataset)).on('mouseover', function() {
-        var m;
-        $('.circle').remove();
-        m = d3.mouse(this);
-        console.log("" + (that.scale.x.invert(m[0])) + "," + (that.scale.y.invert(m[1])));
-        return that.drawCircle(m[0], m[1]);
-      });
+    };
+
+    PGLinesChart.prototype.createLines = function() {
+      return this.lines = this.chart.append('g').attr('id', 'lines').attr('clip-path', 'url(#chart-area)');
     };
 
     PGLinesChart.prototype.initChart = function() {
       PGLinesChart.__super__.initChart.apply(this, arguments);
-      return this.drawLines();
+      this.createModeButtons();
+      this.createLines();
+      return this.renderLines();
     };
 
-    PGLinesChart.prototype.updateLines = function() {
-      return this.chart.selectAll(".line").transition().duration(1000).attr("d", this.line(this.currDataset));
+    PGLinesChart.prototype.renderLines = function() {
+      var line, lines, that,
+        _this = this;
+      that = this;
+      line = d3.svg.line().interpolate(this.mode).x(function(d) {
+        return _this.scale.x(d[0]);
+      }).y(function(d) {
+        return _this.scale.y(d[1]);
+      });
+      lines = this.lines.selectAll('path.line').data([this.currDataset]);
+      lines.enter().append("path").attr("class", "line").on('mouseover', function() {
+        var m;
+        $('.circle').remove();
+        m = d3.mouse(this);
+        return that.drawCircle(m[0], m[1]);
+      });
+      lines.exit().remove();
+      return lines.transition().duration(1000).attr("d", function(d) {
+        return line(d);
+      });
     };
 
     PGLinesChart.prototype.updateChart = function(dataset, axes) {
       PGLinesChart.__super__.updateChart.call(this, dataset, axes);
-      return this.updateLines();
+      return this.renderLines();
     };
 
     PGLinesChart.prototype.drawCircle = function(x, y) {

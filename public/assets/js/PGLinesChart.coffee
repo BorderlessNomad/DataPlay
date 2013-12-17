@@ -1,44 +1,60 @@
 class window.PGLinesChart extends PGChart 
+  lines: null
+  mode: 'cardinal'
+  modes: ['linear', 'linear-closed', 'step-before', 'step-after', 'basis', 'basis-open', 
+    'basis-close', 'bundle', 'cardinal', 'cardinal-open', 'cardinal-closed', 'monotone']
+
+  createModeButtons: ->
+    @modes.forEach (mode) ->
+      $('#modes').append("<button class='mode btn btn-info' data='#{mode}'>#{mode}</button>");
+    that = @    
+    $('button.mode').click () -> 
+      that.mode = $(@).attr('data')
+      that.renderLines() 
 
   # --------------------- Chart creating Functions ------------------------ #
-  drawLines: ->
-    that = @
-    # Set chart line
-    @line = d3.svg.line()
-             .interpolate("cardinal")
-             .x((d) => @scale.x(d[0]))
-             .y((d) => @scale.y(d[1]))
-    # Draw chart line
-    @chart.append('g')
-      .attr('id', 'line01')
+  createLines: ->
+    @lines = @chart.append('g')
+      .attr('id', 'lines')
       .attr('clip-path', 'url(#chart-area)')
+
+  initChart: ->
+    super
+    @createModeButtons()
+    @createLines()
+    @renderLines()
+
+  # --------------------- Update Functions ------------------------ 
+  renderLines: ->
+    that = @
+
+    line = d3.svg.line()
+      .interpolate(@mode)
+      .x((d) => @scale.x(d[0]))
+      .y((d) => @scale.y(d[1]))
+
+    lines = @lines.selectAll('path.line')
+      .data([@currDataset])
+
+    lines.enter()
       .append("path")
       .attr("class", "line")
-      .attr("d", @line(@currDataset))
       .on('mouseover', () ->
         $('.circle').remove()
         m = d3.mouse(@)
-        console.log "#{that.scale.x.invert(m[0])},#{that.scale.y.invert(m[1])}"
         that.drawCircle(m[0], m[1])
       )
- 
-  initChart: ->
-    super
-    # Draw Chart lines
-    @drawLines()
 
-  # --------------------- Update Functions ------------------------ 
-  updateLines: ->
-    # Chart line transition
-    @chart.selectAll(".line")
-      .transition()
+    lines.exit()
+      .remove()
+
+    lines.transition()
       .duration(1000)
-      .attr("d", @line(@currDataset))
+      .attr("d", (d) -> line(d))
 
   updateChart: (dataset, axes) ->
     super dataset, axes
-    # Curve update /transitions
-    @updateLines()
+    @renderLines()
 
   # ------------------ Events driven Functions --------------------- 
   drawCircle: (x, y) ->
@@ -52,14 +68,6 @@ class window.PGLinesChart extends PGChart
       .on('click', (d) => @newPointDialog(x, y))                  
       .append('title')
       .text((d) => "#{@axes.x}: #{@scale.x.invert(x)}\n#{@axes.y}: #{@scale.y.invert(y)}")
-
-
-    # FIXME: Ask Ben for this Stuff!!!  
-    # circles1.enter().attr('fill', "#00FF00");
-    #window.GraphOBJ = circles1;
-    #LightUpBookmarks();
-    #fuckyoucoffescript.data().forEach(function(datum, i) { if (datum[1] > 500000 && datum[1] < 1000000) fuckyoucoffescript[0][i].setAttribute('fill','red'); })
-
 
   newPointDialog: (x, y) ->
     # TODO: get id from server, saving it before, as it's new
