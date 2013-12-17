@@ -85,7 +85,7 @@ $(document).ready(function() {
             for (var key in data[0]) {
                 Keys.push(key);
                 // Pattern recognition
-                DataCon.patterns[key] = getPattern(data[0][key]);
+                //DataCon.patterns[key] = getPattern(data[0][key]);
             }
         }
         $.ajax({
@@ -94,11 +94,20 @@ $(document).ready(function() {
             dataType: "json",
             success: function(data) {
                 var Cols = data.Cols;
-                var Keys = [];
-
+                //var Keys = [];
                 for (var i = 0; i < Cols.length; i++) {
-                    if (Cols[i].Sqltype === "int" || Cols[i].Sqltype === "bigint" || Cols[i].Sqltype === "float") {
-                        Keys.push(Cols[i].Name);
+                    // if (Cols[i].Sqltype === "int" || Cols[i].Sqltype === "bigint" || Cols[i].Sqltype === "float") {
+                    //     Keys.push(Cols[i].Name);
+                    // }
+                    switch (Cols[i].Sqltype) {
+                        case "int", "bigint":
+                            DataCon.patterns[Cols[i].Name] = 'intNumber';
+                        case "float":
+                            DataCon.patterns[Cols[i].Name] = 'floatNumber';
+                        case 'varchar':
+                            // leave pattern as it was reognised by frontend
+                        default:
+                            // leave pattern as it was reognised by frontend
                     }
                 }
                 populatedKeys(Keys);

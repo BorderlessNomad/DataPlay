@@ -5,7 +5,7 @@ class window.PGLinesChart extends PGChart
     that = @
     # Set chart line
     @line = d3.svg.line()
-             #.interpolate("basis")
+             .interpolate("cardinal")
              .x((d) => @scale.x(d[0]))
              .y((d) => @scale.y(d[1]))
     # Draw chart line

@@ -418,7 +418,7 @@ $ ->
   # data is loaded
   # ---
   display = (data) ->
-    plotData("#placeholder", data, plot)
+    plotData("#chart", data, plot)
 
   # we are storing the current text in the search component
   # just to make things easy
@@ -437,5 +437,28 @@ $ ->
     .on "change", (e) ->
       d3.csv(GetURL(), display)
   # load our data
-  d3.csv(GetURL(), display)
+  #d3.csv(GetURL(), display)
 
+  dataset = [
+    {name: 'pepe', count: '234'},
+    {name: 'juan', count: '24'},
+    {name: 'rere', count: '23'},
+    {name: 'fdfh', count: '34'},
+    {name: 'rrrr', count: '55'},
+    {name: 'pepsse', count: '33'},
+    {name: 'asa', count: '112'},
+    {name: 'sasa', count: '4'},
+    {name: 'asasas', count: '12'},
+    {name: 'dddff', count: '32'},
+    {name: 'pepe', count: '12'},
+    {name: 'iii', count: '32'},
+    {name: 'iiii', count: '44'},
+    {name: 'jjjj', count: '56'},
+    {name: 'pppp', count: '88'},
+    {name: 'qqqqq', count: '76'},
+    {name: 'aaarrrr', count: '56'},
+    {name: 'ytuy', count: '9'},
+    {name: 'sdfbvcb', count: '30'},
+    {name: 'fdsf', count: '19'}
+  ]
+  display dataset

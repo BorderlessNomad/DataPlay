@@ -14,7 +14,7 @@
   <!-- Bootstrap core CSS -->
   <link href="/assets/css/lib/bootstrap.css" rel="stylesheet">
   <link href="/assets/css/layout.min.css" rel="stylesheet">
-  <link href="/assets/css/graphs.min.css" rel="stylesheet">
+  <link href="/assets/css/charts.min.css" rel="stylesheet">
   <!--link href="/assets/css/xcharts.css" rel="stylesheet"-->
 
   <!-- Custom styles for this template -->
@@ -52,38 +52,41 @@
         </div>
       </div>
 
-      <div id='mainContainer' class="container">
-
-        <!-- Main component for a primary marketing message or call to action -->
-        <div class="jumbotron">
-          <h1>Viewing Dataset <font id="FillInDataSet">...</font></h1>
-          <div class="demo-container">
-            <div id="placeholder" class="demo-placeholder"></div>
+      <div class="jumbotron">
+        <div class="container">
+          <h2>Viewing Dataset <font id="FillInDataSet">...</font></h2>
+          <div id='data-container' class="row">
+            <!-- Chart -->
+            <div id="chart" class="col-md-9">
+              <h2>Loading Chart ...</h2>
+              <p>Hold on.</p>
+            </div>
             <!-- Wikidata -->
-            <div class="container wikidata">
-              <h2> Loading... </h2>
+            <div id='wikidata' class="col-md-3">
+              <h2>Loading data ...</h2>
               <p>Hold on.</p>
             </div>
           </div>
-          Override X Axis:
-          <select id="pickxaxis">
-            <option>Loading...</option>
-          </select>
-        </br>
-        Override Y Axis:
-        <select id="pickyaxis">
-          <option>Loading...</option>
-        </select>
-        <p>
-          <a class="btn btn-lg btn-primary" href="#" id="SetupOverlay" role="button">Overlay data &raquo;</a>
-        </p>
+          <div class="row">
+            Override X Axis:
+            <select id="pickxaxis" onchange="ReJigGraph()">
+              <option>Loading...</option>
+            </select>
+          </div>
+          <div class="row">
+            Override Y Axis:
+            <select id="pickyaxis" onchange="ReJigGraph()">
+              <option>Loading...</option>
+            </select>
+          </div>
+          <div class="row">
+              <a class="btn btn-lg btn-primary" href="#" id="SetupOverlay" role="button">Overlay data &raquo;</a>
+          </div>
 <!--         <p>
           <a class="btn btn-lg btn-primary" href="../../components/#navbar" role="button">Add To Home &raquo;</a>
         </p> -->
-      </div>
-
-      
-    </div> <!-- /container -->
+      </div> <!-- /container -->     
+    </div> <!-- /jumbotron -->
 <!--
     <script type="text/html" id="pointDataTemplate">
       <% 
@@ -115,8 +118,10 @@
     <script src="/assets/js/lib/backbone.min.js"></script>
     <script src="/assets/js/PGChartPoint.js"></script>
     <script src="/assets/js/PGChart.js"></script>
+    <script src="/assets/js/PGBubblesChart.js"></script>
+    <script src="/assets/js/PGBubblesChartOld.js"></script>
     <script src="/assets/js/bubble_pre.js"></script>
-    <script src="/assets/js/bubble.js"></script>
+    <!--script src="/assets/js/bubble.js"></script-->
 
   </body>
   </html>

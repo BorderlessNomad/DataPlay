@@ -16,7 +16,7 @@
       var that,
         _this = this;
       that = this;
-      this.line = d3.svg.line().x(function(d) {
+      this.line = d3.svg.line().interpolate("cardinal").x(function(d) {
         return _this.scale.x(d[0]);
       }).y(function(d) {
         return _this.scale.y(d[1]);
