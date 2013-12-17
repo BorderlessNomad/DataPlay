@@ -14,23 +14,6 @@ $(document).ready(function() {
                         $('#Note' + data[i].GUID).html("<a href=\"/view/" + data[i].GUID + "\">View &raquo;</a>&nbsp;<a href=\"/grid/" + data[i].GUID + "\">Grid &raquo;</a>");
                     else
                         $('#Note' + data[i].GUID).html("<a href=\"/overlay/" + data[i].GUID + "\">Overlay &raquo;</a>");
-
-
-                    // $.getJSON("/api/getquality/" + data[i].GUID, function(data) {
-                    //     if (data.Amount > 2) {
-                    //         $.getJSON("/api/getimportstatus/" + data[i].GUID, function(dota) {
-                    //             if (dota.State == "offline") {
-                    //                 $('#Note' + dota.Request).html("<a>Cannot import in the middle of a overlay</a>");
-                    //             } else {
-
-                    //             }
-                    //         });
-                    //         $('#' + data[i].GUID).addClass("success");
-                    //     } else {
-                    //         $('#' + data[i].GUID).addClass("danger");
-                    //         $('#Note' + data[i].GUID).html("Data Quality Too Poor");
-                    //     }
-                    // });
                     console.log(data);
                 }
             });
