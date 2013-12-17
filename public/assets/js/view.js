@@ -11,7 +11,14 @@ function updateGraph() {
         };
     if (!DataCon.graph) {
         $("#chart").html('');
-        DataCon.graph = new PGLinesChart("#chart", null, graphData, graphAxes, null);
+        switch (DataCon.patterns[graphAxes.x]) {
+            case 'label':
+                DataCon.graph = new PGBarsChart("#chart", null, graphData, graphAxes, 30);
+                break;
+            default:
+                DataCon.graph = new PGAreasChart("#chart", null, graphData, graphAxes, null);
+        }
+        
     } else {
         DataCon.graph.updateChart(graphData, graphAxes);
     }
@@ -85,7 +92,7 @@ $(document).ready(function() {
             for (var key in data[0]) {
                 Keys.push(key);
                 // Pattern recognition
-                //DataCon.patterns[key] = getPattern(data[0][key]);
+                DataCon.patterns[key] = getPattern(data[0][key]);
             }
         }
         $.ajax({
@@ -105,9 +112,9 @@ $(document).ready(function() {
                         case "float":
                             DataCon.patterns[Cols[i].Name] = 'floatNumber';
                         case 'varchar':
-                            // leave pattern as it was reognised by frontend
+                            // leave pattern as it was recognised by frontend
                         default:
-                            // leave pattern as it was reognised by frontend
+                            // leave pattern as it was recognised by frontend
                     }
                 }
                 populatedKeys(Keys);

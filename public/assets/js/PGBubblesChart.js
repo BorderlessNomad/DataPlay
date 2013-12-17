@@ -25,8 +25,6 @@
 
     PGBubblesChart.prototype.force = null;
 
-    PGBubblesChart.prototype.drag = true;
-
     function PGBubblesChart(container, margin, dataset, axes, limit) {
       this.mouseout = __bind(this.mouseout, this);
       this.mouseover = __bind(this.mouseover, this);

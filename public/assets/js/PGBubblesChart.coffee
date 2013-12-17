@@ -20,7 +20,6 @@ class window.PGBubblesChart extends PGChart
   # here we disable gravity and charge as we implement custom versions
   # of gravity and collisions for this visualization
   force: null
-  drag: true
 
   constructor: (container, margin, dataset, axes, limit) ->
     super container, margin, dataset, axes, limit
@@ -205,9 +204,7 @@ class window.PGBubblesChart extends PGChart
         s = d3.event.scale#
         if that.drag
           svg.attr('transform', "translate(#{t})scale(#{s})")
-
-        #d3.select('#bubble-labels').style('transform', "translate(#{t[0]}px,#{t[1]}px) scale(#{s})")
-      
+     
       # Clip chart
       svgEnter.append("clipPath")
          .attr('id', 'chart-area')

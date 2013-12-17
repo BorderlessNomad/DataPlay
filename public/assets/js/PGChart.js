@@ -37,6 +37,8 @@
 
     PGChart.prototype.limit = 1000;
 
+    PGChart.prototype.drag = true;
+
     function PGChart(container, margin, dataset, axes, limit) {
       if (!!container) {
         this.container = container;
@@ -71,7 +73,7 @@
             return ind += inc;
           }
         };
-        for (i = _i = 0, _ref = this.dataset.length; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+        for (i = _i = 0, _ref = this.dataset.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
           _fn(i);
         }
         return console.log(this.currDataset);
@@ -86,8 +88,6 @@
         switch (DataCon.patterns[this.axes.x]) {
           case 'date':
             return d3.time.scale();
-          case 'label':
-            return d3.scale.ordinal();
           default:
             return d3.scale.linear();
         }
@@ -99,8 +99,6 @@
         switch (DataCon.patterns[this.axes.y]) {
           case 'date':
             return d3.time.scale();
-          case 'label':
-            return d3.scale.ordinal();
           default:
             return d3.scale.linear();
         }
@@ -137,8 +135,19 @@
     };
 
     PGChart.prototype.drawChart = function() {
-      this.chart = d3.select(this.container).append("svg").attr("width", this.width + this.margin.left + this.margin.right).attr("height", this.height + this.margin.top + this.margin.bottom).append("g").attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
-      return this.chart.append("clipPath").attr('id', 'chart-area').append('rect').attr('x', 0).attr('y', 0).attr('width', this.width).attr('height', this.height);
+      var svg,
+        _this = this;
+      svg = d3.select(this.container).append("svg").attr("width", this.width + this.margin.left + this.margin.right).attr("height", this.height + this.margin.top + this.margin.bottom);
+      this.chart = svg.append("g").attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+      this.chart.append("clipPath").attr('id', 'chart-area').append('rect').attr('x', 0).attr('y', 0).attr('width', this.width).attr('height', this.height);
+      return svg.call(d3.behavior.zoom().scaleExtent([1, 10]).on('zoom', function() {
+        var s, t;
+        t = d3.event.translate;
+        s = d3.event.scale;
+        if (_this.drag) {
+          return svg.attr('transform', "translate(" + t + ")scale(" + s + ")");
+        }
+      }));
     };
 
     PGChart.prototype.drawAxes = function() {

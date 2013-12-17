@@ -10,6 +10,7 @@ class window.PGChart
   scale: {x: 1, y: 1}
   chart: null
   limit: 1000
+  drag: true
 
   constructor: (container, margin, dataset, axes, limit) ->
     @container = container unless not container
@@ -27,7 +28,7 @@ class window.PGChart
       inc = @dataset.length / @limit
       ind = 0
       @currDataset = []
-      for i in [0..@dataset.length]
+      for i in [0..@dataset.length-1]
         do (i) =>
           if Math.floor(ind) is i
             @currDataset.push(@dataset[i])
@@ -40,15 +41,13 @@ class window.PGChart
      # Get axes depending on axes pattern
     @scale.x = switch DataCon.patterns[@axes.x]
       when 'date' then d3.time.scale()
-      when 'label' then d3.scale.ordinal()
       else d3.scale.linear()
 
     @scale.x.domain(d3.extent(@currDataset, (d) -> d[0]))
-          .range([0.01*@width, 0.98*@width])
+      .range([0.01*@width, 0.98*@width])
 
     @scale.y = switch DataCon.patterns[@axes.y]
       when 'date' then d3.time.scale()
-      when 'label' then d3.scale.ordinal()
       else d3.scale.linear()
 
     @scale.y.domain([
@@ -81,11 +80,12 @@ class window.PGChart
   # --------------------- Chart creating Functions ------------------------ #
   drawChart: ->
     # The chart container
-    @chart = d3.select(@container).append("svg")
-            .attr("width", @width  + @margin.left + @margin.right)
-            .attr("height", @height + @margin.top + @margin.bottom)
-            .append("g")
-            .attr("transform", "translate(#{@margin.left},#{@margin.top})")
+    svg = d3.select(@container).append("svg")
+      .attr("width", @width  + @margin.left + @margin.right)
+      .attr("height", @height + @margin.top + @margin.bottom)
+
+    @chart = svg.append("g")
+      .attr("transform", "translate(#{@margin.left},#{@margin.top})")
 
     # Clip chart
     @chart.append("clipPath")
@@ -95,6 +95,12 @@ class window.PGChart
        .attr('y', 0)
        .attr('width', @width)
        .attr('height', @height)
+
+    svg.call d3.behavior.zoom().scaleExtent([1,10]).on 'zoom', () => 
+        t = d3.event.translate
+        s = d3.event.scale
+        if @drag
+          svg.attr('transform', "translate(#{t})scale(#{s})")
 
   drawAxes: ->
     # Draw x axis
