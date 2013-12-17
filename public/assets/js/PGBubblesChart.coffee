@@ -4,6 +4,7 @@ class window.PGBubblesChart extends PGChart
   data: []
   # largest size for our bubbles
   maxRadius: 20
+  minRadius: 5
   # this scale will be used to size our bubbles
   rScale: null
   # constants to control how
@@ -24,7 +25,7 @@ class window.PGBubblesChart extends PGChart
   constructor: (container, margin, dataset, axes, limit) ->
     super container, margin, dataset, axes, limit
     @data = dataset
-    @rScale = d3.scale.sqrt().range([0,@maxRadius])
+    @rScale = d3.scale.sqrt().range([@minRadius,@maxRadius])
     @force = d3.layout.force()
       .gravity(0)
       .charge(0)
