@@ -73,16 +73,3 @@ class window.PGBarsChart extends PGChart
   updateChart: (dataset, axes) ->
     super dataset, axes
     @renderLines()
-
-  # ------------------ Events driven Functions --------------------- 
-  newPointDialog: (x, y) ->
-    # TODO: get id from server, saving it before, as it's new
-    point = new PGChartPoint(id: 1)    
-    #point.save()
-    console.log point
-    pointDialog = new PGChartPointView(
-      model: point,
-      # TODO: put here the real id
-      id: "pointDialog#{point.get('id')}"
-    )
-    $(@container).append(pointDialog.render().$el)

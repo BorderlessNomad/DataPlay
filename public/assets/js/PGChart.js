@@ -61,22 +61,22 @@
     }
 
     PGChart.prototype.processDataset = function() {
-      var i, inc, ind, _fn, _i, _ref,
+      var i, inc, ind, _i, _ref, _results,
         _this = this;
       if (this.dataset.length > this.limit) {
         inc = this.dataset.length / this.limit;
         ind = 0;
         this.currDataset = [];
-        _fn = function(i) {
-          if (Math.floor(ind) === i) {
-            _this.currDataset.push(_this.dataset[i]);
-            return ind += inc;
-          }
-        };
+        _results = [];
         for (i = _i = 0, _ref = this.dataset.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-          _fn(i);
+          _results.push((function(i) {
+            if (Math.floor(ind) === i) {
+              _this.currDataset.push(_this.dataset[i]);
+              return ind += inc;
+            }
+          })(i));
         }
-        return console.log(this.currDataset);
+        return _results;
       } else {
         return this.currDataset = this.dataset;
       }
@@ -177,6 +177,19 @@
       this.processDataset();
       this.setScales();
       return this.updateAxes();
+    };
+
+    PGChart.prototype.newPointDialog = function(x, y) {
+      var point, pointDialog;
+      point = new PGChartPoint({
+        id: 1
+      });
+      console.log(point);
+      pointDialog = new PGChartPointView({
+        model: point,
+        id: "pointDialog" + (point.get('id'))
+      });
+      return $(this.container).append(pointDialog.render().$el);
     };
 
     return PGChart;

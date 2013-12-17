@@ -33,7 +33,6 @@ class window.PGChart
           if Math.floor(ind) is i
             @currDataset.push(@dataset[i])
             ind += inc
-      console.log @currDataset
     else
       @currDataset = @dataset
 
@@ -83,6 +82,8 @@ class window.PGChart
     svg = d3.select(@container).append("svg")
       .attr("width", @width  + @margin.left + @margin.right)
       .attr("height", @height + @margin.top + @margin.bottom)
+      # .on('mousedown', () -> @classed('panning', true))
+      # .on('mouseup', () -> @classed('panning', false))  
 
     @chart = svg.append("g")
       .attr("transform", "translate(#{@margin.left},#{@margin.top})")
@@ -160,3 +161,17 @@ class window.PGChart
     @setScales()
     # Axes update /transitions
     @updateAxes()
+
+
+  # ------------------ Events driven Functions --------------------- 
+  newPointDialog: (x, y) ->
+    # TODO: get id from server, saving it before, as it's new
+    point = new PGChartPoint(id: 1)    
+    #point.save()
+    console.log point
+    pointDialog = new PGChartPointView(
+      model: point,
+      # TODO: put here the real id
+      id: "pointDialog#{point.get('id')}"
+    )
+    $(@container).append(pointDialog.render().$el)

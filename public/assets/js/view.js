@@ -1,26 +1,50 @@
 'use strict';
 
 window.DataCon || (window.DataCon = {})
+DataCon.currChartType = 'line';
 var guid = window.location.href.split('/')[window.location.href.split('/').length - 1];
 
-function updateGraph() {
-    var graphData = parseChartData(window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()),
-        graphAxes = {
+function go2Chart(type) {
+    if (DataCon.currChartType != type) {
+        DataCon.currChartType = type;
+        DataCon.chart = null;
+        $('#modes').html('');
+        updateChart();
+    }
+}
+
+function updateChart() {
+    var chartData = parseChartData(window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()),
+        chartAxes = {
             x: $("#pickxaxis").val(),
             y: $("#pickyaxis").val()
         };
-    if (!DataCon.graph) {
+    if (!DataCon.chart) {
         $("#chart").html('');
-        switch (DataCon.patterns[graphAxes.x]) {
-            case 'label':
-                DataCon.graph = new PGBarsChart("#chart", null, graphData, graphAxes, 30);
+        switch (DataCon.currChartType) {
+            case 'bars':
+                DataCon.chart = new PGBarsChart("#chart", null, chartData, chartAxes, 30);
+                break;
+            case 'area':
+                DataCon.chart = new PGAreasChart("#chart", null, chartData, chartAxes, null);
+                break;
+            case 'pie':
+                DataCon.chart = new PGPieChart("#chart", null, chartData, null, null);
+                break;
+            case 'bubbles':
+                var dataset = [];
+                chartData.forEach(function(d) {
+                    dataset.push({name: d[0], count: d[1]});
+                });
+                DataCon.chart = new PGBubblesChart("#chart", {top: 5, right: 0, bottom: 0, left: 0}, 
+                    dataset, null, null);
                 break;
             default:
-                DataCon.graph = new PGAreasChart("#chart", null, graphData, graphAxes, null);
+                DataCon.chart = new PGLinesChart("#chart", null, chartData, chartAxes, null);
         }
         
     } else {
-        DataCon.graph.updateChart(graphData, graphAxes);
+        DataCon.chart.updateChart(chartData, chartAxes);
     }
 }
 
@@ -79,7 +103,7 @@ $(document).ready(function() {
             $("#pickyaxis").val(Keys[1]);
         }
         // Get the last user preferences if any ... and update graph
-        getUserDefaults(guid, $("#pickxaxis"), $("#pickyaxis"), updateGraph);
+        getUserDefaults(guid, $("#pickxaxis"), $("#pickyaxis"), updateChart);
     }
 
     $.getJSON("/api/getdata/" + guid, function(data) {
@@ -132,12 +156,12 @@ $(document).ready(function() {
 
     window.ReJigGraph = function() {
         saveUserDefaults(guid, $("#pickxaxis").val(), $("#pickyaxis").val());
-        updateGraph();
+        updateChart();
     };
 
     $(window).resize(function() {
-        DataCon.graph = null;
-        updateGraph();
+        DataCon.chart = null;
+        updateChart();
     });
 
 });
