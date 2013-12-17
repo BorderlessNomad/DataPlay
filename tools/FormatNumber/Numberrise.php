@@ -35,7 +35,7 @@ while($row = mysql_fetch_array($q)) {
 			if($TestQuery) {
 				while($TestRow = mysql_fetch_array($TestQuery)) {
 					if(!is_numeric($TestRow[0])) {
-						$AttemptedFix = str_replace(",", "", $TestRow[0]);
+						$AttemptedFix = str_replace(",", "", str_replace("?", "", $TestRow[0]));
 						if(is_numeric($AttemptedFix)) {
 							// Generate SQL to fix this issue :)
 							echo("UPDATE `" . $tablename . "` SET `".$bitsofline[1]."` = '" . mysql_real_escape_string($AttemptedFix) . "' WHERE `".$bitsofline[1]."` = '" . mysql_real_escape_string($TestRow[0]) . "';\n");
