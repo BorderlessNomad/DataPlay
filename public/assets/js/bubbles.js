@@ -45,6 +45,7 @@ $(document).ready(function() {
                 if (Cols[i].Sqltype === "varchar") {
                     XVars.push(Cols[i].Name);
                 } else {
+                    XVars.push(Cols[i].Name);
                     YVars.push(Cols[i].Name);
                 }
             }
