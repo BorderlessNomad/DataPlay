@@ -6,27 +6,7 @@ var guid = window.location.href.split('/')[window.location.href.split('/').lengt
 window.Annotations = [];
 
 function SavePoint(x, y) {
-    // var SaveObj = {
-    //  xax: $("#pickxaxis").val(),
-    //  yax: $("#pickyaxis").val(),
-    //  x: x,
-    //  y: y,
-    //  guid: guid
-    // };
-    // Annotations.push(SaveObj);
-    // // Save it as well and rewrite the titlebar URL to be the shareable one.
-    // $.ajax({
-    //  type: "POST",
-    //  url: '/api/setbookmark/',
-    //  data: "data=" + JSON.stringify(Annotations),
-    //  success: function(resp) {
-    //      window.history.pushState('page2', 'Title', '/viewbookmark/' + resp);
-    //      //Saved and sound
-    //  },
-    //  error: function(err) {
-    //      console.log(err);
-    //  }
-    // });
+
 }
 
 function LightUpBookmarks() {
@@ -65,7 +45,6 @@ $(document).ready(function() {
 
     $.getJSON("/api/getreduceddata/" + guid, function(data) {
         //console.log(data);
-        // so data is an array of shit.
         window.DataSet = data;
         var Keys = [];
         DataCon.patterns = {}
