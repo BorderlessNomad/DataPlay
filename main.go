@@ -79,7 +79,6 @@ func main() {
 	m.Get("/api/user", api.CheckAuth)
 	m.Get("/api/search/:s", api.SearchForData)
 	m.Get("/api/getinfo/:id", api.GetEntry)
-	m.Get("/api/getquality/:id", api.CheckDataQuality)
 	m.Get("/api/getimportstatus/:id", api.CheckImportStatus)
 	m.Get("/api/getdata/:id", api.DumpTable)
 	m.Get("/api/getdata/:id/:x/:startx/:endx", api.DumpTableRange)
