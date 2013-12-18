@@ -45,11 +45,12 @@ $(document).ready(function() {
 
     $.getJSON("/api/getreduceddata/" + guid, function(data) {
         $.getJSON("/api/identifydata/" + guid, function(tabledata) {
-            // http://localhost:3000/api/identifydata/hips
-            //console.log(data);
+
+            // because of what the grid was meant to show, I am going to make sure it can only plot
+            // number to number
             window.DataSet = data;
             var Keys = [];
-            DataCon.patterns = {}
+            DataCon.patterns = {};
             if (data.length) {
                 for (var key in data[0]) {
                     Keys.push(key);
@@ -58,7 +59,7 @@ $(document).ready(function() {
                 }
             }
             var Entropy = Math.pow(2, Keys.length - 1);
-            var TableHandle = $('#GridTable')
+            var TableHandle = $('#GridTable');
             var count = 0;
             for (var i = 0; i < Entropy / 3; i++) {
                 $('#GridTable').append(
@@ -74,7 +75,6 @@ $(document).ready(function() {
             var k2 = 0;
             var DCG = [];
             for (var i = 0; i < Entropy; i++) {
-                console.log(i)
                 DCG[i] = new PGLinesChart(
                     "#Cell" + i, {
                         top: 5,
@@ -99,13 +99,9 @@ $(document).ready(function() {
                 }
             }
             window.dcg = DCG;
-            d3.selectAll('.axis .tick').remove(); // Remove the axis to make it look more clean and less
-            // insane.
+            d3.selectAll('.axis .tick').remove();
+            // Remove the axis to make it look more clean and less insane.
 
-
-            // So my plan is to make links that make fake bookmarks that when you click on them they have the axis pre filled in,
-            // Or I could just set the defaults as you click on it. that could be worse. It would work better though, minus the whole
-            // over writing part of it </braindump>
         });
     });
 
