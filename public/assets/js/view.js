@@ -35,7 +35,8 @@ function go2HierarchyChart() {
                 })(nested, $(keySelectors.get(i)).val());
             }                     
         }
-        nested = nested.entries(DataCon.dataset);
+        var dataCopy = JSON.parse(JSON.stringify(DataCon.dataset));
+        nested = nested.entries(dataCopy);
         dataset.values = nested;
         switch (DataCon.currChartType) {
             case 'enclosure':

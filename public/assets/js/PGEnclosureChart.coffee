@@ -419,11 +419,13 @@ class window.PGEnclosureChart extends PGChart
     pack = d3.layout.pack()
       .size([@r, @r])
       .children((d) => d.values)
-      .value((d) => d[@value])
+      .value((d) => Math.abs(d[@value]))
       #.value((d) => d.size)
 
     nodes = pack.nodes(@currDataset)
     #nodes = pack.nodes(json)
+
+    console.log nodes
 
     circles = @enclosure.selectAll("circle")
       .data(nodes)
@@ -436,6 +438,7 @@ class window.PGEnclosureChart extends PGChart
       .attr("cx", (d) -> d.x)
       .attr("cy", (d) -> d.y)
       .attr("r", (d) -> d.r)
+      .style('fill', (d) => if d[@value]<0 then '#884444' else '#448844')
 
     circles.exit()
       .transition()

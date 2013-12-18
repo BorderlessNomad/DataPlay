@@ -416,22 +416,20 @@ class window.PGTreemapChart extends PGChart
 
     treemap = d3.layout.treemap()
       .children((d) -> d.values)
-      #.value((d) => d[@value])
-      .value((d) => d.size)
-      .round(false)
+      .value((d) => d[@value])
+      #.value((d) => d.size)
+      .round(true)
       .size([@width, @height])
-      .sticky(true)
+      .sticky(false)
     
     #----------Crap tis to use the server dataset------------
-    @currDataset = json
+    #@currDataset = json
     #-------------------------------------------------------
     
     nodes = treemap.nodes(@currDataset)
       .filter((d) -> not d.values)
     
-    nodes.forEach((d) -> d.y = d.depth * 180)
-
-    cells = @chart.selectAll("g.cell")
+    cells = @treemap.selectAll("g.cell")
       .data(nodes)
 
     cellEnter = cells.enter()
@@ -452,7 +450,7 @@ class window.PGTreemapChart extends PGChart
       .attr('y', (d) -> d.dy/2)
       .attr('dy', '.35em')
       .attr('text-anchor', 'middle')
-      .text((d) -> d.key)
+      .text((d) => d[@value])
       .style('opacity', (d) ->
         d.w = @getComputedTextLength()
         if d.dx>d.w then 1 else 0

@@ -865,9 +865,10 @@
       pack = d3.layout.pack().size([this.r, this.r]).children(function(d) {
         return d.values;
       }).value(function(d) {
-        return d[_this.value];
+        return Math.abs(d[_this.value]);
       });
       nodes = pack.nodes(this.currDataset);
+      console.log(nodes);
       circles = this.enclosure.selectAll("circle").data(nodes);
       circles.enter().append("svg:circle");
       circles.transition().attr("class", function(d) {
@@ -882,6 +883,12 @@
         return d.y;
       }).attr("r", function(d) {
         return d.r;
+      }).style('fill', function(d) {
+        if (d[_this.value] < 0) {
+          return '#884444';
+        } else {
+          return '#448844';
+        }
       });
       circles.exit().transition().attr("r", 0).remove();
       labels = this.enclosure.selectAll("text").data(nodes);

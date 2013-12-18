@@ -863,16 +863,12 @@
       treemap = d3.layout.treemap().children(function(d) {
         return d.values;
       }).value(function(d) {
-        return d.size;
-      }).round(false).size([this.width, this.height]).sticky(true);
-      this.currDataset = json;
+        return d[_this.value];
+      }).round(true).size([this.width, this.height]).sticky(false);
       nodes = treemap.nodes(this.currDataset).filter(function(d) {
         return !d.values;
       });
-      nodes.forEach(function(d) {
-        return d.y = d.depth * 180;
-      });
-      cells = this.chart.selectAll("g").data(nodes);
+      cells = this.treemap.selectAll("g.cell").data(nodes);
       cellEnter = cells.enter().append("g").attr("class", "cell");
       cellEnter.append("rect");
       cellEnter.append("text");
@@ -890,7 +886,7 @@
       }).attr('y', function(d) {
         return d.dy / 2;
       }).attr('dy', '.35em').attr('text-anchor', 'middle').text(function(d) {
-        return d.key;
+        return d[_this.value];
       }).style('opacity', function(d) {
         d.w = this.getComputedTextLength();
         if (d.dx > d.w) {

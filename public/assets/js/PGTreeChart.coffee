@@ -423,7 +423,7 @@ class window.PGTreeChart extends PGChart
       .projection((d) -> [d.y, d.x])
     
     #----------Crap tis to use the server dataset------------
-    @currDataset = json
+    #@currDataset = json
     #-------------------------------------------------------
     @currDataset.x0 = @height/2
     @currDataset.y0 = 0
@@ -469,8 +469,8 @@ class window.PGTreeChart extends PGChart
       .attr("x", (d) -> if d.values then -10 else 10)
       .attr("dy", ".35em")
       .attr("text-anchor", (d) -> if d.values then "end" else "start")
-      #.text((d) => if d.values then d.key else d[@value])
-      .text((d) => if d.values then d.key else d.size)
+      .text((d) => if d.values then d.key else d[@value])
+      #.text((d) => if d.values then d.key else d.size)
       .style("fill-opacity", 1e-6)
 
     nodeUpdate.select("text")

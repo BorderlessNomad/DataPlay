@@ -869,7 +869,6 @@
       this.diagonal = d3.svg.diagonal().projection(function(d) {
         return [d.y, d.x];
       });
-      this.currDataset = json;
       this.currDataset.x0 = this.height / 2;
       this.currDataset.y0 = 0;
       return this.render(this.currDataset);
@@ -928,7 +927,7 @@
         if (d.values) {
           return d.key;
         } else {
-          return d.size;
+          return d[_this.value];
         }
       }).style("fill-opacity", 1e-6);
       nodeUpdate.select("text").style("fill-opacity", 1);
