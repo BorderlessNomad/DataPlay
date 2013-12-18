@@ -71,26 +71,44 @@
         <a class="btn btn-lg btn-warning" href="javascript:go2Chart('bubbles')" role="button">Bubbles Chart</a>
         <a class="btn btn-lg btn-warning" href="javascript:go2Chart('bars')" role="button">Bars Chart</a>
         <a class="btn btn-lg btn-warning" href="javascript:go2Chart('pie')" role="button">Pie Chart</a>
+        <a class="btn btn-lg btn-warning" href="javascript:go2Chart('enclosure')" role="button">Enclosure Chart</a>
       </div>
       
       <div class="row">
-        Override X Axis:
-        <select id="pickxaxis" onchange="ReJigGraph()">
-          <option>Loading...</option>
-        </select>
-      </div>
-      <div class="row">
-        Override Y Axis:
-        <select id="pickyaxis" onchange="ReJigGraph()">
-          <option>Loading...</option>
-        </select>
-      </div>
-      <div class="row">
-          <a class="btn btn-lg btn-primary" href="#" id="SetupOverlay" role="button">Overlay data &raquo;</a>
+        <div id="selectors" class='col-xs-6'>
+          <div class="row">
+            Override X Axis:
+            <select id="pickxaxis" onchange="ReJigGraph()">
+              <option>Loading...</option>
+            </select>
+          </div>
+          <div class="row">
+            Override Y Axis:
+            <select id="pickyaxis" onchange="ReJigGraph()">
+              <option>Loading...</option>
+            </select>
+          </div>
+          <div class="row">
+              <a class="btn btn-lg btn-primary" href="#" id="SetupOverlay" role="button">Overlay data &raquo;</a>
+          </div>
+        </div> <!-- selectors -->
+        <div id="controls" class="col-xs-6"></div>
       </div>
 
-  </div> <!-- /container -->     
-</div> <!-- /jumbotron -->
+    </div> <!-- /container -->     
+  </div> <!-- /jumbotron -->
+
+<script type="text/html" id="selectorTemplate">
+  <div class="row">
+    <%= data.type %>:
+    <select class="<%= data.type %>">
+      <option value=0></option>
+      <% for (var item in data.keys) { %>
+        <option value="<%= data.keys[item] %>"><%= data.keys[item] %></option>
+      <% } %>
+    </select>
+  </div>
+</script>
 
 <script type="text/html" id="pointDataTemplate">
   <% 

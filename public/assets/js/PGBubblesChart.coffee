@@ -198,7 +198,9 @@ class window.PGBubblesChart extends PGChart
       svg = d3.select(@).selectAll("svg").data([data])
       svgEnter = svg.enter().append("svg")
       svg.attr("width", that.width + that.margin.left + that.margin.right )
-      svg.attr("height", that.height + that.margin.top + that.margin.bottom )
+        .attr("height", that.height + that.margin.top + that.margin.bottom )
+        .on('mousedown', () -> d3.select(@).classed('panning', true))
+        .on('mouseup', () -> d3.select(@).classed('panning', false))
       # zoom
       svg.call d3.behavior.zoom().scaleExtent([1,10]).on 'zoom', () -> 
         t = d3.event.translate

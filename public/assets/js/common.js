@@ -1,7 +1,7 @@
 _.templateSettings.variable = "data"
 
 function getPattern(data) {
-    console.log('--------- Processing pattern for ' + data + ' --------');
+    //console.log('--------- Processing pattern for ' + data + ' --------');
     var patterns = {
         date: /^\d{2,4}-\d{1,2}-\d{1,2}$/i,
         label: /[a-z]+/i,
@@ -11,9 +11,9 @@ function getPattern(data) {
     };
     for (var pt in patterns) {     
         if (patterns.hasOwnProperty(pt)) {
-            console.log(pt + ' pattern?');
+            //console.log(pt + ' pattern?');
             var isPattern = patterns[pt].exec(data);
-            console.log(isPattern ? isPattern : 'No matches');
+            //console.log(isPattern ? isPattern : 'No matches');
             if (isPattern) return pt;               
         }
     }

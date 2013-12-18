@@ -89,20 +89,7 @@
 
     PGBarsChart.prototype.updateChart = function(dataset, axes) {
       PGBarsChart.__super__.updateChart.call(this, dataset, axes);
-      return this.renderLines();
-    };
-
-    PGBarsChart.prototype.newPointDialog = function(x, y) {
-      var point, pointDialog;
-      point = new PGChartPoint({
-        id: 1
-      });
-      console.log(point);
-      pointDialog = new PGChartPointView({
-        model: point,
-        id: "pointDialog" + (point.get('id'))
-      });
-      return $(this.container).append(pointDialog.render().$el);
+      return this.renderBars();
     };
 
     return PGBarsChart;

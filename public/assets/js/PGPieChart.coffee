@@ -1,22 +1,27 @@
 class window.PGPieChart extends PGChart 
   pie: null
-  innerRadius: 0
+  innerRadius: 20
   outerRadius: 200
 
   # --------------------- Chart creating Functions ------------------------ #
+  setScales: ->
+
+  drawAxes: ->
+
   createPie: ->
     @pie = @chart.append('g')
       .attr('id', 'pie')
-      .attr('clip-path', 'url(#chart-area)')
       .attr('transform', "translate(#{@outerRadius},#{@outerRadius})")
 
   initChart: ->
-    @processDataset()
-    @drawChart()
+    super
+    @outerRadius = @width/2
     @createPie()
     @renderPie()
 
   # --------------------- Update Functions ------------------------ 
+  updateAxes: ->
+
   renderPie: ->
     colors = d3.scale.category20()
     pie = d3.layout.pie()
@@ -64,11 +69,18 @@ class window.PGPieChart extends PGChart
 
     labels.transition()
       .duration(1000)
-      .attr('transform', (d) -> "translate(#{arc.centroid(d)})")
+      .attr('transform', (d) -> 
+        dAng = (d.startAngle + d.endAngle)*90/Math.PI
+        lAng = dAng + if dAng>90 then 90 else -90
+        diffAng = (d.endAngle - d.startAngle)*180/Math.PI
+        lScale = if diffAng>1 then diffAng/9 else 0
+        "translate(#{arc.centroid(d)})rotate(#{lAng})scale(#{lScale})"
+
+      )
       .attr('dy', '.35em')
       .attr('text-anchor', 'middle')
       .text((d) -> d.data[0])
 
   updateChart: (dataset, axes) ->
-    @processDataset() 
+    super dataset, axes
     @renderPie()

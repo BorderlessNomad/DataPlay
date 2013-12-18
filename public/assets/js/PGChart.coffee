@@ -82,8 +82,8 @@ class window.PGChart
     svg = d3.select(@container).append("svg")
       .attr("width", @width  + @margin.left + @margin.right)
       .attr("height", @height + @margin.top + @margin.bottom)
-      # .on('mousedown', () -> @classed('panning', true))
-      # .on('mouseup', () -> @classed('panning', false))  
+      .on('mousedown', () -> d3.select(@).classed('panning', true))
+      .on('mouseup', () -> d3.select(@).classed('panning', false))
 
     @chart = svg.append("g")
       .attr("transform", "translate(#{@margin.left},#{@margin.top})")

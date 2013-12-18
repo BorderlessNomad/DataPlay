@@ -14,20 +14,26 @@
 
     PGPieChart.prototype.pie = null;
 
-    PGPieChart.prototype.innerRadius = 0;
+    PGPieChart.prototype.innerRadius = 20;
 
     PGPieChart.prototype.outerRadius = 200;
 
+    PGPieChart.prototype.setScales = function() {};
+
+    PGPieChart.prototype.drawAxes = function() {};
+
     PGPieChart.prototype.createPie = function() {
-      return this.pie = this.chart.append('g').attr('id', 'pie').attr('clip-path', 'url(#chart-area)').attr('transform', "translate(" + this.outerRadius + "," + this.outerRadius + ")");
+      return this.pie = this.chart.append('g').attr('id', 'pie').attr('transform', "translate(" + this.outerRadius + "," + this.outerRadius + ")");
     };
 
     PGPieChart.prototype.initChart = function() {
-      this.processDataset();
-      this.drawChart();
+      PGPieChart.__super__.initChart.apply(this, arguments);
+      this.outerRadius = this.width / 2;
       this.createPie();
       return this.renderPie();
     };
+
+    PGPieChart.prototype.updateAxes = function() {};
 
     PGPieChart.prototype.renderPie = function() {
       var arc, colors, labels, pie, slices,
@@ -63,14 +69,19 @@
       labels.enter().append("text").attr("class", "label");
       labels.exit().transition().duration(1000).remove();
       return labels.transition().duration(1000).attr('transform', function(d) {
-        return "translate(" + (arc.centroid(d)) + ")";
+        var dAng, diffAng, lAng, lScale;
+        dAng = (d.startAngle + d.endAngle) * 90 / Math.PI;
+        lAng = dAng + (dAng > 90 ? 90 : -90);
+        diffAng = (d.endAngle - d.startAngle) * 180 / Math.PI;
+        lScale = diffAng > 1 ? diffAng / 9 : 0;
+        return "translate(" + (arc.centroid(d)) + ")rotate(" + lAng + ")scale(" + lScale + ")";
       }).attr('dy', '.35em').attr('text-anchor', 'middle').text(function(d) {
         return d.data[0];
       });
     };
 
     PGPieChart.prototype.updateChart = function(dataset, axes) {
-      this.processDataset();
+      PGPieChart.__super__.updateChart.call(this, dataset, axes);
       return this.renderPie();
     };
 

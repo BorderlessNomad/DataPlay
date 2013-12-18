@@ -1,7 +1,7 @@
 'use strict';
 
 window.DataCon || (window.DataCon = {})
-DataCon.currChartType = 'line';
+DataCon.currChartType = 'enclosure';
 var guid = window.location.href.split('/')[window.location.href.split('/').length - 1];
 
 function go2Chart(type) {
@@ -39,12 +39,52 @@ function updateChart() {
                 DataCon.chart = new PGBubblesChart("#chart", {top: 5, right: 0, bottom: 0, left: 0}, 
                     dataset, null, null);
                 break;
+            case 'enclosure':
+                var count = _.keys(window.DataSet[0]).length,
+                    selectorTemplate = _.template($('#selectorTemplate').html()),
+                    selectorButton = $('<a class="btn btn-lg btn-success" href="javascript:void(0)" role="button">Enclosure Chart</a>'),
+                    data = { type: 'Key', keys: [] },
+                    dataset = { key: '', values: null };             
+                for (var node in window.DataSet[0]) {
+                    data.keys.push(node);
+                }
+                $('#selectors').html('');
+                for (var i=0; i<count-1; i++) {
+                    $('#selectors').append(selectorTemplate(data));
+                }
+                data.type = 'Value';
+                $('#selectors').append(selectorTemplate(data));
+                $('#controls').html('').append(selectorButton);
+                selectorButton.click(function() {
+                    var keySelectors = $('#selectors select.Key'),
+                        valueSelector = $('#selectors select.Value'),
+                        nested = d3.nest();
+                    for (var i=0; i<keySelectors.length; i++) {
+                        console.log($(keySelectors.get(i)).val());
+                        (function(theNest, theNode) {
+                            theNest.key(function(d) {
+                                console.log(d[theNode]);
+                                return d[theNode];
+                            });
+                        })(nested, $(keySelectors.get(i)).val());                        
+                    }
+                    nested.entries(window.DataSet);
+                    console.log(nested);
+                    dataset.values = nested;
+                    //DataCon.chart = new PGEnclosureChart("#chart", {top: 0, right: 0, bottom: 0, left: 0}, dataset, null, null);
+                });               
+                break;
             default:
                 DataCon.chart = new PGLinesChart("#chart", null, chartData, chartAxes, null);
         }
         
     } else {
-        DataCon.chart.updateChart(chartData, chartAxes);
+        switch (DataCon.currChartType) {
+            case 'enclosure':
+                // Special treatment
+                break;
+            default: DataCon.chart.updateChart(chartData, chartAxes);
+        }
     }
 }
 

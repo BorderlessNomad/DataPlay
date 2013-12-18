@@ -72,4 +72,4 @@ class window.PGBarsChart extends PGChart
 
   updateChart: (dataset, axes) ->
     super dataset, axes
-    @renderLines()
+    @renderBars()

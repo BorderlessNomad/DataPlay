@@ -137,7 +137,11 @@
     PGChart.prototype.drawChart = function() {
       var svg,
         _this = this;
-      svg = d3.select(this.container).append("svg").attr("width", this.width + this.margin.left + this.margin.right).attr("height", this.height + this.margin.top + this.margin.bottom);
+      svg = d3.select(this.container).append("svg").attr("width", this.width + this.margin.left + this.margin.right).attr("height", this.height + this.margin.top + this.margin.bottom).on('mousedown', function() {
+        return d3.select(this).classed('panning', true);
+      }).on('mouseup', function() {
+        return d3.select(this).classed('panning', false);
+      });
       this.chart = svg.append("g").attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
       this.chart.append("clipPath").attr('id', 'chart-area').append('rect').attr('x', 0).attr('y', 0).attr('width', this.width).attr('height', this.height);
       return svg.call(d3.behavior.zoom().scaleExtent([1, 10]).on('zoom', function() {
