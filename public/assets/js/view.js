@@ -5,12 +5,12 @@ DataCon.currChartType = 'enclosure';
 var guid = window.location.href.split('/')[window.location.href.split('/').length - 1];
 
 function go2HierarchyChart() {
-    var count = _.keys(window.DataSet[0]).length,
+    var count = _.keys(DataCon.dataset[0]).length,
         selectorTemplate = _.template($('#selectorTemplate').html()),
-        selectorButton = $('<a class="btn btn-lg btn-success" href="javascript:void(0)" role="button">Enclosure Chart</a>'),
+        selectorButton = $('<a class="btn btn-lg btn-success" href="javascript:void(0)" role="button">Draw Chart</a>'),
         data = { type: 'Key', keys: [] },
         dataset = { key: '', values: null };             
-    for (var node in window.DataSet[0]) {
+    for (var node in DataCon.dataset[0]) {
         data.keys.push(node);
     }
     $('#selectors').html('');
@@ -35,12 +35,19 @@ function go2HierarchyChart() {
                 })(nested, $(keySelectors.get(i)).val());
             }                     
         }
-        nested = nested.entries(window.DataSet);
+        nested = nested.entries(DataCon.dataset);
         dataset.values = nested;
-        console.log(valueSelector.val());
         switch (DataCon.currChartType) {
             case 'enclosure':
                 DataCon.chart = new PGEnclosureChart("#chart", {top: 0, right: 0, bottom: 0, left: 0},
+                    dataset, null, null, valueSelector.val());
+                break;
+            case 'tree':
+                DataCon.chart = new PGTreeChart("#chart", {top: 0, right: 0, bottom: 0, left: 0},
+                    dataset, null, null, valueSelector.val());
+                break;
+            case 'treemap':
+                DataCon.chart = new PGTreemapChart("#chart", {top: 0, right: 0, bottom: 0, left: 0},
                     dataset, null, null, valueSelector.val());
                 break;
         }
@@ -53,12 +60,15 @@ function go2Chart(type) {
         DataCon.currChartType = type;
         DataCon.chart = null;
         $('#modes').html('');
+        defaultSelectorTemplate = _.template($('#defaultSelectorTemplate').html());
+        $('#selectors').html(defaultSelectorTemplate({}));
+        populateKeys();
         updateChart();
     }
 }
 
 function updateChart() {
-    var chartData = parseChartData(window.DataSet, $("#pickxaxis").val(), $("#pickyaxis").val()),
+    var chartData = parseChartData(DataCon.dataset, $("#pickxaxis").val(), $("#pickyaxis").val()),
         chartAxes = {
             x: $("#pickxaxis").val(),
             y: $("#pickyaxis").val()
@@ -102,6 +112,28 @@ function updateChart() {
     }
 }
 
+function populateKeys() {
+    $("#pickxaxis").empty();
+    $("#pickyaxis").empty();
+    for (var i = 0; i < DataCon.keys.length; i++) {
+        $("#pickxaxis").append($("<option></option>").val(DataCon.keys[i]).text(DataCon.keys[i]));
+    }
+    for (var i = 0; i < DataCon.keys.length; i++) {
+        $("#pickyaxis").append($("<option></option>").val(DataCon.keys[i]).text(DataCon.keys[i]));
+    }
+    if (DataCon.keys.length > 1) {
+        $("#pickyaxis").val(DataCon.keys[1]);
+    }
+    // Get the last user preferences if any ... and update graph
+    getUserDefaults(guid, $("#pickxaxis"), $("#pickyaxis"), updateChart);
+}
+
+function ReJigGraph() {
+    saveUserDefaults(guid, $("#pickxaxis").val(), $("#pickyaxis").val());
+    updateChart();
+};
+
+
 function LightUpBookmarks() {
     // Do nothing
 }
@@ -136,54 +168,33 @@ $(document).ready(function() {
 
     $("#placeholder").height($(window).height() * 0.8).width($(window).width() * 0.6);
     $(".wikidata").height($(window).height() * 0.8).width($(window).width() * 0.2);
-    $('#BubbleLink').click(function() {
-        location.href = "/bubble/" + guid;
-    });
+
     $.getJSON("/api/getinfo/" + guid, function(data) {
         $('#FillInDataSet').html(data.Title);
         $("#wikidata").html(data.Notes);
     });
-
-    function populatedKeys(Keys) {
-        $("#pickxaxis").empty();
-        $("#pickyaxis").empty();
-        for (var i = 0; i < Keys.length; i++) {
-            $("#pickxaxis").append($("<option></option>").val(Keys[i]).text(Keys[i]));
-        }
-        for (var i = 0; i < Keys.length; i++) {
-            $("#pickyaxis").append($("<option></option>").val(Keys[i]).text(Keys[i]));
-        }
-        if (Keys.length > 1) {
-            $("#pickyaxis").val(Keys[1]);
-        }
-        // Get the last user preferences if any ... and update graph
-        getUserDefaults(guid, $("#pickxaxis"), $("#pickyaxis"), updateChart);
-    }
-
+    
     $.getJSON("/api/getdata/" + guid, function(data) {
         //console.log(data);
         // so data is an array of shit.
-        window.DataSet = data;
-        var Keys = [];
+        DataCon.dataset = data;
+        DataCon.keys = [];
         if (data.length) {
             DataCon.patterns = {}
             for (var key in data[0]) {
-                Keys.push(key);
+                DataCon.keys.push(key);
                 // Pattern recognition
                 DataCon.patterns[key] = getPattern(data[0][key]);
             }
         }
+
         $.ajax({
             async: false,
             url: "/api/identifydata/" + guid,
             dataType: "json",
             success: function(data) {
                 var Cols = data.Cols;
-                //var Keys = [];
                 for (var i = 0; i < Cols.length; i++) {
-                    // if (Cols[i].Sqltype === "int" || Cols[i].Sqltype === "bigint" || Cols[i].Sqltype === "float") {
-                    //     Keys.push(Cols[i].Name);
-                    // }
                     switch (Cols[i].Sqltype) {
                         case "int", "bigint":
                             DataCon.patterns[Cols[i].Name] = 'intNumber';
@@ -195,10 +206,10 @@ $(document).ready(function() {
                             // leave pattern as it was recognised by frontend
                     }
                 }
-                populatedKeys(Keys);
+                populateKeys();
             }
         });
-        // populatedKeys(Keys);
+
     });
 
     $('#SetupOverlay').on("click", function() {
@@ -208,10 +219,6 @@ $(document).ready(function() {
         window.location.href = '/search/overlay';
     });
 
-    window.ReJigGraph = function() {
-        saveUserDefaults(guid, $("#pickxaxis").val(), $("#pickyaxis").val());
-        updateChart();
-    };
 
     $(window).resize(function() {
         DataCon.chart = null;

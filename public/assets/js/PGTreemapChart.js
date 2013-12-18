@@ -828,92 +828,86 @@
 
   json = testData;
 
-  window.PGEnclosureChart = (function(_super) {
-    __extends(PGEnclosureChart, _super);
+  window.PGTreemapChart = (function(_super) {
+    __extends(PGTreemapChart, _super);
 
-    PGEnclosureChart.prototype.enclosure = null;
+    PGTreemapChart.prototype.treemap = null;
 
-    PGEnclosureChart.prototype.r = 200;
+    PGTreemapChart.prototype.value = null;
 
-    PGEnclosureChart.prototype.value = null;
-
-    function PGEnclosureChart(container, margin, dataset, axes, limit, value) {
+    function PGTreemapChart(container, margin, dataset, axes, limit, value) {
       this.value = value;
-      PGEnclosureChart.__super__.constructor.call(this, container, margin, dataset, axes, limit);
+      PGTreemapChart.__super__.constructor.call(this, container, margin, dataset, axes, limit);
     }
 
-    PGEnclosureChart.prototype.setScales = function() {};
+    PGTreemapChart.prototype.setScales = function() {};
 
-    PGEnclosureChart.prototype.drawAxes = function() {};
+    PGTreemapChart.prototype.drawAxes = function() {};
 
-    PGEnclosureChart.prototype.createEnclosure = function() {
-      return this.enclosure = this.chart.append('g').attr('id', 'enclosure');
+    PGTreemapChart.prototype.createTreemap = function() {
+      return this.treemap = this.chart.append('g').attr('id', 'treemap');
     };
 
-    PGEnclosureChart.prototype.initChart = function() {
-      PGEnclosureChart.__super__.initChart.apply(this, arguments);
-      this.r = Math.min(this.width, this.height);
-      this.createEnclosure();
-      return this.renderEnclosure();
+    PGTreemapChart.prototype.initChart = function() {
+      PGTreemapChart.__super__.initChart.apply(this, arguments);
+      this.createTreemap();
+      return this.renderTreemap();
     };
 
-    PGEnclosureChart.prototype.updateAxes = function() {};
+    PGTreemapChart.prototype.updateAxes = function() {};
 
-    PGEnclosureChart.prototype.renderEnclosure = function() {
-      var circles, labels, nodes, pack,
+    PGTreemapChart.prototype.renderTreemap = function() {
+      var cellEnter, cells, colors, nodes, treemap,
         _this = this;
-      pack = d3.layout.pack().size([this.r, this.r]).children(function(d) {
+      colors = d3.scale.category20();
+      treemap = d3.layout.treemap().children(function(d) {
         return d.values;
       }).value(function(d) {
-        return d[_this.value];
+        return d.size;
+      }).round(false).size([this.width, this.height]).sticky(true);
+      this.currDataset = json;
+      nodes = treemap.nodes(this.currDataset).filter(function(d) {
+        return !d.values;
       });
-      nodes = pack.nodes(this.currDataset);
-      circles = this.enclosure.selectAll("circle").data(nodes);
-      circles.enter().append("svg:circle");
-      circles.transition().attr("class", function(d) {
-        if (d.values) {
-          return "parent";
-        } else {
-          return "child";
-        }
-      }).attr("cx", function(d) {
-        return d.x;
-      }).attr("cy", function(d) {
-        return d.y;
-      }).attr("r", function(d) {
-        return d.r;
+      nodes.forEach(function(d) {
+        return d.y = d.depth * 180;
       });
-      circles.exit().transition().attr("r", 0).remove();
-      labels = this.enclosure.selectAll("text").data(nodes);
-      labels.enter().append("svg:text").attr("dy", ".35em").attr("text-anchor", "middle").style("opacity", 1);
-      labels.transition().attr("class", function(d) {
-        if (d.values) {
-          return "parent";
-        } else {
-          return "child";
-        }
-      }).attr("x", function(d) {
-        return d.x;
-      }).attr("y", function(d) {
-        return d.y;
-      }).text(function(d) {
+      cells = this.chart.selectAll("g").data(nodes);
+      cellEnter = cells.enter().append("g").attr("class", "cell");
+      cellEnter.append("rect");
+      cellEnter.append("text");
+      cells.transition().attr("transform", function(d) {
+        return "translate(" + d.x + "," + d.y + ")";
+      }).select('rect').attr('width', function(d) {
+        return d.dx - 1;
+      }).attr('height', function(d) {
+        return d.dy - 1;
+      }).style('fill', function(d) {
+        return colors(d.parent.key);
+      });
+      cells.select('text').attr('x', function(d) {
+        return d.dx / 2;
+      }).attr('y', function(d) {
+        return d.dy / 2;
+      }).attr('dy', '.35em').attr('text-anchor', 'middle').text(function(d) {
         return d.key;
-      }).style("opacity", function(d) {
-        if (d.r > 2) {
+      }).style('opacity', function(d) {
+        d.w = this.getComputedTextLength();
+        if (d.dx > d.w) {
           return 1;
         } else {
-          return 0.2;
+          return 0;
         }
       });
-      return labels.exit().remove();
+      return cells.exit().remove();
     };
 
-    PGEnclosureChart.prototype.updateChart = function(dataset, axes) {
-      PGEnclosureChart.__super__.updateChart.call(this, dataset, axes);
-      return this.renderEnclosure();
+    PGTreemapChart.prototype.updateChart = function(dataset, axes) {
+      PGTreemapChart.__super__.updateChart.call(this, dataset, axes);
+      return this.renderTreemap();
     };
 
-    return PGEnclosureChart;
+    return PGTreemapChart;
 
   })(PGChart);
 

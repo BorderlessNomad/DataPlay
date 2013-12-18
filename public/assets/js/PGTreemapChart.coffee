@@ -385,9 +385,8 @@ json = testData
 
 
 
-class window.PGEnclosureChart extends PGChart 
-  enclosure: null
-  r: 200
+class window.PGTreemapChart extends PGChart 
+  treemap: null
   value: null
 
   constructor: (container, margin, dataset, axes, limit, value) ->
@@ -400,67 +399,68 @@ class window.PGEnclosureChart extends PGChart
 
   drawAxes: ->
 
-  createEnclosure: ->
-    @enclosure = @chart.append('g')
-      .attr('id', 'enclosure')
-      #.attr('transform', "translate(#{@r},#{@r})")
+  createTreemap: ->
+    @treemap = @chart.append('g')
+      .attr('id', 'treemap')
 
   initChart: ->
     super
-    @r = Math.min(@width, @height)
-    @createEnclosure()
-    @renderEnclosure()
+    @createTreemap()
+    @renderTreemap()
 
   # --------------------- Update Functions ------------------------ 
   updateAxes: ->
 
-  renderEnclosure: ->
+  renderTreemap: ->
+    colors = d3.scale.category20()
 
-    pack = d3.layout.pack()
-      .size([@r, @r])
-      .children((d) => d.values)
-      .value((d) => d[@value])
-      #.value((d) => d.size)
+    treemap = d3.layout.treemap()
+      .children((d) -> d.values)
+      #.value((d) => d[@value])
+      .value((d) => d.size)
+      .round(false)
+      .size([@width, @height])
+      .sticky(true)
+    
+    #----------Crap tis to use the server dataset------------
+    @currDataset = json
+    #-------------------------------------------------------
+    
+    nodes = treemap.nodes(@currDataset)
+      .filter((d) -> not d.values)
+    
+    nodes.forEach((d) -> d.y = d.depth * 180)
 
-    nodes = pack.nodes(@currDataset)
-    #nodes = pack.nodes(json)
-
-    circles = @enclosure.selectAll("circle")
+    cells = @chart.selectAll("g.cell")
       .data(nodes)
 
-    circles.enter()
-      .append("svg:circle")
+    cellEnter = cells.enter()
+      .append("g")
+      .attr("class", "cell")
+    cellEnter.append("rect")
+    cellEnter.append("text")
 
-    circles.transition()
-      .attr("class", (d) -> if d.values then "parent" else "child")
-      .attr("cx", (d) -> d.x)
-      .attr("cy", (d) -> d.y)
-      .attr("r", (d) -> d.r)
+    cells.transition()
+      .attr("transform", (d) -> "translate(#{d.x},#{d.y})")
+      .select('rect')
+      .attr('width', (d) -> d.dx-1)
+      .attr('height', (d) -> d.dy-1)
+      .style('fill', (d) -> colors(d.parent.key))
 
-    circles.exit()
-      .transition()
-      .attr("r", 0)
-      .remove()
-
-    labels = @enclosure.selectAll("text")
-      .data(nodes)
-
-    labels.enter()
-      .append("svg:text")
-      .attr("dy", ".35em")
-      .attr("text-anchor", "middle")
-      .style("opacity", 1);
-
-    labels.transition()
-      .attr("class",  (d) -> if d.values then "parent" else "child")
-      .attr("x",  (d) -> d.x)
-      .attr("y",  (d) -> d.y)
+    cells.select('text')  
+      .attr('x', (d) -> d.dx/2)
+      .attr('y', (d) -> d.dy/2)
+      .attr('dy', '.35em')
+      .attr('text-anchor', 'middle')
       .text((d) -> d.key)
-      .style("opacity",  (d) -> if d.r>2 then 1 else 0.2)
+      .style('opacity', (d) ->
+        d.w = @getComputedTextLength()
+        if d.dx>d.w then 1 else 0
+      )
 
-    labels.exit()
+    cells.exit()
       .remove()
 
   updateChart: (dataset, axes) ->
     super dataset, axes
-    @renderEnclosure()
+    @renderTreemap()

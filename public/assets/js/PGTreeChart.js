@@ -831,7 +831,13 @@
   window.PGTreeChart = (function(_super) {
     __extends(PGTreeChart, _super);
 
+    PGTreeChart.prototype.treeEl = null;
+
     PGTreeChart.prototype.tree = null;
+
+    PGTreeChart.prototype.diagonal = null;
+
+    PGTreeChart.prototype.i = 0;
 
     PGTreeChart.prototype.value = null;
 
@@ -845,73 +851,133 @@
     PGTreeChart.prototype.drawAxes = function() {};
 
     PGTreeChart.prototype.createTree = function() {
-      return this.tree = this.chart.append('g').attr('id', 'tree');
+      return this.treeEl = this.chart.append('g').attr('id', 'tree');
     };
 
     PGTreeChart.prototype.initChart = function() {
       PGTreeChart.__super__.initChart.apply(this, arguments);
-      this.r = Math.min(this.width, this.height);
-      this.createEnclosure();
-      return this.renderEnclosure();
+      this.createTree();
+      return this.renderTree();
     };
 
     PGTreeChart.prototype.updateAxes = function() {};
 
-    PGTreeChart.prototype.renderEnclosure = function() {
-      var circles, diagonal, labels, nodes, tree,
-        _this = this;
-      tree = d3.layout.tree().size([this.height, this.width]);
-      diagonal = d3.svg.diagonal().projection(function(d) {
-        return [d.y, d.x];
-      }).children(function(d) {
+    PGTreeChart.prototype.renderTree = function() {
+      this.tree = d3.layout.tree().children(function(d) {
         return d.values;
-      }).value(function(d) {
-        return d.size;
+      }).size([this.height, this.width]);
+      this.diagonal = d3.svg.diagonal().projection(function(d) {
+        return [d.y, d.x];
       });
-      nodes = pack.nodes(json);
-      circles = this.tree.selectAll("circle").data(nodes);
-      circles.enter().append("svg:circle");
-      circles.transition().attr("class", function(d) {
-        if (d.values) {
-          return "parent";
-        } else {
-          return "child";
-        }
-      }).attr("cx", function(d) {
-        return d.x;
-      }).attr("cy", function(d) {
-        return d.y;
-      }).attr("r", function(d) {
-        return d.r;
+      this.currDataset = json;
+      this.currDataset.x0 = this.height / 2;
+      this.currDataset.y0 = 0;
+      return this.render(this.currDataset);
+    };
+
+    PGTreeChart.prototype.render = function(source) {
+      var link, node, nodeEnter, nodeExit, nodeUpdate, nodes,
+        _this = this;
+      nodes = this.tree.nodes(this.currDataset).reverse();
+      nodes.forEach(function(d) {
+        return d.y = d.depth * 180;
       });
-      circles.exit().transition().attr("r", 0).remove();
-      labels = this.enclosure.selectAll("text").data(nodes);
-      labels.enter().append("svg:text").attr("dy", ".35em").attr("text-anchor", "middle").style("opacity", 1);
-      labels.transition().attr("class", function(d) {
-        if (d.values) {
-          return "parent";
+      node = this.treeEl.selectAll("g.node").data(nodes, function(d) {
+        return d.id || (d.id = ++_this.i);
+      });
+      nodeEnter = node.enter().append("svg:g").attr("class", "node").attr("transform", function(d) {
+        return "translate(" + source.y0 + "," + source.x0 + ")";
+      }).on("click", function(d) {
+        _this.toggle(d);
+        return _this.render(d);
+      });
+      nodeEnter.append("svg:circle").attr("r", 1e-6).style("fill", function(d) {
+        if (d._children) {
+          return "lightsteelblue";
         } else {
-          return "child";
+          return "#fff";
         }
-      }).attr("x", function(d) {
-        return d.x;
-      }).attr("y", function(d) {
-        return d.y;
+      });
+      nodeUpdate = node.transition().attr("transform", function(d) {
+        return "translate(" + d.y + "," + d.x + ")";
+      });
+      nodeUpdate.select("circle").attr("r", 4.5).style("fill", function(d) {
+        if (d._children) {
+          return "lightsteelblue";
+        } else {
+          return "#fff";
+        }
+      });
+      nodeExit = node.exit().transition().attr("transform", function(d) {
+        return "translate(" + source.y + "," + source.x + ")";
+      }).remove();
+      nodeExit.select("circle").attr("r", 1e-6);
+      nodeEnter.append("svg:text").attr("x", function(d) {
+        if (d.values) {
+          return -10;
+        } else {
+          return 10;
+        }
+      }).attr("dy", ".35em").attr("text-anchor", function(d) {
+        if (d.values) {
+          return "end";
+        } else {
+          return "start";
+        }
       }).text(function(d) {
-        return d.key;
-      }).style("opacity", function(d) {
-        if (d.r > 2) {
-          return 1;
+        if (d.values) {
+          return d.key;
         } else {
-          return 0.2;
+          return d.size;
         }
+      }).style("fill-opacity", 1e-6);
+      nodeUpdate.select("text").style("fill-opacity", 1);
+      nodeExit.select("text").style("fill-opacity", 1e-6);
+      nodes.forEach(function(d) {
+        d.x0 = d.x;
+        return d.y0 = d.y;
       });
-      return labels.exit().remove();
+      link = this.treeEl.selectAll("path.link").data(this.tree.links(nodes), function(d) {
+        return d.target.id;
+      });
+      link.enter().insert("svg:path", "g").attr("class", "link").attr("d", function(d) {
+        var o;
+        o = {
+          x: source.x0,
+          y: source.y0
+        };
+        return _this.diagonal({
+          source: o,
+          target: o
+        });
+      });
+      link.transition().attr("d", this.diagonal);
+      return link.exit().transition().attr("d", function(d) {
+        var o;
+        o = {
+          x: source.x,
+          y: source.y
+        };
+        return _this.diagonal({
+          source: o,
+          target: o
+        });
+      }).remove();
+    };
+
+    PGTreeChart.prototype.toggle = function(d) {
+      if (d.values) {
+        d._children = d.values;
+        return d.values = null;
+      } else {
+        d.values = d._children;
+        return d._children = null;
+      }
     };
 
     PGTreeChart.prototype.updateChart = function(dataset, axes) {
       PGTreeChart.__super__.updateChart.call(this, dataset, axes);
-      return this.renderEnclosure();
+      return this.renderTree();
     };
 
     return PGTreeChart;

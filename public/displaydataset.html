@@ -72,6 +72,8 @@
         <a class="btn btn-lg btn-warning" href="javascript:go2Chart('bars')" role="button">Bars Chart</a>
         <a class="btn btn-lg btn-warning" href="javascript:go2Chart('pie')" role="button">Pie Chart</a>
         <a class="btn btn-lg btn-warning" href="javascript:go2Chart('enclosure')" role="button">Enclosure Chart</a>
+        <a class="btn btn-lg btn-warning" href="javascript:go2Chart('tree')" role="button">Tree Chart</a>
+        <a class="btn btn-lg btn-warning" href="javascript:go2Chart('treemap')" role="button">Treemap Chart</a>
       </div>
       
       <div class="row">
@@ -106,6 +108,21 @@
       <% for (var item in data.keys) { %>
         <option value="<%= data.keys[item] %>"><%= data.keys[item] %></option>
       <% } %>
+    </select>
+  </div>
+</script>
+
+<script type="text/html" id="defaultSelectorTemplate">
+  <div class="row">
+    Override X Axis:
+    <select id="pickxaxis" onchange="ReJigGraph()">
+      <option>Loading...</option>
+    </select>
+  </div>
+  <div class="row">
+    Override Y Axis:
+    <select id="pickyaxis" onchange="ReJigGraph()">
+      <option>Loading...</option>
     </select>
   </div>
 </script>
@@ -151,6 +168,8 @@
 <script src="/assets/js/PGPieChart.js"></script>
 <script src="/assets/js/PGBubblesChart.js"></script>
 <script src="/assets/js/PGEnclosureChart.js"></script>
+<script src="/assets/js/PGTreeChart.js"></script>
+<script src="/assets/js/PGTreemapChart.js"></script>
 <script src="/assets/js/view.js"></script>
     
 </body>
