@@ -15,6 +15,5 @@ $( document ).ready(function() {
 			}
 			$('#History').append("<a href=\"/view/" + data[i][0] + "\"> "+data[i][1]+" </a></br>");
 		}
-		// $('#FillInUserName').text(data.Username);
 	});
 });
