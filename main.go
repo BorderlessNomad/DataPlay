@@ -75,21 +75,6 @@ func main() {
 	m.Get("/grid/:id", func(res http.ResponseWriter, req *http.Request) {
 		http.ServeFile(res, req, "public/grid.html")
 	})
-	m.Get("/import/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-		if prams["id"] == "" {
-			http.Error(res, "There was no ID request", http.StatusBadRequest)
-		}
-		http.ServeFile(res, req, "public/processing.html")
-
-		database := msql.GetDB()
-		defer database.Close()
-		var ckan_url string
-		database.QueryRow("SELECT ckan_url FROM `index` WHERE GUID = ? LIMIT 1", prams["id"]).Scan(&ckan_url)
-		url := strings.Replace(strings.Replace(ckan_url, "//", "/", -1), "http:/", "http://", 1)
-		// Because the data.gov.uk dataset is braindead it adds too many "/"'s on the end of the host,
-		// because the system can't cope with that I have to filter them all out.
-		api.ImportAllDatasets(url, prams["id"])
-	})
 	m.Post("/noauth/login.json", HandleLogin)
 	m.Get("/api/user", api.CheckAuth)
 	m.Get("/api/search/:s", api.SearchForData)
