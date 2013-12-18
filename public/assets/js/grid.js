@@ -26,7 +26,7 @@ $(document).ready(function() {
                 y: y
             }),
             success: function(resp) {
-                window.location.href="/view/"+guid;
+                window.location.href = "/view/" + guid;
             },
             error: function(err) {
                 console.log(err);
@@ -44,61 +44,69 @@ $(document).ready(function() {
 
 
     $.getJSON("/api/getreduceddata/" + guid, function(data) {
-        //console.log(data);
-        window.DataSet = data;
-        var Keys = [];
-        DataCon.patterns = {}
-        if (data.length) {
-            for (var key in data[0]) {
-                Keys.push(key);
-                // Pattern recognition
-                DataCon.patterns[key] =  getPattern(data[0][key]);
+        $.getJSON("/api/identifydata/" + guid, function(tabledata) {
+            // http://localhost:3000/api/identifydata/hips
+            //console.log(data);
+            window.DataSet = data;
+            var Keys = [];
+            DataCon.patterns = {}
+            if (data.length) {
+                for (var key in data[0]) {
+                    Keys.push(key);
+                    // Pattern recognition
+                    DataCon.patterns[key] = getPattern(data[0][key]);
+                }
             }
-        }
-        var Entropy = Math.pow(2, Keys.length - 1);
-        var TableHandle = $('#GridTable')
-        var count = 0;
-        for (var i = 0; i < Entropy / 3; i++) {
-            $('#GridTable').append(
-                '<tr>' + 
-                    '<td><div class="gridCell" id="Cell' + count + '"></div></td>' + 
-                    '<td><div class="gridCell" id="Cell' + (count + 1) + '"></div></td>' + 
-                    '<td><div class="gridCell" id="Cell' + (count + 2) + '"></div></td>' + 
-                '</tr>');
-            count = count + 3;
-        }
-        var CellCount = 0;
-        var k1 = 0;
-        var k2 = 0;
-        var DCG = [];
-        for (var i = 0; i < Entropy; i++) {
-            console.log(i)
-            DCG[i] = new PGLinesChart(
-                "#Cell" + i,
-                {top: 5, right: 5, bottom: 5, left: 5},
-                parseChartData(data, Keys[k1], Keys[k2]),
-                { x: Keys[k1], y: Keys[k2]},
-                null
-            );
-            $('#Cell' + i).parent().append('<a onclick="SetAndGo(\''+Keys[k1]+'\',\'' + Keys[k2] + '\');">View</a>');
-            k1++;
-            if (k1 === k2) {
+            var Entropy = Math.pow(2, Keys.length - 1);
+            var TableHandle = $('#GridTable')
+            var count = 0;
+            for (var i = 0; i < Entropy / 3; i++) {
+                $('#GridTable').append(
+                    '<tr>' +
+                    '<td><div class="gridCell" id="Cell' + count + '"></div></td>' +
+                    '<td><div class="gridCell" id="Cell' + (count + 1) + '"></div></td>' +
+                    '<td><div class="gridCell" id="Cell' + (count + 2) + '"></div></td>' +
+                    '</tr>');
+                count = count + 3;
+            }
+            var CellCount = 0;
+            var k1 = 0;
+            var k2 = 0;
+            var DCG = [];
+            for (var i = 0; i < Entropy; i++) {
+                console.log(i)
+                DCG[i] = new PGLinesChart(
+                    "#Cell" + i, {
+                        top: 5,
+                        right: 5,
+                        bottom: 5,
+                        left: 5
+                    },
+                    parseChartData(data, Keys[k1], Keys[k2]), {
+                        x: Keys[k1],
+                        y: Keys[k2]
+                    },
+                    null
+                );
+                $('#Cell' + i).parent().append('<a onclick="SetAndGo(\'' + Keys[k1] + '\',\'' + Keys[k2] + '\');">View</a>');
                 k1++;
+                if (k1 === k2) {
+                    k1++;
+                }
+                if (k1 === Keys.length) {
+                    k1 = 0;
+                    k2++;
+                }
             }
-            if (k1 === Keys.length) {
-                k1 = 0;
-                k2++;
-            }
-        }
-        window.dcg = DCG;
-        d3.selectAll('.axis .tick').remove(); // Remove the axis to make it look more clean and less
-        // insane.
+            window.dcg = DCG;
+            d3.selectAll('.axis .tick').remove(); // Remove the axis to make it look more clean and less
+            // insane.
 
 
-        // So my plan is to make links that make fake bookmarks that when you click on them they have the axis pre filled in,
-        // Or I could just set the defaults as you click on it. that could be worse. It would work better though, minus the whole
-        // over writing part of it </braindump>
-
+            // So my plan is to make links that make fake bookmarks that when you click on them they have the axis pre filled in,
+            // Or I could just set the defaults as you click on it. that could be worse. It would work better though, minus the whole
+            // over writing part of it </braindump>
+        });
     });
 
 });
