@@ -60,7 +60,9 @@ func main() {
 		t.Execute(res, failedstr)
 		// http.ServeFile(res, req, "public/signin.html")
 	})
-	m.Get("/view/:id", func(res http.ResponseWriter, req *http.Request) {
+	m.Get("/view/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params, monager *session.SessionManager) {
+		session := monager.GetSession(res, req)
+		api.TrackVisited(prams["id"], session.Value.(string))
 		http.ServeFile(res, req, "public/displaydataset.html")
 	})
 	m.Get("/viewbookmark/:id", func(res http.ResponseWriter, req *http.Request) {
@@ -77,6 +79,7 @@ func main() {
 	})
 	m.Post("/noauth/login.json", HandleLogin)
 	m.Get("/api/user", api.CheckAuth)
+	m.Get("/api/visited", api.GetLastVisited)
 	m.Get("/api/search/:s", api.SearchForData)
 	m.Get("/api/getinfo/:id", api.GetEntry)
 	m.Get("/api/getimportstatus/:id", api.CheckImportStatus)
