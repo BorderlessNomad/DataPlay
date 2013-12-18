@@ -13,13 +13,19 @@ func GetLastVisited(rw http.ResponseWriter, req *http.Request, monager *session.
 	defer database.Close()
 	sess := monager.GetSession(rw, req)
 	value := sess.Value.(string)
-	rows, e := database.Query("SELECT DISTINCT(guid) FROM priv_tracking WHERE user = ? ORDER BY id DESC LIMIT 5", value)
-	result := make([]string, 0)
+	rows, e := database.Query("SELECT DISTINCT(guid),(SELECT Title FROM `index` WHERE `index`.GUID = priv_tracking.guid LIMIT 1) as a FROM priv_tracking WHERE user = ? ORDER BY id DESC LIMIT 5", value)
+	result := make([][]string, 0)
 	if e == nil {
 		for rows.Next() {
 			var guid string
-			rows.Scan(&guid)
-			result = append(result, guid)
+			var title string
+			rows.Scan(&guid, &title)
+			result2 := make([]string, 0)
+
+			result2 = append(result2, guid)
+			result2 = append(result2, title)
+
+			result = append(result, result2)
 		}
 	}
 	if e != nil {
