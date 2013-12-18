@@ -45,6 +45,37 @@
 		&.panning {
 			cursor: move;
 		}
+
+		#enclosure {
+			text {
+	            font-size: 11px;
+	            pointer-events: none;
+	        }
+
+	        text.parent {
+	            fill: steelblue;
+	        }
+
+	        circle {
+	            fill: #ccc;
+	            stroke: #999;
+	            pointer-events: all;
+	        }
+
+	        circle.parent {
+	            fill: steelblue;
+	            fill-opacity: .1;
+	            stroke: steelblue;
+	        }
+
+	        circle.parent:hover {
+	            stroke-width: .5px;
+	        }
+
+	        circle.child {
+	            pointer-events: none;
+	        }
+		}
 	}
 
 }
