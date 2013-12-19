@@ -11,8 +11,6 @@ import (
 	"github.com/codegangsta/martini"
 	// _ "github.com/go-sql-driver/mysql"
 	"github.com/mattn/go-session-manager"
-	"html/template"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -45,8 +43,16 @@ func main() {
 	fmt.Println("DataCon Server")
 	m := martini.Classic()
 	m.Map(manager)
-	m.Get("/", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
-		http.ServeFile(res, req, "public/index.html")
+	m.Get("/", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) { // res and req are injected by Martini
+		session := monager.GetSession(res, req)
+		database := msql.GetDB()
+		defer database.Close()
+
+		var uid string
+		uid = fmt.Sprint(session.Value)
+		var username string
+		database.QueryRow("select email from priv_users where uid = ?", uid).Scan(&username)
+		ApplyTemplate("public/index.html", username, res)
 	})
 	m.Get("/login", func(res http.ResponseWriter, req *http.Request) {
 		failedstr := ""
@@ -54,10 +60,11 @@ func main() {
 		if queryprams.Get("/login?failed") != "" {
 			failedstr = "Incorrect User Name or Password"
 		}
-		b, _ := ioutil.ReadFile("public/signin.html")
-		t := template.New("Loginpage")
-		t.Parse(string(b))
-		t.Execute(res, failedstr)
+		ApplyTemplate("public/signin.html", failedstr, res)
+		// b, _ := ioutil.ReadFile("public/signin.html")
+		// t := template.New("Loginpage")
+		// t.Parse(string(b))
+		// t.Execute(res, failedstr)
 		// http.ServeFile(res, req, "public/signin.html")
 	})
 	m.Get("/view/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params, monager *session.SessionManager) {
