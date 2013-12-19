@@ -2,7 +2,11 @@
 
 window.DataCon || (window.DataCon = {})
 DataCon.currChartType = 'enclosure';
-var guid = window.location.href.split('/')[window.location.href.split('/').length - 1];
+var aUrl = window.location.href.split('/'),
+    last = aUrl[aUrl.length-1],
+    aGuid = last.split('?'),
+    guid = aGuid[0],
+    qs = aGuid.length>1 ? aGuid[1] : null;
 
 function go2HierarchyChart() {
     var count = _.keys(DataCon.dataset[0]).length,
@@ -20,6 +24,7 @@ function go2HierarchyChart() {
     data.type = 'Value';
     $('#selectors').append(selectorTemplate(data));
     $('#controls').html('').append(selectorButton);
+
     selectorButton.click(function() {
         $("#chart").html('');
         var keySelectors = $('#selectors select.Key'),
@@ -53,7 +58,15 @@ function go2HierarchyChart() {
                 break;
         }
     });
-
+    
+    if (DataCon.autokeys && DataCon.autokeys.length) {
+        var selects = $('#selectors select');
+        for (var i=0, j=DataCon.autokeys.length-1; i<j; i++) {
+            $(selects.get(i)).val(DataCon.autokeys[i]);
+        }
+        $(selects[selects.length-1]).val(DataCon.autokeys[DataCon.autokeys.length-1]);
+        selectorButton.click();
+    }
 }
 
 function go2Chart(type) {
@@ -76,6 +89,38 @@ function updateChart() {
         };
     if (!DataCon.chart) {
         $("#chart").html('');
+        if (qs) {
+            var params = qs.split('&'),
+                entries = {},
+                size = 0;
+            for (var param in params) {
+                var aParam = params[param].split('=');
+                entries[aParam[0]] = aParam[1];
+                size++;
+            }
+            if (entries['chart']) {
+                DataCon.currChartType = entries['chart'];
+                if (['enclosure', 'tree', 'treemap'].indexOf(entries['chart'])>=0) {
+                    DataCon.autokeys = [];
+                    for (var i=0; i<size-2; i++) {
+                        DataCon.autokeys.push(entries['key'+i]);
+                    }
+                    DataCon.autokeys.push(entries['value']);
+                } else {
+                    if (entries['x']) {
+                        $("#pickxaxis").val(entries['x']);
+                        chartAxes.x = entries['x'];
+                    }
+                    if (entries['y']) {
+                        $("#pickyaxis").val(entries['y']);
+                        chartAxes.y = entries['y'];
+                    }
+                    chartData = parseChartData(DataCon.dataset, chartAxes.x, chartAxes.y);
+                }
+            }
+            qs = null;
+        }
+
         switch (DataCon.currChartType) {
             case 'bars':
                 DataCon.chart = new PGBarsChart("#chart", null, chartData, chartAxes, 30);
@@ -125,8 +170,11 @@ function populateKeys() {
     if (DataCon.keys.length > 1) {
         $("#pickyaxis").val(DataCon.keys[1]);
     }
-    // Get the last user preferences if any ... and update graph
-    getUserDefaults(guid, $("#pickxaxis"), $("#pickyaxis"), updateChart);
+    if (qs) {
+        updateChart();
+    } else {
+        getUserDefaults(guid, $("#pickxaxis"), $("#pickyaxis"), updateChart);    
+    }
 }
 
 function ReJigGraph() {

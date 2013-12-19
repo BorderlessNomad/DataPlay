@@ -46,6 +46,36 @@
 			cursor: move;
 		}
 
+		.bubble-node {
+		  fill: #b0b0b0;
+		}
+
+		.bubble-hover {
+		  fill: #d0d0d0;
+		}
+
+		.bubble-selected {
+		  fill: #fc6d24;
+		  stroke: #fc6d24;
+		  stroke-width: 1.5px;
+		}
+
+		a.bubble-label {
+		  color: inherit;
+		  cursor: pointer;
+		  display: block;
+		  text-align: center;
+		  text-decoration: none;
+		  line-height: 1em;
+		  position: absolute;
+		}
+
+
+.bubble-label .bubble-label-value {
+  font: 9px sans-serif;
+  white-space: nowrap;
+}
+
 		#enclosure {
 			text {
 	            font-size: 11px;
@@ -95,6 +125,29 @@
 	            stroke-width: 1.5px;
 	        }
 		}
+	}
+
+}
+
+#charts {
+
+	svg {
+
+		.axis {
+
+			line, path {
+				stroke: #cccccc;
+			}
+
+			.tick {
+				stroke: #cccccc;
+
+				text {
+					font-size: 8px;
+					
+				}
+			}
+		}	
 	}
 
 }

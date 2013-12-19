@@ -84,6 +84,9 @@ func main() {
 	m.Get("/grid/:id", func(res http.ResponseWriter, req *http.Request) {
 		http.ServeFile(res, req, "public/grid.html")
 	})
+	m.Get("/overview/:id", func(res http.ResponseWriter, req *http.Request) {
+		http.ServeFile(res, req, "public/overview.html")
+	})
 	m.Post("/noauth/login.json", HandleLogin)
 	m.Get("/api/user", api.CheckAuth)
 	m.Get("/api/visited", api.GetLastVisited)
