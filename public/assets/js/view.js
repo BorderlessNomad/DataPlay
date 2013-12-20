@@ -215,6 +215,14 @@ function SavePoint(x, y) {
 
 $(document).ready(function() {
 
+    PatternMatcher.getPattern('1956-12-27');
+    PatternMatcher.getPattern('1956-2-27');
+    PatternMatcher.getPattern('1956-12-7');
+    PatternMatcher.getPattern('1956-2-7');
+    PatternMatcher.getPattern('56-12-27');
+    PatternMatcher.getPattern('12/2/7');
+    PatternMatcher.getPattern('1956 12 27');
+
     $("#placeholder").height($(window).height() * 0.8).width($(window).width() * 0.6);
     $(".wikidata").height($(window).height() * 0.8).width($(window).width() * 0.2);
 
