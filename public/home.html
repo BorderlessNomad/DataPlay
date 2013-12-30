@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {{.Header}}
+</head>
+<body>
+  {{.Navbar}}
+  <div class="jumbotron">
+    <div class="container">      
+      <h1>Welcome back {{.Custom.username}}</h1>
+      <div id="History">
+        <p>It looks pretty lonley here!</p>
+        <p>Why don't you go and view some data that you are interseted in?</p>
+      </div>
+      <p>
+        <a class="btn btn-lg btn-primary" href="/search" role="button">Search Data &raquo;</a>
+      </p>
+    </div> <!-- /container -->
+  </div> <!-- /jumbotron -->
+  {{.Footer}}
+  <script>
+    requirejs(['app/home']);
+  </script> 
+</body>
+</html>

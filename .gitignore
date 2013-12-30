@@ -3,4 +3,9 @@
 *.xls
 *.xlsx
 *.dunno
+*.sublime-project
+*.sublime-workspace
 tools/ckandownloader/x*
+node_modules/
+public/js/
+public/css/

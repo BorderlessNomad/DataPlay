@@ -41,18 +41,23 @@ func main() {
 	_, e := what.Exec("SHOW TABLES")
 	check(e)
 	fmt.Println("DataCon Server")
+	initTemplates()
 	m := martini.Classic()
 	m.Map(manager)
 	m.Get("/", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) { // res and req are injected by Martini
+		checkAuth(res, req, monager)
 		session := monager.GetSession(res, req)
 		database := msql.GetDB()
 		defer database.Close()
-
 		var uid string
 		uid = fmt.Sprint(session.Value)
 		var username string
 		database.QueryRow("select email from priv_users where uid = ?", uid).Scan(&username)
-		ApplyTemplate("public/index.html", username, res)
+		custom := map[string]string{
+			"username": username,
+		}
+		renderTemplate("public/home.html", custom, res)
+		//ApplyTemplate("public/home.html", username, res)
 	})
 	m.Get("/login", func(res http.ResponseWriter, req *http.Request) {
 		failedstr := ""
@@ -60,33 +65,49 @@ func main() {
 		if queryprams.Get("/login?failed") != "" {
 			failedstr = "Incorrect User Name or Password"
 		}
-		ApplyTemplate("public/signin.html", failedstr, res)
-		// b, _ := ioutil.ReadFile("public/signin.html")
-		// t := template.New("Loginpage")
-		// t.Parse(string(b))
-		// t.Execute(res, failedstr)
-		// http.ServeFile(res, req, "public/signin.html")
+		custom := map[string]string{
+			"fail": failedstr,
+		}
+		renderTemplate("public/signin.html", custom, res)
+		//ApplyTemplate("public/signin.html", failedstr, res)
 	})
-	m.Get("/view/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params, monager *session.SessionManager) {
+	m.Get("/charts/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params, monager *session.SessionManager) {
+		checkAuth(res, req, monager)
 		session := monager.GetSession(res, req)
 		api.TrackVisited(prams["id"], session.Value.(string))
-		http.ServeFile(res, req, "public/displaydataset.html")
+		renderTemplate("public/charts.html", nil, res)
+		//http.ServeFile(res, req, "public/charts.html")
 	})
-	m.Get("/viewbookmark/:id", func(res http.ResponseWriter, req *http.Request) {
-		http.ServeFile(res, req, "public/bookmarked.html")
+	m.Get("/viewbookmark/:id", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+		checkAuth(res, req, monager)
+		renderTemplate("public/bookmarked.html", nil, res)
+		//http.ServeFile(res, req, "public/bookmarked.html")
 	})
-	m.Get("/search/overlay", func(res http.ResponseWriter, req *http.Request) {
-		http.ServeFile(res, req, "public/search.html")
+	m.Get("/search/overlay", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+		checkAuth(res, req, monager)
+		renderTemplate("public/search.html", nil, res)
+		//http.ServeFile(res, req, "public/search.html")
 	})
-	m.Get("/overlay/:id", func(res http.ResponseWriter, req *http.Request) {
-		http.ServeFile(res, req, "public/overlay.html")
+	m.Get("/overlay/:id", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+		checkAuth(res, req, monager)
+		renderTemplate("public/overlay.html", nil, res)
+		//http.ServeFile(res, req, "public/overlay.html")
 	})
-	m.Get("/grid/:id", func(res http.ResponseWriter, req *http.Request) {
-		http.ServeFile(res, req, "public/grid.html")
+	m.Get("/grid/:id", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+		checkAuth(res, req, monager)
+		renderTemplate("public/grid.html", nil, res)
+		//http.ServeFile(res, req, "public/grid.html")
 	})
-	m.Get("/overview/:id", func(res http.ResponseWriter, req *http.Request) {
-		http.ServeFile(res, req, "public/overview.html")
+	m.Get("/overview/:id", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+		checkAuth(res, req, monager)
+		renderTemplate("public/overview.html", nil, res)
+		//http.ServeFile(res, req, "public/overview.html")
 	})
+	m.Get("/search", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+		checkAuth(res, req, monager)
+		renderTemplate("public/search.html", nil, res)
+	})
+
 	m.Post("/noauth/login.json", HandleLogin)
 	m.Get("/api/user", api.CheckAuth)
 	m.Get("/api/visited", api.GetLastVisited)
@@ -103,8 +124,9 @@ func main() {
 	m.Get("/api/getdefaults/:id", api.GetDefaults)
 	m.Get("/api/identifydata/:id", api.IdentifyTable)
 	m.Get("/api/classifydata/:table/:col", api.SuggestColType)
-	m.Use(checkAuth)
+	//m.Use(checkAuth)
 	m.Use(ProabblyAPI)
+	m.Use(martini.Static("node_modules")) 
 	m.Run()
 }
 
@@ -137,14 +159,21 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 	}
 }
 
-func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
-	if !strings.HasPrefix(req.RequestURI, "/login") && !strings.HasPrefix(req.RequestURI, "/assets") && !strings.HasPrefix(req.RequestURI, "/noauth") {
-		session := monager.GetSession(res, req)
+// func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+// 	if !strings.HasPrefix(req.RequestURI, "/login") && !strings.HasPrefix(req.RequestURI, "/assets") && !strings.HasPrefix(req.RequestURI, "/lib") && !strings.HasPrefix(req.RequestURI, "/noauth") {
+// 		session := monager.GetSession(res, req)
 
-		if session.Value != nil {
-		} else {
-			http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
-		}
+// 		if session.Value != nil {
+// 		} else {
+// 			http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
+// 		}
+// 	} 
+// }
+
+func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+	session := monager.GetSession(res, req)
+	if session.Value == nil {
+		http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
 	}
 }
 

@@ -1,0 +1,23 @@
+{
+  "name": "DataCon",
+  "version": "0.0.1",
+  "author": "PlayGen",
+  "description": "General Purpose Dataset Visualization",
+  "license": "All Rights Reserved",
+  "private": "true",
+  "scripts": {
+    "prepublish": "go build"
+  },
+  "devDependencies": {
+    "jquery": "2.x",
+    "twitter-bootstrap-3.0.0": "3.x",
+    "underscore": "1.x",
+    "backbone": "1.x",
+    "crossfilter": "1.x",
+    "d3": "3.x",
+    "dc": "1.x",
+    "requirejs": "2.x",
+    "coffee-script": "1.x",
+    "less": "1.x"
+  }
+}

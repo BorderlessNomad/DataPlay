@@ -1,0 +1,39 @@
+<script src="/requirejs/require.js"></script>    
+<script>
+	requirejs.config({
+		baseUrl: "/",
+		paths: {
+			jquery: "jquery/dist/jquery.min",
+			bootstrap: "twitter-bootstrap-3.0.0/dist/js/bootstrap.min",
+			underscore: "underscore/underscore-min",
+			backbone: "backbone/backbone-min",
+			crossfilter: "crossfilter/crossfilter.min",
+			d3: "d3/d3.min",
+			dc: "dc/dc.min",
+			app: "js"
+		},
+		shim: {
+			'bootstrap': {
+				deps: ['jquery']
+			},
+			'backbone': {
+				deps: ['jquery', 'underscore'],
+				exports: 'Backbone'
+			},
+			'underscore': {
+				exports: '_'
+			},
+			'd3': {
+				exports: 'd3'
+			},
+			'crossfilter': {
+				exports: 'crossfilter'
+			},
+			"dc": {
+				deps: ["crossfilter", "d3"],
+				exports: 'dc'
+			}
+		}
+	});
+	requirejs(['bootstrap']);
+</script>
