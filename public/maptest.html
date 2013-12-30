@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {{.Header}}
+  <link rel="stylesheet" href="/lib/css/openlayers/style.min.css" />
+  <!--[if lte IE 8]>
+  <link rel="stylesheet" href="/lib/css/openlayers/ie6-style.min.css" />
+  <![endif]-->
+  <link rel="stylesheet" href="/lib/css/maps.css" />
+</head>
+<body>
+  {{.Navbar}}
+  <div class="jumbotron">
+    <div class="container">
+      <h1>Map Test</h1>
+      <div id="mapContainer"></div>
+    </div> <!-- /container -->
+  </div> <!-- /jumbotron -->
+  {{.Footer}}
+
+  <!------------------------------- Search bar template ---------------------------------->
+  <script type='text/template' id='search-bar-template'>
+      <input type='text' id='searchInput' placeholder='Search place ...'>
+      <button class='geosearchButton mapButton'><img src='/img/ico-search.png'></button>
+      <button class='geoLocateButton mapButton'><img src='/img/ico-locate.png'></button>
+      <ul class='searchList'></ul>
+  </script>
+
+  <script>
+    requirejs(['app/maptest']);
+  </script>
+</body>
+</html>

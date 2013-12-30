@@ -1,0 +1,152 @@
+div#mapContainer {
+
+  div.olMap img {
+    max-width: none;
+  }
+
+  div.baseLayersDiv,
+  div.dataLayersDiv {
+    label {
+      display: inline-block;
+      margin-left: 0.5em;
+    }
+  }
+
+  div.noteComment {
+    max-width: 30em;
+    margin: 0.5em;
+    padding: 0.5em;
+    background-color: #E6E6FC;
+    border-radius: 5px;
+    label {
+      background-color: #D6D6FC;
+    }
+  }
+
+  div.searchControl{
+    margin: 1em 0 0 4em;
+
+    input#searchInput {
+      margin: 0;
+      padding-left: 0;
+      padding-right: 0;
+      width: 15em;
+      text-indent: 0.5em;
+    }
+
+    img.clickableImage {
+      cursor: pointer;
+      float: right;
+      margin-left: 0.3em;
+    }
+
+    button.mapButton {
+      margin-left: 0.4em;
+      padding: .2em .2em .2em .2em;
+      font-size: 1.5em;
+    }
+
+    ul.searchList {
+      margin: 0;
+      background-color: #f0f0f0;
+      display: none;
+      list-style: none;
+      width: 15em;
+
+      li {
+        border-top: 1px solid #cccccc;
+        cursor: pointer;
+        padding: 0.2em 0.2em 0.2em 0.5em;
+        &:hover {
+          background-color: #447788;
+          color: #ffffff;
+        }
+      }
+
+    }
+
+  }
+
+  div.routes-popup,
+  div.feature-popup,
+  div.photos-popup {
+
+    width: auto;
+    height: auto;
+    min-width: 20em;
+    min-height: 20em;
+    max-width: 70em;
+    max-height: 100em;
+
+    hr {
+      margin: 0em .5em;
+    }
+
+    div.sidebuttons {
+
+      button {
+        width: 8em;
+      }
+    }
+
+    h4 {
+      font-size: 1em;
+
+      p {
+        margin: 0;
+      }
+
+    }
+
+    div.featurePictureHolder {
+      min-height: 8em;
+    }
+
+    p {
+      margin-bottom: 0;
+
+    }
+
+    input {
+      width: 10em;
+      height: auto;
+    }
+
+    select {
+      height: auto;
+      width: 10em;
+      font-size: 0.8em;
+    }
+
+    ul.tagsList {
+      margin-left: 0;
+
+      img {
+        padding-bottom: 0.5em;
+        cursor: pointer;
+      }
+
+    }
+
+    .usefulsField,
+    .beautifulsField {
+      width: 3em;
+    }
+
+  }
+}
+
+div.olControlDrawFeatureRegularPolygonItemActive  { background-image: url("/lib/openlayers/css/img/draw_regular_polygon_on.png"); }
+div.olControlDrawFeatureRegularPolygonItemInactive  { background-image: url("/lib/openlayers/css/img/draw_regular_polygon_off.png"); }
+div.olControlModifyFeatureItemActive  { background-image: url("/lib/openlayers/css/img/modify_feature_on.png"); }
+div.olControlModifyFeatureItemInactive  { background-image: url("/lib/openlayers/css/img/modify_feature_off.png"); }
+div.olControlRotateScaleFeatureItemActive  { background-image: url("/lib/openlayers/css/img/rotate_scale_on.png"); }
+div.olControlRotateScaleFeatureItemInactive  { background-image: url("/lib/openlayers/css/img/rotate_scale_off.png"); }
+div.olControlDragFeatureItemActive  { background-image: url("/lib/openlayers/css/img/pan_on.png"); }
+div.olControlDragFeatureItemInactive  { background-image: url("/lib/openlayers/css/img/pan_off.png"); }
+div.olControlSaveAllFeaturesItemActive  { background-image: url("/lib/openlayers/css/img/save_features_on.png"); }
+div.olControlSaveAllFeaturesItemInactive  { background-image: url("/lib/openlayers/css/img/save_features_off.png"); }
+div.olControlSelectItemActive  { background-image: url("/lib/openlayers/css/img/select_on.png"); }
+div.olControlSelectItemInactive  { background-image: url("/lib/openlayers/css/img/select_off.png"); }
+div.olControlAddMarkerItemActive  { background-image: url("/lib/openlayers/css/img/add_marker_on.png"); }
+div.olControlAddMarkerItemInactive  { background-image: url("/lib/openlayers/css/img/add_marker_off.png"); }

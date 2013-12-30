@@ -107,6 +107,9 @@ func main() {
 		checkAuth(res, req, monager)
 		renderTemplate("public/search.html", nil, res)
 	})
+	m.Get("/search", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+		renderTemplate("public/maptest.html", nil, res)
+	})
 
 	m.Post("/noauth/login.json", HandleLogin)
 	m.Get("/api/user", api.CheckAuth)
@@ -126,7 +129,7 @@ func main() {
 	m.Get("/api/classifydata/:table/:col", api.SuggestColType)
 	//m.Use(checkAuth)
 	m.Use(ProabblyAPI)
-	m.Use(martini.Static("node_modules")) 
+	m.Use(martini.Static("node_modules"))
 	m.Run()
 }
 
@@ -167,7 +170,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 // 		} else {
 // 			http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
 // 		}
-// 	} 
+// 	}
 // }
 
 func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
