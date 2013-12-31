@@ -6,10 +6,8 @@ package main
 import (
 	api "./api"
 	msql "./databasefuncs"
-	// "database/sql"
 	"fmt"
 	"github.com/codegangsta/martini"
-	// _ "github.com/go-sql-driver/mysql"
 	"github.com/mattn/go-session-manager"
 	"log"
 	"net/http"
