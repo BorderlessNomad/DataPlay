@@ -5,9 +5,6 @@
   "description": "General Purpose Dataset Visualization",
   "license": "All Rights Reserved",
   "private": "true",
-  "scripts": {
-    "prepublish": "go build"
-  },
   "devDependencies": {
     "jquery": "2.x",
     "twitter-bootstrap-3.0.0": "3.x",

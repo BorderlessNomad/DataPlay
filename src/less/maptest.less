@@ -55,8 +55,12 @@ div#mapContainer {
   div.searchControl{
     margin: 0.7em 0 0 3em;
     line-height: normal;
+  
+    &.itemsSearchControl {
+      left: 25em;
+    }
 
-    input#searchInput {
+    input.searchInput {
       margin: 0;
       padding-left: 0;
       padding-right: 0;
@@ -102,7 +106,8 @@ div#mapContainer {
 
   div.routes-popup,
   div.feature-popup,
-  div.photos-popup {
+  div.photos-popup,
+  div.item-popup {
 
     width: auto;
     height: auto;

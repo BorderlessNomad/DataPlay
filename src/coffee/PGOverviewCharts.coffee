@@ -3,6 +3,7 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
     guid: null
     container: 'body'
     data: null
+    keys: []
     cfdata: null
     dimensions: []
     groups: []
@@ -21,20 +22,23 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
       @drawCharts()
 
     processData: ->
-      @cfdata = crossfilter @data.dataset.slice(0, 10) # TODO: remove this limiting slice
-      @dimensions.push(@cfdata.dimension (d) -> d[key]) for key in @data.keys
-      for i in [0..@dimensions.length-2]
-        do (i) =>
-          for j in [i+1..@dimensions.length-1]
-            do (j) =>
-              @addGroup i, j
-              @addGroup j, i
-      console.log entry.group.all() for entry in @groups
+      @keys = (entry for entry of @data.patterns)
+      @cfdata = crossfilter @data.dataset?.slice(0, 10) # TODO: remove this limiting slice
+      console.log @cfdata
+      @dimensions.push(@cfdata.dimension (d) -> d[entry]) for entry of @data.patterns
+      if @dimensions.length > 1
+        for i in [0..@dimensions.length-2]
+          do (i) =>
+            for j in [i+1..@dimensions.length-1]
+              do (j) =>
+                @addGroup i, j
+                @addGroup j, i
+        console.log entry.group.all() for entry in @groups
 
-    addGroup: (i, j) ->
-      xKey = @data.keys[i]
+    addGroup: (i, j) ->    
+      xKey = @keys[i]
       xPattern = @data.patterns[xKey]
-      yKey = @data.keys[j]
+      yKey = @keys[j]
       yPattern = @data.patterns[yKey]
       group = x: xKey, y: yKey, type: 'count', dimension: @dimensions[i], group: null 
       group.group = @dimensions[i].group().reduceCount((d) -> d[yKey]) 

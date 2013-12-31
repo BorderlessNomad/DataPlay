@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="/lib/css/openlayers/ie6-style.min.css" />
   <![endif]-->
   <link rel="stylesheet" href="/css/maptest.css" />
+  <link href="/dc/dc.css" rel="stylesheet">
+  <link href="/css/charts.css" rel="stylesheet">
 </head>
 <body>
   {{.Navbar}}
@@ -14,16 +16,33 @@
     <div class="container">
       <h4>Map Test</h4>
       <div id="mapContainer"></div>
+      <div id="charts"></div>
     </div> <!-- /container -->
   </div> <!-- /jumbotron -->
   {{.Footer}}
 
-  <!------------------------------- Search bar template ---------------------------------->
-  <script type='text/template' id='search-bar-template'>
-      <input type='text' id='searchInput' placeholder='Search place ...'>
+  <!------------------------------- Location search bar template ---------------------------------->
+  <script type='text/template' id='location-search-bar-template'>
+      <input type='text' id='locationSearchInput' class='searchInput' placeholder='Search Location ...'>
       <button class='geosearchButton mapButton'><img src='/img/ico-search.png'></button>
       <button class='geoLocateButton mapButton'><img src='/img/ico-locate.png'></button>
       <ul class='searchList'></ul>
+  </script>
+
+  <!------------------------------- Items search bar template ---------------------------------->
+  <script type='text/template' id='items-search-bar-template'>
+      <input type='text' id='itemsSearchInput' class='searchInput' placeholder='Search items ...'>
+      <button class='itemSearchButton mapButton'><img src='/img/ico-search.png'></button>
+  </script>
+
+  <!------------------------------------- Feature popup template (Generic) -------------------------------------->
+  <script type='text/template' id='features-popup-template'>
+    <div class='item-popup'>
+      <h4><%=data.type%> - &nbsp; Lon: &nbsp; <%=data.lon%>, &nbsp; Lat: &nbsp; <%=data.lat%></h4>
+      <% for (var t in data.tags) { %>
+        <label><%=t%>:&nbsp;<%=data.tags[t]%></label>,<br/>
+      <% } %>
+    </div>
   </script>
 
   <script>

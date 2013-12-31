@@ -6,22 +6,22 @@ define ['jquery', 'underscore', 'OpenLayers'], ($, _, OpenLayers) ->
     @OSM_PROJECTION: new OpenLayers.Projection("EPSG:4326")
     @OL_PROJECTION: new OpenLayers.Projection("EPSG:900913")
     container: 'body'
-    #width: '60em'
     height: '40em'
     readonly: false
     map: null
     controls: []
     baseLayers: []
+    markers: []
     geoLocationControl: null
-    searchBarTemplate: _.template $('#search-bar-template').html()
+    locationSearchBarTemplate: _.template $('#location-search-bar-template').html()
+    itemsSearchBarTemplate: _.template $('#items-search-bar-template').html()
+    featuresPopupTemplate: _.template $('#features-popup-template').html(), null, variable: 'data'
     locationFeature: null
     searchBounds: null
     searchScope: 0.05
 
     constructor: (container) ->
       @container = container if container
-      #@width = $(@container).width()
-      #$(@container).css('height', @height)
       $(@container).height @height
       @initialize()
 
@@ -79,8 +79,9 @@ define ['jquery', 'underscore', 'OpenLayers'], ($, _, OpenLayers) ->
       @map.addLayers @baseLayers
 
       # Markers layer
-      @featuresLayer = new OpenLayers.Layer.Markers "Features" # change this to features layer
+      @featuresLayer = new OpenLayers.Layer.Markers "Features"
       @map.addLayer @featuresLayer
+      @featuresLayer.setZIndex 350
 
     # ---------------------------- Controls ------------------------------ #
     initControls: ->
@@ -107,11 +108,12 @@ define ['jquery', 'underscore', 'OpenLayers'], ($, _, OpenLayers) ->
       @controls.push keyboardControl
 
       # Geolocation layer & control
-      @geoLocationLayer = new OpenLayers.Layer.Vector("Your location")
-      @map.addLayer(@geoLocationLayer);
+      @geoLocationLayer = new OpenLayers.Layer.Vector("Your location")     
+      @map.addLayer @geoLocationLayer
+      @geoLocationLayer.setZIndex 300
       @geoLocationControl = new OpenLayers.Control.Geolocate
         bind: true
-        watch: true
+        watch: false
         geolocationOptions:
           enableHighAccuracy: true
           maximumAge: 0
@@ -144,14 +146,14 @@ define ['jquery', 'underscore', 'OpenLayers'], ($, _, OpenLayers) ->
       )
       @controls.push @geoLocationControl
 
-      # Search control
+      # Search control handler for keeping events on div
       that = @
       OpenLayers.Control.prototype.keepEvents = (div) ->
         @keepEventsDiv = new OpenLayers.Events(@, div, null, true)
 
         triggerSearch = (evt) =>
           element = OpenLayers.Event.element(evt)
-          if  evt.keyCode == 13 then that.performSearch $(element).val()
+          if  evt.keyCode == 13 then that.performSearch div, $(element).val()
 
         @keepEventsDiv.on
           "mousedown": (evt) ->
@@ -170,23 +172,40 @@ define ['jquery', 'underscore', 'OpenLayers'], ($, _, OpenLayers) ->
           "keydown": (evt) -> triggerSearch(evt)
           scope: @
 
-      searchControl = new OpenLayers.Control
-      OpenLayers.Util.extend searchControl,
-        displayClass: 'searchControl'
+      # Location search control
+      locationSearchControl = new OpenLayers.Control
+      OpenLayers.Util.extend locationSearchControl,
+        displayClass: 'searchControl locationSearchControl'
         initialize : () ->
           OpenLayers.Control.prototype.initialize.apply(@, arguments)
         draw: () ->
           div = OpenLayers.Control.prototype.draw.apply(@, arguments)
-          div.innerHTML = that.searchBarTemplate {}
+          div.innerHTML = that.locationSearchBarTemplate {}
           @keepEvents(div);
           $(div).find('button.geosearchButton').click () =>
-            that.performSearch $('#searchInput').val()
+            that.performSearch div, $('#locationSearchInput').val()
           $(div).find('button.geoLocateButton').click () =>
             that.geoLocationControl.deactivate()
             that.geoLocationControl.activate()
           div
         allowSelection: true
-      @controls.push searchControl
+      @controls.push locationSearchControl
+
+      # Items search control
+      itemsSearchControl = new OpenLayers.Control
+      OpenLayers.Util.extend itemsSearchControl,
+        displayClass: 'searchControl itemsSearchControl'
+        initialize : () ->
+          OpenLayers.Control.prototype.initialize.apply(@, arguments)
+        draw: () ->
+          div = OpenLayers.Control.prototype.draw.apply(@, arguments)
+          div.innerHTML = that.itemsSearchBarTemplate {}
+          @keepEvents(div);
+          $(div).find('button.itemsSearchButton').click () =>
+            that.performSearch div, $('#itemsSearchInput').val()
+          div
+        allowSelection: true
+      @controls.push itemsSearchControl
 
       # Simple map position display control
       mapPosition = new OpenLayers.Control.MousePosition()
@@ -196,6 +215,8 @@ define ['jquery', 'underscore', 'OpenLayers'], ($, _, OpenLayers) ->
       # Layer switcher control
       @controls.push new OpenLayers.Control.LayerSwitcher()
 
+      # TODO: Handle zoom control in order to increase/reduce search scope
+
       # TODO: Add more controls here ....
 
       @map.addControls @controls
@@ -203,11 +224,13 @@ define ['jquery', 'underscore', 'OpenLayers'], ($, _, OpenLayers) ->
       # Controls activation
       keyboardControl.activate()
       @geoLocationControl.activate()
-      searchControl.activate()
+      locationSearchControl.activate()
+      itemsSearchControl.activate()
 
     # ---------------------------- Geolocation Handler ------------------------------ #
     handleGeoLocated: (e) -> 
       console.log e
+      # TODO: Change scope and bounds to adapt to current zoom
       r = @searchScope
       p = new OpenLayers.Geometry.Point e.point.x, e.point.y
       p.transform @map.getProjectionObject(), PGOLMap.OSM_PROJECTION
@@ -215,16 +238,31 @@ define ['jquery', 'underscore', 'OpenLayers'], ($, _, OpenLayers) ->
       @map.zoomToExtent e.point.getBounds()
 
     # ---------------------------- Search handler ------------------------------ #
-    performSearch: (text) ->
-      $.get "http://nominatim.openstreetmap.org/search?q=#{text}&format=json&limit=10", (data) =>
-        if data? and data.length > 0
-          $('div.searchControl ul.searchList').css('display', 'block').html('')
-          for item in data
-            do (item) =>
-              $('div.searchControl ul.searchList').append "<li>#{item.display_name.substring(0, 20)}</li>"
-              $('div.searchControl ul.searchList').find('li').last().click () =>
-                $('div.searchControl ul.searchList').css('display', 'none').html('')
-                @selectLocation item
+    performSearch: (div, text) ->
+      console.log div
+      if $(div).hasClass('locationSearchControl')
+        $.get "http://nominatim.openstreetmap.org/search?q=#{text}&format=json&limit=10", (data) =>
+          if data? and data.length > 0
+            $('div.searchControl ul.searchList').css('display', 'block').html('')
+            for item in data
+              do (item) =>
+                $('div.searchControl ul.searchList').append "<li>#{item.display_name.substring(0, 20)}</li>"
+                $('div.searchControl ul.searchList').find('li').last().click () =>
+                  $('div.searchControl ul.searchList').css('display', 'none').html('')
+                  @selectLocation item
+      else if $(div).hasClass('itemsSearchControl')
+        bbox = "#{@searchBounds[0]}, #{@searchBounds[1]}, #{@searchBounds[2]}, #{@searchBounds[3]}"
+        $.get "http://overpass.osm.rambler.ru/cgi/interpreter?data=[out:json];node[amenity=#{text}](#{bbox});out;", (data) =>
+          data = JSON.parse data unless $.isPlainObject(data)
+          console.log data
+          if data? and data.elements? and data.elements.length > 0
+            @featuresLayer.removeMarker(marker) for marker in @markers
+            @markers = []
+            bounds = new OpenLayers.Bounds
+            @addItem item, bounds for item in data.elements
+            @map.zoomTo Math.round @map.getZoomForExtent bounds
+
+            $(@).trigger 'search', data
 
     selectLocation: (location) -> 
       console.log location
@@ -240,5 +278,25 @@ define ['jquery', 'underscore', 'OpenLayers'], ($, _, OpenLayers) ->
       @geoLocationLayer.addFeatures [@locationFeature]
       @map.zoomToExtent p.getBounds()
 
+    addItem: (item, bounds) ->
+      lonlat = new OpenLayers.LonLat(item.lon, item.lat)
+      lonlat.transform PGOLMap.OSM_PROJECTION, @map.getProjectionObject()
+      bounds.extend lonlat
+      feat = new OpenLayers.Feature @featuresLayer, lonlat
+      feat.popupClass = OpenLayers.Popup.FramedCloud
+      feat.data.popupContentHTML = @featuresPopupTemplate item
+      feat.data.overflow = 'auto'
+      marker = feat.createMarker()
+      marker.events.register "mousedown", feat, (evt) => @selectMarkerHandler evt, feat, lonlat
+      @markers.push marker
+      @featuresLayer.addMarker marker
 
-
+    selectMarkerHandler: (evt, marker, lonlat) ->
+      if marker.popup
+        marker.popup.toggle()
+      else
+        marker.popup = marker.createPopup true
+        @map.addPopup marker.popup
+        marker.popup.show()
+        $('.doSomethingButton').bind 'click', (e) -> alert('TODO!!')
+      OpenLayers.Event.stop evt
