@@ -35,6 +35,7 @@ func GetLastVisited(rw http.ResponseWriter, req *http.Request, monager *session.
 		b, _ := json.Marshal(result)
 		return (string(b))
 	}
+	return ""
 }
 
 func TrackVisited(guid string, user string) {
