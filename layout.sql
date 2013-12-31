@@ -2,7 +2,7 @@
 -- Host:                         10.0.0.2
 -- Server version:               5.5.30-1.1 - (Debian)
 -- Server OS:                    debian-linux-gnu
--- HeidiSQL Version:             8.1.0.4545
+-- HeidiSQL Version:             8.2.0.4675
 -- --------------------------------------------------------
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -56,6 +56,17 @@ CREATE TABLE IF NOT EXISTS `priv_shares` (
   `privateinfo` text COMMENT 'Contains the parent of it and the owner',
   PRIMARY KEY (`shareid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- Data exporting was unselected.
+
+
+-- Dumping structure for table DataCon.priv_tracking
+CREATE TABLE IF NOT EXISTS `priv_tracking` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user` varchar(6) DEFAULT NULL,
+  `guid` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- Data exporting was unselected.
 
