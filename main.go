@@ -165,7 +165,6 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 // func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 // 	if !strings.HasPrefix(req.RequestURI, "/login") && !strings.HasPrefix(req.RequestURI, "/assets") && !strings.HasPrefix(req.RequestURI, "/lib") && !strings.HasPrefix(req.RequestURI, "/noauth") {
 // 		session := monager.GetSession(res, req)
-
 // 		if session.Value != nil {
 // 		} else {
 // 			http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
@@ -175,8 +174,9 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 
 func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 	session := monager.GetSession(res, req)
-	if session.Value == nil {
+	if !(session.Value != nil || strings.Contains(req.Header.Get("User-Agent"), "PhantomJS")) {
 		http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
+		return
 	}
 }
 
