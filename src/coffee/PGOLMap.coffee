@@ -1,4 +1,4 @@
-define ['jquery', 'openlayers'], ($, OpenLayers) ->
+define ['jquery', 'underscore', 'OpenLayers'], ($, _, OpenLayers) ->
   OpenLayers.ImgPath = "/img/openlayers/"
   OpenLayers.ProxyHost = "proxy.cgi?url="
 
@@ -6,8 +6,8 @@ define ['jquery', 'openlayers'], ($, OpenLayers) ->
     @OSM_PROJECTION: new OpenLayers.Projection("EPSG:4326")
     @OL_PROJECTION: new OpenLayers.Projection("EPSG:900913")
     container: 'body'
-    width: '60em'
-    height: '30em'
+    #width: '60em'
+    height: '40em'
     readonly: false
     map: null
     controls: []
@@ -20,15 +20,16 @@ define ['jquery', 'openlayers'], ($, OpenLayers) ->
 
     constructor: (container) ->
       @container = container if container
-      @width = $(@container).width()
-      @height = $(@container).height()
+      #@width = $(@container).width()
+      #$(@container).css('height', @height)
+      $(@container).height @height
       @initialize()
 
     # ---------------------------- Initialization ------------------------------ #
     initialize: ->
       # 0. Create the Map
       @map = new OpenLayers.Map(
-        @container
+        @container.substring(1)
         theme: null
         projection: "EPSG:900913"
         fractionalZoom: true
@@ -106,8 +107,8 @@ define ['jquery', 'openlayers'], ($, OpenLayers) ->
       @controls.push keyboardControl
 
       # Geolocation layer & control
-      geoLocationLayer = new OpenLayers.Layer.Vector("Your location")
-      @map.addLayer(geoLocationLayer);
+      @geoLocationLayer = new OpenLayers.Layer.Vector("Your location")
+      @map.addLayer(@geoLocationLayer);
       @geoLocationControl = new OpenLayers.Control.Geolocate
         bind: true
         watch: true
@@ -120,7 +121,7 @@ define ['jquery', 'openlayers'], ($, OpenLayers) ->
         "locationupdated"
         @
         (e) ->
-          geoLocationLayer.removeAllFeatures()
+          @geoLocationLayer.removeAllFeatures()
           @locationFeature = new OpenLayers.Feature.Vector(
             e.point
             {}
@@ -133,7 +134,7 @@ define ['jquery', 'openlayers'], ($, OpenLayers) ->
               pointRadius: 20
             }
           )
-          geoLocationLayer.addFeatures [@locationFeature]
+          @geoLocationLayer.addFeatures [@locationFeature]
           @handleGeoLocated e
       )
       @geoLocationControl.events.register(
@@ -209,7 +210,7 @@ define ['jquery', 'openlayers'], ($, OpenLayers) ->
       console.log e
       r = @searchScope
       p = new OpenLayers.Geometry.Point e.point.x, e.point.y
-      p.transform @map.getProjectionObject(), Maps.MapView.OSM_PROJECTION
+      p.transform @map.getProjectionObject(), PGOLMap.OSM_PROJECTION
       @searchBounds = [p.y - r, p.x - r, p.y + r, p.x + r]
       @map.zoomToExtent e.point.getBounds()
 
@@ -228,15 +229,15 @@ define ['jquery', 'openlayers'], ($, OpenLayers) ->
     selectLocation: (location) -> 
       console.log location
       p = new OpenLayers.Geometry.Point location.lon, location.lat
-      p.transform Maps.MapView.OSM_PROJECTION, @map.getProjectionObject()
+      p.transform PGOLMap.OSM_PROJECTION, @map.getProjectionObject()
       @locationFeature = new OpenLayers.Feature.Vector(
         p
         {}
         externalGraphic: location.icon
         pointRadius: 10
       )
-      @drawLayer.removeAllFeatures()
-      @drawLayer.addFeatures [@locationFeature]
+      @geoLocationLayer.removeAllFeatures()
+      @geoLocationLayer.addFeatures [@locationFeature]
       @map.zoomToExtent p.getBounds()
 
 

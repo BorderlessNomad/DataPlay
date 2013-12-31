@@ -10,7 +10,7 @@
 			crossfilter: "crossfilter/crossfilter.min",
 			d3: "d3/d3.min",
 			dc: "dc/dc.min",
-			openlayers: "/lib/openlayers/js/openlayers.js",
+			OpenLayers: "lib/openlayers/js/openlayers",
 			app: "js"
 		},
 		shim: {
@@ -33,6 +33,9 @@
 			"dc": {
 				deps: ["crossfilter", "d3"],
 				exports: 'dc'
+			},
+			"OpenLayers": {
+				exports: 'OpenLayers'
 			}
 		}
 	});

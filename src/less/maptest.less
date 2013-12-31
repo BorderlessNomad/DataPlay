@@ -12,6 +12,35 @@ div#mapContainer {
     }
   }
 
+    /**
+   * Layer switcher
+   */
+  .olControlLayerSwitcher {
+    top: 0.5em;
+    right: 0.5em;
+    margin: 0;
+    width: 15em;
+
+    .layersDiv {
+      background-color: rgba(0,0,139,0.5);
+    }
+
+    .maximizeDiv, .minimizeDiv {
+      top: 0.2em;
+      right: 0.1em;
+      width: 2.5em;
+      height: 2.5em;
+
+      img {
+        width:2.5em;
+
+        &:hover {
+          opacity: 0.7;
+        }
+      }
+    }
+  }
+
   div.noteComment {
     max-width: 30em;
     margin: 0.5em;
@@ -24,7 +53,8 @@ div#mapContainer {
   }
 
   div.searchControl{
-    margin: 1em 0 0 4em;
+    margin: 0.7em 0 0 3em;
+    line-height: normal;
 
     input#searchInput {
       margin: 0;
@@ -41,8 +71,8 @@ div#mapContainer {
     }
 
     button.mapButton {
-      margin-left: 0.4em;
-      padding: .2em .2em .2em .2em;
+      //margin-left: 0.4em;
+      //padding: .2em .2em .2em .2em;
       font-size: 1.5em;
     }
 
@@ -52,11 +82,14 @@ div#mapContainer {
       display: none;
       list-style: none;
       width: 15em;
+      padding-left: 0.4em;
 
       li {
         border-top: 1px solid #cccccc;
         cursor: pointer;
-        padding: 0.2em 0.2em 0.2em 0.5em;
+        color: #000000;
+        //padding: 0.2em 0.2em 0.2em 0.5em;
+
         &:hover {
           background-color: #447788;
           color: #ffffff;

@@ -107,7 +107,7 @@ func main() {
 		checkAuth(res, req, monager)
 		renderTemplate("public/search.html", nil, res)
 	})
-	m.Get("/search", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+	m.Get("/maptest", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 		renderTemplate("public/maptest.html", nil, res)
 	})
 
