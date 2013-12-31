@@ -57,7 +57,6 @@ func main() {
 			"username": username,
 		}
 		renderTemplate("public/home.html", custom, res)
-		//ApplyTemplate("public/home.html", username, res)
 	})
 	m.Get("/login", func(res http.ResponseWriter, req *http.Request) {
 		failedstr := ""
@@ -69,39 +68,32 @@ func main() {
 			"fail": failedstr,
 		}
 		renderTemplate("public/signin.html", custom, res)
-		//ApplyTemplate("public/signin.html", failedstr, res)
 	})
 	m.Get("/charts/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params, monager *session.SessionManager) {
 		checkAuth(res, req, monager)
 		session := monager.GetSession(res, req)
 		api.TrackVisited(prams["id"], session.Value.(string))
 		renderTemplate("public/charts.html", nil, res)
-		//http.ServeFile(res, req, "public/charts.html")
 	})
 	m.Get("/viewbookmark/:id", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 		checkAuth(res, req, monager)
 		renderTemplate("public/bookmarked.html", nil, res)
-		//http.ServeFile(res, req, "public/bookmarked.html")
 	})
 	m.Get("/search/overlay", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 		checkAuth(res, req, monager)
 		renderTemplate("public/search.html", nil, res)
-		//http.ServeFile(res, req, "public/search.html")
 	})
 	m.Get("/overlay/:id", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 		checkAuth(res, req, monager)
 		renderTemplate("public/overlay.html", nil, res)
-		//http.ServeFile(res, req, "public/overlay.html")
 	})
 	m.Get("/grid/:id", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 		checkAuth(res, req, monager)
 		renderTemplate("public/grid.html", nil, res)
-		//http.ServeFile(res, req, "public/grid.html")
 	})
 	m.Get("/overview/:id", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 		checkAuth(res, req, monager)
 		renderTemplate("public/overview.html", nil, res)
-		//http.ServeFile(res, req, "public/overview.html")
 	})
 	m.Get("/search", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 		checkAuth(res, req, monager)
