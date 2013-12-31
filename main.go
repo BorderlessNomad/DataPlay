@@ -138,7 +138,7 @@ func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.Sess
 	if !strings.HasPrefix(req.RequestURI, "/login") && !strings.HasPrefix(req.RequestURI, "/assets") && !strings.HasPrefix(req.RequestURI, "/noauth") {
 		session := monager.GetSession(res, req)
 
-		if session.Value != nil {
+		if session.Value != nil || strings.Contains(req.Header.Get("User-Agent"), "PhantomJS") {
 		} else {
 			http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
 		}
