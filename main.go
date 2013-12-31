@@ -72,7 +72,9 @@ func main() {
 	m.Get("/charts/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params, monager *session.SessionManager) {
 		checkAuth(res, req, monager)
 		session := monager.GetSession(res, req)
-		api.TrackVisited(prams["id"], session.Value.(string))
+		if session.Value != nil {
+			api.TrackVisited(prams["id"], session.Value.(string))
+		}
 		renderTemplate("public/charts.html", nil, res)
 	})
 	m.Get("/viewbookmark/:id", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
@@ -153,16 +155,6 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 		http.Redirect(res, req, "/login?failed=1", http.StatusFound)
 	}
 }
-
-// func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
-// 	if !strings.HasPrefix(req.RequestURI, "/login") && !strings.HasPrefix(req.RequestURI, "/assets") && !strings.HasPrefix(req.RequestURI, "/lib") && !strings.HasPrefix(req.RequestURI, "/noauth") {
-// 		session := monager.GetSession(res, req)
-// 		if session.Value != nil {
-// 		} else {
-// 			http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
-// 		}
-// 	}
-// }
 
 func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 	session := monager.GetSession(res, req)
