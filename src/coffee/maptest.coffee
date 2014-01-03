@@ -35,7 +35,7 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGOverviewCharts']
     
 
     # TESTING: Particular test for map - UK Weather
-    guid = 'ukwe'
+    guid = 'weather_uk'
     $.getJSON "/api/getdata/#{guid}", (data) ->
       if data.length
         patterns = {}
