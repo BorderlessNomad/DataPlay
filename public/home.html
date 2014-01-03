@@ -28,7 +28,9 @@
         <%- data[1] %>&nbsp;
         <a href='/charts/<%= data[0] %>'>View &raquo;</a>&nbsp;
         <a href='/overview/<%= data[0] %>'>Overview &raquo;</a>&nbsp;
-        <a href='/maptest/<%= data[0] %>'>Map &raquo;</a>
+        <% if (data[2] === "true") { %>
+              <a href='/maptest/<%= data[0] %>'>Map &raquo;</a>
+        <%  }  %>
       </div>
     <% } %>
   </script>

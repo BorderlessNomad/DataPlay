@@ -20,11 +20,13 @@ func GetLastVisited(rw http.ResponseWriter, req *http.Request, monager *session.
 			for rows.Next() {
 				var guid string
 				var title string
+				var status string
 				rows.Scan(&guid, &title)
 				result2 := make([]string, 0)
-
+				status = HasTableGotLocationData(guid)
 				result2 = append(result2, guid)
 				result2 = append(result2, title)
+				result2 = append(result2, status)
 
 				result = append(result, result2)
 			}
@@ -36,6 +38,21 @@ func GetLastVisited(rw http.ResponseWriter, req *http.Request, monager *session.
 		return (string(b))
 	}
 	return ""
+}
+
+func HasTableGotLocationData(datasetGUID string) string {
+	cols := FetchTableCols(datasetGUID)
+
+	for _, col1 := range cols {
+		if col1.Name == "lat" {
+			for _, col2 := range cols {
+				if col2.Name == "lon" || col2.Name == "long" {
+					return "true"
+				}
+			}
+		}
+	}
+	return "false"
 }
 
 func TrackVisited(guid string, user string) {

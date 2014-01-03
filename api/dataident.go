@@ -28,23 +28,7 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Par
 	if prams["id"] == "" {
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
 	}
-
-	var tablename string
-	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["id"]).Scan(&tablename)
-	if tablename == "" {
-		http.Error(res, "Could not find that table", http.StatusNotFound)
-		return ""
-	}
-
-	var createcode string
-	database.QueryRow("SHOW CREATE TABLE "+tablename).Scan(&tablename, &createcode)
-	if createcode == "" {
-		http.Error(res, `Uhh, That table does not seem to acutally exist.
-		this really should not happen. 
-		Check if someone have been messing around in the database.`, http.StatusBadRequest)
-		return ""
-	}
-	results := ParseCreateTableSQL(createcode)
+	results := FetchTableCols(string(prams["id"]))
 
 	returnobj := IdentifyResponce{
 		Cols:    results,
@@ -52,6 +36,28 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Par
 	}
 	b, _ := json.Marshal(returnobj)
 	return string(b[:])
+}
+
+func FetchTableCols(guid string) (output []ColType) {
+	database := msql.GetDB()
+	defer database.Close()
+	if guid == "" {
+		return output
+	}
+
+	var tablename string
+	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", guid).Scan(&tablename)
+	if tablename == "" {
+		return output
+	}
+
+	var createcode string
+	database.QueryRow("SHOW CREATE TABLE "+tablename).Scan(&tablename, &createcode)
+	if createcode == "" {
+		return output
+	}
+	results := ParseCreateTableSQL(createcode)
+	return results
 }
 
 func BuildREArrayForCreateTable(input string) []string {
