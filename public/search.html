@@ -15,6 +15,31 @@
     </div> <!-- /container -->
   </div> <!-- /jumbotron -->
   {{.Footer}}
+
+  <script type="text/html" id="searchResultsTemplate">
+    <% if (data.Title) { %>
+      <tr id='<%= data.GUID %>' class='success'>
+        <td style='width: 70%;'><%= data.Title %></td> 
+        <td id='Note<%= data.GUID %>'>
+          <a href='/charts/<%= data.GUID %>'>View &raquo;</a>&nbsp;
+          <a href='/grid/<%= data.GUID %>'>Grid &raquo;</a>&nbsp;
+          <a href='/overview/<%= data.GUID %>'>Overview &raquo;</a>&nbsp;
+        </td> 
+      </tr>     
+    <% } %>
+  </script>
+
+  <script type="text/html" id="searchResultsOverlayTemplate">
+    <% if (data.Title) { %>
+      <tr id='<%= data.GUID %>' class='success'>
+        <td style='width: 70%;'><%= data.Title %></td> 
+        <td id='Note<%= data.GUID %>'>
+          <a href='/overlay/<%= data.GUID %>'>Overlay &raquo;</a>
+        </td> 
+      </tr>     
+    <% } %>
+  </script>
+
   <script>
     requirejs(['app/search']);
   </script>

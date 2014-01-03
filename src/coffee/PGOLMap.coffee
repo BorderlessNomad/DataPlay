@@ -255,13 +255,8 @@ define ['jquery', 'underscore', 'OpenLayers'], ($, _, OpenLayers) ->
         $.get "http://overpass.osm.rambler.ru/cgi/interpreter?data=[out:json];node[amenity=#{text}](#{bbox});out;", (data) =>
           data = JSON.parse data unless $.isPlainObject(data)
           console.log data
-          if data? and data.elements? and data.elements.length > 0
-            @featuresLayer.removeMarker(marker) for marker in @markers
-            @markers = []
-            bounds = new OpenLayers.Bounds
-            @addItem item, bounds for item in data.elements
-            @map.zoomTo Math.round @map.getZoomForExtent bounds
-
+          if data
+            @updateItems data.elements
             $(@).trigger 'search', data
 
     selectLocation: (location) -> 
@@ -278,12 +273,36 @@ define ['jquery', 'underscore', 'OpenLayers'], ($, _, OpenLayers) ->
       @geoLocationLayer.addFeatures [@locationFeature]
       @map.zoomToExtent p.getBounds()
 
+    updateItems: (items) ->
+      console.log items
+      if items and items.length
+        @featuresLayer.removeMarker(marker) for marker in @markers
+        @markers = []
+        bounds = new OpenLayers.Bounds
+        @addItem item, bounds for item in items
+        @map.zoomTo Math.round @map.getZoomForExtent bounds
+
+    flattenProperties: (obj) -> 
+      res = {}
+      @flattenProperty res, key: '', value: obj
+      res
+
+    flattenProperty: (obj, prop) ->
+      console.log typeof prop.value
+      if typeof prop.value is 'object'
+        @flattenProperty(obj, key: "#{prop.key}(#{subprop})", value: prop[subprop]) for subprop of prop
+      else
+        obj[prop.key] = prop.value
+
     addItem: (item, bounds) ->
       lonlat = new OpenLayers.LonLat(item.lon, item.lat)
       lonlat.transform PGOLMap.OSM_PROJECTION, @map.getProjectionObject()
       bounds.extend lonlat
       feat = new OpenLayers.Feature @featuresLayer, lonlat
       feat.popupClass = OpenLayers.Popup.FramedCloud
+
+      #console.log @flattenProperties item
+
       feat.data.popupContentHTML = @featuresPopupTemplate item
       feat.data.overflow = 'auto'
       marker = feat.createMarker()

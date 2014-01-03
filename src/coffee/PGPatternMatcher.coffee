@@ -1,9 +1,41 @@
 define [], () ->
   class PGPatternMatcher
     ###
+      Available Values Patterns:
+      --------------------------
+      Credit Card
+      URL
+      Email
+      Domain
+      IPv4
+      UK National Insurance Number (NIN)
+      UK Post Code
+      VAT
+      Currency (USA, EU and UK)
+      Date (without time)
+      Percent
+      Float Number
+      Integer Number
+      Label (generic)
+
+      Available Keys Patterns:
+      --------------------------
+      Identifier
+      Date
+      Coefficient
+      Map Longitude
+      Map Latitude
+
+      THE ORDER MATTERS!! as the first matched pattern is returned
+
       TODO:
-        datetime entity/handlers
         more handlers for date entity
+        include months names properly on date regex
+        Datetime
+        Address
+        Bank Account
+        ............
+        more keys
     ###
     @entities: [
 
@@ -206,6 +238,17 @@ define [], () ->
         ]
       }
       
+      # ------------------------------------ Float Number Entity ----------------------------------
+      {
+        name: 'floatNumber'
+        handlers: [
+          {
+            pattern: /^[-+]?\b[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?\b$/i
+            parse: (m) => parseFloat m
+          }
+        ]
+      }
+
       # ------------------------------------ Percent Entity ----------------------------------
       {
         name: 'percent'
@@ -228,17 +271,6 @@ define [], () ->
         ]
       }
 
-      # ------------------------------------ Float Number Entity ----------------------------------
-      {
-        name: 'floatNumber'
-        handlers: [
-          {
-            pattern: /^[-+]?\b[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?\b$/i
-            parse: (m) => parseFloat m
-          }
-        ]
-      }
-
       # ------------------------------------ Label Entity ----------------------------------
       {
         name: 'label'
@@ -250,7 +282,28 @@ define [], () ->
       }
     ]
 
-
+    @keys: [
+      {
+        name: 'identifier'
+        pattern: /id|account|ref|((credit\b)?card)|(post\bcode)/i
+      }
+      {
+        name: 'date'
+        pattern: /date|year|day/i
+      }
+      {
+        name: 'coefficient'
+        pattern: /coef|ind|ratio|percent/i
+      }
+      {
+        name: 'mapLongitude'
+        pattern: /^(lon|ln|long|longitude)$/i
+      }
+      {
+        name: 'mapLatitude'
+        pattern: /^(lat|lt|latit|latitude)$/i
+      }
+    ]
 
     # ------------------------------------ General functions ----------------------------------
     @getPattern: (src) ->
@@ -265,6 +318,17 @@ define [], () ->
                   console.log entity.name if match
                   console.log match if match
                   pattern = entity.name if match
+      pattern
+
+    @getKeyPattern: (src) ->
+      pattern = null
+      for key in @keys
+        do (key) ->
+          if not pattern
+            match = key.pattern.exec src
+            console.log key.name if match
+            console.log match if match
+            pattern = key.name if match
       pattern
 
     @parse: (src, pattern) ->

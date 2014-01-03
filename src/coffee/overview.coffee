@@ -7,7 +7,10 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOverviewCharts'], ($, PGPattern
         patterns = {}
         for key of data[0]
           do (key) ->
-            patterns[key] = PGPatternMatcher.getPattern data[0][key]
+            vp = PGPatternMatcher.getPattern data[0][key]
+            kp = PGPatternMatcher.getKeyPattern key
+            patterns[key] = valuePattern: vp, keyPattern: kp
             # Now parse ALL the data
-            entry[key] = PGPatternMatcher.parse(entry[key], patterns[key]) for entry in data
+            # TODO get into account key pattern before parsing everything???
+            entry[key] = PGPatternMatcher.parse(entry[key], patterns[key].valuePattern) for entry in data
         new PGOverviewCharts guid, {dataset: data, patterns: patterns}, '#charts'
