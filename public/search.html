@@ -22,7 +22,6 @@
         <td style='width: 70%;'><%= data.Title %></td> 
         <td id='Note<%= data.GUID %>'>
           <a href='/charts/<%= data.GUID %>'>View &raquo;</a>&nbsp;
-          <a href='/grid/<%= data.GUID %>'>Grid &raquo;</a>&nbsp;
           <a href='/overview/<%= data.GUID %>'>Overview &raquo;</a>&nbsp;
           <% if (data.LocationData === "true") { %>
                 <a href='/maptest/<%= data[0] %>'>Map &raquo;</a>

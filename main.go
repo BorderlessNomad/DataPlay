@@ -91,10 +91,6 @@ func main() {
 		checkAuth(res, req, monager)
 		renderTemplate("public/overlay.html", nil, res)
 	})
-	m.Get("/grid/:id", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
-		checkAuth(res, req, monager)
-		renderTemplate("public/grid.html", nil, res)
-	})
 	m.Get("/overview/:id", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 		checkAuth(res, req, monager)
 		renderTemplate("public/overview.html", nil, res)
