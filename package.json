@@ -13,6 +13,8 @@
     "crossfilter": "1.x",
     "d3": "3.x",
     "dc": "1.x",
+    "leaflet": "0.7.x",
+    "leaflet.markercluster": "0.4.x",
     "requirejs": "2.x",
     "coffee-script": "1.x",
     "less": "1.x"

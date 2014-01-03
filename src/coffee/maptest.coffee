@@ -1,12 +1,12 @@
-define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGMapCharts'],
-($, PGPatternMatcher, PGOLMap, PGMapCharts) ->
+define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGLMap','app/PGMapCharts'],
+($, PGPatternMatcher, PGOLMap, PGLMap, PGMapCharts) ->
   'use strict'
   map = null
   charts = null
   data = {dataset: [], patterns: {}}
   guid = window.location.href.split('/')[window.location.href.split('/').length - 1]
 
-  # TODO: actually this only works with OSM overpass API searches
+  # TODO: actually this only works with OSM overpass API searches and OpenLayers
   resetCharts = (srcData) ->
     console.log srcData
     data = {dataset: [], patterns: {}}
@@ -28,6 +28,8 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGMapCharts'],
   updateCharts = (data) ->
     console.log data
     console.log charts.dimensions
+    # Conversion for leaflet bounds CRAP if using OpenLayers
+    data = left: data.getWest, right: data.getEast, top: data.getNorth, bottom: data.getSouth
     charts.updateBounds data
 
   updateMap = (data) ->
@@ -75,7 +77,11 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGMapCharts'],
 
   $ () -> 
     # Generate Map and bind search and update events 
-    map = new PGOLMap '#mapContainer'
+
+    # TESTING: Leaflet map
+    map = new PGLMap '#mapContainer'
+
+    #map = new PGOLMap '#mapContainer'
     $(map).bind 'update', (evt, data) -> updateCharts data if charts
     $(map).bind 'search', (evt, data) -> resetCharts data
     # Get data for the guid and create charts
