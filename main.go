@@ -125,8 +125,9 @@ func main() {
 	m.Run()
 }
 
-func ProabblyAPI(res http.ResponseWriter, req *http.Request) { // Forces anything with /api to have a json doctype. Since it makes sence to
+func ProabblyAPI(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) { // Forces anything with /api to have a json doctype. Since it makes sence to
 	if strings.HasPrefix(req.RequestURI, "/api") {
+		checkAuth(res, req, monager)
 		res.Header().Set("Content-Type", "application/json")
 	}
 }
