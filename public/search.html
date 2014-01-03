@@ -24,7 +24,9 @@
           <a href='/charts/<%= data.GUID %>'>View &raquo;</a>&nbsp;
           <a href='/grid/<%= data.GUID %>'>Grid &raquo;</a>&nbsp;
           <a href='/overview/<%= data.GUID %>'>Overview &raquo;</a>&nbsp;
-          <a href='/maptest/<%= data.GUID %>'>Map &raquo;</a>
+          <% if (data.LocationData === "true") { %>
+                <a href='/maptest/<%= data[0] %>'>Map &raquo;</a>
+          <%  }  %>
         </td> 
       </tr>     
     <% } %>

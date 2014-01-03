@@ -44,8 +44,9 @@ func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params,
 }
 
 type SearchResult struct {
-	Title string
-	GUID  string
+	Title        string
+	GUID         string
+	LocationData string
 }
 
 func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
@@ -90,17 +91,18 @@ func ProcessSearchResults(rows *sql.Rows, e error) []SearchResult {
 		if err != nil {
 			panic(err)
 		}
-
+		Location := HasTableGotLocationData(id)
 		SR := SearchResult{
-			Title: name,
-			GUID:  id,
+			Title:        name,
+			GUID:         id,
+			LocationData: Location,
 		}
 		Results = append(Results, SR)
 	}
 	return Results
 }
 
-// HasTableGotLocationData
+//
 type DataEntry struct {
 	GUID     string
 	Name     string
