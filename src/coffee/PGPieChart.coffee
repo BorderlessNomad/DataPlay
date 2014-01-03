@@ -73,6 +73,9 @@ define ['app/PGChart'], (PGChart) ->
         .attr('transform', (d) -> 
           dAng = (d.startAngle + d.endAngle)*90/Math.PI
           lAng = dAng + if dAng>90 then 90 else -90
+          if dAng > 2 && lAng > 2
+            dAng = 2
+            lAng = 2
           diffAng = (d.endAngle - d.startAngle)*180/Math.PI
           lScale = if diffAng>1 then diffAng/9 else 0
           "translate(#{arc.centroid(d)})rotate(#{lAng})scale(#{lScale})"
