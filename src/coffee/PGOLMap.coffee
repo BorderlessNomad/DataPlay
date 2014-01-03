@@ -38,6 +38,8 @@ define ['jquery', 'underscore', 'OpenLayers'], ($, _, OpenLayers) ->
       @initBaseLayers()
       # 2. Add controls
       @initControls()
+      # 3. Register Events
+      @registerEvents()
       # Initial map zoom
       @map.zoomToMaxExtent()
 
@@ -227,6 +229,10 @@ define ['jquery', 'underscore', 'OpenLayers'], ($, _, OpenLayers) ->
       locationSearchControl.activate()
       itemsSearchControl.activate()
 
+    registerEvents: ->
+      @map.events.on moveend: (evt) => 
+        $(@).trigger 'update', @map.getExtent().transform(@map.getProjectionObject(), PGOLMap.OSM_PROJECTION) 
+
     # ---------------------------- Geolocation Handler ------------------------------ #
     handleGeoLocated: (e) -> 
       console.log e
@@ -256,6 +262,8 @@ define ['jquery', 'underscore', 'OpenLayers'], ($, _, OpenLayers) ->
           data = JSON.parse data unless $.isPlainObject(data)
           console.log data
           if data
+            # TODO: perform object properties flattening here ...
+            #console.log @flattenProperties item
             @updateItems data.elements
             $(@).trigger 'search', data
 
@@ -303,9 +311,6 @@ define ['jquery', 'underscore', 'OpenLayers'], ($, _, OpenLayers) ->
       bounds.extend lonlat
       feat = new OpenLayers.Feature @featuresLayer, lonlat
       feat.popupClass = OpenLayers.Popup.FramedCloud
-
-      #console.log @flattenProperties item
-
       feat.data.popupContentHTML = @featuresPopupTemplate item
       feat.data.overflow = 'auto'
       marker = feat.createMarker()

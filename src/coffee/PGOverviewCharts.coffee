@@ -6,6 +6,7 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
     keys: []
     cfdata: null
     dimensions: []
+    dimensionsMap: {}
     groups: []
     charts: [
       { id: 'rows', maxEntries: 15 }
@@ -226,10 +227,15 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
             #console.log filter
             $(@).trigger 'update', {elements: chart.dimension().bottom Infinity}
 
+          chart.on "postRedraw", (chart) =>
+            #console.log chart.dimension().top(Infinity)
+            $(@).trigger 'update', {elements: chart.dimension().bottom Infinity}
+
           lastCharts = [] if lastCharts.length is @charts.length 
           if ['bars', 'pie', 'bubbles'].indexOf(chartId)>-1
             urlChart = $("##{fixedId} a").attr('href').replace('lines',chartId) 
             $("##{fixedId} a").attr('href', urlChart) 
+            
       dc.renderAll()
       resetAll = $("<div class='resetAll'><a class='btn btn-primary' role='button'>Reset All</a><div>")
       $(@container).prepend resetAll

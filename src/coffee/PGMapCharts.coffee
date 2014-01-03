@@ -5,7 +5,11 @@ define ['jquery', 'crossfilter', 'd3', 'dc', 'app/PGOverviewCharts'],
     processData: ->
       @keys = (entry for entry of @data.patterns when (entry isnt 'Long' and entry isnt 'Lat'))
       @cfdata = crossfilter @data.dataset
-      @dimensions.push(@cfdata.dimension (d) -> d[key]) for key in @keys
+      for key in @keys
+        do (key) =>
+          dim = @cfdata.dimension (d) -> d[key]
+          @dimensions.push dim
+          @dimensionsMap[key] = dim
       if @dimensions.length > 1
         for i in [0..@dimensions.length-1]
           do (i) =>
@@ -13,4 +17,10 @@ define ['jquery', 'crossfilter', 'd3', 'dc', 'app/PGOverviewCharts'],
             group.group = @dimensions[i].group().reduceCount() 
             @groups.push group
         #console.log entry.group.all() for entry in @groups
-      
+
+    updateBounds: (data) ->
+      @dimensionsMap['lat'].filter (d) -> data.bottom < d < data.top
+      console.log @dimensionsMap['lat'].bottom Infinity
+      @dimensionsMap['lon'].filter (d) -> data.left < d < data.right
+      console.log @dimensionsMap['lat'].bottom Infinity
+      dc.redrawAll()

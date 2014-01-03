@@ -41,9 +41,8 @@
   <!------------------------------------- Feature popup template (Generic) -------------------------------------->
   <script type='text/template' id='features-popup-template'>
     <div class='item-popup'>
-      <h4><%=data.type%> - &nbsp; Lon: &nbsp; <%=data.lon%>, &nbsp; Lat: &nbsp; <%=data.lat%></h4>
-      <% for (var t in data.tags) { %>
-        <label><%=t%>:&nbsp;<%=data.tags[t]%></label>,<br/>
+      <% for (var entry in data) { %>
+        <label><%=entry%>:&nbsp;<%=data[entry]%></label>,<br/>
       <% } %>
     </div>
   </script>

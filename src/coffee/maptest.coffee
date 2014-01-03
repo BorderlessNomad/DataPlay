@@ -26,18 +26,20 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGMapCharts'],
     charts = new PGMapCharts 'dummy', data, '#charts'
 
   updateCharts = (data) ->
-    # TODO
+    console.log data
+    console.log charts.dimensions
+    charts.updateBounds data
 
   updateMap = (data) ->
     #console.log data
     map.updateItems data.elements
 
   redefineDatasetKey = (data, srcKey, tgtKey) ->
-    for entry in data
-      do (entry) ->
-        if srcKey isnt tgtKey
-          entry[tgtKey] = entry[srcKey]
-          delete entry[srcKey]
+    if srcKey isnt tgtKey
+      for entry in data
+        do (entry) ->         
+            entry[tgtKey] = entry[srcKey]
+            delete entry[srcKey]
 
   getDataSource = (guid) ->
     $.getJSON "/api/getdata/#{guid}", (data) ->
@@ -48,16 +50,23 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGMapCharts'],
             # Get the paterns for the key/value
             vp = PGPatternMatcher.getPattern data[0][key]
             kp = PGPatternMatcher.getKeyPattern key
-            patterns[key] = valuePattern: vp, keyPattern: kp
-
+            
             # Fix lat,lon keys for map
             switch kp
-              when 'mapLongitude' then redefineDatasetKey data, key, 'lon'
-              when 'mapLatitude' then redefineDatasetKey data, key, 'lat'
-                
+              when 'mapLongitude' 
+                redefineDatasetKey data, key, 'lon'
+                fixedKey = 'lon'
+              when 'mapLatitude'
+                redefineDatasetKey data, key, 'lat'
+                fixedKey = 'lat'
+              else
+                fixedKey = key
+             
+            patterns[fixedKey] = valuePattern: vp, keyPattern: kp
+
             # Now parse ALL the data based on value pattern
             # TODO: Should lookup the key pattern before???
-            entry[key] = PGPatternMatcher.parse(entry[key], patterns[key].valuePattern) for entry in data
+            entry[fixedKey] = PGPatternMatcher.parse(entry[fixedKey], vp) for entry in data
 
         # Generate Map charts and bind dc.js filtering events
         $('#charts').html ''
@@ -67,7 +76,7 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGMapCharts'],
   $ () -> 
     # Generate Map and bind search and update events 
     map = new PGOLMap '#mapContainer'
-    $(map).bind 'update', (evt, data) -> updateCharts data
+    $(map).bind 'update', (evt, data) -> updateCharts data if charts
     $(map).bind 'search', (evt, data) -> resetCharts data
     # Get data for the guid and create charts
     getDataSource guid
