@@ -2,6 +2,7 @@ package api
 
 import (
 	msql "../databasefuncs"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/codegangsta/martini"
@@ -58,10 +59,29 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 	}
 	rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", prams["s"]+"%")
 
+	Results := make([]SearchResult, 1)
+	Results = ProcessSearchResults(rows, e)
+	if len(Results) == 1 {
+		fmt.Println("falling back to overkill search")
+		rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", "%"+prams["s"]+"%")
+		Results = ProcessSearchResults(rows, e)
+		if len(Results) == 1 {
+			fmt.Println("Going 100 persent mad search")
+			query := strings.Replace(prams["s"], " ", "%", -1)
+			rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", "%"+query+"%")
+			Results = ProcessSearchResults(rows, e)
+		}
+	}
+	defer rows.Close()
+	b, _ := json.Marshal(Results)
+	return string(b[:])
+}
+
+func ProcessSearchResults(rows *sql.Rows, e error) []SearchResult {
+	Results := make([]SearchResult, 1)
 	if e != nil {
 		panic(e)
 	}
-	Results := make([]SearchResult, 1)
 	for rows.Next() {
 		var id string
 		var name string
@@ -77,58 +97,10 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 		}
 		Results = append(Results, SR)
 	}
-	if len(Results) == 1 {
-		fmt.Println("falling back to overkill search")
-		rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", "%"+prams["s"]+"%")
-
-		if e != nil {
-			panic(e)
-		}
-		for rows.Next() {
-			var id string
-			var name string
-
-			err := rows.Scan(&id, &name)
-			if err != nil {
-				panic(err)
-			}
-
-			SR := SearchResult{
-				Title: name,
-				GUID:  id,
-			}
-			Results = append(Results, SR)
-		}
-		if len(Results) == 1 {
-			fmt.Println("Going 100 persent mad search")
-			query := strings.Replace(prams["s"], " ", "%", -1)
-			rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", "%"+query+"%")
-
-			if e != nil {
-				panic(e)
-			}
-			for rows.Next() {
-				var id string
-				var name string
-
-				err := rows.Scan(&id, &name)
-				if err != nil {
-					panic(err)
-				}
-
-				SR := SearchResult{
-					Title: name,
-					GUID:  id,
-				}
-				Results = append(Results, SR)
-			}
-		}
-	}
-	defer rows.Close()
-	b, _ := json.Marshal(Results)
-	return string(b[:])
+	return Results
 }
 
+// HasTableGotLocationData
 type DataEntry struct {
 	GUID     string
 	Name     string
