@@ -1,9 +1,12 @@
-define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGOverviewCharts'], ($, PGPatternMatcher, PGOLMap, PGOverviewCharts) ->
+define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGMapCharts'],
+($, PGPatternMatcher, PGOLMap, PGMapCharts) ->
   'use strict'
   map = null
   charts = null
   data = {dataset: [], patterns: {}}
+  guid = window.location.href.split('/')[window.location.href.split('/').length - 1]
 
+  # TODO: actually this only works with OSM overpass API searches
   resetCharts = (srcData) ->
     console.log srcData
     data = {dataset: [], patterns: {}}
@@ -16,38 +19,58 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGOverviewCharts']
                 when 'intNumber', 'floatNumber' then 0
                 else 'void'
             else
-              data.patterns[key] = keyPattern: PGPatternMatcher.getKeyPattern(key), valuePattern: PGPatternMatcher.getPattern(item[key])
+              vp = PGPatternMatcher.getPattern item[key]
+              kp = PGPatternMatcher.getKeyPattern key
+              data.patterns[key] = keyPattern: kp, valuePattern: vp
     data.dataset = srcData
-    charts = new PGOverviewCharts 'dummy', data, '#charts'
+    charts = new PGMapCharts 'dummy', data, '#charts'
+
+  updateCharts = (data) ->
+    # TODO
 
   updateMap = (data) ->
-    console.log data
-    item.lat = item.Lat for item in data.elements
-    item.lon = item.Long for item in data.elements
+    #console.log data
     map.updateItems data.elements
 
-  $ () -> 
-    map = new PGOLMap '#mapContainer'
-    #charts = new PGOverviewCharts 'dummy', data, '#charts'
+  redefineDatasetKey = (data, srcKey, tgtKey) ->
+    for entry in data
+      do (entry) ->
+        if srcKey isnt tgtKey
+          entry[tgtKey] = entry[srcKey]
+          delete entry[srcKey]
 
-    $(map).bind 'update', (evt, data) -> updateCharts data
-    $(map).bind 'search', (evt, data) -> resetCharts data
-    
-
-    # TESTING: Particular test for map - UK Weather
-    guid = 'weather_uk'
+  getDataSource = (guid) ->
     $.getJSON "/api/getdata/#{guid}", (data) ->
       if data.length
         patterns = {}
         for key of data[0]
           do (key) ->
+            # Get the paterns for the key/value
             vp = PGPatternMatcher.getPattern data[0][key]
             kp = PGPatternMatcher.getKeyPattern key
             patterns[key] = valuePattern: vp, keyPattern: kp
-            # Now parse ALL the data
-            # TODO get into account key pattern before parsing everything???
+
+            # Fix lat,lon keys for map
+            switch kp
+              when 'mapLongitude' then redefineDatasetKey data, key, 'lon'
+              when 'mapLatitude' then redefineDatasetKey data, key, 'lat'
+                
+            # Now parse ALL the data based on value pattern
+            # TODO: Should lookup the key pattern before???
             entry[key] = PGPatternMatcher.parse(entry[key], patterns[key].valuePattern) for entry in data
-            patterns[key].valuePattern = if key isnt 'Callsign' then 'excluded' else vp
-        charts = new PGOverviewCharts guid, {dataset: data, patterns: patterns}, '#charts'
+
+        # Generate Map charts and bind dc.js filtering events
+        $('#charts').html ''
+        charts = new PGMapCharts guid, {dataset: data, patterns: patterns}, '#charts'
         $(charts).bind 'update', (evt, data) -> updateMap data
+
+  $ () -> 
+    # Generate Map and bind search and update events 
+    map = new PGOLMap '#mapContainer'
+    $(map).bind 'update', (evt, data) -> updateCharts data
+    $(map).bind 'search', (evt, data) -> resetCharts data
+    # Get data for the guid and create charts
+    getDataSource guid
+
+    
 

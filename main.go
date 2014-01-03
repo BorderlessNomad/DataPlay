@@ -103,7 +103,8 @@ func main() {
 		checkAuth(res, req, monager)
 		renderTemplate("public/search.html", nil, res)
 	})
-	m.Get("/maptest", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+	m.Get("/maptest/:id", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+		checkAuth(res, req, monager)
 		renderTemplate("public/maptest.html", nil, res)
 	})
 

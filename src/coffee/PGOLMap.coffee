@@ -6,7 +6,7 @@ define ['jquery', 'underscore', 'OpenLayers'], ($, _, OpenLayers) ->
     @OSM_PROJECTION: new OpenLayers.Projection("EPSG:4326")
     @OL_PROJECTION: new OpenLayers.Projection("EPSG:900913")
     container: 'body'
-    height: '40em'
+    height: '50em'
     readonly: false
     map: null
     controls: []
@@ -278,9 +278,12 @@ define ['jquery', 'underscore', 'OpenLayers'], ($, _, OpenLayers) ->
       if items and items.length
         @featuresLayer.removeMarker(marker) for marker in @markers
         @markers = []
-        bounds = new OpenLayers.Bounds
+        bounds = new OpenLayers.Bounds     
         @addItem item, bounds for item in items
-        @map.zoomTo Math.round @map.getZoomForExtent bounds
+        # Add geolocated point to bounds ???
+        bounds.extend @locationFeature.geometry
+        # Tricky thing this about zoom to bounds!!!
+        @map.zoomTo Math.floor @map.getZoomForExtent bounds
 
     flattenProperties: (obj) -> 
       res = {}

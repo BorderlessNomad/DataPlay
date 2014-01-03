@@ -16,7 +16,8 @@ define [], () ->
       Percent
       Float Number
       Integer Number
-      Label (generic)
+      Label (starting with a character and 32 max length)
+      Text (any other stuff)
 
       Available Keys Patterns:
       --------------------------
@@ -34,6 +35,7 @@ define [], () ->
         Datetime
         Address
         Bank Account
+        Country codes
         ............
         more keys
     ###
@@ -276,7 +278,17 @@ define [], () ->
         name: 'label'
         handlers: [
           {
-            pattern: /^[a-zA-Z]+.*$/i
+            pattern: /^[a-zA-Z]{1}.{31}$/i
+          }
+        ]
+      }
+
+      # ------------------------------------ Text Entity ----------------------------------
+      {
+        name: 'text'
+        handlers: [
+          {
+            pattern: /^.*$/i
           }
         ]
       }
@@ -293,7 +305,7 @@ define [], () ->
       }
       {
         name: 'coefficient'
-        pattern: /coef|ind|ratio|percent/i
+        pattern: /^coef|ind|ratio|percent$/i
       }
       {
         name: 'mapLongitude'

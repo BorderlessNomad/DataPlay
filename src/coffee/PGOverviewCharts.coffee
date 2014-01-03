@@ -44,9 +44,9 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
 
       #console.log "#{xKey}-#{xKeyPattern}-#{xPattern} \n #{yKey}-#{yKeyPattern}-#{yPattern}"
       # TESTING: whether to include a group or not into a chart
-      useGroup = switch xPattern
-        when 'excluded' then false
-        else true
+      # useGroup = switch xPattern
+        # when 'excluded' then false
+        # else true
       #   # TODO: insert more patterns here ...
       #   when 'label', 'date', 'postCode', 'creditCard' then true
       #   when 'intNumber' then switch xKeyPattern
@@ -58,7 +58,7 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
       #     else false
       #   else false
       # console.log useGroup
-      # useGroup = true # TODO: Crap this when using patterns above ...
+      useGroup = true # TODO: Crap this when using patterns above ...
 
       if useGroup
         # TODO: mark here if there's already a count, it has no sense to do more than once ...
@@ -222,8 +222,8 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
 
           # TESTING: How to get filtered data .... for maps or 3rd party elements
           chart.on "filtered", (chart, filter) =>
-            console.log chart.dimension().top(Infinity)
-            console.log filter
+            #console.log chart.dimension().top(Infinity)
+            #console.log filter
             $(@).trigger 'update', {elements: chart.dimension().bottom Infinity}
 
           lastCharts = [] if lastCharts.length is @charts.length 
