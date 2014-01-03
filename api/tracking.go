@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/mattn/go-session-manager"
 	"net/http"
+	"strings"
 )
 
 func GetLastVisited(rw http.ResponseWriter, req *http.Request, monager *session.SessionManager) string {
@@ -44,9 +45,9 @@ func HasTableGotLocationData(datasetGUID string) string {
 	cols := FetchTableCols(datasetGUID)
 
 	for _, col1 := range cols {
-		if col1.Name == "lat" {
+		if strings.ToLower(col1.Name) == "lat" {
 			for _, col2 := range cols {
-				if col2.Name == "lon" || col2.Name == "long" {
+				if strings.ToLower(col2.Name) == "lon" || strings.ToLower(col2.Name) == "long" {
 					return "true"
 				}
 			}
