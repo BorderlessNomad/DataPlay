@@ -66,7 +66,7 @@ func ParseCreateTableSQL(input string) []ColType {
 	SQLLines := strings.Split(input, "\n")
 
 	for c, line := range SQLLines {
-		if c != 0 { // Clipping off the create part since its useless for me.
+		if c != 0 && strings.HasPrefix(strings.TrimSpace(line), "`") { // Clipping off the create part since its useless for me.
 			results := BuildREArrayForCreateTable(line)
 			if len(results) == 3 {
 				DeQuoted := strings.Replace(results[1], "`", "", -1)
