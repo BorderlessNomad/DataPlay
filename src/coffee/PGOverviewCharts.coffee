@@ -18,7 +18,9 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
     width: 238
     height: 120
 
-    constructor: (@guid, @data, @container) -> 
+    constructor: (@guid, @data, @container, width, height) ->
+      @width = width if width
+      @height = height if height
       @processData()
       @drawCharts()
 
@@ -223,13 +225,15 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
 
           # TESTING: How to get filtered data .... for maps or 3rd party elements
           chart.on "filtered", (chart, filter) =>
-            #console.log chart.dimension().top(Infinity)
-            #console.log filter
-            $(@).trigger 'update', {elements: chart.dimension().bottom Infinity}
+            console.log chart.dimension().top(Infinity)
+            console.log filter
+            # Trigger 'update' for focusing maps on items bounds and 'updateOnlyItems' for no focus
+            $(@).trigger 'updateOnlyItems', {elements: chart.dimension().bottom Infinity}
 
-          chart.on "postRedraw", (chart) =>
-            #console.log chart.dimension().top(Infinity)
-            $(@).trigger 'update', {elements: chart.dimension().bottom Infinity}
+          # TODO: CRAP this!! it causes all charts to trigger an event to the map
+          # chart.on "postRedraw", (chart) =>
+          #   #console.log chart.dimension().top(Infinity)
+          #   $(@).trigger 'update', {elements: chart.dimension().bottom Infinity}
 
           lastCharts = [] if lastCharts.length is @charts.length 
           if ['bars', 'pie', 'bubbles'].indexOf(chartId)>-1

@@ -1,12 +1,14 @@
 define ['jquery', 'underscore', 'leaflet'], ($, _, L) ->
   class PGLMap
     container: 'body'
-    height: '50em'
+    height: '80em'
     map: null
     location: null
     baseLayers: []
     controls: []
     markers: []
+    featuresPopupTemplate: _.template $('#features-popup-template').html(), null, variable: 'data'
+    externalTrigger: false
 
     constructor: (container) ->
       @container = container if container
@@ -16,7 +18,7 @@ define ['jquery', 'underscore', 'leaflet'], ($, _, L) ->
     # ---------------------------- Initialization ------------------------------ #
     initialize: ->
       # 0. Create the Map
-      @map = L.Map @container.substring(1)
+      @map = L.map @container.substring(1)
       # 1. Add base layers
       @initBaseLayers()
       # 2. Add controls
@@ -43,22 +45,28 @@ define ['jquery', 'underscore', 'leaflet'], ($, _, L) ->
     initControls: ->
       # Layer control
       opts = {}
-      opts[key] = layer[key] for key in @baseLayers
+      opts[layer.name] = layer.layer for layer in @baseLayers
 
       controls = [
         L.control.layers opts
-        L.control.zoom()
+        #L.control.zoom() it seems to be there by default
       ]
       @controls.push control for control in controls
       control.addTo @map for control in @controls
 
     # ---------------------------- Events ------------------------------ #
     registerEvents: ->
-      @map.on 'locationfound', handleGeoLocated
-      @map.on 'locationerror', handleGeoLocationError
+      @map.on 'locationfound', (e) => @handleGeoLocated e
+      @map.on 'locationerror', (e) => @handleGeoLocationError e
 
-      @map.on 'moveend zoomend resize locationfound', (evt) => 
-        $(@).trigger 'update', @map.getBounds()
+      @map.on 'moveend zoomend resize locationfound', (e) => 
+        console.log "#{e.type} - #{@externalTrigger}"
+        if @externalTrigger
+          # Caution!! we're supposing 'moveend' always fires and is also the last
+          @externalTrigger = false if e.type is 'moveend' 
+        else
+          # trigger for updating charts data to map bounds
+          $(@).trigger 'update', @map.getBounds()
 
     # ---------------------------- Geolocation Handlers ------------------------------ #
     handleGeoLocated: (e) -> 
@@ -71,20 +79,20 @@ define ['jquery', 'underscore', 'leaflet'], ($, _, L) ->
     handleGeoLocationError: (e) ->
       console.log e 
 
-    updateItems: (items) ->
+    updateItems: (items, fitToBounds) ->
       console.log items
       if items and items.length
         @map.removeLayer(marker) for marker in @markers
         @markers = []
-        bounds = L.latLngBounds location.latlon, location.latlon
+        bounds = L.latLngBounds @location, @location
         @addItem item, bounds for item in items
-        @map.fitBounds bounds
+        @map.fitBounds bounds if fitToBounds
 
     addItem: (item, bounds) ->
-      markerLatlng = L.latng item.lat, item.lon
+      markerLatlng = L.latLng item.lat, item.lon
       marker = L.marker(markerLatlng)
         .addTo(@map)
         .bindPopup(@featuresPopupTemplate item)
         .on("click", (evt) -> marker.openPopup())
       @markers.push marker
-      bounds.extend = markerLatlng
+      bounds.extend markerLatlng

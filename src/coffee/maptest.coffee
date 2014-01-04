@@ -23,18 +23,27 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGLMap','app/PGMap
               kp = PGPatternMatcher.getKeyPattern key
               data.patterns[key] = keyPattern: kp, valuePattern: vp
     data.dataset = srcData
+    $('#charts').html ''
     charts = new PGMapCharts 'dummy', data, '#charts'
 
+  # updates charts data against map bounds
   updateCharts = (data) ->
-    console.log data
-    console.log charts.dimensions
-    # Conversion for leaflet bounds CRAP if using OpenLayers
-    data = left: data.getWest, right: data.getEast, top: data.getNorth, bottom: data.getSouth
+    #console.log data
+    # Conversion for leaflet bounds --> CRAP if using OpenLayers
+    data = left: data.getWest(), right: data.getEast(), top: data.getNorth(), bottom: data.getSouth()
+
     charts.updateBounds data
 
+  # updates map items and bounds
   updateMap = (data) ->
     #console.log data
-    map.updateItems data.elements
+    map.externalTrigger = true
+    map.updateItems data.elements, true
+
+  # updates only map items
+  updateMapItems = (data) ->
+    #console.log data
+    map.updateItems data.elements, false
 
   redefineDatasetKey = (data, srcKey, tgtKey) ->
     if srcKey isnt tgtKey
@@ -70,18 +79,23 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGLMap','app/PGMap
             # TODO: Should lookup the key pattern before???
             entry[fixedKey] = PGPatternMatcher.parse(entry[fixedKey], vp) for entry in data
 
-        # Generate Map charts and bind dc.js filtering events
-        $('#charts').html ''
-        charts = new PGMapCharts guid, {dataset: data, patterns: patterns}, '#charts'
+        chartWidth = $('#mapContainer').width()/4-2;
+        chartHeight = $('#mapContainer').height()/5-2;
+        # Generate Map charts and bind dc.js filtering events      
+        charts = new PGMapCharts guid, {dataset: data, patterns: patterns}, '#charts', chartWidth, chartHeight
+        # Event bindings to maps
         $(charts).bind 'update', (evt, data) -> updateMap data
+        $(charts).bind 'updateOnlyItems', (evt, data) -> updateMapItems data
 
   $ () -> 
-    # Generate Map and bind search and update events 
+    # Generate Map -- should be after dataset load complete ????
 
     # TESTING: Leaflet map
     map = new PGLMap '#mapContainer'
 
     #map = new PGOLMap '#mapContainer'
+
+    # Event bindings to charts
     $(map).bind 'update', (evt, data) -> updateCharts data if charts
     $(map).bind 'search', (evt, data) -> resetCharts data
     # Get data for the guid and create charts

@@ -278,7 +278,7 @@ define [], () ->
         name: 'label'
         handlers: [
           {
-            pattern: /^[a-zA-Z]{1}.{31}$/i
+            pattern: /^[a-zA-Z]{1}.{0,31}$/i
           }
         ]
       }
@@ -309,11 +309,11 @@ define [], () ->
       }
       {
         name: 'mapLongitude'
-        pattern: /^(lon|ln|long|longitude)$/i
+        pattern: /^(lon|ln|lng|long|longitud|longitude)$/i
       }
       {
         name: 'mapLatitude'
-        pattern: /^(lat|lt|latit|latitude)$/i
+        pattern: /^(lat|lt|ltt|latit|latitud|latitude)$/i
       }
     ]
 

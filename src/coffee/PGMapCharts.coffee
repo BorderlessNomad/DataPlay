@@ -19,8 +19,11 @@ define ['jquery', 'crossfilter', 'd3', 'dc', 'app/PGOverviewCharts'],
         #console.log entry.group.all() for entry in @groups
 
     updateBounds: (data) ->
+      console.log data
       @dimensionsMap['lat'].filter (d) -> data.bottom < d < data.top
       console.log @dimensionsMap['lat'].bottom Infinity
       @dimensionsMap['lon'].filter (d) -> data.left < d < data.right
-      console.log @dimensionsMap['lat'].bottom Infinity
+      console.log @dimensionsMap['lon'].bottom Infinity
       dc.redrawAll()
+      # Trigger 'update' for focusing maps on items bounds and 'updateOnlyItems' for no focus
+      $(@).trigger 'updateOnlyItems', {elements: @dimensionsMap['lon'].bottom Infinity}
