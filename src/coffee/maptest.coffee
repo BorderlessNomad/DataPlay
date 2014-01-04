@@ -80,7 +80,7 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGLMap','app/PGMap
             entry[fixedKey] = PGPatternMatcher.parse(entry[fixedKey], vp) for entry in data
 
         chartWidth = $('#mapContainer').width()/4-2;
-        chartHeight = $('#mapContainer').height()/5-2;
+        chartHeight = $('#mapContainer').height()/6-2;
         # Generate Map charts and bind dc.js filtering events      
         charts = new PGMapCharts guid, {dataset: data, patterns: patterns}, '#charts', chartWidth, chartHeight
         # Event bindings to maps

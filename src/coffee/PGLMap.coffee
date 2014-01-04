@@ -32,9 +32,120 @@ define ['jquery', 'underscore', 'leaflet'], ($, _, L) ->
     initBaseLayers: () ->
       baseLayers = [
         {
-          name: 'osm'
+          name: 'OpenStreetMaps(default)'
           layer: (L.tileLayer 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
             attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'     
+          )
+        }
+        {
+          name: 'OpenStreetMaps(B&W)'
+          layer: (L.tileLayer 'http://{s}.www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png',
+            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'     
+          )
+        }
+        {
+          name: 'OpenStreetMaps(Deutch)'
+          layer: (L.tileLayer 'http://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png',
+            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'     
+          )
+        }
+        {
+          name: 'OpenStreetMaps(Hot)'
+          layer: (L.tileLayer 'http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+            attribution: '&copy; Tiles courtesy of <a href="http://hot.openstreetmap.org/" target="_blank">Humanitarian OpenStreetMap Team</a>'     
+          )
+        }
+        {
+          name: 'OpenCycleMap'
+          layer: (L.tileLayer 'http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png',
+            attribution: '&copy; <a href="http://www.opencyclemap.org">OpenCycleMap</a>'     
+          )
+        }
+        # {
+        #   name: 'OpenSeaMap'
+        #   layer: (L.tileLayer 'http://tiles.openseamap.org/seamark/{z}/{x}/{y}.png',
+        #     attribution: 'Map data: &copy; <a href="http://www.openseamap.org">OpenSeaMap</a> contributors'     
+        #   )
+        # }
+
+        {
+          name: 'Bing(Aerial)'
+          layer: (L.tileLayer 'http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png',
+            attribution: '&copy; <a href="http://www.opencyclemap.org">OpenCycleMap</a>'     
+          )
+        }
+
+        {
+          name: 'Thunderforest(Transport)'
+          layer: (L.tileLayer 'http://{s}.tile2.opencyclemap.org/transport/{z}/{x}/{y}.png',
+            attribution: '&copy; <a href="http://www.opencyclemap.org">OpenCycleMap</a>'     
+          )
+        }
+        {
+          name: 'Thunderforest(Landscape)'
+          layer: (L.tileLayer 'http://{s}.tile3.opencyclemap.org/landscape/{z}/{x}/{y}.png',
+            attribution: '&copy; <a href="http://www.opencyclemap.org">OpenCycleMap</a>'     
+          )
+        }
+        {
+          name: 'Thunderforest(Outdoors)'
+          layer: (L.tileLayer 'http://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png',
+            attribution: '&copy; <a href="http://www.opencyclemap.org">OpenCycleMap</a>'     
+          )
+        }
+
+        {
+          name: 'Stamen(Default)'
+          layer: (L.tileLayer 'http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png',
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;'     
+          )
+        }
+        {
+          name: 'Stamen(TonerBackground)'
+          layer: (L.tileLayer 'http://{s}.tile.stamen.com/toner-background/{z}/{x}/{y}.png',
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;'     
+          )
+        }
+        {
+          name: 'Stamen(TonerHybrid)'
+          layer: (L.tileLayer 'http://{s}.tile.stamen.com/toner-hybrid/{z}/{x}/{y}.png',
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;'     
+          )
+        }
+        {
+          name: 'Stamen(TonerLines)'
+          layer: (L.tileLayer 'http://{s}.tile.stamen.com/toner-lines/{z}/{x}/{y}.png',
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;'     
+          )
+        }
+        {
+          name: 'Stamen(TonerLabels)'
+          layer: (L.tileLayer 'http://{s}.tile.stamen.com/toner-labels/{z}/{x}/{y}.png',
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;'     
+          )
+        }
+        {
+          name: 'Stamen(Lite)'
+          layer: (L.tileLayer 'http://{s}.tile.stamen.com/toner-lite/{z}/{x}/{y}.png',
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;'     
+          )
+        }
+        {
+          name: 'Stamen(Terrain)'
+          layer: (L.tileLayer 'http://{s}.tile.stamen.com/terrain/{z}/{x}/{y}.png',
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;'     
+          )
+        }
+        {
+          name: 'Stamen(TerrainBackground)'
+          layer: (L.tileLayer 'http://{s}.tile.stamen.com/terrain-background/{z}/{x}/{y}.png',
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;'     
+          )
+        }
+        {
+          name: 'Stamen(Watercolor)'
+          layer: (L.tileLayer 'http://{s}.tile.stamen.com/watercolor/{z}/{x}/{y}.png',
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;'     
           )
         }
       ]

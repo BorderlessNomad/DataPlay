@@ -5,6 +5,7 @@
 *.dunno
 *.sublime-project
 *.sublime-workspace
+datacon
 tools/ckandownloader/x*
 node_modules/
 public/js/
