@@ -42,7 +42,7 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGLMap','app/PGMap
 
   # updates only map items
   updateMapItems = (data) ->
-    #console.log data
+    console.log data
     map.updateItems data.elements, false
 
   redefineDatasetKey = (data, srcKey, tgtKey) ->
@@ -53,39 +53,45 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGLMap','app/PGMap
             delete entry[srcKey]
 
   getDataSource = (guid) ->
-    $.getJSON "/api/getdata/#{guid}", (data) ->
-      if data.length
+    $.getJSON "/api/getdata/#{guid}", (dataset) ->
+      if dataset.length
         patterns = {}
-        for key of data[0]
-          do (key) ->
-            # Get the paterns for the key/value
-            vp = PGPatternMatcher.getPattern data[0][key]
-            kp = PGPatternMatcher.getKeyPattern key
-            
-            # Fix lat,lon keys for map
-            switch kp
-              when 'mapLongitude' 
-                redefineDatasetKey data, key, 'lon'
-                fixedKey = 'lon'
-              when 'mapLatitude'
-                redefineDatasetKey data, key, 'lat'
-                fixedKey = 'lat'
-              else
-                fixedKey = key
-             
-            patterns[fixedKey] = valuePattern: vp, keyPattern: kp
 
-            # Now parse ALL the data based on value pattern
-            # TODO: Should lookup the key pattern before???
-            entry[fixedKey] = PGPatternMatcher.parse(entry[fixedKey], vp) for entry in data
+        worker = new Worker '/js/worker.js'
+        worker.postMessage 'type': 'patterns', 'data': dataset
+        worker.addEventListener(
+          'message'
+          (e) ->
+            console.log e.data.msg
+            switch e.data.type
+              when 'kMeans'
+                #console.log "Finished in: #{e.data.result.currentIteration} iterations"
+                console.log e.data.result.centroids, e.data.result.clusters
+                generateCharts()
+                worker.terminate()
+              when 'patterns'
+                data.dataset = e.data.result.dataset
+                data.patterns = e.data.result.patterns
 
-        chartWidth = $('#mapContainer').width()/4-2;
-        chartHeight = $('#mapContainer').height()/6-2;
-        # Generate Map charts and bind dc.js filtering events      
-        charts = new PGMapCharts guid, {dataset: data, patterns: patterns}, '#charts', chartWidth, chartHeight
-        # Event bindings to maps
-        $(charts).bind 'update', (evt, data) -> updateMap data
-        $(charts).bind 'updateOnlyItems', (evt, data) -> updateMapItems data
+                # TESTING: kmeans over lat, lon
+                fields = ['lat', 'lon']
+                vectors = ([item[fields[0]] , item[fields[1]]] for item in data.dataset)
+                worker.postMessage 'type': 'kMeans', 'vectors': vectors
+
+                console.log data
+          false
+        )
+
+  generateCharts = ->
+    chartWidth = $('#mapContainer').width()/4-2;
+    chartHeight = $('#mapContainer').height()/6-2;
+    # Generate Map charts and bind dc.js filtering events      
+    charts = new PGMapCharts guid, data, '#charts', chartWidth, chartHeight
+    # Event bindings to maps
+    $(charts).bind 'update', (evt, data) -> updateMap data
+    $(charts).bind 'updateOnlyItems', (evt, data) -> updateMapItems data
+    # Update chart items at startup
+    #updateMapItems {elements: charts.getFilteredDataset()}
 
   $ () -> 
     # Generate Map -- should be after dataset load complete ????
@@ -93,6 +99,7 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGLMap','app/PGMap
     # TESTING: Leaflet map
     map = new PGLMap '#mapContainer'
 
+    # The OpenLayers one ...
     #map = new PGOLMap '#mapContainer'
 
     # Event bindings to charts
@@ -100,6 +107,3 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGLMap','app/PGMap
     $(map).bind 'search', (evt, data) -> resetCharts data
     # Get data for the guid and create charts
     getDataSource guid
-
-    
-

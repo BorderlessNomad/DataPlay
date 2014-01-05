@@ -37,6 +37,8 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
                 @addGroup j, i
         #console.log entry.group.all() for entry in @groups
 
+    getFilteredDataset: -> @dimensions[0]?.bottom Infinity
+
     addGroup: (i, j) ->    
       xKey = @keys[i]
       xKeyPattern = @data.patterns[xKey].keyPattern

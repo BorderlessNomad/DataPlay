@@ -11,6 +11,9 @@
 			d3: "d3/d3.min",
 			dc: "dc/dc.min",
 			leaflet: "leaflet/dist/leaflet",
+			leafletMarkercluster: "leaflet.markercluster/dist/leaflet.markercluster",
+			leafletProviders: "leaflet-providers/leaflet-providers",
+			leafletSearch: "leaflet-search/dist/leaflet-search.min",
 			OpenLayers: "lib/openlayers/js/openlayers",
 			app: "js"
 		},
@@ -34,6 +37,15 @@
 			"dc": {
 				deps: ["crossfilter", "d3"],
 				exports: 'dc'
+			},
+			'leafletMarkercluster': {
+				deps: ['leaflet']
+			},
+			'leafletProviders': {
+				deps: ['leaflet']
+			},
+			'leafletSearch': {
+				deps: ['leaflet']
 			},
 			"OpenLayers": {
 				exports: 'OpenLayers'

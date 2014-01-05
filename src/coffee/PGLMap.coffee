@@ -1,14 +1,15 @@
-define ['jquery', 'underscore', 'leaflet'], ($, _, L) ->
+headlessDeps = ['leafletProviders', 'leafletSearch', 'leafletMarkercluster']
+define ['jquery', 'underscore', 'leaflet'].concat(headlessDeps), ($, _, L) ->
   class PGLMap
     container: 'body'
     height: '80em'
     map: null
     location: null
-    baseLayers: []
     controls: []
     markers: []
     featuresPopupTemplate: _.template $('#features-popup-template').html(), null, variable: 'data'
     externalTrigger: false
+    baseLayers: []
 
     constructor: (container) ->
       @container = container if container
@@ -26,142 +27,34 @@ define ['jquery', 'underscore', 'leaflet'], ($, _, L) ->
       # 3. Register Events
       @registerEvents()
       # Initial map location (geolocation)
-      @map.locate setView: true, maxZoom: 16
+      @map.locate setView: true, maxZoom: 7
 
     # ----------------------------- Base Layers ------------------------------- #
     initBaseLayers: () ->
-      baseLayers = [
-        {
-          name: 'OpenStreetMaps(default)'
-          layer: (L.tileLayer 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
-            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'     
-          )
-        }
-        {
-          name: 'OpenStreetMaps(B&W)'
-          layer: (L.tileLayer 'http://{s}.www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png',
-            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'     
-          )
-        }
-        {
-          name: 'OpenStreetMaps(Deutch)'
-          layer: (L.tileLayer 'http://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png',
-            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'     
-          )
-        }
-        {
-          name: 'OpenStreetMaps(Hot)'
-          layer: (L.tileLayer 'http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
-            attribution: '&copy; Tiles courtesy of <a href="http://hot.openstreetmap.org/" target="_blank">Humanitarian OpenStreetMap Team</a>'     
-          )
-        }
-        {
-          name: 'OpenCycleMap'
-          layer: (L.tileLayer 'http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png',
-            attribution: '&copy; <a href="http://www.opencyclemap.org">OpenCycleMap</a>'     
-          )
-        }
-        # {
-        #   name: 'OpenSeaMap'
-        #   layer: (L.tileLayer 'http://tiles.openseamap.org/seamark/{z}/{x}/{y}.png',
-        #     attribution: 'Map data: &copy; <a href="http://www.openseamap.org">OpenSeaMap</a> contributors'     
-        #   )
-        # }
-
-        {
-          name: 'Bing(Aerial)'
-          layer: (L.tileLayer 'http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png',
-            attribution: '&copy; <a href="http://www.opencyclemap.org">OpenCycleMap</a>'     
-          )
-        }
-
-        {
-          name: 'Thunderforest(Transport)'
-          layer: (L.tileLayer 'http://{s}.tile2.opencyclemap.org/transport/{z}/{x}/{y}.png',
-            attribution: '&copy; <a href="http://www.opencyclemap.org">OpenCycleMap</a>'     
-          )
-        }
-        {
-          name: 'Thunderforest(Landscape)'
-          layer: (L.tileLayer 'http://{s}.tile3.opencyclemap.org/landscape/{z}/{x}/{y}.png',
-            attribution: '&copy; <a href="http://www.opencyclemap.org">OpenCycleMap</a>'     
-          )
-        }
-        {
-          name: 'Thunderforest(Outdoors)'
-          layer: (L.tileLayer 'http://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png',
-            attribution: '&copy; <a href="http://www.opencyclemap.org">OpenCycleMap</a>'     
-          )
-        }
-
-        {
-          name: 'Stamen(Default)'
-          layer: (L.tileLayer 'http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png',
-            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;'     
-          )
-        }
-        {
-          name: 'Stamen(TonerBackground)'
-          layer: (L.tileLayer 'http://{s}.tile.stamen.com/toner-background/{z}/{x}/{y}.png',
-            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;'     
-          )
-        }
-        {
-          name: 'Stamen(TonerHybrid)'
-          layer: (L.tileLayer 'http://{s}.tile.stamen.com/toner-hybrid/{z}/{x}/{y}.png',
-            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;'     
-          )
-        }
-        {
-          name: 'Stamen(TonerLines)'
-          layer: (L.tileLayer 'http://{s}.tile.stamen.com/toner-lines/{z}/{x}/{y}.png',
-            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;'     
-          )
-        }
-        {
-          name: 'Stamen(TonerLabels)'
-          layer: (L.tileLayer 'http://{s}.tile.stamen.com/toner-labels/{z}/{x}/{y}.png',
-            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;'     
-          )
-        }
-        {
-          name: 'Stamen(Lite)'
-          layer: (L.tileLayer 'http://{s}.tile.stamen.com/toner-lite/{z}/{x}/{y}.png',
-            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;'     
-          )
-        }
-        {
-          name: 'Stamen(Terrain)'
-          layer: (L.tileLayer 'http://{s}.tile.stamen.com/terrain/{z}/{x}/{y}.png',
-            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;'     
-          )
-        }
-        {
-          name: 'Stamen(TerrainBackground)'
-          layer: (L.tileLayer 'http://{s}.tile.stamen.com/terrain-background/{z}/{x}/{y}.png',
-            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;'     
-          )
-        }
-        {
-          name: 'Stamen(Watercolor)'
-          layer: (L.tileLayer 'http://{s}.tile.stamen.com/watercolor/{z}/{x}/{y}.png',
-            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;'     
-          )
-        }
-      ]
-      @baseLayers.push layer for layer in baseLayers
-      layer.layer.addTo @map for layer in @baseLayers
+      # To define new or redefine existent providers just do it thru leaflet-providers plugin
+      # L.TileLayer.Provider.providers.<provider> = ....
 
     # ---------------------------- Controls ------------------------------ #
     initControls: ->
-      # Layer control
-      opts = {}
-      opts[layer.name] = layer.layer for layer in @baseLayers
+      # Layers control
+      baseLayers = ['OpenStreetMap.Mapnik', 'Stamen.Watercolor']
+      overlays = ['OpenWeatherMap.Clouds', 'OpenWeatherMap.Rain']
+      layersControl = L.control.layers.provided(baseLayers, overlays)
+
+      # Search control
+      searchControl = new L.Control.Search(
+        url: 'http://nominatim.openstreetmap.org/search?format=json&q={s}'
+        jsonpParam: 'json_callback'
+        propertyName: 'display_name'
+        propertyLoc: ['lat','lon']
+      )
 
       controls = [
-        L.control.layers opts
+        layersControl
+        searchControl
         #L.control.zoom() it seems to be there by default
       ]
+
       @controls.push control for control in controls
       control.addTo @map for control in @controls
 
@@ -183,8 +76,7 @@ define ['jquery', 'underscore', 'leaflet'], ($, _, L) ->
     handleGeoLocated: (e) -> 
       console.log e
       @location = e.latlng
-      radius = e.accuracy / 2
-      
+      radius = e.accuracy / 2      
       L.circle(e.latlng, radius).addTo(@map)
 
     handleGeoLocationError: (e) ->
