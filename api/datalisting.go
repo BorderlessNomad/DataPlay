@@ -340,7 +340,21 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 
 	var DataLength int
 	database.QueryRow("SELECT COUNT(*) FROM " + tablename).Scan(&DataLength)
-	DataLength = DataLength / 25
+	if prams["persent"] == "" {
+		DataLength = DataLength / 25
+	} else {
+		Persent := prams["persent"]
+		Divider, e := strconv.ParseInt(Persent, 10, 64)
+		if e != nil {
+			http.Error(res, "Invalid Persentage", http.StatusBadRequest)
+			return // Halt!
+		}
+		fmt.Println(Divider)
+		Temp := (float64(Divider) / 100) * float64(DataLength)
+		fmt.Println(DataLength, Temp, int(Temp))
+		DataLength = DataLength / int(Temp)
+		fmt.Println(DataLength)
+	}
 	if DataLength < 1 {
 		DataLength = 1
 	}
