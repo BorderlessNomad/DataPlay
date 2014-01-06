@@ -91,8 +91,8 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGLMap','app/PGMap
     data
 
   generateCharts = ->
-    chartWidth = $('#mapContainer').width()/4-2;
-    chartHeight = $('#mapContainer').height()/6-2;
+    chartWidth = $('#mapContainer').width()/Object.keys(data.dataset[0]).length-2;
+    chartHeight = $('#mapContainer').height()/8-2;
     # Process data clusters if any ....
     fixedData = if data.means then insertClusterData(data) else data
 
@@ -102,7 +102,7 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGLMap','app/PGMap
     $(charts).bind 'update', (evt, data) -> updateMap data
     $(charts).bind 'updateOnlyItems', (evt, data) -> updateMapItems data
     # Update chart items at startup
-    #updateMapItems {elements: charts.getFilteredDataset()}
+    updateMapItems {elements: charts.getFilteredDataset()}
 
   $ () -> 
     # Generate Map -- should be after dataset load complete ????
@@ -114,7 +114,7 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGLMap','app/PGMap
     #map = new PGOLMap '#mapContainer'
 
     # Event bindings to charts
-    #$(map).bind 'update', (evt, data) -> updateCharts data if charts
+    $(map).bind 'update', (evt, data) -> updateCharts data if charts
     $(map).bind 'search', (evt, data) -> resetCharts data
     # Get data for the guid and create charts
     getDataSource guid

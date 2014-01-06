@@ -1,14 +1,16 @@
 define ['app/PGChart'], (PGChart) ->
   class PGBarsChart extends PGChart 
     bars: null
-    padding: 20
+    padding: 30
+    barsSet: []
 
     # --------------------- Chart creating Functions ------------------------ #
     setScales: ->
-      m = []
-      m.push d[0] for d in @currDataset
+      patternX = @patterns[@axes.x]
+      @barsSet.push(d[0]) for d in @currDataset when @barsSet.indexOf(d[0]) < 0
+      console.log @barsSet
       @scale.x = d3.scale.ordinal()
-        .domain(m)
+        .domain(@barsSet)
         .rangeBands([0.01*@width, 0.98*@width])
 
       patternY = @patterns[@axes.y]#Common.getPattern @currDataset[0][1]
@@ -27,7 +29,11 @@ define ['app/PGChart'], (PGChart) ->
                 .orient("bottom")
                 .ticks(5)
 
-      @axis.x.tickFormat (d) -> d
+      @axis.x.tickFormat (d) =>
+        switch patternX
+          when 'date' then d.getFullYear()
+          when 'percent' then "#{d}%"
+          else d
 
       @axis.y = d3.svg.axis()
                 .scale(@scale.y)
@@ -35,7 +41,7 @@ define ['app/PGChart'], (PGChart) ->
 
       @axis.y.tickFormat (d) =>
         switch patternY
-          when 'date' then formatDate(d)
+          when 'date' then d.getFullYear()
           when 'percent' then "#{d}%"
           else d
 
@@ -69,7 +75,7 @@ define ['app/PGChart'], (PGChart) ->
         .duration(1000)
         .attr("x", (d) => @scale.x(d[0]))
         .attr("y", (d) => @scale.y(d[1]))
-        .attr("width", (d) => Math.floor((@width/@currDataset.length)-@padding/@currDataset.length))
+        .attr("width", (d) => Math.floor((@width/@barsSet.length)-@padding/@barsSet.length))
         .attr("height", (d) => @height-@scale.y(d[1]))
 
     updateChart: (dataset, axes) ->

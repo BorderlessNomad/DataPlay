@@ -240,6 +240,17 @@ define [], () ->
         ]
       }
       
+      # ------------------------------------ Integer Number Entity ----------------------------------
+      {
+        name: 'intNumber'
+        handlers: [
+          {
+            pattern: /^[-+]?\d+$/i
+            parse: (m) => parseInt m
+          }
+        ]
+      }
+
       # ------------------------------------ Float Number Entity ----------------------------------
       {
         name: 'floatNumber'
@@ -258,17 +269,6 @@ define [], () ->
           {
             pattern: /^\b[0-9]+(\.[0-9]+)?%\b$/i
             parse: (m) => parseFloat m
-          }
-        ]
-      }
-
-      # ------------------------------------ Integer Number Entity ----------------------------------
-      {
-        name: 'intNumber'
-        handlers: [
-          {
-            pattern: /^[-+]?\d+$/i
-            parse: (m) => parseInt m
           }
         ]
       }
@@ -327,9 +327,10 @@ define [], () ->
               do (handler) ->
                 if not pattern
                   match = handler.pattern.exec src
-                  console.log entity.name if match
-                  console.log match if match
-                  pattern = entity.name if match
+                  if match
+                    pattern = entity.name
+                    console.log "Value --> #{pattern}: #{src}"
+                    #console.log match
       pattern
 
     @getKeyPattern: (src) ->
@@ -338,9 +339,10 @@ define [], () ->
         do (key) ->
           if not pattern
             match = key.pattern.exec src
-            console.log key.name if match
-            console.log match if match
-            pattern = key.name if match
+            if match
+              pattern = key.name
+              console.log "Key --> #{pattern}: #{src}"
+              #console.log match
       pattern
 
     @parse: (src, pattern) ->

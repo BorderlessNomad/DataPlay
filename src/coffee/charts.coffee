@@ -134,7 +134,7 @@ define [
         when 'area'
           DataCon.chart = new PGAreasChart("#chart", null, chartData, chartAxes, DataCon.patterns, null)
         when 'pie'
-          DataCon.chart = new PGPieChart("#chart", null, chartData, null, DataCon.patterns, null)
+          DataCon.chart = new PGPieChart("#chart", null, chartData, chartAxes, DataCon.patterns, null)
         when 'bubbles'
           dataset = [];
           dataset.push {name: d[0], count: d[1]} for d in chartData

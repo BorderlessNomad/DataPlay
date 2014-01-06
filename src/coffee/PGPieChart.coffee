@@ -72,18 +72,24 @@ define ['app/PGChart'], (PGChart) ->
         .duration(1000)
         .attr('transform', (d) -> 
           dAng = (d.startAngle + d.endAngle)*90/Math.PI
-          lAng = dAng + if dAng>90 then 90 else -90
-          if dAng > 2 && lAng > 2
-            dAng = 2
-            lAng = 2
+          lAng = dAng + if dAng>180 then 90 else -90
+          # if dAng > 2 && lAng > 2
+          #   dAng = 2
+          #   lAng = 2
           diffAng = (d.endAngle - d.startAngle)*180/Math.PI
-          lScale = if diffAng>1 then diffAng/9 else 0
+          lScale = if diffAng>1 then Math.min(diffAng/9,3) else 0
           "translate(#{arc.centroid(d)})rotate(#{lAng})scale(#{lScale})"
 
         )
         .attr('dy', '.35em')
         .attr('text-anchor', 'middle')
-        .text((d) -> d.data[0])
+        .text(
+          (d) => 
+            switch @patterns[@axes.x]
+              when 'date' then d.data[0].getFullYear()
+              when 'label', 'text' then d.data[0].substring(0, 20)
+              else d.data[0]
+        )
 
     updateChart: (dataset, axes) ->
       super dataset, axes

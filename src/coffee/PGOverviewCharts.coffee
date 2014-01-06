@@ -47,21 +47,21 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
       yKeyPattern = @data.patterns[yKey].keyPattern
       yPattern = @data.patterns[yKey].valuePattern
 
-      #console.log "#{xKey}-#{xKeyPattern}-#{xPattern} \n #{yKey}-#{yKeyPattern}-#{yPattern}"
+      console.log "#{xKey}-#{xKeyPattern}-#{xPattern} \n #{yKey}-#{yKeyPattern}-#{yPattern}"
       # TESTING: whether to include a group or not into a chart
-      # useGroup = switch xPattern
-        # when 'excluded' then false
+      useGroup = switch xPattern
+        when 'excluded' then false
         # else true
-      #   # TODO: insert more patterns here ...
-      #   when 'label', 'date', 'postCode', 'creditCard' then true
-      #   when 'intNumber' then switch xKeyPattern
-      #     # TODO: insert key patterns here ... TODO
-      #     when 'identifier', 'date' then true
-      #     else false
-      #   when 'floatNumber' then switch xKeyPattern
-      #     when 'coefficient' then true
-      #     else false
-      #   else false
+        # TODO: insert more patterns here ...
+        when 'label', 'date', 'postCode', 'creditCard', 'currency' then true
+        when 'intNumber' then switch xKeyPattern
+          # TODO: insert key patterns here ... TODO
+          when 'identifier', 'date' then true
+          else false
+        when 'floatNumber' then switch xKeyPattern
+          when 'coefficient', 'mapLatitude', 'mapLongitude' then true
+          else false
+        else false
       # console.log useGroup
       useGroup = true # TODO: Crap this when using patterns above ...
 
@@ -74,7 +74,7 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
 
         useSum = switch yPattern
           # TODO: discard more patterns here ....
-          when 'label', 'date', 'postCode', 'creditCard' then false
+          when 'label', 'date', 'postCode', 'creditCard', 'text' then false
           when 'intNumber' then switch yKeyPattern
             when 'identifier', 'date' then false
             else true
@@ -98,7 +98,13 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
         .x(xScale)           
         .xAxis()
         .ticks(3)
-        .tickFormat((d) => if @data.patterns[entry.x] is 'date' then d.getFullYear() else d)
+        .tickFormat(
+          (d) => 
+            switch @data.patterns[entry.x].valuePattern
+              when 'date' then d.getFullYear()
+              when 'label', 'text' then d.substring(0, 20)
+              else d
+        )
         # TODO: Everything should deliver a chart, thrash the workaround below when well-tested
         # if isNaN chart.yAxisMin()
         #   $(@container).find("##{entry.type}-#{entry.x}-#{entry.y}").remove()
@@ -119,8 +125,14 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
         .elasticY(true)
         .x(xScale)           
         .xAxis()
-        .ticks(3)
-        .tickFormat((d) => if @data.patterns[entry.x] is 'date' then d.getFullYear() else d)
+        #.ticks(3)
+        .tickFormat(
+          (d) => 
+            switch @data.patterns[entry.x].valuePattern
+              when 'date' then d.getFullYear()
+              when 'label', 'text' then d.substring(0, 20)
+              else d
+        )
       chart
 
     drawRowsChart: (entry, fixedId) ->
@@ -133,7 +145,13 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
         .transitionDuration(500)
         .gap(1)
         .colors(d3.scale.category20())
-        .label((d) -> d.key)
+        .label(
+          (d) => 
+            switch @data.patterns[entry.x].valuePattern
+              when 'date' then d.key.getFullYear()
+              when 'label', 'text' then d.key.substring(0, 20)
+              else d.key
+        )
         .labelOffsetY(@height/(2*entry.group.size()))
         .title((d) -> d.value)
         .elasticX(true)
@@ -149,7 +167,13 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
         .group(entry.group)
         .transitionDuration(500)
         .colors(d3.scale.category20())
-        .label((d) -> d.data.key)
+        .label(
+          (d) => 
+            switch @data.patterns[entry.x].valuePattern
+              when 'date' then d.data.key.getFullYear()
+              when 'label', 'text' then d.data.key.substring(0, 20)
+              else d.data.key
+        )
         .minAngleForLabel(0.2)    
         .title((d) -> d.value)
       chart
@@ -168,9 +192,17 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
         .transitionDuration(500)
         .keyAccessor((d) -> "Key#{d.key}".replace(/[^a-zA-Z0-9_-]/gi, '_'))
         .colors(d3.scale.category20())
+        .colorAccessor((d) -> parseInt(d.value)%20)
         .radiusValueAccessor((d) -> d.value)
         .r(d3.scale.linear().domain(d3.extent(entry.group.all(), (d) -> parseInt(d.value))))
         .maxBubbleRelativeSize(0.1)
+        .label(
+          (d) => 
+            switch @data.patterns[entry.x].valuePattern
+              when 'date' then d.key.getFullYear()
+              when 'label', 'text' then d.key.substring(0, 20)
+              else d.key
+        )
         .minRadiusWithLabel(5) 
         .title((d) -> d.value)
       chart.point(
@@ -185,15 +217,16 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
       $(@container).html ''  
       for entry in @groups
         do (entry) =>
-          switch @data.patterns[entry.x]
+          switch @data.patterns[entry.x].valuePattern
             # TODO: handle more patterns here .....
             when 'label'
               m = []
-              m.push d.key for d in entry.group.all()
+              m.push d.key for d in entry.group.all() when m.indexOf(d) < 0
               #TODO@ this scale does not work well ... see weather UK ...
               xScale = d3.scale.ordinal()
                 .domain(m)
                 .rangeBands([0, @width])
+
             when 'date'
               xScale = d3.time.scale()
                 #.domain(d3.extent(entry.group.all(), (d) -> PGPatternMatcher.parse(d.key, 'date')))
@@ -231,11 +264,6 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
             console.log filter
             # Trigger 'update' for focusing maps on items bounds and 'updateOnlyItems' for no focus
             $(@).trigger 'updateOnlyItems', {elements: chart.dimension().bottom Infinity}
-
-          # TODO: CRAP this!! it causes all charts to trigger an event to the map
-          # chart.on "postRedraw", (chart) =>
-          #   #console.log chart.dimension().top(Infinity)
-          #   $(@).trigger 'update', {elements: chart.dimension().bottom Infinity}
 
           lastCharts = [] if lastCharts.length is @charts.length 
           if ['bars', 'pie', 'bubbles'].indexOf(chartId)>-1

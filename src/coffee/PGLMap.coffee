@@ -88,6 +88,7 @@ define ['jquery', 'underscore', 'leaflet'].concat(headlessDeps), ($, _, L) ->
       if items and items.length
         @map.removeLayer(marker) for marker in @markers
         @markers = []
+        @map.removeLayer(cluster) for cluster in @clusters when cluster
         @clusters = []
         bounds = L.latLngBounds @location, @location
         @addItem item, bounds for item in items
