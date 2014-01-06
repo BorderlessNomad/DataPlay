@@ -29,11 +29,6 @@ func GetSingleStringValue(rows *sql.Rows) (out string, e error) {
 	return "", ee
 }
 
-func GetQueryMonstrosity(*sql.Rows) string {
-	// This one gives you back a csv file of the results
-	return ""
-}
-
 func GetDB() *sql.DB {
 	fmt.Println("[database] Asked for MySQL connection")
 	dbhost := "10.0.0.2:3306"
