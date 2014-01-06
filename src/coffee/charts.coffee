@@ -97,6 +97,7 @@ define [
       {key: chartAxes.x, pattern: DataCon.patterns[chartAxes.x]}
       {key: chartAxes.y, pattern: DataCon.patterns[chartAxes.y]}
     )   
+    console.log chartData
     if not DataCon.chart
       $("#chart").html('');
       if qs
@@ -195,8 +196,8 @@ define [
       $('#FillInDataSet').html data.Title
       $("#wikidata").html data.Notes
     
-    $.getJSON "/api/getdata/#{guid}", (data) ->
-      #console.log(data);
+    $.getJSON "/api/getreduceddata/#{guid}/10/100", (data) ->
+      console.log(data);
       #so data is an array of shit.
       DataCon.dataset = data
       DataCon.keys = []
@@ -206,7 +207,10 @@ define [
           do (key) ->
             DataCon.keys.push key
             # Frontend Pattern Recognition
-            DataCon.patterns[key] = PGPatternMatcher.getPattern data[0][key]
+            DataCon.patterns[key] = {
+              valuePattern: PGPatternMatcher.getPattern data[0][key]
+              keyPattern: PGPatternMatcher.getKeyPattern data[0][key]
+            }
 
         $.ajax(
           async: false
@@ -218,9 +222,9 @@ define [
               do (col) ->
                 switch col.Sqltype
                   when "int", "bigint"
-                    DataCon.patterns[col.Name] = 'intNumber'
+                    DataCon.patterns[col.Name].valuePattern = 'intNumber'
                   when "float"
-                    DataCon.patterns[col.Name] = 'floatNumber'
+                    DataCon.patterns[col.Name].valuePattern = 'floatNumber'
                   else
                     #leave pattern as it was recognised by frontend
             go2Chart 'line'

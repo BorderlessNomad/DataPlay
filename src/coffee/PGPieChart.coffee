@@ -85,7 +85,7 @@ define ['app/PGChart'], (PGChart) ->
         .attr('text-anchor', 'middle')
         .text(
           (d) => 
-            switch @patterns[@axes.x]
+            switch @patterns[@axes.x].valuePattern
               when 'date' then d.data[0].getFullYear()
               when 'label', 'text' then d.data[0].substring(0, 20)
               else d.data[0]

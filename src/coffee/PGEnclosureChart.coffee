@@ -53,6 +53,7 @@ define ['app/PGChart'], (PGChart) ->
         .attr("cy", (d) -> d.y)
         .attr("r", (d) -> d.r)
         .style('fill', (d) => if d[@value]<0 then '#884444' else '#448844')
+        .attr('title', 'wtf!!')
 
       circles.exit()
         .transition()
@@ -72,7 +73,7 @@ define ['app/PGChart'], (PGChart) ->
         .attr("class",  (d) -> if d.values then "parent" else "child")
         .attr("x",  (d) -> d.x)
         .attr("y",  (d) -> d.y)
-        .text((d) -> d.key)
+        .text((d) -> d.key if d.r>50)
         .style("opacity",  (d) -> if d.r>2 then 1 else 0.2)
 
       labels.exit()

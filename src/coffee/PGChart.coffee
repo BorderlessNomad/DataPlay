@@ -40,7 +40,7 @@
         @currDataset = @dataset
 
     setScale: (axis, orient, ticks) ->
-      pattern = @patterns[@axes[axis]]
+      pattern = @patterns[@axes[axis]].valuePattern
        # Get axes depending on axes pattern
       @scale[axis] = switch pattern
         when 'date' then d3.time.scale()
@@ -71,52 +71,6 @@
     setScales: ->
       @setScale 'x', 'bottom', 5
       @setScale 'y', 'left', 8
-      # patternX = @patterns[@axes.x]#Common.getPattern @currDataset[0][0]
-       # Get axes depending on axes pattern
-      # @scale.x = switch patternX
-      #   when 'date' then d3.time.scale()
-      #   when 'label'
-      #     m = []
-      #     m.push d[0] for d in @currDataset
-      #     @scale.x = d3.scale.ordinal()
-      #       .domain(m)
-      #       .rangeBands([0.01*@width, 0.98*@width])
-      #   else d3.scale.linear()
-
-      # @scale.x.domain(d3.extent(@currDataset, (d) -> d[0]))
-      #   .range([0.01*@width, 0.98*@width])
-
-      # patternY = @patterns[@axes.y]#Common.getPattern @currDataset[0][1]
-      # @scale.y = switch patternY
-      #   when 'date' then d3.time.scale()
-      #   else d3.scale.linear()
-
-      # @scale.y.domain([
-      #         d3.min(@currDataset, (d) -> d[1])
-      #         d3.max(@currDataset, (d) -> d[1])
-      #       ])
-      #       .range([0.98*@height, 0.01*@height])
-
-      # @axis.x = d3.svg.axis()
-      #           .scale(@scale.x)
-      #           .orient("bottom")
-      #           .ticks(5)
-
-      # @axis.x.tickFormat (d) =>
-      #   switch patternX
-      #     when 'date' then d.getFullYear()
-      #     when 'percent' then "#{d}%"
-      #     else d
-
-      # @axis.y = d3.svg.axis()
-      #           .scale(@scale.y)
-      #           .orient("left")
-
-      # @axis.y.tickFormat (d) =>
-      #   switch patternY
-      #     when 'date' then d.getFullYear()
-      #     when 'percent' then "#{d}%"
-      #     else d
 
     # --------------------- Chart creating Functions ------------------------ #
     drawChart: ->
