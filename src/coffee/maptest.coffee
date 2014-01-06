@@ -53,7 +53,7 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGLMap','app/PGMap
             delete entry[srcKey]
 
   getDataSource = (guid) ->
-    $.getJSON "/api/getdata/#{guid}", (dataset) ->
+    $.getJSON "/api/getreduceddata/#{guid}/20/100", (dataset) ->
       if dataset.length
         patterns = {}
 

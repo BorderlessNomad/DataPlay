@@ -56,21 +56,23 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
         when 'label', 'date', 'postCode', 'creditCard', 'currency' then true
         when 'intNumber' then switch xKeyPattern
           # TODO: insert key patterns here ... TODO
-          when 'identifier', 'date' then true
+          when 'date' then true
+          #when 'identifier', 'date' then true
           else false
         when 'floatNumber' then switch xKeyPattern
-          when 'coefficient', 'mapLatitude', 'mapLongitude' then true
+          when 'coefficient' then true
           else false
         else false
       # console.log useGroup
-      useGroup = true # TODO: Crap this when using patterns above ...
+      #useGroup = true # TODO: Crap this when using patterns above ...
 
       if useGroup
         # TODO: mark here if there's already a count, it has no sense to do more than once ...
-        # useCount = .....
-        group = x: xKey, y: yKey, type: 'count', dimension: @dimensions[i], group: null 
-        group.group = @dimensions[i].group().reduceCount((d) -> d[yKey]) 
-        @groups.push group
+        noCount = true for group in @groups when group.x is xKey
+        if not noCount
+          group = x: xKey, y: yKey, type: 'count', dimension: @dimensions[i], group: null 
+          group.group = @dimensions[i].group().reduceCount((d) -> d[yKey]) 
+          @groups.push group
 
         useSum = switch yPattern
           # TODO: discard more patterns here ....
@@ -86,7 +88,7 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
           group2.group = @dimensions[i].group().reduceSum((d) -> d[yKey]) 
           @groups.push group2
 
-    drawLineChart: (entry, fixedId, xScale) ->
+    drawLineChart: (entry, fixedId, xScale, ordinals) ->
       chart = dc.lineChart "##{fixedId}"
       chart.width(@width)
         .height(@height)
@@ -94,6 +96,8 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
         .dimension(entry.dimension)
         .group(entry.group)
         .transitionDuration(500)
+        .colors(d3.scale.category20())
+        .colorAccessor((d) -> parseInt(d.value)%20)
         .elasticY(true)
         .x(xScale)           
         .xAxis()
@@ -102,9 +106,13 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
           (d) => 
             switch @data.patterns[entry.x].valuePattern
               when 'date' then d.getFullYear()
-              when 'label', 'text' then d.substring(0, 20)
+              when 'label', 'text' then "#{d}".substring(0, 20)
               else d
         )
+        if ordinals
+          chart.xUnits(dc.units.ordinal)
+          l = ordinals.length
+          chart.xAxis().tickValues([ordinals[0], ordinals[Math.floor(l/2)], ordinals[l-1]])
         # TODO: Everything should deliver a chart, thrash the workaround below when well-tested
         # if isNaN chart.yAxisMin()
         #   $(@container).find("##{entry.type}-#{entry.x}-#{entry.y}").remove()
@@ -112,7 +120,7 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
         #   chart.yAxis().ticks(3)
       chart
 
-    drawBarsChart: (entry, fixedId, xScale) ->
+    drawBarsChart: (entry, fixedId, xScale, ordinals) ->
       chart = dc.barChart "##{fixedId}"
       chart.width(@width)
         .height(@height)
@@ -122,17 +130,23 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
         .transitionDuration(500)
         .centerBar(true)  
         .gap(2)
+        .colors(d3.scale.category20())
+        .colorAccessor((d) -> parseInt(d.data.value)%20)
         .elasticY(true)
-        .x(xScale)           
+        .x(xScale)   
         .xAxis()
-        #.ticks(3)
+        .ticks(3)
         .tickFormat(
           (d) => 
             switch @data.patterns[entry.x].valuePattern
               when 'date' then d.getFullYear()
-              when 'label', 'text' then d.substring(0, 20)
+              when 'label', 'text' then "#{d}".substring(0, 20)
               else d
         )
+      if ordinals
+        chart.xUnits(dc.units.ordinal)
+        l = ordinals.length
+        chart.xAxis().tickValues([ordinals[0], ordinals[Math.floor(l/2)], ordinals[l-1]])
       chart
 
     drawRowsChart: (entry, fixedId) ->
@@ -149,12 +163,21 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
           (d) => 
             switch @data.patterns[entry.x].valuePattern
               when 'date' then d.key.getFullYear()
-              when 'label', 'text' then d.key.substring(0, 20)
+              when 'label', 'text' then "#{d.key}".substring(0, 20)
               else d.key
         )
         .labelOffsetY(@height/(2*entry.group.size()))
         .title((d) -> d.value)
         .elasticX(true)
+        .xAxis()
+        .ticks(2)
+        .tickFormat(
+          (d) => 
+            switch @data.patterns[entry.y].valuePattern
+              when 'date' then d.getFullYear()
+              when 'label', 'text' then "#{d}".substring(0, 20)
+              else d
+        )
       chart
 
     drawPieChart: (entry, fixedId) ->
@@ -171,7 +194,7 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
           (d) => 
             switch @data.patterns[entry.x].valuePattern
               when 'date' then d.data.key.getFullYear()
-              when 'label', 'text' then d.data.key.substring(0, 20)
+              when 'label', 'text' then "#{d.data.key}".substring(0, 20)
               else d.data.key
         )
         .minAngleForLabel(0.2)    
@@ -200,7 +223,7 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
           (d) => 
             switch @data.patterns[entry.x].valuePattern
               when 'date' then d.key.getFullYear()
-              when 'label', 'text' then d.key.substring(0, 20)
+              when 'label', 'text' then "#{d.key}".substring(0, 20)
               else d.key
         )
         .minRadiusWithLabel(5) 
@@ -222,11 +245,9 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
             when 'label'
               m = []
               m.push d.key for d in entry.group.all() when m.indexOf(d) < 0
-              #TODO@ this scale does not work well ... see weather UK ...
               xScale = d3.scale.ordinal()
                 .domain(m)
                 .rangeBands([0, @width])
-
             when 'date'
               xScale = d3.time.scale()
                 #.domain(d3.extent(entry.group.all(), (d) -> PGPatternMatcher.parse(d.key, 'date')))
@@ -252,11 +273,11 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
                 lastCharts.push(dcChart.id)
           chart = switch chartId
             when 'rows' then @drawRowsChart entry, fixedId
-            when 'bars' then @drawBarsChart entry, fixedId, xScale
+            when 'bars' then @drawBarsChart entry, fixedId, xScale, m
             when 'pie' then @drawPieChart entry, fixedId
             when 'bubbles' then @drawBubblesChart entry, fixedId, xScale
-            when 'line' then @drawLineChart entry, fixedId, xScale
-            else @drawLineChart entry, fixedId, xScale
+            when 'line' then @drawLineChart entry, fixedId, xScale, m
+            else @drawLineChart entry, fixedId, xScale, m
 
           # TESTING: How to get filtered data .... for maps or 3rd party elements
           chart.on "filtered", (chart, filter) =>
