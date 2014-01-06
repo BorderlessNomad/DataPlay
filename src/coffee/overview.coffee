@@ -2,7 +2,7 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOverviewCharts'], ($, PGPattern
   'use strict'
   guid = window.location.href.split('/')[window.location.href.split('/').length - 1]
   $ () ->
-    $.getJSON "/api/getreduceddata/#{guid}/15/100", (data) ->
+    $.getJSON "/api/getreduceddata/#{guid}/5/100", (data) ->
       if data.length
         patterns = {}
         for key of data[0]
