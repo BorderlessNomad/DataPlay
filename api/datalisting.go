@@ -350,11 +350,8 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 			http.Error(res, "Invalid Persentage", http.StatusBadRequest)
 			return // Halt!
 		}
-		fmt.Println(Divider)
 		Temp := (float64(Divider) / 100) * float64(DataLength)
-		fmt.Println(DataLength, Temp, int(Temp))
 		DataLength = DataLength / int(Temp)
-		fmt.Println(DataLength)
 		if prams["min"] != "" {
 			MinSpend, e := strconv.ParseInt(prams["min"], 10, 64)
 			if e != nil {
