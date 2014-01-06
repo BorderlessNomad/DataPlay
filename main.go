@@ -114,6 +114,7 @@ func main() {
 	m.Get("/api/getdata/:id/:x/:startx/:endx", api.DumpTableRange)
 	m.Get("/api/getcsvdata/:id/:x/:y", api.GetCSV)
 	m.Get("/api/getreduceddata/:id", api.DumpReducedTable)
+	m.Get("/api/getreduceddata/:id/:persent", api.DumpReducedTable)
 	m.Post("/api/setbookmark/", api.SetBookmark)
 	m.Get("/api/getbookmark/:id", api.GetBookmark)
 	m.Post("/api/setdefaults/:id", api.SetDefaults)
