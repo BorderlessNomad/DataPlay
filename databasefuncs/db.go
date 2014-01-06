@@ -36,7 +36,7 @@ func GetQueryMonstrosity(*sql.Rows) string {
 
 func GetDB() *sql.DB {
 	fmt.Println("[database] Asked for MySQL connection")
-	dbhost := "localhost:3306"
+	dbhost := "10.0.0.2:3306"
 	if os.Getenv("database") != "" {
 		dbhost = os.Getenv("database")
 	}

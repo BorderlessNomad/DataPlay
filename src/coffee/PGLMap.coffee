@@ -7,6 +7,7 @@ define ['jquery', 'underscore', 'leaflet'].concat(headlessDeps), ($, _, L) ->
     location: null
     controls: []
     markers: []
+    clusters: []
     featuresPopupTemplate: _.template $('#features-popup-template').html(), null, variable: 'data'
     externalTrigger: false
     baseLayers: []
@@ -87,15 +88,21 @@ define ['jquery', 'underscore', 'leaflet'].concat(headlessDeps), ($, _, L) ->
       if items and items.length
         @map.removeLayer(marker) for marker in @markers
         @markers = []
+        @clusters = []
         bounds = L.latLngBounds @location, @location
         @addItem item, bounds for item in items
+        cluster?.addTo @map for cluster in @clusters
         @map.fitBounds bounds if fitToBounds
 
     addItem: (item, bounds) ->
       markerLatlng = L.latLng item.lat, item.lon
-      marker = L.marker(markerLatlng)
-        .addTo(@map)
+      marker = L.marker(markerLatlng)       
         .bindPopup(@featuresPopupTemplate item)
         .on("click", (evt) -> marker.openPopup())
+      if item.cluster
+        @clusters[item.cluster] = new L.MarkerClusterGroup()unless @clusters[item.cluster]
+        @clusters[item.cluster].addLayer marker
+      else
+        marker.addTo @map      
       @markers.push marker
       bounds.extend markerLatlng

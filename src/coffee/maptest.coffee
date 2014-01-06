@@ -67,6 +67,7 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGLMap','app/PGMap
               when 'kMeans'
                 #console.log "Finished in: #{e.data.result.currentIteration} iterations"
                 console.log e.data.result.centroids, e.data.result.clusters
+                data.means = centroids: e.data.result.centroids, clusters: e.data.result.clusters
                 generateCharts()
                 worker.terminate()
               when 'patterns'
@@ -82,11 +83,21 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGLMap','app/PGMap
           false
         )
 
+  #TODO: it should be in the web worker ....
+  insertClusterData = (data) ->
+    ds = data.dataset
+    dmc = data.means.clusters
+    (ds[j].cluster = i for j in dmc[i]) for i in [0..dmc.length-1]
+    data
+
   generateCharts = ->
     chartWidth = $('#mapContainer').width()/4-2;
     chartHeight = $('#mapContainer').height()/6-2;
+    # Process data clusters if any ....
+    fixedData = if data.means then insertClusterData(data) else data
+
     # Generate Map charts and bind dc.js filtering events      
-    charts = new PGMapCharts guid, data, '#charts', chartWidth, chartHeight
+    charts = new PGMapCharts guid, fixedData, '#charts', chartWidth, chartHeight
     # Event bindings to maps
     $(charts).bind 'update', (evt, data) -> updateMap data
     $(charts).bind 'updateOnlyItems', (evt, data) -> updateMapItems data
@@ -103,7 +114,7 @@ define ['jquery', 'app/PGPatternMatcher', 'app/PGOLMap', 'app/PGLMap','app/PGMap
     #map = new PGOLMap '#mapContainer'
 
     # Event bindings to charts
-    $(map).bind 'update', (evt, data) -> updateCharts data if charts
+    #$(map).bind 'update', (evt, data) -> updateCharts data if charts
     $(map).bind 'search', (evt, data) -> resetCharts data
     # Get data for the guid and create charts
     getDataSource guid
