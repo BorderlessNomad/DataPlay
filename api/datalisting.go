@@ -340,6 +340,7 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 
 	var DataLength int
 	database.QueryRow("SELECT COUNT(*) FROM " + tablename).Scan(&DataLength)
+	RealDL := DataLength
 	if prams["persent"] == "" {
 		DataLength = DataLength / 25
 	} else {
@@ -354,6 +355,16 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 		fmt.Println(DataLength, Temp, int(Temp))
 		DataLength = DataLength / int(Temp)
 		fmt.Println(DataLength)
+		if prams["min"] != "" {
+			MinSpend, e := strconv.ParseInt(prams["min"], 10, 64)
+			if e != nil {
+				http.Error(res, "Invalid Min", http.StatusBadRequest)
+				return // Halt!
+			}
+			if int(RealDL/DataLength) < int(MinSpend) {
+				DataLength = RealDL / int(MinSpend)
+			}
+		}
 	}
 	if DataLength < 1 {
 		DataLength = 1
