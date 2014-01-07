@@ -48,10 +48,12 @@
         else d3.scale.linear()   
       switch pattern
         when 'label'
-          m = []
-          m.push d[0] for d in @currDataset
-          @scale[axis].domain(m)
-            .rangeBands([0.01*@width, 0.98*@width])
+          dmn = []
+          dmn.push d[0] for d in @currDataset when dmn.indexOf(d[0])<0
+          rng = [0.01*@width, 0.98*@width]
+          @scale[axis].domain(dmn)
+            .rangeBands(rng)          
+          @scale[axis].invert = (x) -> dmn[Math.round(dmn.length*(x-rng[0])/(rng[1]-rng[0]))]
         else 
           @scale[axis].domain(d3.extent(@currDataset, (d) -> d[if axis is 'x' then 0 else 1]))
             .range([
@@ -71,6 +73,14 @@
     setScales: ->
       @setScale 'x', 'bottom', 5
       @setScale 'y', 'left', 8
+
+    # getIvertedScale: (scale) ->
+    #   switch @patterns[@axes.x]
+    #     when 'label'
+    #       dmn = scale.domain()
+    #       rng = scale.range()
+    #       (x) -> dmn[Math.round(dmn.length*(x-rng[0])/(rng[1]-rng[0]))]
+    #     else scale.invert
 
     # --------------------- Chart creating Functions ------------------------ #
     drawChart: ->

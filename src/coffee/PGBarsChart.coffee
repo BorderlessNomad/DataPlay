@@ -57,13 +57,17 @@ define ['app/PGChart'], (PGChart) ->
 
     # --------------------- Update Functions ------------------------ 
     renderBars: ->
+      colors = d3.scale.category20c()
       bars = @bars.selectAll('rect.bar')
         .data(@currDataset)
 
       bars.enter()
         .append("rect")
         .attr("class", "bar")
+        .attr('fill', (d, i) => colors(i))  
         .on('click', (d) => @newPointDialog(d[0], d[1]))
+        .append('title')
+        .text((d) => "#{@axes.x}: #{d[0]}\n#{@axes.y}: #{d[1]}")
 
       bars.exit()
         .transition()

@@ -131,7 +131,7 @@ define [
 
       switch DataCon.currChartType
         when 'bars'
-          DataCon.chart = new PGBarsChart("#chart", null, chartData, chartAxes, DataCon.patterns, 30)
+          DataCon.chart = new PGBarsChart("#chart", null, chartData, chartAxes, DataCon.patterns, null)
         when 'area'
           DataCon.chart = new PGAreasChart("#chart", null, chartData, chartAxes, DataCon.patterns, null)
         when 'pie'
@@ -227,7 +227,7 @@ define [
                     DataCon.patterns[col.Name].valuePattern = 'floatNumber'
                   else
                     #leave pattern as it was recognised by frontend
-            go2Chart 'line'
+            go2Chart 'enclosure'
         )
 
     $(window).resize ->
