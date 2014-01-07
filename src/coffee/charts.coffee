@@ -227,7 +227,7 @@ define [
                     DataCon.patterns[col.Name].valuePattern = 'floatNumber'
                   else
                     #leave pattern as it was recognised by frontend
-            go2Chart 'enclosure'
+            go2Chart 'tree'
         )
 
     $(window).resize ->

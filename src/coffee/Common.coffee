@@ -11,7 +11,7 @@ define ['jquery', 'app/PGPatternMatcher'], ($, PGPatternMatcher) ->
     @formatDate: (input) -> "#{input.getFullYear()}-#{input.getMonth()+1}-#{input.getDate()}"
 
     @parseAxisData: (data, axis) ->
-      console.log data, axis
+      #console.log data, axis
       datapool = [];
       pattern = axis.pattern ? PGPatternMatcher.getPattern data[0][axis.key]
       for item in data

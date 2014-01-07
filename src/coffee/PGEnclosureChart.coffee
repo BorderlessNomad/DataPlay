@@ -37,8 +37,9 @@ define ['app/PGChart'], (PGChart) ->
         #.value((d) => d.size)
 
       nodes = pack.nodes(@currDataset)
+        .filter((d) -> d.depth<3)
 
-      console.log nodes
+      #console.log nodes
 
       circles = @enclosure.selectAll("circle")
         .data(nodes)
@@ -46,10 +47,11 @@ define ['app/PGChart'], (PGChart) ->
       circles.enter()
         .append("svg:circle")
         .on('click', (d) => 
-          console.log d
+          #console.log d
           @currDataset = d
           @renderEnclosure()
-          #@queryData [{key: }]
+          # This will be the structure if needed request to server-side
+          #@queryData [{key: ...., value: d.key}], (callback) -> ..... if d.key
         )
         .append('title')
 
