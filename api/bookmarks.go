@@ -44,12 +44,14 @@ func GetBookmark(res http.ResponseWriter, req *http.Request, prams martini.Param
 
 	if prams["id"] == "" {
 		http.Error(res, "You didnt give me a id to lookup", 404)
+		return ""
 	}
 	var input int64
 	var e error
 	input, e = strconv.ParseInt(prams["id"], 10, 32)
 	if e != nil {
 		http.Error(res, "Thats not a number.", 500)
+		return ""
 	}
 	rows := database.QueryRow("SELECT jsoninfo FROM `priv_shares` WHERE shareid = ?", input)
 	var output string

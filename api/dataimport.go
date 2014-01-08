@@ -19,6 +19,7 @@ func CheckImportStatus(res http.ResponseWriter, req *http.Request, prams martini
 	defer database.Close()
 	if prams["id"] == "" {
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
+		return ""
 	}
 
 	var count int
