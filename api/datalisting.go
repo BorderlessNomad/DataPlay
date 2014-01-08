@@ -144,7 +144,7 @@ func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) 
 	return string(b[:])
 }
 
-func ScanRow(values []interface{}, columns []string) map[string]interface{} {
+func scanrow(values []interface{}, columns []string) map[string]interface{} {
 	record := make(map[string]interface{})
 	for i, col := range values {
 		if col != nil {
@@ -214,7 +214,7 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 		if err != nil {
 			panic(err)
 		}
-		record := ScanRow(values, columns)
+		record := scanrow(values, columns)
 		array = append(array, record)
 	}
 	s, _ := json.Marshal(array)
@@ -290,7 +290,7 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 			return
 		}
 		if xvalue >= startx && xvalue <= endx {
-			record := ScanRow(values, columns)
+			record := scanrow(values, columns)
 			array = append(array, record)
 		}
 	}
@@ -368,7 +368,7 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 			panic(err)
 		}
 		if RowsScanned%DataLength == 0 {
-			record := ScanRow(values, columns)
+			record := scanrow(values, columns)
 			array = append(array, record)
 		}
 		RowsScanned++
@@ -443,7 +443,7 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		}
 
 		output = output + fmt.Sprintf("\"%s\",\"%s\",%s\n", values[xcol], values[xcol], values[ycol])
-		record := ScanRow(values, columns)
+		record := scanrow(values, columns)
 		array = append(array, record)
 	}
 	// s, _ := json.Marshal(array)
