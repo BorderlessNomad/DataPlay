@@ -96,20 +96,39 @@
 
       # Clip chart
       @chart.append("clipPath")
-         .attr('id', 'chart-area')
-         .append('rect')
-         .attr('x', 0)
-         .attr('y', 0)
-         .attr('width', @width)
-         .attr('height', @height)
+        .attr('id', 'chart-area')
+        .append('rect')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', @width)
+        .attr('height', @height)
 
       svg.call d3.behavior.zoom().scaleExtent([1,10]).on 'zoom', () => 
-          t = d3.event.translate
-          s = d3.event.scale
-          if @drag
-            #svg.attr('-webkit-transform', "translate(#{t})scale(#{s})")
-            svg.style('transform', "translate(#{t[0]}px,#{t[1]}px) scale(#{s})")
-            svg.style('-webkit-transform', "translate(#{t[0]}px,#{t[1]}px) scale(#{s})")
+        #t = d3.event.translate
+        s = d3.event.scale
+        console.log d3.event
+        #el = d3.event.sourceEvent.srcElement
+        el = document.getElementsByTagName('svg')[0]
+        @chart.scale = s
+        if @drag
+          #svg.attr('transform', "translate(#{t})scale(#{s})")
+          #svg.style('transform', "translate(#{t[0]}px,#{t[1]}px) scale(#{s})")
+          #svg.style('-webkit-transform', "translate(#{t[0]}px,#{t[1]}px) scale(#{s})")
+          @transformElement svg, el.clientLeft, el.clientTop, s
+
+      if @drag
+        svg.call d3.behavior.drag()
+          .origin((d) -> x: @clientLeft, y: @clientTop)
+          .on('drag', () => 
+            e = d3.event
+            if @drag
+              @transformElement svg, e.x, e.y, @chart.scale ? 1
+          )
+
+    transformElement: (el, x, y, s) ->
+      console.log el
+      el.style('transform', "translate(#{x}px,#{y}px) scale(#{s})")
+      el.style('-webkit-transform', "translate(#{x}px,#{y}px) scale(#{s})")
 
     drawAxes: ->
       # Draw x axis

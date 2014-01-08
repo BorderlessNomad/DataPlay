@@ -12,6 +12,7 @@ define [
   'app/PGEnclosureChart'
   'app/PGTreeChart'
   'app/PGTreemapChart'
+  'app/PGForceDirectedChart'
 ], (
   $
   _
@@ -26,6 +27,7 @@ define [
   PGEnclosureChart
   PGTreeChart
   PGTreemapChart
+  PGForceDirectedChart
 ) ->
   'use strict'
   DataCon = {}
@@ -68,6 +70,8 @@ define [
           DataCon.chart = new PGTreeChart("#chart", {top: 0, right: 0, bottom: 0, left: 0}, dataset, null, DataCon.patterns, null, valueSelector.val())
         when 'treemap'
           DataCon.chart = new PGTreemapChart("#chart", {top: 0, right: 0, bottom: 0, left: 0}, dataset, null, DataCon.patterns, null, valueSelector.val(), 1)
+        when 'forcedirected'
+          DataCon.chart = new PGForceDirectedChart("#chart", {top: 0, right: 0, bottom: 0, left: 0}, dataset, null, DataCon.patterns, null, valueSelector.val(), 1)
     
     if DataCon.autokeys and DataCon.autokeys.length
       selects = $('#selectors select')
@@ -111,7 +115,7 @@ define [
             size++
         if entries['chart']
           DataCon.currChartType = entries['chart']
-          if ['enclosure', 'tree', 'treemap'].indexOf(entries['chart'])>=0
+          if ['enclosure', 'tree', 'treemap', 'forcedirected'].indexOf(entries['chart'])>=0
             DataCon.autokeys = []
             DataCon.autokeys.push(entries["key#{i}"]) for i in [0..size-3]
             DataCon.autokeys.push(entries['value']);
@@ -140,7 +144,7 @@ define [
           dataset = [];
           dataset.push {name: d[0], count: d[1]} for d in chartData
           DataCon.chart = new PGBubblesChart("#chart", {top: 5, right: 0, bottom: 0, left: 0}, dataset, null, DataCon.patterns, null);
-        when 'enclosure', 'tree', 'treemap'
+        when 'enclosure', 'tree', 'treemap', 'forcedirected'
           go2HierarchyChart();
         else
           DataCon.chart = new PGLinesChart("#chart", null, chartData, chartAxes, DataCon.patterns, null);        
@@ -227,7 +231,7 @@ define [
                     DataCon.patterns[col.Name].valuePattern = 'floatNumber'
                   else
                     #leave pattern as it was recognised by frontend
-            go2Chart 'tree'
+            go2Chart 'forcedirected'
         )
 
     $(window).resize ->
