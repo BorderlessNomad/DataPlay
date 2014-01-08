@@ -89,6 +89,6 @@ define ['app/PGChart'], (PGChart) ->
         .duration(1000)
         .remove()
 
-    updateChart: (dataset, axes) ->
+    updateChart: (dataset, axes) =>
       super dataset, axes
       @renderTreemap()

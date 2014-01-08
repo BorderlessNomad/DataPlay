@@ -39,6 +39,6 @@ define ['jquery', 'app/PGLinesChart'], ($, PGLinesChart) ->
         .duration(1000)
         .attr("d", (d) => area(d))
 
-    updateChart: (dataset, axes) ->
+    updateChart: (dataset, axes) =>
       super dataset, axes
       @renderAreas()
