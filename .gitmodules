@@ -1,3 +1,0 @@
-[submodule "tools/CSV2Cassandra"]
-	path = tools/CSV2Cassandra
-	url = git@github.com:nehalmehta/CSV2Cassandra.git
