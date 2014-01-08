@@ -67,7 +67,7 @@ define [
         when 'tree'
           DataCon.chart = new PGTreeChart("#chart", {top: 0, right: 0, bottom: 0, left: 0}, dataset, null, DataCon.patterns, null, valueSelector.val())
         when 'treemap'
-          DataCon.chart = new PGTreemapChart("#chart", {top: 0, right: 0, bottom: 0, left: 0}, dataset, null, DataCon.patterns, null, valueSelector.val())
+          DataCon.chart = new PGTreemapChart("#chart", {top: 0, right: 0, bottom: 0, left: 0}, dataset, null, DataCon.patterns, null, valueSelector.val(), 1)
     
     if DataCon.autokeys and DataCon.autokeys.length
       selects = $('#selectors select')
@@ -97,7 +97,7 @@ define [
       {key: chartAxes.x, pattern: DataCon.patterns[chartAxes.x]}
       {key: chartAxes.y, pattern: DataCon.patterns[chartAxes.y]}
     )   
-    console.log chartData
+    #console.log chartData
     if not DataCon.chart
       $("#chart").html('');
       if qs

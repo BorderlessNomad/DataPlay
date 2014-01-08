@@ -5,8 +5,9 @@ define ['app/PGChart'], (PGChart) ->
     diagonal: null
     i: 0
     value: null
+    initialDepth: 1
 
-    constructor: (container, margin, dataset, axes, patterns, limit, value) ->
+    constructor: (container, margin, dataset, axes, patterns, limit, value, initialDepth) ->
       @value = value
       super container, margin, dataset, axes, patterns, limit
       
@@ -25,24 +26,47 @@ define ['app/PGChart'], (PGChart) ->
       @createTree()
       @renderTree()
 
+    expandNode: (node, depth) ->
+      node.expand = true
+      if --depth
+        @expandNode(child, depth) for child in node.values? 
+      else
+        for child in node.values?
+          do (child) ->
+            child._children = child.values
+            child.values = null
+
     # --------------------- Update Functions ------------------------ 
     updateAxes: ->
 
     renderTree: ->
       @tree = d3.layout.tree()
         .children((d) -> d.values)
-        .size([@height, @width])
+        .size([0.98*@height, 0.98*@width])
 
       @diagonal = d3.svg.diagonal()
         .projection((d) -> [d.y, d.x])
 
-      @currDataset.x0 = @height/2
-      @currDataset.y0 = 0
-      @render @currDataset, 1
+      @currDataset.x0 = 0.49*@height
+      @currDataset.y0 = 0.01*@width
+      @expandNode @currDataset, @initialDepth if @initialDepth
+      @render @currDataset
       
-    render: (source, depth) ->
+    render: (source) ->
       nodes = @tree.nodes(@currDataset)
-        .filter((d) -> d.depth<=depth and )
+        .filter((d) -> 
+          #console.log d
+          aux = d.parent
+          aux = aux.parent while aux?.expand
+          if not aux 
+            if not d.expand
+              d._children or= d.values
+              d.values = null
+              console.log d.depth, d
+            else
+              d.forceEnter = not d.forceEnter
+          not aux
+        )
         .reverse()
 
       nodes.forEach (d) -> d.y = d.depth * 180
@@ -57,18 +81,18 @@ define ['app/PGChart'], (PGChart) ->
         .attr("class", "node")
         .attr("transform", (d) -> "translate(#{source.y0},#{source.x0})")
         .on("click", (d) =>
-            @toggle(d)
-            @render(d, d.depth+1)
+            @toggle(d)           
+            @render(d)
         )
       nodeEnter.append("svg:circle")
         .attr("r", 1e-6)
         .style("fill", (d) -> if d._children then "lightsteelblue" else "#ffffff")
       nodeEnter.append("svg:text")
         #.attr("x", (d) -> if d.values then -10 else 10)
-        .attr("x", (d) -> if d.values then -10 else 10)
+        .attr("x", (d) -> if d.values or d._children then 10 else -10)
         .attr("dy", ".35em")
         #.attr("text-anchor", (d) -> if d.values then "end" else "start")
-        .attr("text-anchor", (d) -> if d.depth then "end" else "start")
+        .attr("text-anchor", (d) -> if d.depth then "start" else "end")
         #.text((d) => if d.values then d.key else d[@value])
         .text((d) => d.key ? d[@value])
         #.text((d) => if d.values then d.key else d.size)
@@ -132,6 +156,8 @@ define ['app/PGChart'], (PGChart) ->
       else
         d.values = d._children
         d._children = null
+      d.expand = not d.expand
+      console.log d
 
     updateChart: (dataset, axes) ->
       super dataset, axes
