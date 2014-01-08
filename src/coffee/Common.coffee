@@ -19,12 +19,19 @@ define ['jquery', 'app/PGPatternMatcher'], ($, PGPatternMatcher) ->
           datapool.push(PGPatternMatcher.parse item[axis.key], pattern.valuePattern)
       datapool
 
-    @parseChartData: (data, x, y) ->
+    @parseChartData: (data, x, y, guid, chartType, callback) ->      
+      if ['bars', 'pie', 'bubbles'].indexOf(chartType) >= 0
+        $.get "/api/getdatagrouped/#{guid}/#{x.key}/#{y.key}", (dataset) =>
+          @parseDataResults dataset, x, y, callback
+      else
+        @parseDataResults data, x, y, callback
+
+    @parseDataResults: (data, x, y, callback) ->
+      datapool = []
       xData = @parseAxisData(data, x)
       yData = @parseAxisData(data, y)
-      datapool = []
       datapool.push [xData[i] , yData[i]] for i in [0..data.length-1]
-      datapool
+      callback datapool, {x: x.key, y: y.key}
 
     @quicksort: (dataset) ->
       if dataset.length <= 1

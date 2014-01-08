@@ -95,13 +95,7 @@ define [
       populateKeys()
 
   updateChart = ->
-    chartAxes = x: $("#pickxaxis").val(), y: $("#pickyaxis").val()
-    chartData = Common.parseChartData(
-      DataCon.dataset
-      {key: chartAxes.x, pattern: DataCon.patterns[chartAxes.x]}
-      {key: chartAxes.y, pattern: DataCon.patterns[chartAxes.y]}
-    )   
-    #console.log chartData
+    chartAxes = x: $("#pickxaxis").val(), y: $("#pickyaxis").val()    
     if not DataCon.chart
       $("#chart").html('');
       if qs
@@ -126,35 +120,43 @@ define [
             if entries['y']
               $("#pickyaxis").val entries['y']
               chartAxes.y = entries['y']
-            chartData = Common.parseChartData(
-              DataCon.dataset
-              {key: chartAxes.x, pattern: DataCon.patterns[chartAxes.x]}
-              {key: chartAxes.y, pattern: DataCon.patterns[chartAxes.y]}
-            )
+            parseChartData chartAxes, createCharts
         qs = null
-
-      switch DataCon.currChartType
-        when 'bars'
-          DataCon.chart = new PGBarsChart("#chart", null, chartData, chartAxes, DataCon.patterns, null)
-        when 'area'
-          DataCon.chart = new PGAreasChart("#chart", null, chartData, chartAxes, DataCon.patterns, null)
-        when 'pie'
-          DataCon.chart = new PGPieChart("#chart", null, chartData, chartAxes, DataCon.patterns, null)
-        when 'bubbles'
-          dataset = [];
-          dataset.push {name: d[0], count: d[1]} for d in chartData
-          DataCon.chart = new PGBubblesChart("#chart", {top: 5, right: 0, bottom: 0, left: 0}, dataset, null, DataCon.patterns, null);
-        when 'enclosure', 'tree', 'treemap', 'forcedirected'
-          go2HierarchyChart();
-        else
-          DataCon.chart = new PGLinesChart("#chart", null, chartData, chartAxes, DataCon.patterns, null);        
+      else
+        parseChartData chartAxes, createCharts
+      #console.log chartData
     else
-      switch DataCon.currChartType
-        when 'enclosure'
-          #Special treatment????
-        else 
-          DataCon.chart.updateChart(chartData, chartAxes);
+      # FIXME: charts losing context
+      parseChartData chartAxes, DataCon.chart.updateChart
+
     $('#pickxaxis, #pickyaxis').change handleAxesChange
+
+  parseChartData = (chartAxes, callback) ->
+    chartData = Common.parseChartData(
+      DataCon.dataset
+      {key: chartAxes.x, pattern: DataCon.patterns[chartAxes.x]}
+      {key: chartAxes.y, pattern: DataCon.patterns[chartAxes.y]}
+      guid
+      DataCon.currChartType
+      callback
+    ) 
+
+  createCharts = (chartData, chartAxes) ->      
+    switch DataCon.currChartType
+      when 'bars'
+        DataCon.chart = new PGBarsChart("#chart", null, chartData, chartAxes, DataCon.patterns, null)
+      when 'area'
+        DataCon.chart = new PGAreasChart("#chart", null, chartData, chartAxes, DataCon.patterns, null)
+      when 'pie'
+        DataCon.chart = new PGPieChart("#chart", null, chartData, chartAxes, DataCon.patterns, null)
+      when 'bubbles'
+        dataset = [];
+        dataset.push {name: d[0], count: d[1]} for d in chartData
+        DataCon.chart = new PGBubblesChart("#chart", {top: 5, right: 0, bottom: 0, left: 0}, dataset, null, DataCon.patterns, null);
+      when 'enclosure', 'tree', 'treemap', 'forcedirected'
+        go2HierarchyChart();
+      else
+        DataCon.chart = new PGLinesChart("#chart", null, chartData, chartAxes, DataCon.patterns, null);        
 
   populateKeys = ->
     $("#pickxaxis").empty()
@@ -231,7 +233,7 @@ define [
                     DataCon.patterns[col.Name].valuePattern = 'floatNumber'
                   else
                     #leave pattern as it was recognised by frontend
-            go2Chart 'forcedirected'
+            go2Chart 'lines'
         )
 
     $(window).resize ->
