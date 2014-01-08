@@ -91,8 +91,12 @@ func main() {
 		checkAuth(res, req, monager)
 		renderTemplate("public/overlay.html", nil, res)
 	})
-	m.Get("/overview/:id", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+	m.Get("/overview/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params, monager *session.SessionManager) {
 		checkAuth(res, req, monager)
+		session := monager.GetSession(res, req)
+		if session.Value != nil {
+			api.TrackVisited(prams["id"], session.Value.(string))
+		}
 		renderTemplate("public/overview.html", nil, res)
 	})
 	m.Get("/search", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
