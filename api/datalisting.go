@@ -299,6 +299,75 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 	io.WriteString(res, "\n")
 }
 
+func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.Params) {
+	// This call with use the GROUP BY function in mysql to query and get the sum of things
+	// This is very useful for things like picharts
+	// /api/getdatagrouped/:id/:x/:y
+
+	if prams["id"] == "" || prams["x"] == "" || prams["y"] == "" {
+		http.Error(res, "You did not provide enough infomation to make this kind of request :id/:x/:y", http.StatusBadRequest)
+		return
+	}
+
+	database := msql.GetDB()
+	defer database.Close()
+
+	var tablename string
+	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["id"]).Scan(&tablename)
+	if tablename == "" {
+		http.Error(res, "Could not find that table", http.StatusNotFound)
+		return
+	}
+	cls := FetchTableCols(prams["id"], database)
+	// Now we need to check that the rows that the client is asking for, are in the table.
+	Valid := false
+	for _, clm := range cls {
+		if clm.Name == prams["x"] {
+			Valid = true
+		}
+	}
+	if !Valid {
+		http.Error(res, "Col X is invalid.", http.StatusBadRequest)
+		return
+	}
+	Valid = false
+	for _, clm := range cls {
+		if clm.Name == prams["y"] {
+			Valid = true
+		}
+	}
+	if !Valid {
+		http.Error(res, "Col Y is invalid.", http.StatusBadRequest)
+		return
+	}
+	rows, e1 := database.Query(fmt.Sprintf("SELECT `%s`,SUM(%s) AS %s FROM `%s` GROUP BY %s", prams["x"], prams["y"], prams["y"], tablename, prams["x"]))
+	columns, e2 := rows.Columns()
+	if e1 != nil || e2 != nil {
+		http.Error(res, "Could not query the data from the datastore", http.StatusInternalServerError)
+		return
+	}
+
+	scanArgs := make([]interface{}, len(columns))
+	values := make([]interface{}, len(columns))
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+
+	array := make([]map[string]interface{}, 0)
+	for rows.Next() {
+		err := rows.Scan(scanArgs...)
+		if err != nil {
+			panic(err)
+		}
+
+		record := scanrow(values, columns)
+		array = append(array, record)
+	}
+	s, _ := json.Marshal(array)
+	res.Write(s)
+	io.WriteString(res, "\n")
+}
+
 func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 	// This function will empty a whole table out into JSON
 	// Due to what seems to be a golang bug, everything is outputted as a string.
