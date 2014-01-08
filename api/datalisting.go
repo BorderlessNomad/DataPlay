@@ -385,13 +385,12 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 		http.Error(res, "Could not find that table", http.StatusNotFound)
 		return
 	}
-	rows, err := database.Query("SELECT * FROM " + tablename)
-	if err != nil {
-		panic(err)
-	}
-	columns, err := rows.Columns()
-	if err != nil {
-		panic(err)
+	rows, e1 := database.Query("SELECT * FROM " + tablename)
+	columns, e2 := rows.Columns()
+
+	if e1 != nil || e2 != nil {
+		http.Error(res, "Could not read that table", http.StatusInternalServerError)
+		return
 	}
 
 	var DataLength int
@@ -432,7 +431,7 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 
 	array := make([]map[string]interface{}, 0)
 	for rows.Next() {
-		err = rows.Scan(scanArgs...)
+		err := rows.Scan(scanArgs...)
 		if err != nil {
 			panic(err)
 		}
@@ -469,14 +468,12 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		http.Error(res, "Could not find that table", http.StatusNotFound)
 		return
 	}
-	rows, err := database.Query("SELECT * FROM " + tablename)
-	if err != nil {
-		panic(err)
-	}
-	columns, err := rows.Columns()
+	rows, e1 := database.Query("SELECT * FROM " + tablename)
+	columns, e2 := rows.Columns()
 
-	if err != nil {
-		panic(err)
+	if e1 != nil || e2 != nil {
+		http.Error(res, "Could not read that table", http.StatusInternalServerError)
+		return
 	}
 	// We need to find the Columns to relay back.
 
@@ -506,7 +503,7 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 
 	array := make([]map[string]interface{}, 0)
 	for rows.Next() {
-		err = rows.Scan(scanArgs...)
+		err := rows.Scan(scanArgs...)
 		if err != nil {
 			panic(err)
 		}
