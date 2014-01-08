@@ -47,6 +47,7 @@ func HasTableGotLocationData(datasetGUID string, database *sql.DB) string {
 
 	for _, col1 := range cols {
 		if strings.ToLower(col1.Name) == "lat" {
+			// This ensures there is both a lat AND long
 			for _, col2 := range cols {
 				if strings.ToLower(col2.Name) == "lon" || strings.ToLower(col2.Name) == "long" {
 					return "true"

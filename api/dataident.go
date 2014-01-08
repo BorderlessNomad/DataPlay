@@ -62,6 +62,9 @@ func FetchTableCols(guid string, database *sql.DB) (output []ColType) {
 
 func BuildREArrayForCreateTable(input string) []string {
 	re := ".*?(`.*?`).*?((?:[a-z][a-z]+))" // http://i.imgur.com/dkbyB.jpg
+	// This regex looks for things that look like
+	// `colname` INT,
+
 	var sqlRE = regexp.MustCompile(re)
 	results := sqlRE.FindStringSubmatch(input)
 	return results
@@ -70,11 +73,15 @@ func BuildREArrayForCreateTable(input string) []string {
 func ParseCreateTableSQL(input string) []ColType {
 	returnerr := make([]ColType, 0) // Setup the array that I will be append()ing to.
 	SQLLines := strings.Split(input, "\n")
+	// The mysql server gives you the SQL create code formatted. So I exploit this by
+	// using it to split the system up by \n
 
 	for c, line := range SQLLines {
 		if c != 0 && strings.HasPrefix(strings.TrimSpace(line), "`") { // Clipping off the create part since its useless for me.
 			results := BuildREArrayForCreateTable(line)
 			if len(results) == 3 {
+				// We expect there to be 3 matches from the Regex, if not then we probs don't
+				// have what we want
 				DeQuoted := strings.Replace(results[1], "`", "", -1)
 				NewCol := ColType{
 					Name:    DeQuoted,

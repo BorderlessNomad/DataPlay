@@ -145,6 +145,10 @@ func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) 
 }
 
 func scanrow(values []interface{}, columns []string) map[string]interface{} {
+	// This function casts everything into what it /Should/ Be
+	// But due to a obscureity in mysql / go / database\sql
+	// everything wants to be a []byte. So I just cast them to that
+	// then make them strings.
 	record := make(map[string]interface{})
 	for i, col := range values {
 		if col != nil {
@@ -210,7 +214,7 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 
 	array := make([]map[string]interface{}, 0)
 	for rows.Next() {
-		err = rows.Scan(scanArgs...)
+		err = rows.Scan(scanArgs...) // This may look like a typo, But it is infact not. This is what you use for interfaces.
 		if err != nil {
 			panic(err)
 		}
@@ -283,10 +287,10 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 			panic(err)
 		}
 
-		xvalue, e := strconv.ParseInt(string(values[xcol].([]byte)), 10, 0)
+		xvalue, e := strconv.ParseInt(string(values[xcol].([]byte)), 10, 0) // TODO: Fix this so it can take ints too.
 
 		if e != nil {
-			http.Error(res, "Read loop error D: Looks like int this is a imposter.", http.StatusInternalServerError)
+			http.Error(res, "Read loop error D: Looks like I tried to read somthing that was not a int.", http.StatusInternalServerError)
 			return
 		}
 		if xvalue >= startx && xvalue <= endx {
@@ -341,6 +345,12 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 		return
 	}
 	rows, e1 := database.Query(fmt.Sprintf("SELECT `%s`,SUM(%s) AS %s FROM `%s` GROUP BY %s", prams["x"], prams["y"], prams["y"], tablename, prams["x"]))
+	// You may think the above might have some security downsides, It could but what you
+	// are proabs thinking is not true, if a user wants to SQL inject as any of the %s's
+	// then the table col name will also have to be the SQLi, and frankly, if a user
+	// does that then I have no idea what that user should expect, apart from broken queries
+	// =
+	// This could also be filtered at the import level as a form as "moron detection"
 	columns, e2 := rows.Columns()
 	if e1 != nil || e2 != nil {
 		http.Error(res, "Could not query the data from the datastore", http.StatusInternalServerError)
@@ -369,7 +379,7 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 }
 
 func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-	// This function will empty a whole table out into JSON
+	// This function will take a share of a table and return it as JSON
 	// Due to what seems to be a golang bug, everything is outputted as a string.
 
 	if prams["id"] == "" {
@@ -419,7 +429,8 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 		}
 	}
 	if DataLength < 1 {
-		DataLength = 1
+		DataLength = 1 // In the case that the persentage returnes a super small amount, then
+		// force it to be 1, and return it all
 	}
 	var RowsScanned int
 	RowsScanned = 0
@@ -447,8 +458,9 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 }
 
 func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-	// This function will empty a whole table out into JSON
-	// Due to what seems to be a golang bug, everything is outputted as a string.
+	// This function will empty a whole table out into CSV
+	// This can proabbly be removed now as it was only there to support
+	// one type of graph that has now been rewritten.
 
 	if prams["id"] == "" {
 		http.Error(res, "u wot (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
@@ -512,7 +524,5 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		record := scanrow(values, columns)
 		array = append(array, record)
 	}
-	// s, _ := json.Marshal(array)
 	res.Write([]byte(output))
-	// io.WriteString(output, "\n")
 }

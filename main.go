@@ -42,6 +42,7 @@ func main() {
 
 	_, e := what.Exec("SHOW TABLES")
 	check(e)
+	what.Close() // Close down the SQL connection since it does nothing after this.
 	fmt.Println("DataCon Server")
 	initTemplates()
 	m := martini.Classic()
@@ -135,7 +136,7 @@ func main() {
 
 func ProabblyAPI(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) { // Forces anything with /api to have a json doctype. Since it makes sence to
 	if strings.HasPrefix(req.RequestURI, "/api") {
-		checkAuth(res, req, monager)
+		checkAuth(res, req, monager) // Make everything in the API auth'd
 		res.Header().Set("Content-Type", "application/json")
 	}
 }
