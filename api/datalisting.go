@@ -61,16 +61,16 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 	rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", prams["s"]+"%")
 
 	Results := make([]SearchResult, 1)
-	Results = ProcessSearchResults(rows, e)
+	Results = ProcessSearchResults(rows, e, database)
 	if len(Results) == 1 {
 		fmt.Println("falling back to overkill search")
 		rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", "%"+prams["s"]+"%")
-		Results = ProcessSearchResults(rows, e)
+		Results = ProcessSearchResults(rows, e, database)
 		if len(Results) == 1 {
 			fmt.Println("Going 100 persent mad search")
 			query := strings.Replace(prams["s"], " ", "%", -1)
 			rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", "%"+query+"%")
-			Results = ProcessSearchResults(rows, e)
+			Results = ProcessSearchResults(rows, e, database)
 		}
 	}
 	defer rows.Close()
@@ -78,7 +78,7 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 	return string(b[:])
 }
 
-func ProcessSearchResults(rows *sql.Rows, e error) []SearchResult {
+func ProcessSearchResults(rows *sql.Rows, e error, database *sql.DB) []SearchResult {
 	Results := make([]SearchResult, 1)
 	if e != nil {
 		panic(e)
@@ -91,7 +91,7 @@ func ProcessSearchResults(rows *sql.Rows, e error) []SearchResult {
 		if err != nil {
 			panic(err)
 		}
-		Location := HasTableGotLocationData(id)
+		Location := HasTableGotLocationData(id, database)
 		SR := SearchResult{
 			Title:        name,
 			GUID:         id,

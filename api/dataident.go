@@ -2,6 +2,7 @@ package api
 
 import (
 	msql "../databasefuncs"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/codegangsta/martini"
@@ -28,7 +29,7 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Par
 	if prams["id"] == "" {
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
 	}
-	results := FetchTableCols(string(prams["id"]))
+	results := FetchTableCols(string(prams["id"]), database)
 
 	returnobj := IdentifyResponce{
 		Cols:    results,
@@ -38,9 +39,7 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Par
 	return string(b[:])
 }
 
-func FetchTableCols(guid string) (output []ColType) {
-	database := msql.GetDB()
-	defer database.Close()
+func FetchTableCols(guid string, database *sql.DB) (output []ColType) {
 	if guid == "" {
 		return output
 	}

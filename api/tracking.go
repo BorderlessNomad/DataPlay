@@ -2,6 +2,7 @@ package api
 
 import (
 	msql "../databasefuncs"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/mattn/go-session-manager"
@@ -24,7 +25,7 @@ func GetLastVisited(rw http.ResponseWriter, req *http.Request, monager *session.
 				var status string
 				rows.Scan(&guid, &title)
 				result2 := make([]string, 0)
-				status = HasTableGotLocationData(guid)
+				status = HasTableGotLocationData(guid, database)
 				result2 = append(result2, guid)
 				result2 = append(result2, title)
 				result2 = append(result2, status)
@@ -41,8 +42,8 @@ func GetLastVisited(rw http.ResponseWriter, req *http.Request, monager *session.
 	return ""
 }
 
-func HasTableGotLocationData(datasetGUID string) string {
-	cols := FetchTableCols(datasetGUID)
+func HasTableGotLocationData(datasetGUID string, database *sql.DB) string {
+	cols := FetchTableCols(datasetGUID, database)
 
 	for _, col1 := range cols {
 		if strings.ToLower(col1.Name) == "lat" {
