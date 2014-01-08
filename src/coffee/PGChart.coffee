@@ -40,7 +40,7 @@
         @currDataset = @dataset
 
     setScale: (axis, orient, ticks) ->
-      pattern = @patterns[@axes[axis]]
+      pattern = @patterns[@axes[axis]].valuePattern
        # Get axes depending on axes pattern
       @scale[axis] = switch pattern
         when 'date' then d3.time.scale()
@@ -48,10 +48,12 @@
         else d3.scale.linear()   
       switch pattern
         when 'label'
-          m = []
-          m.push d[0] for d in @currDataset
-          @scale[axis].domain(m)
-            .rangeBands([0.01*@width, 0.98*@width])
+          dmn = []
+          dmn.push d[0] for d in @currDataset when dmn.indexOf(d[0])<0
+          rng = [0.01*@width, 0.98*@width]
+          @scale[axis].domain(dmn)
+            .rangeBands(rng)          
+          @scale[axis].invert = (x) -> dmn[Math.round(dmn.length*(x-rng[0])/(rng[1]-rng[0]))]
         else 
           @scale[axis].domain(d3.extent(@currDataset, (d) -> d[if axis is 'x' then 0 else 1]))
             .range([
@@ -71,52 +73,14 @@
     setScales: ->
       @setScale 'x', 'bottom', 5
       @setScale 'y', 'left', 8
-      # patternX = @patterns[@axes.x]#Common.getPattern @currDataset[0][0]
-       # Get axes depending on axes pattern
-      # @scale.x = switch patternX
-      #   when 'date' then d3.time.scale()
-      #   when 'label'
-      #     m = []
-      #     m.push d[0] for d in @currDataset
-      #     @scale.x = d3.scale.ordinal()
-      #       .domain(m)
-      #       .rangeBands([0.01*@width, 0.98*@width])
-      #   else d3.scale.linear()
 
-      # @scale.x.domain(d3.extent(@currDataset, (d) -> d[0]))
-      #   .range([0.01*@width, 0.98*@width])
-
-      # patternY = @patterns[@axes.y]#Common.getPattern @currDataset[0][1]
-      # @scale.y = switch patternY
-      #   when 'date' then d3.time.scale()
-      #   else d3.scale.linear()
-
-      # @scale.y.domain([
-      #         d3.min(@currDataset, (d) -> d[1])
-      #         d3.max(@currDataset, (d) -> d[1])
-      #       ])
-      #       .range([0.98*@height, 0.01*@height])
-
-      # @axis.x = d3.svg.axis()
-      #           .scale(@scale.x)
-      #           .orient("bottom")
-      #           .ticks(5)
-
-      # @axis.x.tickFormat (d) =>
-      #   switch patternX
-      #     when 'date' then d.getFullYear()
-      #     when 'percent' then "#{d}%"
-      #     else d
-
-      # @axis.y = d3.svg.axis()
-      #           .scale(@scale.y)
-      #           .orient("left")
-
-      # @axis.y.tickFormat (d) =>
-      #   switch patternY
-      #     when 'date' then d.getFullYear()
-      #     when 'percent' then "#{d}%"
-      #     else d
+    # getIvertedScale: (scale) ->
+    #   switch @patterns[@axes.x]
+    #     when 'label'
+    #       dmn = scale.domain()
+    #       rng = scale.range()
+    #       (x) -> dmn[Math.round(dmn.length*(x-rng[0])/(rng[1]-rng[0]))]
+    #     else scale.invert
 
     # --------------------- Chart creating Functions ------------------------ #
     drawChart: ->
@@ -132,20 +96,39 @@
 
       # Clip chart
       @chart.append("clipPath")
-         .attr('id', 'chart-area')
-         .append('rect')
-         .attr('x', 0)
-         .attr('y', 0)
-         .attr('width', @width)
-         .attr('height', @height)
+        .attr('id', 'chart-area')
+        .append('rect')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', @width)
+        .attr('height', @height)
 
       svg.call d3.behavior.zoom().scaleExtent([1,10]).on 'zoom', () => 
-          t = d3.event.translate
-          s = d3.event.scale
-          if @drag
-            #svg.attr('-webkit-transform', "translate(#{t})scale(#{s})")
-            svg.style('transform', "translate(#{t[0]}px,#{t[1]}px) scale(#{s})")
-            svg.style('-webkit-transform', "translate(#{t[0]}px,#{t[1]}px) scale(#{s})")
+        #t = d3.event.translate
+        s = d3.event.scale
+        console.log d3.event
+        #el = d3.event.sourceEvent.srcElement
+        el = document.getElementsByTagName('svg')[0]
+        @chart.scale = s
+        if @drag
+          #svg.attr('transform', "translate(#{t})scale(#{s})")
+          #svg.style('transform', "translate(#{t[0]}px,#{t[1]}px) scale(#{s})")
+          #svg.style('-webkit-transform', "translate(#{t[0]}px,#{t[1]}px) scale(#{s})")
+          @transformElement svg, el.clientLeft, el.clientTop, s
+
+      if @drag
+        svg.call d3.behavior.drag()
+          .origin((d) -> x: @clientLeft, y: @clientTop)
+          .on('drag', () => 
+            e = d3.event
+            if @drag
+              @transformElement svg, e.x, e.y, @chart.scale ? 1
+          )
+
+    transformElement: (el, x, y, s) ->
+      console.log el
+      el.style('transform', "translate(#{x}px,#{y}px) scale(#{s})")
+      el.style('-webkit-transform', "translate(#{x}px,#{y}px) scale(#{s})")
 
     drawAxes: ->
       # Draw x axis

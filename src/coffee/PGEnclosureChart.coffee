@@ -29,7 +29,7 @@ define ['app/PGChart'], (PGChart) ->
     updateAxes: ->
 
     renderEnclosure: ->
-
+      colors = d3.scale.category10()
       pack = d3.layout.pack()
         .size([@r, @r])
         .children((d) => d.values)
@@ -37,27 +37,40 @@ define ['app/PGChart'], (PGChart) ->
         #.value((d) => d.size)
 
       nodes = pack.nodes(@currDataset)
-      #nodes = pack.nodes(json)
+        .filter((d) -> d.depth<3)
 
-      console.log nodes
+      #console.log nodes
 
       circles = @enclosure.selectAll("circle")
         .data(nodes)
 
       circles.enter()
         .append("svg:circle")
+        .on('click', (d) => 
+          #console.log d
+          @currDataset = d
+          @renderEnclosure()
+          # This will be the structure if needed request to server-side
+          #@queryData [{key: ...., value: d.key}], (callback) -> ..... if d.key
+        )
+        .append('title')
+
+      circles.exit()
+        .transition()
+        .duration(1000)
+        .attr("r", 0)
+        .remove()
 
       circles.transition()
+        .duration(1000)
         .attr("class", (d) -> if d.values then "parent" else "child")
         .attr("cx", (d) -> d.x)
         .attr("cy", (d) -> d.y)
         .attr("r", (d) -> d.r)
-        .style('fill', (d) => if d[@value]<0 then '#884444' else '#448844')
-
-      circles.exit()
-        .transition()
-        .attr("r", 0)
-        .remove()
+        .style('fill', (d) => if d[@value]<0 then '#884444' else colors(d.depth))
+        .select('title')
+        .text((d) => if d.values then "#{d.key}\n#{d.value}" else "#{d.value}")
+        
 
       labels = @enclosure.selectAll("text")
         .data(nodes)
@@ -66,18 +79,21 @@ define ['app/PGChart'], (PGChart) ->
         .append("svg:text")
         .attr("dy", ".35em")
         .attr("text-anchor", "middle")
-        .style("opacity", 1);
+
+      labels.exit()
+        .transition()
+        .duration(1000)
+        .style("opacity", 0)
+        .remove()
 
       labels.transition()
         .attr("class",  (d) -> if d.values then "parent" else "child")
         .attr("x",  (d) -> d.x)
         .attr("y",  (d) -> d.y)
-        .text((d) -> d.key)
-        .style("opacity",  (d) -> if d.r>2 then 1 else 0.2)
+        .text((d) -> (if d.values then d.key else d.value) if d.r>20)
+        .style("opacity",  (d) -> if d.r>30 then 1 else 0.5)
 
-      labels.exit()
-        .remove()
-
+      
     updateChart: (dataset, axes) ->
       super dataset, axes
       @renderEnclosure()

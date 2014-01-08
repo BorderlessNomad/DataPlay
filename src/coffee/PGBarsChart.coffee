@@ -6,14 +6,14 @@ define ['app/PGChart'], (PGChart) ->
 
     # --------------------- Chart creating Functions ------------------------ #
     setScales: ->
-      patternX = @patterns[@axes.x]
+      patternX = @patterns[@axes.x].valuePattern
       @barsSet.push(d[0]) for d in @currDataset when @barsSet.indexOf(d[0]) < 0
       console.log @barsSet
       @scale.x = d3.scale.ordinal()
         .domain(@barsSet)
         .rangeBands([0.01*@width, 0.98*@width])
 
-      patternY = @patterns[@axes.y]#Common.getPattern @currDataset[0][1]
+      patternY = @patterns[@axes.y].valuePattern
       @scale.y = switch patternY
         when 'date' then d3.time.scale()
         else d3.scale.linear()
@@ -57,13 +57,17 @@ define ['app/PGChart'], (PGChart) ->
 
     # --------------------- Update Functions ------------------------ 
     renderBars: ->
+      colors = d3.scale.category20c()
       bars = @bars.selectAll('rect.bar')
         .data(@currDataset)
 
       bars.enter()
         .append("rect")
         .attr("class", "bar")
+        .attr('fill', (d, i) => colors(i))  
         .on('click', (d) => @newPointDialog(d[0], d[1]))
+        .append('title')
+        .text((d) => "#{@axes.x}: #{d[0]}\n#{@axes.y}: #{d[1]}")
 
       bars.exit()
         .transition()

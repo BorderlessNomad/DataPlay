@@ -276,6 +276,7 @@ define ['app/PGChart'], (PGChart) ->
 
     # updateNodes creates a new bubble for each node in our dataset
     updateNodes: () ->
+      colors = d3.scale.category20c()
       # here we are using the idValue function to uniquely bind our
       # data to the (currently) empty 'bubble-node selection'.
       # if you want to use your own data, you just need to modify what
@@ -298,6 +299,9 @@ define ['app/PGChart'], (PGChart) ->
         .call(@force.drag)
         .append("circle")
         .attr("r", (d) => @rScale(@rValue(d)))
+        .attr('fill', (d, i) => colors(i))  
+        .style('opacity', 0.7)
+
 
     updateLabels: () ->
       # as in updateNodes, we use idValue to define what the unique id for each data 

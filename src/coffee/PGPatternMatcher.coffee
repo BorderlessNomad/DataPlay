@@ -278,7 +278,7 @@ define [], () ->
         name: 'label'
         handlers: [
           {
-            pattern: /^[a-zA-Z]{1}.{0,31}$/i
+            pattern: /^[a-zA-Z]{1}.{0,63}$/i
           }
         ]
       }

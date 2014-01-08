@@ -12,6 +12,7 @@ define [
   'app/PGEnclosureChart'
   'app/PGTreeChart'
   'app/PGTreemapChart'
+  'app/PGForceDirectedChart'
 ], (
   $
   _
@@ -26,6 +27,7 @@ define [
   PGEnclosureChart
   PGTreeChart
   PGTreemapChart
+  PGForceDirectedChart
 ) ->
   'use strict'
   DataCon = {}
@@ -67,7 +69,9 @@ define [
         when 'tree'
           DataCon.chart = new PGTreeChart("#chart", {top: 0, right: 0, bottom: 0, left: 0}, dataset, null, DataCon.patterns, null, valueSelector.val())
         when 'treemap'
-          DataCon.chart = new PGTreemapChart("#chart", {top: 0, right: 0, bottom: 0, left: 0}, dataset, null, DataCon.patterns, null, valueSelector.val())
+          DataCon.chart = new PGTreemapChart("#chart", {top: 0, right: 0, bottom: 0, left: 0}, dataset, null, DataCon.patterns, null, valueSelector.val(), 1)
+        when 'forcedirected'
+          DataCon.chart = new PGForceDirectedChart("#chart", {top: 0, right: 0, bottom: 0, left: 0}, dataset, null, DataCon.patterns, null, valueSelector.val(), 1)
     
     if DataCon.autokeys and DataCon.autokeys.length
       selects = $('#selectors select')
@@ -97,6 +101,7 @@ define [
       {key: chartAxes.x, pattern: DataCon.patterns[chartAxes.x]}
       {key: chartAxes.y, pattern: DataCon.patterns[chartAxes.y]}
     )   
+    #console.log chartData
     if not DataCon.chart
       $("#chart").html('');
       if qs
@@ -110,7 +115,7 @@ define [
             size++
         if entries['chart']
           DataCon.currChartType = entries['chart']
-          if ['enclosure', 'tree', 'treemap'].indexOf(entries['chart'])>=0
+          if ['enclosure', 'tree', 'treemap', 'forcedirected'].indexOf(entries['chart'])>=0
             DataCon.autokeys = []
             DataCon.autokeys.push(entries["key#{i}"]) for i in [0..size-3]
             DataCon.autokeys.push(entries['value']);
@@ -130,7 +135,7 @@ define [
 
       switch DataCon.currChartType
         when 'bars'
-          DataCon.chart = new PGBarsChart("#chart", null, chartData, chartAxes, DataCon.patterns, 30)
+          DataCon.chart = new PGBarsChart("#chart", null, chartData, chartAxes, DataCon.patterns, null)
         when 'area'
           DataCon.chart = new PGAreasChart("#chart", null, chartData, chartAxes, DataCon.patterns, null)
         when 'pie'
@@ -139,7 +144,7 @@ define [
           dataset = [];
           dataset.push {name: d[0], count: d[1]} for d in chartData
           DataCon.chart = new PGBubblesChart("#chart", {top: 5, right: 0, bottom: 0, left: 0}, dataset, null, DataCon.patterns, null);
-        when 'enclosure', 'tree', 'treemap'
+        when 'enclosure', 'tree', 'treemap', 'forcedirected'
           go2HierarchyChart();
         else
           DataCon.chart = new PGLinesChart("#chart", null, chartData, chartAxes, DataCon.patterns, null);        
@@ -195,8 +200,8 @@ define [
       $('#FillInDataSet').html data.Title
       $("#wikidata").html data.Notes
     
-    $.getJSON "/api/getdata/#{guid}", (data) ->
-      #console.log(data);
+    $.getJSON "/api/getreduceddata/#{guid}/10/100", (data) ->
+      console.log(data);
       #so data is an array of shit.
       DataCon.dataset = data
       DataCon.keys = []
@@ -206,7 +211,10 @@ define [
           do (key) ->
             DataCon.keys.push key
             # Frontend Pattern Recognition
-            DataCon.patterns[key] = PGPatternMatcher.getPattern data[0][key]
+            DataCon.patterns[key] = {
+              valuePattern: PGPatternMatcher.getPattern data[0][key]
+              keyPattern: PGPatternMatcher.getKeyPattern data[0][key]
+            }
 
         $.ajax(
           async: false
@@ -218,12 +226,12 @@ define [
               do (col) ->
                 switch col.Sqltype
                   when "int", "bigint"
-                    DataCon.patterns[col.Name] = 'intNumber'
+                    DataCon.patterns[col.Name].valuePattern = 'intNumber'
                   when "float"
-                    DataCon.patterns[col.Name] = 'floatNumber'
+                    DataCon.patterns[col.Name].valuePattern = 'floatNumber'
                   else
                     #leave pattern as it was recognised by frontend
-            go2Chart 'line'
+            go2Chart 'forcedirected'
         )
 
     $(window).resize ->
