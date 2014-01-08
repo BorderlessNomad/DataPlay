@@ -62,16 +62,16 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 	rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", prams["s"]+"%")
 
 	Results := make([]SearchResult, 1)
-	Results = ProcessSearchResults(rows, e)
+	Results = ProcessSearchResults(rows, e, database)
 	if len(Results) == 1 {
 		fmt.Println("falling back to overkill search")
 		rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", "%"+prams["s"]+"%")
-		Results = ProcessSearchResults(rows, e)
+		Results = ProcessSearchResults(rows, e, database)
 		if len(Results) == 1 {
 			fmt.Println("Going 100 persent mad search")
 			query := strings.Replace(prams["s"], " ", "%", -1)
 			rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", "%"+query+"%")
-			Results = ProcessSearchResults(rows, e)
+			Results = ProcessSearchResults(rows, e, database)
 		}
 	}
 	defer rows.Close()
@@ -79,7 +79,7 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 	return string(b[:])
 }
 
-func ProcessSearchResults(rows *sql.Rows, e error) []SearchResult {
+func ProcessSearchResults(rows *sql.Rows, e error, database *sql.DB) []SearchResult {
 	Results := make([]SearchResult, 1)
 	if e != nil {
 		panic(e)
@@ -92,7 +92,7 @@ func ProcessSearchResults(rows *sql.Rows, e error) []SearchResult {
 		if err != nil {
 			panic(err)
 		}
-		Location := HasTableGotLocationData(id)
+		Location := HasTableGotLocationData(id, database)
 		SR := SearchResult{
 			Title:        name,
 			GUID:         id,
@@ -144,6 +144,33 @@ func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) 
 	return string(b[:])
 }
 
+func scanrow(values []interface{}, columns []string) map[string]interface{} {
+	record := make(map[string]interface{})
+	for i, col := range values {
+		if col != nil {
+
+			switch t := col.(type) {
+			default:
+				fmt.Printf("Unexpected type %T\n", t)
+			case bool:
+				record[columns[i]] = col.(bool)
+			case int:
+				record[columns[i]] = col.(int)
+			case int64:
+				record[columns[i]] = col.(int64)
+			case float64:
+				record[columns[i]] = col.(float64)
+			case string:
+				record[columns[i]] = col.(string)
+			case []byte: // -- all cases go HERE!
+				record[columns[i]] = string(col.([]byte))
+			case time.Time:
+			}
+		}
+	}
+	return record
+}
+
 type DataResponce struct {
 	Results []interface{}
 	Name    string
@@ -187,31 +214,7 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 		if err != nil {
 			panic(err)
 		}
-
-		record := make(map[string]interface{})
-
-		for i, col := range values {
-			if col != nil {
-
-				switch t := col.(type) {
-				default:
-					fmt.Printf("Unexpected type %T\n", t)
-				case bool:
-					record[columns[i]] = col.(bool)
-				case int:
-					record[columns[i]] = col.(int)
-				case int64:
-					record[columns[i]] = col.(int64)
-				case float64:
-					record[columns[i]] = col.(float64)
-				case string:
-					record[columns[i]] = col.(string)
-				case []byte: // -- all cases go HERE!
-					record[columns[i]] = string(col.([]byte))
-				case time.Time:
-				}
-			}
-		}
+		record := scanrow(values, columns)
 		array = append(array, record)
 	}
 	s, _ := json.Marshal(array)
@@ -280,7 +283,6 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 			panic(err)
 		}
 
-		record := make(map[string]interface{})
 		xvalue, e := strconv.ParseInt(string(values[xcol].([]byte)), 10, 0)
 
 		if e != nil {
@@ -288,31 +290,78 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 			return
 		}
 		if xvalue >= startx && xvalue <= endx {
-
-			for i, col := range values {
-				if col != nil {
-
-					switch t := col.(type) {
-					default:
-						fmt.Printf("Unexpected type %T\n", t)
-					case bool:
-						record[columns[i]] = col.(bool)
-					case int:
-						record[columns[i]] = col.(int)
-					case int64:
-						record[columns[i]] = col.(int64)
-					case float64:
-						record[columns[i]] = col.(float64)
-					case string:
-						record[columns[i]] = col.(string)
-					case []byte: // -- all cases go HERE!
-						record[columns[i]] = string(col.([]byte))
-					case time.Time:
-					}
-				}
-			}
+			record := scanrow(values, columns)
 			array = append(array, record)
 		}
+	}
+	s, _ := json.Marshal(array)
+	res.Write(s)
+	io.WriteString(res, "\n")
+}
+
+func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.Params) {
+	// This call with use the GROUP BY function in mysql to query and get the sum of things
+	// This is very useful for things like picharts
+	// /api/getdatagrouped/:id/:x/:y
+
+	if prams["id"] == "" || prams["x"] == "" || prams["y"] == "" {
+		http.Error(res, "You did not provide enough infomation to make this kind of request :id/:x/:y", http.StatusBadRequest)
+		return
+	}
+
+	database := msql.GetDB()
+	defer database.Close()
+
+	var tablename string
+	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["id"]).Scan(&tablename)
+	if tablename == "" {
+		http.Error(res, "Could not find that table", http.StatusNotFound)
+		return
+	}
+	cls := FetchTableCols(prams["id"], database)
+	// Now we need to check that the rows that the client is asking for, are in the table.
+	Valid := false
+	for _, clm := range cls {
+		if clm.Name == prams["x"] {
+			Valid = true
+		}
+	}
+	if !Valid {
+		http.Error(res, "Col X is invalid.", http.StatusBadRequest)
+		return
+	}
+	Valid = false
+	for _, clm := range cls {
+		if clm.Name == prams["y"] {
+			Valid = true
+		}
+	}
+	if !Valid {
+		http.Error(res, "Col Y is invalid.", http.StatusBadRequest)
+		return
+	}
+	rows, e1 := database.Query(fmt.Sprintf("SELECT `%s`,SUM(%s) AS %s FROM `%s` GROUP BY %s", prams["x"], prams["y"], prams["y"], tablename, prams["x"]))
+	columns, e2 := rows.Columns()
+	if e1 != nil || e2 != nil {
+		http.Error(res, "Could not query the data from the datastore", http.StatusInternalServerError)
+		return
+	}
+
+	scanArgs := make([]interface{}, len(columns))
+	values := make([]interface{}, len(columns))
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+
+	array := make([]map[string]interface{}, 0)
+	for rows.Next() {
+		err := rows.Scan(scanArgs...)
+		if err != nil {
+			panic(err)
+		}
+
+		record := scanrow(values, columns)
+		array = append(array, record)
 	}
 	s, _ := json.Marshal(array)
 	res.Write(s)
@@ -388,30 +437,7 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 			panic(err)
 		}
 		if RowsScanned%DataLength == 0 {
-			record := make(map[string]interface{})
-
-			for i, col := range values {
-				if col != nil {
-
-					switch t := col.(type) {
-					default:
-						fmt.Printf("Unexpected type %T\n", t)
-					case bool:
-						record[columns[i]] = col.(bool)
-					case int:
-						record[columns[i]] = col.(int)
-					case int64:
-						record[columns[i]] = col.(int64)
-					case float64:
-						record[columns[i]] = col.(float64)
-					case string:
-						record[columns[i]] = col.(string)
-					case []byte: // -- all cases go HERE!
-						record[columns[i]] = string(col.([]byte))
-					case time.Time:
-					}
-				}
-			}
+			record := scanrow(values, columns)
 			array = append(array, record)
 		}
 		RowsScanned++
@@ -485,30 +511,8 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 			panic(err)
 		}
 
-		record := make(map[string]interface{})
 		output = output + fmt.Sprintf("\"%s\",\"%s\",%s\n", values[xcol], values[xcol], values[ycol])
-		for i, col := range values {
-			if col != nil {
-
-				switch t := col.(type) {
-				default:
-					fmt.Printf("Unexpected type %T\n", t)
-				case bool:
-					record[columns[i]] = col.(bool)
-				case int:
-					record[columns[i]] = col.(int)
-				case int64:
-					record[columns[i]] = col.(int64)
-				case float64:
-					record[columns[i]] = col.(float64)
-				case string:
-					record[columns[i]] = col.(string)
-				case []byte: // -- all cases go HERE!
-					record[columns[i]] = string(col.([]byte))
-				case time.Time:
-				}
-			}
-		}
+		record := scanrow(values, columns)
 		array = append(array, record)
 	}
 	// s, _ := json.Marshal(array)

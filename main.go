@@ -116,6 +116,7 @@ func main() {
 	m.Get("/api/getimportstatus/:id", api.CheckImportStatus)
 	m.Get("/api/getdata/:id", api.DumpTable)
 	m.Get("/api/getdata/:id/:x/:startx/:endx", api.DumpTableRange)
+	m.Get("/api/getdatagrouped/:id/:x/:y", api.DumpTableGrouped)
 	m.Get("/api/getcsvdata/:id/:x/:y", api.GetCSV)
 	m.Get("/api/getreduceddata/:id", api.DumpReducedTable)
 	m.Get("/api/getreduceddata/:id/:persent", api.DumpReducedTable)
