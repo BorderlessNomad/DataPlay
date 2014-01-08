@@ -144,6 +144,33 @@ func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) 
 	return string(b[:])
 }
 
+func ScanRow(values []interface{}, columns []string) map[string]interface{} {
+	record := make(map[string]interface{})
+	for i, col := range values {
+		if col != nil {
+
+			switch t := col.(type) {
+			default:
+				fmt.Printf("Unexpected type %T\n", t)
+			case bool:
+				record[columns[i]] = col.(bool)
+			case int:
+				record[columns[i]] = col.(int)
+			case int64:
+				record[columns[i]] = col.(int64)
+			case float64:
+				record[columns[i]] = col.(float64)
+			case string:
+				record[columns[i]] = col.(string)
+			case []byte: // -- all cases go HERE!
+				record[columns[i]] = string(col.([]byte))
+			case time.Time:
+			}
+		}
+	}
+	return record
+}
+
 type DataResponce struct {
 	Results []interface{}
 	Name    string
@@ -187,31 +214,7 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 		if err != nil {
 			panic(err)
 		}
-
-		record := make(map[string]interface{})
-
-		for i, col := range values {
-			if col != nil {
-
-				switch t := col.(type) {
-				default:
-					fmt.Printf("Unexpected type %T\n", t)
-				case bool:
-					record[columns[i]] = col.(bool)
-				case int:
-					record[columns[i]] = col.(int)
-				case int64:
-					record[columns[i]] = col.(int64)
-				case float64:
-					record[columns[i]] = col.(float64)
-				case string:
-					record[columns[i]] = col.(string)
-				case []byte: // -- all cases go HERE!
-					record[columns[i]] = string(col.([]byte))
-				case time.Time:
-				}
-			}
-		}
+		record := ScanRow(values, columns)
 		array = append(array, record)
 	}
 	s, _ := json.Marshal(array)
@@ -280,7 +283,6 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 			panic(err)
 		}
 
-		record := make(map[string]interface{})
 		xvalue, e := strconv.ParseInt(string(values[xcol].([]byte)), 10, 0)
 
 		if e != nil {
@@ -288,29 +290,7 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 			return
 		}
 		if xvalue >= startx && xvalue <= endx {
-
-			for i, col := range values {
-				if col != nil {
-
-					switch t := col.(type) {
-					default:
-						fmt.Printf("Unexpected type %T\n", t)
-					case bool:
-						record[columns[i]] = col.(bool)
-					case int:
-						record[columns[i]] = col.(int)
-					case int64:
-						record[columns[i]] = col.(int64)
-					case float64:
-						record[columns[i]] = col.(float64)
-					case string:
-						record[columns[i]] = col.(string)
-					case []byte: // -- all cases go HERE!
-						record[columns[i]] = string(col.([]byte))
-					case time.Time:
-					}
-				}
-			}
+			record := ScanRow(values, columns)
 			array = append(array, record)
 		}
 	}
@@ -388,30 +368,7 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 			panic(err)
 		}
 		if RowsScanned%DataLength == 0 {
-			record := make(map[string]interface{})
-
-			for i, col := range values {
-				if col != nil {
-
-					switch t := col.(type) {
-					default:
-						fmt.Printf("Unexpected type %T\n", t)
-					case bool:
-						record[columns[i]] = col.(bool)
-					case int:
-						record[columns[i]] = col.(int)
-					case int64:
-						record[columns[i]] = col.(int64)
-					case float64:
-						record[columns[i]] = col.(float64)
-					case string:
-						record[columns[i]] = col.(string)
-					case []byte: // -- all cases go HERE!
-						record[columns[i]] = string(col.([]byte))
-					case time.Time:
-					}
-				}
-			}
+			record := ScanRow(values, columns)
 			array = append(array, record)
 		}
 		RowsScanned++
@@ -485,30 +442,8 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 			panic(err)
 		}
 
-		record := make(map[string]interface{})
 		output = output + fmt.Sprintf("\"%s\",\"%s\",%s\n", values[xcol], values[xcol], values[ycol])
-		for i, col := range values {
-			if col != nil {
-
-				switch t := col.(type) {
-				default:
-					fmt.Printf("Unexpected type %T\n", t)
-				case bool:
-					record[columns[i]] = col.(bool)
-				case int:
-					record[columns[i]] = col.(int)
-				case int64:
-					record[columns[i]] = col.(int64)
-				case float64:
-					record[columns[i]] = col.(float64)
-				case string:
-					record[columns[i]] = col.(string)
-				case []byte: // -- all cases go HERE!
-					record[columns[i]] = string(col.([]byte))
-				case time.Time:
-				}
-			}
-		}
+		record := ScanRow(values, columns)
 		array = append(array, record)
 	}
 	// s, _ := json.Marshal(array)
