@@ -82,6 +82,6 @@ define ['app/PGChart'], (PGChart) ->
         .attr("width", (d) => Math.floor((@width/@barsSet.length)-@padding/@barsSet.length))
         .attr("height", (d) => @height-@scale.y(d[1]))
 
-    updateChart: (dataset, axes) ->
+    updateChart: (dataset, axes) =>
       super dataset, axes
       @renderBars()

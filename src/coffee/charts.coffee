@@ -129,7 +129,7 @@ define [
       # FIXME: charts losing context
       parseChartData chartAxes, DataCon.chart.updateChart
 
-    $('#pickxaxis, #pickyaxis').change handleAxesChange
+    $('#pickxaxis, #pickyaxis').one 'change', handleAxesChange
 
   parseChartData = (chartAxes, callback) ->
     chartData = Common.parseChartData(
@@ -150,9 +150,7 @@ define [
       when 'pie'
         DataCon.chart = new PGPieChart("#chart", null, chartData, chartAxes, DataCon.patterns, null)
       when 'bubbles'
-        dataset = [];
-        dataset.push {name: d[0], count: d[1]} for d in chartData
-        DataCon.chart = new PGBubblesChart("#chart", {top: 5, right: 0, bottom: 0, left: 0}, dataset, null, DataCon.patterns, null);
+        DataCon.chart = new PGBubblesChart("#chart", {top: 5, right: 0, bottom: 0, left: 0}, chartData, null, DataCon.patterns, null);
       when 'enclosure', 'tree', 'treemap', 'forcedirected'
         go2HierarchyChart();
       else
@@ -170,8 +168,9 @@ define [
       Common.getUserDefaults(guid, $("#pickxaxis"), $("#pickyaxis"), updateChart)    
 
   handleAxesChange = ->
-    Common.saveUserDefaults guid, $("#pickxaxis").val(), $("#pickyaxis").val()
-    updateChart()
+    if $("#pickxaxis").val() and $("#pickyaxis").val()
+      Common.saveUserDefaults guid, $("#pickxaxis").val(), $("#pickyaxis").val()
+      updateChart()
 
 
   LightUpBookmarks = -> #Do nothing

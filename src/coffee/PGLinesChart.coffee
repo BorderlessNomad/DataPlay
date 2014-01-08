@@ -54,7 +54,7 @@ define ['jquery', 'app/PGChart'], ($, PGChart) ->
         .duration(1000)
         .attr("d", (d) -> line(d))
 
-    updateChart: (dataset, axes) ->
+    updateChart: (dataset, axes) =>
       super dataset, axes
       @renderLines()
 

@@ -517,6 +517,6 @@ define ['app/PGChart'], (PGChart) ->
       )
 
 
-    updateChart: (dataset, axes) ->
+    updateChart: (dataset, axes) =>
       super dataset, axes
       @renderForceDirected

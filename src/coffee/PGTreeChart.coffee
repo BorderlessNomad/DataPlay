@@ -159,6 +159,6 @@ define ['app/PGChart'], (PGChart) ->
       d.expand = not d.expand
       console.log d
 
-    updateChart: (dataset, axes) ->
+    updateChart: (dataset, axes) =>
       super dataset, axes
       @renderTree()

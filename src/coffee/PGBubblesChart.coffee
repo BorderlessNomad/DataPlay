@@ -24,15 +24,10 @@ define ['app/PGChart'], (PGChart) ->
     force: null
 
     constructor: (container, margin, dataset, axes, patterns, limit) ->
-      super container, margin, dataset, axes, patterns, limit
-      @data = dataset
       @rScale = d3.scale.sqrt().range([@minRadius,@maxRadius])
-      @force = d3.layout.force()
-        .gravity(0)
-        .charge(0)
-        .size([@width, @height])
-        .on("tick", @tick)
-      @initChart()
+      super container, margin, dataset, axes, patterns, limit
+      #@data = dataset
+      #@initChart()
 
     # --------------------- Auxiliary Functions ------------------------ #  
 
@@ -52,6 +47,9 @@ define ['app/PGChart'], (PGChart) ->
     #  again, abstracted to ease migration to 
     #  a different dataset if desired
     textValue: (d) -> d.name
+
+    # CUSTOM: other function for real identifier
+    id: (d) -> "#{d.name}#{d.count}"
 
 
     # custom gravity to skew the bubble placement
@@ -150,7 +148,7 @@ define ['app/PGChart'], (PGChart) ->
 
     # changes clicked bubble by modifying url
     click: (d) =>
-      location.replace("#" + encodeURIComponent(@idValue(d)))
+      location.replace("#" + encodeURIComponent(@id(d)))
       d3.event.preventDefault()
 
     # called when url after the # changes
@@ -160,7 +158,7 @@ define ['app/PGChart'], (PGChart) ->
 
     # activates new node
     updateActive: (id) ->
-      @node.classed("bubble-selected", (d) => id == @idValue(d))
+      @node.classed("bubble-selected", (d) => id == @id(d))
       # if no node is selected, id will be empty
       # if id.length > 0
       #   d3.select("#status").html("<h3>The word <span class=\"active\">#{id}</span> is now active</h3>")
@@ -177,6 +175,9 @@ define ['app/PGChart'], (PGChart) ->
 
        
     # --------------------- Chart creating Functions ------------------------ #
+
+    setScales: ->
+    updateAxes: ->
 
     # Creates new chart function. This is the 'constructor' of our
     #  visualization
@@ -252,6 +253,13 @@ define ['app/PGChart'], (PGChart) ->
     # Overriden initialization for Bubbles Chart
     initChart: ->
       # Draw the Bubbles Chart
+      #@data = []
+      @data.push {name: d[0], count: d[1]} for d in @dataset
+      @force = d3.layout.force()
+        .gravity(0)
+        .charge(0)
+        .size([@width, @height])
+        .on("tick", @tick)
       @chart d3.select(@container).datum(@data)
 
 
@@ -277,22 +285,24 @@ define ['app/PGChart'], (PGChart) ->
     # updateNodes creates a new bubble for each node in our dataset
     updateNodes: () ->
       colors = d3.scale.category20c()
+      svg = d3.select('svg')
       # here we are using the idValue function to uniquely bind our
       # data to the (currently) empty 'bubble-node selection'.
       # if you want to use your own data, you just need to modify what
       # idValue returns
-      @node = @node.selectAll(".bubble-node")
-        .data(@data, (d) => @idValue(d))
+      @node = svg.selectAll(".bubble-node")
+        .data(@data, (d) => @id(d))
 
       # we don't actually remove any nodes from our data in this example 
       # but if we did, this line of code would remove them from the
       # visualization as well
-      @node.exit().remove()
+      nodeExit = @node.exit()
+      nodeExit.transition().remove()
 
       # nodes are just links with circles inside.
       # the styling comes from the css
-      @node.enter()
-        .append("a")
+      nodeEnter = @node.enter()
+      nodeEnter.append("a")
         .attr("class", "bubble-node")
         .attr("xlink:href", (d) => "##{encodeURIComponent(@idValue(d))}")    
         .call(@connectEvents)
@@ -306,8 +316,9 @@ define ['app/PGChart'], (PGChart) ->
     updateLabels: () ->
       # as in updateNodes, we use idValue to define what the unique id for each data 
       # point is
-      @label = @label.selectAll(".bubble-label")
-        .data(@data, (d) => @idValue(d))
+      svg = d3.select('svg')
+      @label = svg.selectAll(".bubble-label")
+        .data(@data, (d) => @id(d))
 
       @label.exit().remove()
 
@@ -329,7 +340,12 @@ define ['app/PGChart'], (PGChart) ->
         .attr('dx', -30)
         .attr('dy', 10)
 
-    updateChart: (dataset, axes) ->
+    updateChart: (dataset, axes) =>
       super dataset, axes
-      @data = dataset
+      #@data = dataset
+      data = ({name: d[0], count: d[1]} for d in dataset)
+      @data = @transformData data
+      maxDomainValue = d3.max(@data, (d) => @rValue(d))
+      @rScale.domain([0, maxDomainValue])
+      #@initChart()
       @update()

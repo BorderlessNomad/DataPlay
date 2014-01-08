@@ -178,7 +178,7 @@
         .select("#yLabel")
         .text(@axes.y)
 
-    updateChart: (dataset, axes) ->
+    updateChart: (dataset, axes) =>
       # Set new data values
       @dataset = dataset unless not dataset
       @axes = axes unless not axes

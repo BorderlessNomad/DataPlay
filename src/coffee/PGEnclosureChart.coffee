@@ -94,6 +94,6 @@ define ['app/PGChart'], (PGChart) ->
         .style("opacity",  (d) -> if d.r>30 then 1 else 0.5)
 
       
-    updateChart: (dataset, axes) ->
+    updateChart: (dataset, axes) =>
       super dataset, axes
       @renderEnclosure()

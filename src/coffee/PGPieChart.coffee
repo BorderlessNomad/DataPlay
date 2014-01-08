@@ -91,6 +91,6 @@ define ['app/PGChart'], (PGChart) ->
               else d.data[0]
         )
 
-    updateChart: (dataset, axes) ->
+    updateChart: (dataset, axes) =>
       super dataset, axes
       @renderPie()

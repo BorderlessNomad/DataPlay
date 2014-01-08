@@ -12,11 +12,13 @@ define ['jquery', 'app/PGPatternMatcher'], ($, PGPatternMatcher) ->
 
     @parseAxisData: (data, axis) ->
       #console.log data, axis
-      datapool = [];
-      pattern = axis.pattern ? PGPatternMatcher.getPattern data[0][axis.key]
+      datapool = []
+      # For the momet always force to get the pattern just in case data types change
+      #pattern = axis.pattern ? PGPatternMatcher.getPattern data[0][axis.key]
+      valuePattern = PGPatternMatcher.getPattern data[0][axis.key]
       for item in data
         do (item) =>
-          datapool.push(PGPatternMatcher.parse item[axis.key], pattern.valuePattern)
+          datapool.push(PGPatternMatcher.parse item[axis.key], valuePattern)
       datapool
 
     @parseChartData: (data, x, y, guid, chartType, callback) ->      
