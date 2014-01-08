@@ -27,6 +27,7 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Par
 	defer database.Close()
 	if prams["id"] == "" {
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
+		return ""
 	}
 	results := FetchTableCols(string(prams["id"]))
 
@@ -96,6 +97,7 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 	defer database.Close()
 	if prams["table"] == "" || prams["col"] == "" {
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
+		return ""
 	}
 
 	var tablename string
@@ -132,6 +134,7 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 			return "true"
 		}
 		http.Error(res, fmt.Sprintf("Well somthing went wrong during the reading of that col, go and grab ben and show him this. %s", e), http.StatusInternalServerError)
+		return ""
 	} else {
 		http.Error(res, "You have requested a col that does not exist. Please avoid doing this in the future.", http.StatusBadRequest)
 		return "" // Shut up go

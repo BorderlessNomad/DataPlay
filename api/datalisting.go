@@ -57,6 +57,7 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 	// End
 	if prams["s"] == "" {
 		http.Error(res, "There was no search request", http.StatusBadRequest)
+		return ""
 	}
 	rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", prams["s"]+"%")
 
@@ -102,7 +103,6 @@ func ProcessSearchResults(rows *sql.Rows, e error) []SearchResult {
 	return Results
 }
 
-//
 type DataEntry struct {
 	GUID     string
 	Name     string
@@ -137,6 +137,7 @@ func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) 
 	}
 	if e != nil {
 		http.Error(res, "Could not find that data.", http.StatusNotFound)
+		return ""
 	}
 
 	b, _ := json.Marshal(returner)
@@ -154,6 +155,7 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 
 	if prams["id"] == "" {
 		http.Error(res, "u wot (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
+		return
 	}
 	database := msql.GetDB()
 	defer database.Close()
@@ -225,10 +227,12 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 
 	if prams["id"] == "" {
 		http.Error(res, "u wot (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
+		return
 	}
 
 	if prams["x"] == "" || prams["startx"] == "" || prams["endx"] == "" {
 		http.Error(res, "You did not provide enough infomation to make this kind of request :id/:x/:startx/:endx", http.StatusBadRequest)
+		return
 	}
 
 	database := msql.GetDB()
@@ -255,6 +259,7 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 	endx, ende := strconv.ParseInt(prams["endx"], 10, 64)
 	if starte != nil || ende != nil {
 		http.Error(res, "You didnt pass me proper numbers to start with.", http.StatusBadRequest)
+		return
 	}
 
 	for number, colname := range columns {
@@ -280,6 +285,7 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 
 		if e != nil {
 			http.Error(res, "Read loop error D: Looks like int this is a imposter.", http.StatusInternalServerError)
+			return
 		}
 		if xvalue >= startx && xvalue <= endx {
 
@@ -319,6 +325,7 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 
 	if prams["id"] == "" {
 		http.Error(res, "u wot (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
+		return
 	}
 	database := msql.GetDB()
 	defer database.Close()
