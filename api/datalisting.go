@@ -351,6 +351,11 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 	// does that then I have no idea what that user should expect, apart from broken queries
 	// =
 	// This could also be filtered at the import level as a form as "moron detection"
+	if e1 != nil {
+		http.Error(res, "Could not query the data from the datastore", http.StatusInternalServerError)
+		return
+	}
+
 	columns, e2 := rows.Columns()
 	if e1 != nil || e2 != nil {
 		http.Error(res, "Could not query the data from the datastore", http.StatusInternalServerError)
@@ -396,9 +401,13 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 		return
 	}
 	rows, e1 := database.Query("SELECT * FROM " + tablename)
-	columns, e2 := rows.Columns()
 
-	if e1 != nil || e2 != nil {
+	if e1 != nil {
+		http.Error(res, "Could not read that table", http.StatusInternalServerError)
+		return
+	}
+	columns, e2 := rows.Columns()
+	if e2 != nil {
 		http.Error(res, "Could not read that table", http.StatusInternalServerError)
 		return
 	}
@@ -481,9 +490,13 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		return
 	}
 	rows, e1 := database.Query("SELECT * FROM " + tablename)
-	columns, e2 := rows.Columns()
 
-	if e1 != nil || e2 != nil {
+	if e1 != nil {
+		http.Error(res, "Could not read that table", http.StatusInternalServerError)
+		return
+	}
+	columns, e2 := rows.Columns()
+	if e2 != nil {
 		http.Error(res, "Could not read that table", http.StatusInternalServerError)
 		return
 	}
