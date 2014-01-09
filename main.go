@@ -108,6 +108,10 @@ func main() {
 		renderTemplate("public/maptest.html", nil, res)
 	})
 
+	m.Get("/dcsearch", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+		renderTemplate("public/dc-search.html", nil, res)
+	})
+
 	m.Post("/noauth/login.json", HandleLogin)
 	m.Get("/api/user", api.CheckAuth)
 	m.Get("/api/visited", api.GetLastVisited)

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  <title>DataCon Search</title>
+
+  <link href="/twitter-bootstrap-3.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/dc-navbar.css" rel="stylesheet">
+  <link href="/css/dc-search.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Crap this and call the template -->
+  <div class="navbar" id="dc-navbar">
+    <ul class="navbar-items">
+      <li class="navbar-item active">
+        <img src="/img/icons/search.png" alt="Search" title='Search' class="navbar-icon">
+      </li>
+      <li class="navbar-item">
+        <img src="/img/icons/chart.png" alt="Chart" title='Chart' class="navbar-icon">
+      </li>
+      <li class="navbar-item">
+        <img src="/img/icons/tree.png" alt="Network" title='Network' class="navbar-icon">
+      </li>
+      <li class="navbar-item">
+        <img src="/img/icons/marker.png" alt="Map" title='Map' class="navbar-icon">
+      </li>
+    </ul>
+  </div>
+
+
+  <div class="jumbotron">
+    <div class="container" id='dc-search'>
+      <h1 class='dc-title'>DataCon</h1>
+      <div class="dc-num-datasets">
+        <h2>241,154</h2>
+        <p>public datasets to explore</p>
+      </div>
+      
+      <div class="dc-search-input col-xs-9 col-md-offset-3">
+        <input class="form-control input-sm" type="text" id="SBox" placeholder="Enter your search term">
+        <a href="#" class="btn btn-primary" title='Explore'>Explore</a>
+        <a href="#" class="dc-search-advanced" title='Advanced Search'>Advanced Search</a>
+      </div>
+      
+  
+      <div class="dc-trends row">
+        <div class="dc-popular-keywords col-xs-4">
+          <h4 class="dc-subtitle">Most popular keywords</h4>
+          <div class="dc-keywords-item">
+            <div class="dc-keywords-bar"></div>
+            <p class="dc-keywords-summary-entry">
+              <span class="dc-item-quantity">22,241</span>
+              <span class="dc-item-denomination">Immigration</span>
+            </p>
+          </div>
+          <div class="dc-keywords-item">
+            <div class="dc-keywords-bar"></div>
+            <p class="dc-keywords-summary-entry">
+              <span class="dc-item-quantity">12,424</span>
+              <span class="dc-item-denomination">NHS</span>
+            </p>
+          </div>
+          <div class="dc-keywords-item">
+            <div class="dc-keywords-bar"></div>
+            <p class="dc-keywords-summary-entry">
+              <span class="dc-item-quantity">5,241</span>
+              <span class="dc-item-denomination">UKBA</span>
+            </p>
+          </div>
+          <div class="dc-keywords-item">
+            <div class="dc-keywords-bar"></div>
+            <p class="dc-keywords-summary-entry">
+              <span class="dc-item-quantity">2,451</span>
+              <span class="dc-item-denomination">No10</span>
+            </p>
+          </div>
+          <div class="dc-keywords-item">
+            <div class="dc-keywords-bar"></div>
+            <p class="dc-keywords-summary-entry">
+              <span class="dc-item-quantity">1,042</span>
+              <span class="dc-item-denomination">ForeignOffice</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="dc-popular-discoveries col-xs-4">
+          <h4 class="dc-subtitle">Most popular discoveries</h4>
+          <div class="dc-discovery-item">
+            <p class="dc-user-nick">user1232</p>
+            <p class="dc-excerpt">Lorem ipsum dolor sit amet, consectetur adipisicing elit...</p>
+            <p class="dc-attribution">@copy IMG 2012</p>
+          </div>
+          <hr>
+          <div class="dc-discovery-item">
+            <p class="dc-user-nick">user1232</p>
+            <p class="dc-excerpt">Lorem ipsum dolor sit amet, consectetur adipisicing elit...</p>
+            <p class="dc-attribution">@copy DPTHealth2012</p>
+          </div>
+        </div>
+
+        <div class="dc-latest-discoveries col-xs-4">
+          <h4 class="dc-subtitle">Most recent discoveries</h4>
+          <div class="dc-discovery-item">
+            <p class="dc-user-nick">user1232</p>
+            <p class="dc-excerpt">Lorem ipsum dolor sit amet, consectetur adipisicing elit...</p>
+            <p class="dc-attribution">@copy IMG 2012</p>
+          </div>
+          <hr>
+          <div class="dc-discovery-item">
+            <p class="dc-user-nick">user1232</p>
+            <p class="dc-excerpt">Lorem ipsum dolor sit amet, consectetur adipisicing elit...</p>
+            <p class="dc-attribution">@copy DPTHealth2012</p>
+          </div>
+        </div>
+      </div>
+
+    </div> <!-- /container -->
+  </div> <!-- /jumbotron -->
+
+  {{.Footer}}
+
+  <script>
+    requirejs(['app/dc-search']);
+  </script>
+</body>
+</html>
