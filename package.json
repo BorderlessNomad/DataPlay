@@ -8,7 +8,6 @@
   "devDependencies": {
     "jquery": "2.x",
     "twitter-bootstrap-3.0.0": "3.x",
-    "typeahead": "0.1.x",
     "underscore": "1.x",
     "mustache": "0.8.x",
     "backbone": "1.x",

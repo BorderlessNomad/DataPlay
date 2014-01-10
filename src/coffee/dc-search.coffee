@@ -1,20 +1,14 @@
-define ['jquery', 'typeahead', 'mustache'], ($, Typeahead, Mustache) ->
+define ['jquery', 'mustache'], ($, Mustache) ->
   'use strict'
-  guids = []
   $ () ->    
-    Typeahead(
-      $('#dc-search .dc-search-input input')
-      source: (query, result) ->
-        $.getJSON "/api/search/#{$(@).val()}", (data) -> 
-          guids[data[i].Title] = data[i].GUID for i in [data.length-1..0]
-          titles = (data[i].Title for i in [data.length-1..0])
-          result titles
-      updater: (item) -> location.href = "/overview/#{guids[item]}"
-    )
-    # $('#dc-search .dc-search-input input').keyup () ->
-    #   if $(@).val()
-    #     $.getJSON "/api/search/#{$(@).val()}", (data) ->
-    #       $.get "/templates/dc-search.html/", (template) ->
-    #       searchResultsTemplate = Mustache.render $(template), data
-    #       $('#ResultsTable').empty().append "<td><tr>Title</tr><tr>Guid</tr></td>"
-    #       $('#ResultsTable').append(searchResultsTemplate data[i]) for i in [data.length-1..0]
+    input = $('#dc-search .dc-search-input input')
+    res = $('#dc-search .dc-search-input .dc-search-results')
+    input.keyup () ->
+      if $(@).val()
+        $.getJSON "/api/search/#{$(@).val()}", (data) ->
+          $.get "/templates/dc-search-results.html/", (template) ->
+            fixedData = (item for item in data when item.Title)
+            res.fadeIn(200) if fixedData
+            res.empty().append Mustache.render(template, data: fixedData)
+      else
+        res.fadeOut(200)

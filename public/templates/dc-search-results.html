@@ -1,0 +1,13 @@
+{{#data}}
+  <div class='dc-search-result-entry'>
+    {{Title}} 
+      <a href='/charts/{{GUID}}'>View &raquo;</a>&nbsp;
+      <a href='/overview/{{GUID}}'>Overview &raquo;</a>&nbsp;
+      {{#LocationData}}
+        <a href='/maptest/{{GUID}}'>Map &raquo;</a>
+      {{/LocationData}}
+  </div>     
+{{/data}}
+{{^data}}
+  <p class="dc-no-results">No results</p>
+{{/data}}
