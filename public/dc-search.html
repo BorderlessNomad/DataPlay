@@ -1,38 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="">
-  <meta name="author" content="">
-  <link rel="shortcut icon" href="/favicon.png">
-
-  <title>DataCon Search</title>
-
-  <link href="/twitter-bootstrap-3.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="/css/dc-navbar.css" rel="stylesheet">
+  {{.Header}}
   <link href="/css/dc-search.css" rel="stylesheet">
 </head>
 <body>
-  <!-- Crap this and call the template -->
-  <div class="navbar" id="dc-navbar">
-    <ul class="navbar-items">
-      <li class="navbar-item active">
-        <img src="/img/icons/search.png" alt="Search" title='Search' class="navbar-icon">
-      </li>
-      <li class="navbar-item">
-        <img src="/img/icons/chart.png" alt="Chart" title='Chart' class="navbar-icon">
-      </li>
-      <li class="navbar-item">
-        <img src="/img/icons/tree.png" alt="Network" title='Network' class="navbar-icon">
-      </li>
-      <li class="navbar-item">
-        <img src="/img/icons/marker.png" alt="Map" title='Map' class="navbar-icon">
-      </li>
-    </ul>
-  </div>
 
+  {{.Navbar}}
 
   <div class="jumbotron">
     <div class="container" id='dc-search'>

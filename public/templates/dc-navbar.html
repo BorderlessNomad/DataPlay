@@ -1,16 +1,27 @@
 <div class="navbar" id="dc-navbar">
     <ul class="navbar-items">
-        <li class="navbar-item active">
-            <img src="/img/icons/search.png" alt="Search" title='Search' class="navbar-icon">
+        <li class="navbar-item">
+            <a href="/" alt="Home" title='Home' class="navbar-home">DataCon</a>
         </li>
         <li class="navbar-item">
-            <img src="/img/icons/chart.png" alt="Chart" title='Chart' class="navbar-icon">
+            <a href="/search" title='Search' class="navbar-link">
+                <img src="/img/icons/search-{{.Custom.search}}.png" alt="Search">
+            </a>
         </li>
         <li class="navbar-item">
-            <img src="/img/icons/tree.png" alt="Network" title='Network' class="navbar-icon">
+            <a href="/charts" title='Chart' class="navbar-link">
+                <img src="/img/icons/chart-{{.Custom.chart}}.png" alt="Chart">
+            </a>
         </li>
         <li class="navbar-item">
-            <img src="/img/icons/marker.png" alt="Map" title='Map' class="navbar-icon">
+            <a href="/network" title='Network' class="navbar-link">
+                <img src="/img/icons/network-{{.Custom.network}}.png" alt="Network">
+            </a>
+        </li>
+        <li class="navbar-item">
+            <a href="/map" title='Map' class="navbar-link">
+                <img src="/img/icons/map-{{.Custom.map}}.png" alt="Map">
+            </a>
         </li>
     </ul>
 </div>

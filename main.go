@@ -77,7 +77,10 @@ func main() {
 		if session.Value != nil {
 			api.TrackVisited(prams["id"], session.Value.(string))
 		}
-		renderTemplate("public/charts.html", nil, res)
+		custom := map[string]string{
+			"navbarActive": "chart",
+		}
+		renderTemplate("public/charts.html", custom, res)
 	})
 	m.Get("/viewbookmark/:id", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 		checkAuth(res, req, monager)
@@ -97,19 +100,32 @@ func main() {
 		if session.Value != nil {
 			api.TrackVisited(prams["id"], session.Value.(string))
 		}
-		renderTemplate("public/overview.html", nil, res)
+		custom := map[string]string{
+			"navbarActive": "chart",
+		}
+		renderTemplate("public/overview.html", custom, res)
 	})
 	m.Get("/search", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 		checkAuth(res, req, monager)
-		renderTemplate("public/search.html", nil, res)
+		custom := map[string]string{
+			"navbarActive": "search",
+		}
+		renderTemplate("public/dc-search.html", custom, res)
 	})
 	m.Get("/maptest/:id", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 		checkAuth(res, req, monager)
-		renderTemplate("public/maptest.html", nil, res)
+		custom := map[string]string{
+			"navbarActive": "map",
+		}
+		renderTemplate("public/maptest.html", custom, res)
 	})
 
-	m.Get("/dcsearch", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
-		renderTemplate("public/dc-search.html", nil, res)
+	m.Get("/oldsearch", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+		checkAuth(res, req, monager)
+		custom := map[string]string{
+			"navbarActive": "search",
+		}
+		renderTemplate("public/search.html", custom, res)
 	})
 
 	m.Post("/noauth/login.json", HandleLogin)

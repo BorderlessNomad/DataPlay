@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -14,7 +15,6 @@ type Page struct {
 }
 
 var h template.HTML
-var n template.HTML
 var f template.HTML
 
 func ApplyTemplate(FileName string, Inject string, res http.ResponseWriter) {
@@ -25,16 +25,30 @@ func ApplyTemplate(FileName string, Inject string, res http.ResponseWriter) {
 }
 
 func renderTemplate(fileName string, custom map[string]string, res http.ResponseWriter) {
-	p := &Page{Header: h, Navbar: n, Footer: f, Custom: custom}
+	nav := getNavbarTemplate(custom["navbarActive"])
+	p := &Page{Header: h, Navbar: nav, Footer: f, Custom: custom}
 	t, _ := template.ParseFiles(fileName)
 	t.Execute(res, p)
+}
+
+func getNavbarTemplate(active string) template.HTML {
+	custom := map[string]string{
+		"search":  "inactive",
+		"chart":   "inactive",
+		"network": "inactive",
+		"map":     "inactive",
+	}
+	custom[active] = "active"
+	p := &Page{Custom: custom}
+	t, _ := template.ParseFiles("public/templates/dc-navbar.html")
+	var bf bytes.Buffer
+	t.Execute(&bf, p)
+	return template.HTML(bf.String())
 }
 
 func initTemplates() {
 	hf, _ := ioutil.ReadFile("public/templates/header.html")
 	h = template.HTML(hf)
-	nf, _ := ioutil.ReadFile("public/templates/navbar.html")
-	n = template.HTML(nf)
 	ff, _ := ioutil.ReadFile("public/templates/footer.html")
 	f = template.HTML(ff)
 }
