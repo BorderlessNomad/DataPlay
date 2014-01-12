@@ -150,6 +150,10 @@ func main() {
 	//m.Use(checkAuth)
 	m.Use(ProabblyAPI)
 	m.Use(martini.Static("node_modules"))
+
+	// CAUTION!!! remove the following line when in production!!!! 
+	m.Use(martini.Static("./"))
+
 	m.Run()
 }
 
