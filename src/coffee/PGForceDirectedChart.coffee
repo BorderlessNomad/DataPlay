@@ -389,7 +389,6 @@ define ['app/PGChart'], (PGChart) ->
     nodes: null
     links : null
     initialDepth: 2
-    wasDragging: false
 
     constructor: (container, margin, dataset, axes, patterns, limit, value, initialDepth) ->
       @value = value
@@ -433,7 +432,7 @@ define ['app/PGChart'], (PGChart) ->
       res
 
     initChart: ->
-      @drag = false
+      #@drag = false
       super
       @createForceDirected()
       @renderForceDirected()
@@ -468,8 +467,9 @@ define ['app/PGChart'], (PGChart) ->
         .remove()
 
       drag = @force.drag()
-        #.on('dragstart', () => @wasDragging = true)
-        #.on('dragend', () => @wasDragging = false)
+        #.on('dragstart', () => console.log 'drastart')
+        #.on('drag', () => console.log d3.event.x)
+        #.on('dragend', () => console.log 'dragend')
 
       nodes = @forceDirectedEl.selectAll("circle")
         .data(@nodes, (d) -> d.index)
@@ -479,23 +479,17 @@ define ['app/PGChart'], (PGChart) ->
         .attr("r", 4.5)
         #.style("fill", (d) -> color(d.depth))
         .style('stroke', '#000')
-        .on('mousedown', () => @drag = false)
+        .on('mousedown', () => d3.event.stopPropagation())#@drag = false)
         .on('click', (d) =>
-          console.log d
+          console.log 'click' unless d3.event.defaultPrevented
           # TODO: show options??
-        )
-        .on('dblclick', (d) =>
-          @drag = false
-          console.log d
-          # TODO: expand/contract this??
           d.expand = not d.expand
-          setTimeout(
-            () => @drag = true
-            400
-          )
           @nodes = @filterNodes @allNodes
           @renderForceDirected()
         )
+        # .on('dblclick', (d) =>
+        #   console.log 'dblclick'
+        # )
         .call(drag)
 
       nodes.transition()

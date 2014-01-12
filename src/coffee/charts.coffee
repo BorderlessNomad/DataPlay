@@ -120,10 +120,8 @@ define [
             if entries['y']
               $("#pickyaxis").val entries['y']
               chartAxes.y = entries['y']
-            parseChartData chartAxes, createCharts
         qs = null
-      else
-        parseChartData chartAxes, createCharts
+      parseChartData chartAxes, createCharts
       #console.log chartData
     else
       # FIXME: charts losing context

@@ -1,4 +1,5 @@
 #chart, .gridCell {
+	overflow: hidden;
 
 	svg {
 
@@ -11,7 +12,7 @@
 			}
 
 			line {
-				stroke: #80e080;
+				stroke: #80e080;				
 			}
 
 			text {
@@ -24,10 +25,29 @@
 			}
 		}
 
+		.brush .extent {
+		  stroke: #444444;
+		  fill-opacity: .05;
+		  //shape-rendering: crispEdges;
+		}
+
+		.undo {
+			cursor: pointer;
+			opacity: 0.8;
+			&:hover {
+				opacity: 1;
+			}
+		}
+
 		.line {
 			fill: none;
 		  	stroke: #e08080;
-		  	stroke-width: 2px;
+		  	stroke-width: 5px;
+		  	cursor: pointer;
+		}
+
+		.circle {
+			cursor: pointer;
 		}
 
 		.area {

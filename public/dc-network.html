@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {{.Header}}
+  <link href="/css/dc-network.css" rel="stylesheet">
+</head>
+<body>
+
+  {{.Navbar}}
+
+  <div class="jumbotron">
+    <div class="container" id='dc-network'>
+
+      <div class="dc-breadcrumbs pull-left">
+        <div class="dc-breadcrumb">
+          <p class="dc-breadcrumb-item">NHS</p>
+          <p class="dc-breadcrumb-type">Search term</p>
+        </div>
+        <div class="dc-breadcrumb">
+          <p class="dc-breadcrumb-item dc-add-term">NHS</p>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="dc-discoveries col-xs-3 col-md-offset-4">
+          <p class="dc-discoveries-next-level">10 discoveries until level up</p>
+          <div class="dc-discoveries-bar" style="width: 10em"></div>
+          <img src="/img/icons/adventurer.png" alt="Lvl:" title="User Level" class="dc-user-level-img">
+          <p class="dc-user-level-desc">Adventurer</p>
+          <img src="/img/icons/discovery.png" alt="Discoveries:" title="Discoveries" class="dc-user-discoveries-img">
+          <p class="dc-user-discoveries-desc"> <b>102</b> made so far</p>
+        </div>
+      </div>
+
+      <div class="dc-colours-legend pull-left">
+        <h4 class="dc-subtitle">Colours</h4>
+        <ul class="dc-colours-list">
+          <li class="dc-colours-item">
+            <img src="/img/icons/dataset.png" alt="Dataset" title='Dataset' class="dc-colours-img">
+            <img src="/img/icons/view-active.png" alt="View" title='View' class="dc-colours-view">
+            <p class="dc-colours-desc">Dataset</p>
+          </li>
+          <li class="dc-colours-item">
+            <img src="/img/icons/suggested.png" alt="Suggested" title='Suggested' class="dc-colours-img">
+            <img src="/img/icons/view-active.png" alt="View" title='View' class="dc-colours-view">
+            <p class="dc-colours-desc">Suggested</p>
+          </li>
+          <li class="dc-colours-item">
+            <img src="/img/icons/discovery.png" alt="Discovery" title='Discovery' class="dc-colours-img">
+            <img src="/img/icons/view-active.png" alt="View" title='View' class="dc-colours-view">
+            <p class="dc-colours-desc">Discovery</p>
+          </li>
+          <li class="dc-colours-item">
+            <img src="/img/icons/news.png" alt="News" title='News' class="dc-colours-img">
+            <img src="/img/icons/view-active.png" alt="View" title='View' class="dc-colours-view">
+            <p class="dc-colours-desc">News</p>
+          </li>
+          <li class="dc-colours-item">
+            <img src="/img/icons/conversation.png" alt="Conversation" title='Conversation' class="dc-colours-img">
+            <img src="/img/icons/view-active.png" alt="View" title='View' class="dc-colours-view">
+            <p class="dc-colours-desc">Conversation</p>
+          </li>
+          <li class="dc-colours-item">
+            <img src="/img/icons/media.png" alt="Media" title='Media' class="dc-colours-img">
+            <img src="/img/icons/view-active.png" alt="View" title='View' class="dc-colours-view">
+            <p class="dc-colours-desc">Media</p>
+          </li>
+        </ul>
+      </div>
+    
+      <div class="dc-overview pull-right">
+        <div class="dc-overview-title">
+          <h2 class="dc-subtitle">OVERVIEW</h2>
+        </div>
+        <ul class="dc-overview-tabbed-pane nav nav-tabs nav-stacked">
+          <li class="dc-overview-tab">
+            <a href="#dc-overview-news" data-toggle="tab" title="News">
+              <img src="/img/icons/news.png" alt="News" class="dc-tab-icon">
+            </a>
+          </li>
+          <li class="dc-overview-tab">
+            <a href="#dc-overview-discoveries" data-toggle="tab" title="Discoveries">
+              <img src="/img/icons/discovery.png" alt="Dsicoveries" class="dc-tab-icon">
+            </a>
+          </li>
+          <li class="dc-overview-tab">
+            <a href="#dc-overview-charts" data-toggle="tab" title="Charts">
+              <img src="/img/icons/barchart.png" alt="Charts" class="dc-tab-icon">
+            </a>
+          </li>
+        </ul>
+        <div class="dc-overview-tabs-content tab-content">
+          <div id="dc-overview-news" class="tab-pane active">
+            <ul class="dc-overview-news">
+              <li class="dc-overview-entry">
+                <p class="dc-entry-header">
+                  <img src="/img/icons/dataset.png" alt="Dataset" title="Dataset" class="dc-entry-img">
+                  <p class="dc-entry-title">NHS Spending 2012</p>
+                  <a href="#" class="dc-entry-option">
+                    <img src="/img/icons/chart.png" alt="Chart" title="View Chart" class="dc-entry-option">
+                  </a>
+                  <a href="#" class="dc-entry-option">
+                  <img src="/img/icons/details.png" alt="Details" title="Details">
+                </p>
+              </li>
+              <li class="dc-overview-entry">
+                <p class="dc-entry-header">
+                  <img src="/img/icons/discovery.png" alt="Discovery" title="Discovery" class="dc-entry-img">
+                  <p class="dc-entry-title">User 123 made a discovery</p>
+                  <a href="#" class="dc-entry-option">
+                    <img src="/img/icons/details.png" alt="Details" title="Details" class="dc-entry-option">
+                  </a>
+                </p>
+                <p class="dc-entry-source">
+                  Source <span>NHS Spending 2012</span>
+                </p>
+                <p class="dc-entry-date">
+                  Happened on 
+                  <span class="dc-entry-date">April 5th 2013</span>
+                  <span class="dc-entry-time">13:05pm</span>
+                </p>
+                <div class="dc-entry-content">
+                  <img src="/img/charts/sample01.png" alt="Chart Name" title="Chart Name" class="dc-entry-content-img">
+                  <p class="dc-entry-content-excerpt">
+                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Totam, optio, minus, quisquam, deleniti aspernatur animi quia ipsam ratione labore consequatur excepturi dolorem veniam aut harum illo. Possimus consequuntur quo quia.
+                  </p>
+                </div>
+              </li>
+              <li class="dc-overview-entry">
+                <p class="dc-entry-header">
+                  <img src="/img/icons/news.png" alt="New" title="New" class="dc-entry-img">
+                  <p class="dc-entry-title">
+                    Health minister Jeremy Hunt announced new NHS budget for 2012
+                  </p>
+                  <a href="#" class="dc-entry-option">
+                    <img src="/img/icons/details.png" alt="Details" title="Details" class="dc-entry-option">
+                  </a>
+                </p>
+                <p class="dc-entry-source">
+                  Source <span>BBC News</span>
+                </p>
+                <p class="dc-entry-date">
+                  Happened on 
+                  <span class="dc-entry-date">April 5th 2013</span>
+                  <span class="dc-entry-time">13:05pm</span>
+                </p>
+                <div class="dc-entry-content">
+                  <p class="dc-entry-content-excerpt">
+                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Totam, optio, minus, quisquam, deleniti aspernatur animi quia ipsam ratione labore consequatur excepturi dolorem veniam aut harum illo. Possimus consequuntur quo quia.
+                  </p>
+                </div>
+                <p class="dc-entry-content-keywords">
+                  Keywords
+                  <span class="dc-keyword">
+                    <a href="#" class="dc-keyword-link">nhs</a>
+                  </span>
+                  ,
+                  <span class="dc-keyword">
+                    <a href="#" class="dc-keyword-link">jeremy hunt</a>
+                  </span>
+                  ,
+                  <span class="dc-keyword">
+                    <a href="#" class="dc-keyword-link">budget cuts and a&e</a>
+                  </span>
+                </p>
+              </li>
+              <li class="dc-overview-entry">
+                <p class="dc-entry-header">
+                  <img src="/img/icons/conversation.png" alt="Conversation" title="Conversation" class="dc-entry-img">
+                  <p class="dc-entry-title">
+                    The health minister announced the new #NHS budget in @parliment today for #2012
+                  </p>
+                  <a href="#" class="dc-entry-option">
+                    <img src="/img/icons/details.png" alt="Details" title="Details" class="dc-entry-option">
+                  </a>
+                </p>
+                <p class="dc-entry-source">
+                  Source <span>twitter</span>
+                </p>
+                <p class="dc-entry-date">
+                  Happened on 
+                  <span class="dc-entry-date">April 5th 2013</span>
+                  <span class="dc-entry-time">13:05pm</span>
+                </p>
+                <p class="dc-entry-content-keywords">
+                  Keywords
+                  <span class="dc-keyword">
+                    <a href="#" class="dc-keyword-link">nhs</a>
+                  </span>
+                  ,
+                  <span class="dc-keyword">
+                    <a href="#" class="dc-keyword-link">jeremy hunt</a>
+                  </span>
+                  ,
+                  <span class="dc-keyword">
+                    <a href="#" class="dc-keyword-link">budget cuts and a&e</a>
+                  </span>
+                </p>
+              </li>
+              <li class="dc-overview-entry">
+                <p class="dc-entry-header">
+                  <img src="/img/icons/media.png" alt="Media" title="Media" class="dc-entry-img">
+                  <p class="dc-entry-title">
+                    Alcohol and A&E
+                  </p>
+                  <a href="#" class="dc-entry-option">
+                    <img src="/img/icons/details.png" alt="Details" title="Details" class="dc-entry-option">
+                  </a>
+                </p>
+                <p class="dc-entry-source">
+                  Source <span>BBC news</span>
+                </p>
+                <p class="dc-entry-date">
+                  Happened on 
+                  <span class="dc-entry-date">April 5th 2013</span>
+                  <span class="dc-entry-time">13:05pm</span>
+                </p>
+                <div class="dc-entry-content">
+                  <img src="/img/media/sample01.png" alt="Media Name" title="Media Name" class="dc-entry-content-img">
+                </div>
+                <p class="dc-entry-content-keywords">
+                  Keywords
+                  <span class="dc-keyword">
+                    <a href="#" class="dc-keyword-link">nhs</a>
+                  </span>
+                  ,
+                  <span class="dc-keyword">
+                    <a href="#" class="dc-keyword-link">alcohol emergency</a>
+                  </span>
+                  ,
+                  <span class="dc-keyword">
+                    <a href="#" class="dc-keyword-link">drunks</a>
+                  </span>
+                </p>
+              </li>
+              <li class="dc-overview-entry">
+                <p class="dc-entry-header">
+                  <img src="/img/icons/discovery.png" alt="Discovery" title="Discovery" class="dc-entry-img">
+                  <p class="dc-entry-title">User 123 made a discovery</p>
+                  <a href="#" class="dc-entry-option">
+                    <img src="/img/icons/details.png" alt="Details" title="Details" class="dc-entry-option">
+                  </a>
+                </p>
+                <p class="dc-entry-source">
+                  Source <span>NHS Spending 2012</span>
+                </p>
+                <p class="dc-entry-date">
+                  Happened on 
+                  <span class="dc-entry-date">April 5th 2013</span>
+                  <span class="dc-entry-time">13:05pm</span>
+                </p>
+              </li>
+            </ul>
+          </div>
+
+          <div id="dc-overview-discoveries" class="tab-pane">
+            TODO
+          </div>
+
+          <div id="dc-overview-charts" class="tab-pane">
+            TODO
+          </div>
+        </div>
+      </div>
+
+      <div class="dc-zoombar pull-right">
+        <img src="/img/controls/zoombar-ruler.png" alt="" class="dc-zoombar-ruler">
+        <img src="/img/controls/zoombar-plus.png" alt="" class="dc-zoombar-plus">
+        <img src="/img/controls/zoombar-minus.png" alt="" class="dc-zoombar-minus">
+        <img src="/img/controls/zoombar-slider.png" alt="" class="dc-zoombar-slider">
+      </div>
+
+      <div class="dc-network-chart-container">
+        <svg class="dc-network-chart">
+          <circle class="dc-network-chart-circle" cx='200', cy='200', r='50'></circle>
+        </svg>
+      </div>
+
+      <div class="dc-network-histogram-container pull-down">
+        <svg class="dc-network-histogram">
+          <rect class="dc-network-histogram-rect"></rect>
+        </svg>
+      </div>
+
+    
+
+    </div> <!-- /container -->
+  </div> <!-- /jumbotron -->
+
+  {{.Footer}}
+
+  <script>
+    requirejs(['app/dc-search']);
+  </script>
+</body>
+</html>
