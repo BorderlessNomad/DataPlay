@@ -1,4 +1,4 @@
-define ['app/PGChart'], (PGChart) ->
+define ['d3', 'app/PGChart'], (d3, PGChart) ->
   class PGBubblesChart extends PGChart
     node: null
     label: null

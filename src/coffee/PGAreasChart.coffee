@@ -1,4 +1,4 @@
-define ['jquery', 'app/PGLinesChart'], ($, PGLinesChart) ->
+define ['jquery', 'd3', 'app/PGLinesChart'], ($, d3, PGLinesChart) ->
   class PGAreasChart extends PGLinesChart 
     areas: null
 

@@ -103,10 +103,11 @@
         .attr('width', @width)
         .attr('height', @height)
 
-      svg.call d3.behavior.zoom().scaleExtent([1,10]).on 'zoom', () =>        
+      svg.call d3.behavior.zoom().on 'zoom', () =>        
         if @drag
           s = d3.event.scale
-          #console.log d3.event
+          console.log s
+          console.log d3.event
           el = document.getElementsByTagName('svg')[0]
           @chart.scale = s
           @transformElement svg, el.clientLeft, el.clientTop, s

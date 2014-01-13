@@ -1,4 +1,4 @@
-define ['app/PGChart'], (PGChart) ->
+define ['d3', 'app/PGChart'], (d3, PGChart) ->
   class PGPieChart extends PGChart 
     pie: null
     innerRadius: 20
