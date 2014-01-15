@@ -133,7 +133,6 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 				rows.Scan(&TestSubject)
 				_, e := strconv.ParseInt(TestSubject, 10, 64)
 				if e != nil {
-					fmt.Println("I failed to parse " + TestSubject + " So its a false")
 					return "false"
 				}
 			}
@@ -156,8 +155,6 @@ func CheckIfColExists(createcode string, targettable string) bool {
 		if c != 0 { // Clipping off the create part since its useless for me.
 			results := BuildREArrayForCreateTable(line)
 			if len(results) == 3 {
-				fmt.Println(results[1])
-				fmt.Println(targettable)
 				if results[1] == "`"+targettable+"`" {
 					return true
 				}
