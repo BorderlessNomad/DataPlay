@@ -9,7 +9,7 @@ import (
 // var yGiven = []float64{1, 6, 17, 34, 57, 86, 121, 162, 209, 262, 321}
 var degree = 2
 
-func GetPolyResults(xGiven, yGiven []float64) []float64 {
+func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 	m := len(yGiven)
 	if m != len(xGiven) {
 		return []float64{0, 0, 0} // Send it back, There is nothing sane here.
