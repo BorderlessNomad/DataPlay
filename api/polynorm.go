@@ -2,7 +2,7 @@ package api
 
 import (
 	"fmt"
-	"github.com/skelterjohn/go.matrix"
+	"github.com/skelterjohn/go.matrix" // daa59528eefd43623a4c8e36373a86f9eef870a2
 )
 
 // var xGiven = []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
