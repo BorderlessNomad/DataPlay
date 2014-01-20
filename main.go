@@ -167,7 +167,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 
 func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 	session := monager.GetSession(res, req)
-	if !(session.Value != nil || strings.Contains(req.Header.Get("User-Agent"), "PhantomJS")) {
+	if !(session.Value != nil) {
 		http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
 		return
 	}
