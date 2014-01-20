@@ -435,7 +435,6 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 		http.Error(res, "Could not query the data from the datastore", http.StatusInternalServerError)
 		return
 	}
-
 	scanArgs := make([]interface{}, len(columns))
 	values := make([]interface{}, len(columns))
 	for i := range values {
@@ -443,6 +442,9 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 	}
 
 	array := make([]map[string]interface{}, 0)
+	xarray := make([]float64, 0)
+	yarray := make([]float64, 0)
+
 	for rows.Next() {
 		err := rows.Scan(scanArgs...)
 		if err != nil {
@@ -451,19 +453,22 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 
 		record := scanrow(values, columns)
 		/*Going to if both things are float's else I can't predict them*/
-		_, e := strconv.ParseFloat(record[columns[0]].(string), 64)
+		f1, e := strconv.ParseFloat(record[columns[0]].(string), 64)
 		if e != nil {
 			http.Error(res, "Could not parse one of the values into a float, there for cannot run Poly Prediction over it", http.StatusBadRequest)
 			return
 		}
-		_, e = strconv.ParseFloat(record[columns[1]].(string), 64)
+		f2, e := strconv.ParseFloat(record[columns[1]].(string), 64)
 		if e != nil {
 			http.Error(res, "Could not parse one of the values into a float, there for cannot run Poly Prediction over it", http.StatusBadRequest)
 			return
 		}
+		xarray = append(xarray, f1)
+		yarray = append(yarray, f2)
 		array = append(array, record)
 	}
-	s, _ := json.Marshal(array)
+	wat := GetPolyResults(xarray, yarray)
+	s, _ := json.Marshal(wat)
 	res.Write(s)
 	io.WriteString(res, "\n")
 }
