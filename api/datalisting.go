@@ -423,7 +423,7 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 		http.Error(res, "Col Y is invalid.", http.StatusBadRequest)
 		return
 	}
-	rows, e1 := database.Query(fmt.Sprintf("SELECT `%s`,`%s` AS %s FROM `%s` GROUP BY %s", prams["x"], tablename))
+	rows, e1 := database.Query(fmt.Sprintf("SELECT `%s`,`%s` FROM `%s`", prams["x"], prams["x"], tablename))
 
 	if e1 != nil {
 		http.Error(res, "Could not query the data from the datastore", http.StatusInternalServerError)
