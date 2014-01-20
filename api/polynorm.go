@@ -29,7 +29,7 @@ func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 	qty, err := q.Transpose().Times(y)
 	if err != nil {
 		fmt.Println(err)
-		return
+		return []float64{0, 0, 0}
 	}
 	c := make([]float64, n)
 	for i := n - 1; i >= 0; i-- {
