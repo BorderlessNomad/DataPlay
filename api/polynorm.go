@@ -12,7 +12,7 @@ var degree = 2
 func GetPolyResults(xGiven, yGiven []float64) []float64 {
 	m := len(yGiven)
 	if m != len(xGiven) {
-		return []float64{0, 0, 0}
+		return []float64{0, 0, 0} // Send it back, There is nothing sane here.
 	}
 	n := degree + 1
 	y := matrix.MakeDenseMatrix(yGiven, m, 1)
@@ -40,4 +40,5 @@ func GetPolyResults(xGiven, yGiven []float64) []float64 {
 		c[i] /= r.Get(i, i)
 	}
 	fmt.Println(c)
+	return c
 }
