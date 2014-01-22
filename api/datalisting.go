@@ -570,8 +570,8 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 
 	var xcol int
 	var ycol int
-	xcol = 999
-	ycol = 999
+	xcol = -1
+	ycol = -1
 	for number, colname := range columns {
 		if colname == prams["x"] {
 			xcol = number
@@ -579,7 +579,7 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 			ycol = number
 		}
 	}
-	if xcol == 999 || ycol == 999 {
+	if xcol == -1 || ycol == -1 {
 		http.Error(res, "Could not find some of the columns that you asked for.", http.StatusNotFound)
 		return
 	}
