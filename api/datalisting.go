@@ -191,12 +191,8 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 	database := msql.GetDB()
 	defer database.Close()
 
-	var tablename string
-	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["id"]).Scan(&tablename)
-	if tablename == "" {
-		http.Error(res, "Could not find that table", http.StatusNotFound)
-		return
-	}
+	tablename := getRealTableName(prams["id"], database, res)
+
 	rows, err := database.Query("SELECT * FROM " + tablename)
 	if err != nil {
 		panic(err)
@@ -245,12 +241,8 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 	database := msql.GetDB()
 	defer database.Close()
 
-	var tablename string
-	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["id"]).Scan(&tablename)
-	if tablename == "" {
-		http.Error(res, "Could not find that table", http.StatusNotFound)
-		return
-	}
+	tablename := getRealTableName(prams["id"], database, res)
+
 	rows, err := database.Query("SELECT * FROM `" + tablename + "`")
 	if err != nil {
 		panic(err)
@@ -316,12 +308,8 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 	database := msql.GetDB()
 	defer database.Close()
 
-	var tablename string
-	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["id"]).Scan(&tablename)
-	if tablename == "" {
-		http.Error(res, "Could not find that table", http.StatusNotFound)
-		return
-	}
+	tablename := getRealTableName(prams["id"], database, res)
+
 	cls := FetchTableCols(prams["id"], database)
 	// Now we need to check that the rows that the client is asking for, are in the table.
 	Valid := false
@@ -394,12 +382,8 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 	database := msql.GetDB()
 	defer database.Close()
 
-	var tablename string
-	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["id"]).Scan(&tablename)
-	if tablename == "" {
-		http.Error(res, "Could not find that table", http.StatusNotFound)
-		return
-	}
+	tablename := getRealTableName(prams["id"], database, res)
+
 	rows, e1 := database.Query("SELECT * FROM " + tablename)
 
 	if e1 != nil {
@@ -483,12 +467,8 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 	database := msql.GetDB()
 	defer database.Close()
 
-	var tablename string
-	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["id"]).Scan(&tablename)
-	if tablename == "" {
-		http.Error(res, "Could not find that table", http.StatusNotFound)
-		return
-	}
+	tablename := getRealTableName(prams["id"], database, res)
+
 	rows, e1 := database.Query("SELECT * FROM " + tablename)
 
 	if e1 != nil {
@@ -538,4 +518,14 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		array = append(array, record)
 	}
 	res.Write([]byte(output))
+}
+
+func getRealTableName(guid string, database *sql.DB, res http.ResponseWriter) string {
+	var tablename string
+	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", guid).Scan(&tablename)
+	if tablename == "" {
+		http.Error(res, "Could not find that table", http.StatusNotFound)
+		return "Error"
+	}
+	return tablename
 }
