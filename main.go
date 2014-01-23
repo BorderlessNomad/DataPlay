@@ -130,14 +130,14 @@ func main() {
 	m.Get("/api/getdefaults/:id", api.GetDefaults)
 	m.Get("/api/identifydata/:id", api.IdentifyTable)
 	m.Get("/api/classifydata/:table/:col", api.SuggestColType)
-	//m.Use(checkAuth)
 	m.Use(ProabblyAPI)
 	m.Use(recovery.Recovery())
 	m.Use(martini.Static("node_modules"))
 	m.Run()
 }
 
-func ProabblyAPI(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) { // Forces anything with /api to have a json doctype. Since it makes sence to
+func ProabblyAPI(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+	// Forces anything with /api to have a json doctype. Since it makes sence to
 	if strings.HasPrefix(req.RequestURI, "/api") {
 		checkAuth(res, req, monager) // Make everything in the API auth'd
 		res.Header().Set("Content-Type", "application/json")

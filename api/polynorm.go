@@ -5,8 +5,6 @@ import (
 	"github.com/skelterjohn/go.matrix" // daa59528eefd43623a4c8e36373a86f9eef870a2
 )
 
-// var xGiven = []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-// var yGiven = []float64{1, 6, 17, 34, 57, 86, 121, 162, 209, 262, 321}
 var degree = 2
 
 func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
