@@ -495,6 +495,9 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 			return // Halt!
 		}
 		Temp := (float64(Divider) / 100) * float64(DataLength)
+		if Temp < 1 {
+			Temp = 1
+		}
 		DataLength = DataLength / int(Temp)
 		if prams["min"] != "" {
 			MinSpend, e := strconv.ParseInt(prams["min"], 10, 64)
