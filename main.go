@@ -11,8 +11,9 @@ import (
 	api "./api"
 	msql "./databasefuncs"
 	"fmt"
-	"github.com/codegangsta/martini"
-	"github.com/mattn/go-session-manager"
+	"github.com/codegangsta/martini"              // Worked at 890a2a52d2e59b007758538f9b845fa0ed7daccb
+	"github.com/dre1080/martini-contrib/recovery" // Worked at efb5afbb743444c561125d607ba887554a0b9ee2
+	"github.com/mattn/go-session-manager"         // Worked at 02b4822c40b5b3996ebbd8bd747d20587635c41b
 	"log"
 	"net/http"
 	"net/url"
@@ -118,6 +119,7 @@ func main() {
 	m.Get("/api/getdata/:id", api.DumpTable)
 	m.Get("/api/getdata/:id/:x/:startx/:endx", api.DumpTableRange)
 	m.Get("/api/getdatagrouped/:id/:x/:y", api.DumpTableGrouped)
+	m.Get("/api/getdatapred/:id/:x/:y", api.DumpTablePrediction)
 	m.Get("/api/getcsvdata/:id/:x/:y", api.GetCSV)
 	m.Get("/api/getreduceddata/:id", api.DumpReducedTable)
 	m.Get("/api/getreduceddata/:id/:persent", api.DumpReducedTable)
@@ -130,6 +132,7 @@ func main() {
 	m.Get("/api/classifydata/:table/:col", api.SuggestColType)
 	//m.Use(checkAuth)
 	m.Use(ProabblyAPI)
+	m.Use(recovery.Recovery())
 	m.Use(martini.Static("node_modules"))
 	m.Run()
 }

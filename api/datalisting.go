@@ -371,6 +371,92 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 	io.WriteString(res, "\n")
 }
 
+func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams martini.Params) {
+	// This call will get a X,Y and a prediction of a value. that is asked for
+	// /api/getdatapred/:id/:x/:y
+
+	if prams["id"] == "" || prams["x"] == "" || prams["y"] == "" {
+		http.Error(res, "You did not provide enough infomation to make this kind of request :id/:x/:y", http.StatusBadRequest)
+		return
+	}
+
+	database := msql.GetDB()
+	defer database.Close()
+
+	tablename := getRealTableName(prams["id"], database, res)
+
+	cls := FetchTableCols(prams["id"], database)
+	// Now we need to check that the rows that the client is asking for, are in the table.
+	Valid := false
+	for _, clm := range cls {
+		if clm.Name == prams["x"] {
+			Valid = true
+		}
+	}
+	if !Valid {
+		http.Error(res, "Col X is invalid.", http.StatusBadRequest)
+		return
+	}
+	Valid = false
+	for _, clm := range cls {
+		if clm.Name == prams["y"] {
+			Valid = true
+		}
+	}
+	if !Valid {
+		http.Error(res, "Col Y is invalid.", http.StatusBadRequest)
+		return
+	}
+	rows, e1 := database.Query(fmt.Sprintf("SELECT `%s`,`%s` FROM `%s`", prams["x"], prams["y"], tablename))
+
+	if e1 != nil {
+		http.Error(res, "Could not query the data from the datastore", http.StatusInternalServerError)
+		return
+	}
+
+	columns, e2 := rows.Columns()
+	if e1 != nil || e2 != nil {
+		http.Error(res, "Could not query the data from the datastore", http.StatusInternalServerError)
+		return
+	}
+	scanArgs := make([]interface{}, len(columns))
+	values := make([]interface{}, len(columns))
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+
+	array := make([]map[string]interface{}, 0)
+	xarray := make([]float64, 0)
+	yarray := make([]float64, 0)
+
+	for rows.Next() {
+		err := rows.Scan(scanArgs...)
+		if err != nil {
+			panic(err)
+		}
+
+		record := scanrow(values, columns)
+		/*Going to if both things are float's else I can't predict them*/
+		f1, e := strconv.ParseFloat(record[columns[0]].(string), 64)
+		if e != nil {
+			http.Error(res, "Could not parse one of the values into a float, there for cannot run Poly Prediction over it", http.StatusBadRequest)
+			return
+		}
+		f2, e := strconv.ParseFloat(record[columns[1]].(string), 64)
+		if e != nil {
+			http.Error(res, "Could not parse one of the values into a float, there for cannot run Poly Prediction over it", http.StatusBadRequest)
+			return
+		}
+		xarray = append(xarray, f1)
+		yarray = append(yarray, f2)
+		array = append(array, record)
+	}
+	wat := GetPolyResults(xarray, yarray)
+	s, _ := json.Marshal(wat)
+	res.Write(s)
+	io.WriteString(res, "\n")
+}
+
 func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 	// This function will take a share of a table and return it as JSON
 	// Due to what seems to be a golang bug, everything is outputted as a string.
