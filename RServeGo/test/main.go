@@ -8,5 +8,6 @@ import (
 func main() {
 	fmt.Println("Test")
 	a := Rserve.New()
-	a.Connect()
+	e := a.Connect("localhost", 6311)
+	fmt.Println(e)
 }

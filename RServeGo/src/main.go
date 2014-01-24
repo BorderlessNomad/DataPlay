@@ -49,7 +49,7 @@ func (RServeConnection) Connect(IP string, port int) error {
 	if handshakelines[0] == "Rsrv0103QAP1" {
 		fmt.Println(":D")
 	} else {
-		return fmt.Errorf("Unsupported API version, This could work but I am not going to risk it")
+		return fmt.Errorf("Unsupported API version, This could work but I am not going to risk it version: '%s'", handshakelines[0])
 	}
 	return nil
 }
