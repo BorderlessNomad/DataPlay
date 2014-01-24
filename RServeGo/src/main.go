@@ -47,10 +47,25 @@ func (RServeConnection) Connect(IP string, port int) error {
 	*/
 	handshakelines := strings.Split(strbuf, "\n")
 
-	if len(handshakelines) > 2 && strings.HasPrefix(handshakelines[0], "Rsrv0103QAP1") {
-		fmt.Println(":D")
+	if len(handshakelines) < 2 && strings.HasPrefix(handshakelines[0], "Rsrv0103QAP1") {
+
 	} else {
 		return fmt.Errorf("Unsupported API version, This could work but I am not going to risk it version: '%s'", handshakelines[0])
 	}
 	return nil
+}
+
+func getcommandcode(method string) byte {
+	//     return {'eval': 0x03, 'voidEval': 0x02, 'login': 0x01}[method];
+	if method == "eval" {
+		return 0x03
+	} else if method == "voidEval" {
+		return 0x02
+	} else if method == "login" {
+		return 0x01
+	} else {
+		// wat.
+		fmt.Printf("WARNING, you asked for '%s' thats not a valid command code.", getcommandcode)
+		return 8 // Best number to return
+	}
 }
