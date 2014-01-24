@@ -1,8 +1,6 @@
-package RServe
+package Rserve
 
-import (
-	"fmt"
-)
+import ()
 
 // serialize = function(method, commandStr) {
 //     if (_.isUndefined(commandStr)) {

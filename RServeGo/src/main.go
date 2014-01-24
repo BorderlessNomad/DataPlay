@@ -8,8 +8,10 @@ import (
 )
 
 type RServeConnection struct {
-	Hello      string
-	connection net.Conn
+	Hello                string
+	ServerBanner         string
+	AllowUnknownVersions bool
+	connection           net.Conn
 }
 
 func New() RServeConnection {
@@ -17,7 +19,7 @@ func New() RServeConnection {
 	return a
 }
 
-func (RServeConnection) Connect(IP string, port int) error {
+func (self RServeConnection) Connect(IP string, port int) error {
 	if port > 65536 {
 		erm := errors.New("The TCP Stack does not allow ports to be above 2^16")
 		return erm
@@ -46,9 +48,9 @@ func (RServeConnection) Connect(IP string, port int) error {
 		--------------
 	*/
 	handshakelines := strings.Split(strbuf, "\n")
-
-	if len(handshakelines) < 2 && strings.HasPrefix(handshakelines[0], "Rsrv0103QAP1") {
-
+	self.ServerBanner = handshakelines[0]
+	if (len(handshakelines) < 2 && strings.HasPrefix(handshakelines[0], "Rsrv0103QAP1")) || (self.AllowUnknownVersions && strings.HasPrefix(handshakelines[0], "Rsrv")) {
+		// Umm, I guess the connection worked then
 	} else {
 		return fmt.Errorf("Unsupported API version, This could work but I am not going to risk it version: '%s'", handshakelines[0])
 	}
@@ -56,7 +58,7 @@ func (RServeConnection) Connect(IP string, port int) error {
 }
 
 func getcommandcode(method string) byte {
-	//     return {'eval': 0x03, 'voidEval': 0x02, 'login': 0x01}[method];
+
 	if method == "eval" {
 		return 0x03
 	} else if method == "voidEval" {
@@ -68,4 +70,5 @@ func getcommandcode(method string) byte {
 		fmt.Printf("WARNING, you asked for '%s' thats not a valid command code.", getcommandcode)
 		return 8 // Best number to return
 	}
+
 }
