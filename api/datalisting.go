@@ -1,7 +1,6 @@
 package api
 
 import (
-	a "../RServeGo"
 	msql "../databasefuncs"
 	"database/sql"
 	"encoding/json"
@@ -41,8 +40,6 @@ func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params,
 		UserID:   intuid,
 	}
 	b, _ := json.Marshal(returnobj)
-	asd := a.New()
-	asd.Connect()
 	return string(b[:])
 }
 
