@@ -1,42 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  {{.Header}}
-</head>
-<body>
-  {{.Navbar}}
-  <div class="jumbotron">
-    <div class="container">      
-      <h1>Welcome back {{.Custom.username}}</h1>
-      <div id="History">
-        <p>It looks pretty lonley here!</p>
-        <p>Why don't you go and view some data that you are interseted in?</p>
-      </div>
-      <p>
-        <a class="btn btn-lg btn-primary" href="/search" role="button">Search Data &raquo;</a>
-      </p>
-    </div> <!-- /container -->
-  </div> <!-- /jumbotron -->
-  {{.Footer}}
 
-  <script type="text/html" id="visitedEntryTemplate">
-    <% if (data[1].length) { %>
-      <% if (data[1].length > 85) {
-        data[1] = data[1].substring(0,83) + '...';
-      } %> 
-      <div class='visitedEntry'>
-        <%- data[1] %>&nbsp;
-        <a href='/charts/<%= data[0] %>'>View &raquo;</a>&nbsp;
-        <a href='/overview/<%= data[0] %>'>Overview &raquo;</a>&nbsp;
+<head>
+    {{.Header}}
+</head>
+
+<body>
+    {{.Navbar}}
+    <div class="jumbotron">
+        <div class="container">
+            <h1>Welcome back {{.Custom.username}}</h1>
+            <div id="History">
+                <p>It looks pretty lonley here!</p>
+                <p>Why don't you go and view some data that you are interseted in?</p>
+            </div>
+            <p>
+                <a class="btn btn-lg btn-primary" href="/search" role="button">Search Data &raquo;</a>
+            </p>
+        </div>
+        <!-- /container -->
+    </div>
+    <!-- /jumbotron -->
+    {{.Footer}}
+
+    <script type="text/html" id="visitedEntryTemplate">
+    <%
+    if (data[1].length) { %> <%
+        if (data[1].length > 85) {
+            data[1] = data[1].substring(0, 83) + '...';
+        } %> < div class = 'visitedEntry' > <% -data[1] %> & nbsp; < a href = '/charts/<%= data[0] %>' > View & raquo; < /a>&nbsp;
+        <a href='/overview / <%= data[0] %> '>Overview &raquo;</a>&nbsp;
         <% if (data[2] === "true") { %>
-              <a href='/maptest/<%= data[0] %>'>Map &raquo;</a>
+              <a href=' / maptest / <%= data[0] %> '>Map &raquo;</a>
         <%  }  %>
       </div>
     <% } %>
-  </script>
+    </script>
 
-  <script>
+    <script>
     requirejs(['app/home']);
-  </script> 
+    </script>
 </body>
+
 </html>

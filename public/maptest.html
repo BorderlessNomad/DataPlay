@@ -1,55 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  {{.Header}}
-  <link rel="stylesheet" href="/lib/dependencies/css/style.min.css" />
-  <!--[if lte IE 8]>
+    {{.Header}}
+    <link rel="stylesheet" href="/lib/dependencies/css/style.min.css" />
+    <!--[if lte IE 8]>
   <link rel="stylesheet" href="/lib/css/dependencies/ie6-style.min.css" />
   <![endif]-->
-  <link rel="stylesheet" href="/leaflet/dist/leaflet.css" />
-  <link rel="stylesheet" href="/leaflet-search/dist/leaflet-search.min.css" />
-  <link rel="stylesheet" href="/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-  <link rel="stylesheet" href="/css/maptest.css" />
-  <link href="/dc/dc.css" rel="stylesheet">
-  <link href="/css/charts.css" rel="stylesheet">
+    <link rel="stylesheet" href="/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="/leaflet-search/dist/leaflet-search.min.css" />
+    <link rel="stylesheet" href="/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="/css/maptest.css" />
+    <link href="/dc/dc.css" rel="stylesheet">
+    <link href="/css/charts.css" rel="stylesheet">
 </head>
+
 <body>
-  {{.Navbar}}
-  <div class="jumbotron">
-    <div class="container mapChartsContainer">
-      <div id="mapContainer"></div>
-      <div id="mapCharts">
-        <div id="charts"></div>
-      </div>
-    </div> <!-- /container -->
-  </div> <!-- /jumbotron -->
-  {{.Footer}}
-
-  <!------------------------------- Location search bar template ---------------------------------->
-  <script type='text/template' id='location-search-bar-template'>
-      <input type='text' id='locationSearchInput' class='searchInput' placeholder='Search Location ...'>
-      <button class='geosearchButton mapButton'><img src='/img/ico-search.png'></button>
-      <button class='geoLocateButton mapButton'><img src='/img/ico-locate.png'></button>
-      <ul class='searchList'></ul>
-  </script>
-
-  <!------------------------------- Items search bar template ---------------------------------->
-  <script type='text/template' id='items-search-bar-template'>
-      <input type='text' id='itemsSearchInput' class='searchInput' placeholder='Search items ...'>
-      <button class='itemSearchButton mapButton'><img src='/img/ico-search.png'></button>
-  </script>
-
-  <!------------------------------------- Feature popup template (Generic) -------------------------------------->
-  <script type='text/template' id='features-popup-template'>
-    <div class='item-popup'>
-      <% for (var entry in data) { %>
-        <label><%=entry%>:&nbsp;<%=data[entry]%></label>,<br/>
-      <% } %>
+    {{.Navbar}}
+    <div class="jumbotron">
+        <div class="container mapChartsContainer">
+            <div id="mapContainer"></div>
+            <div id="mapCharts">
+                <div id="charts"></div>
+            </div>
+        </div>
+        <!-- /container -->
     </div>
-  </script>
+    <!-- /jumbotron -->
+    {{.Footer}}
 
-  <script>
+    <!------------------------------- Location search bar template ---------------------------------->
+    <script type='text/template' id='location-search-bar-template'>
+    < input type = 'text'
+    id = 'locationSearchInput'
+    class = 'searchInput'
+    placeholder = 'Search Location ...' > < button class = 'geosearchButton mapButton' > < img src = '/img/ico-search.png' > < /button>
+      <button class='geoLocateButton mapButton'><img src='/img / ico - locate.png '></button>
+      <ul class='
+    searchList '></ul>
+    </script>
+
+    <!------------------------------- Items search bar template ---------------------------------->
+    <script type='text/template' id='items-search-bar-template'>
+    < input type = 'text'
+    id = 'itemsSearchInput'
+    class = 'searchInput'
+    placeholder = 'Search items ...' > < button class = 'itemSearchButton mapButton' > < img src = '/img/ico-search.png' > < /button>
+    </script>
+
+    <!------------------------------------- Feature popup template (Generic) -------------------------------------->
+    <script type='text/template' id='features-popup-template'>
+    < div class = 'item-popup' > <%
+    for (var entry in data) { %> < label > <%= entry %> : & nbsp; <%= data[entry] %> < /label>,<br/ > <%
+    } %> < /div>
+    </script>
+
+    <script>
     requirejs(['app/maptest']);
-  </script>
+    </script>
 </body>
+
 </html>

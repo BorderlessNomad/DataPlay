@@ -1,31 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     {{.Header}}
-  </head>
-  <body>
+</head>
+
+<body>
     {{.Navbar}}
     <div class="container">
-      <!-- Main component for a primary marketing message or call to action -->
-      <div class="jumbotron">
-        <h1>Viewing Dataset <font id="FillInDataSet">...</font></h1>
-        <div id="map" style="height:500px;width: 1000px"></div>
-        <p>
-          <a class="btn btn-lg btn-primary" href="../../components/#navbar" role="button">Find Related Data &raquo;</a>
-        </p>
-        <p>
-          <a class="btn btn-lg btn-primary" href="../../components/#navbar" role="button">Add To Home &raquo;</a>
-        </p>
-      </div>
-      <!-- Wikidata -->
-      <div class="container wikidata">
-        <h2> History </h2>
-        <div class="demo-container" style="width: 300px;">
-          <div id="placeholder" class="demo-placeholder" style="width:250px;"></div>
+        <!-- Main component for a primary marketing message or call to action -->
+        <div class="jumbotron">
+            <h1>Viewing Dataset
+                <font id="FillInDataSet">...</font>
+            </h1>
+            <div id="map" style="height:500px;width: 1000px"></div>
+            <p>
+                <a class="btn btn-lg btn-primary" href="../../components/#navbar" role="button">Find Related Data &raquo;</a>
+            </p>
+            <p>
+                <a class="btn btn-lg btn-primary" href="../../components/#navbar" role="button">Add To Home &raquo;</a>
+            </p>
         </div>
-        <p>Blah blah blah people get <b>stabbed</b></p>
-      </div>
-    </div> <!-- /container -->
+        <!-- Wikidata -->
+        <div class="container wikidata">
+            <h2>History</h2>
+            <div class="demo-container" style="width: 300px;">
+                <div id="placeholder" class="demo-placeholder" style="width:250px;"></div>
+            </div>
+            <p>Blah blah blah people get <b>stabbed</b>
+            </p>
+        </div>
+    </div>
+    <!-- /container -->
 
     {{.Footer}}
     <script src="http://www.flotcharts.org/flot/jquery.flot.js"></script>
@@ -33,18 +39,19 @@
     <script src="assets/js/GMapsTheme.js"></script>
 
     <script type="text/javascript">
-      // When the window has finished loading create our google map below
-      google.maps.event.addDomListener(window, 'load', init);
-      taxiData = [];
-      function init() {
+    // When the window has finished loading create our google map below
+    google.maps.event.addDomListener(window, 'load', init);
+    taxiData = [];
+
+    function init() {
         for (var i = 0; i < 1000; i++) {
-          taxiData.push(new google.maps.LatLng(51 + Math.random(), Math.random() * -1))
+            taxiData.push(new google.maps.LatLng(51 + Math.random(), Math.random() * -1))
         };
         // Basic options for a simple Google Map
         // For more options see: https://developers.google.com/maps/documentation/javascript/reference#MapOptions
         var mapOptions = {
             zoom: 11,
-            center: new google.maps.LatLng(51.519813,-0.071144),
+            center: new google.maps.LatLng(51.519813, -0.071144),
             styles: GMapsTheme
         };
 
@@ -58,58 +65,58 @@
         var pointArray = new google.maps.MVCArray(taxiData);
 
         heatmap = new google.maps.visualization.HeatmapLayer({
-          data: pointArray
+            data: pointArray
         });
 
-      // var gradient = [
-      //   'rgba(0, 255, 255, 0)',
-      //   'rgba(0, 255, 255, 1)',
-      //   'rgba(0, 191, 255, 1)',
-      //   'rgba(0, 127, 255, 1)',
-      //   'rgba(0, 63, 255, 1)',
-      //   'rgba(0, 0, 255, 1)',
-      //   'rgba(0, 0, 223, 1)',
-      //   'rgba(0, 0, 191, 1)',
-      //   'rgba(0, 0, 159, 1)',
-      //   'rgba(0, 0, 127, 1)',
-      //   'rgba(63, 0, 91, 1)',
-      //   'rgba(127, 0, 63, 1)',
-      //   'rgba(191, 0, 31, 1)',
-      //   'rgba(255, 0, 0, 1)'
-      // ]
-      // heatmap.set('gradient', heatmap.get('gradient') ? null : gradient);
+        // var gradient = [
+        //   'rgba(0, 255, 255, 0)',
+        //   'rgba(0, 255, 255, 1)',
+        //   'rgba(0, 191, 255, 1)',
+        //   'rgba(0, 127, 255, 1)',
+        //   'rgba(0, 63, 255, 1)',
+        //   'rgba(0, 0, 255, 1)',
+        //   'rgba(0, 0, 223, 1)',
+        //   'rgba(0, 0, 191, 1)',
+        //   'rgba(0, 0, 159, 1)',
+        //   'rgba(0, 0, 127, 1)',
+        //   'rgba(63, 0, 91, 1)',
+        //   'rgba(127, 0, 63, 1)',
+        //   'rgba(191, 0, 31, 1)',
+        //   'rgba(255, 0, 0, 1)'
+        // ]
+        // heatmap.set('gradient', heatmap.get('gradient') ? null : gradient);
 
         heatmap.set('radius', heatmap.get('radius') ? null : 20);
         heatmap.setMap(map);
-      }
+    }
     </script>
 
     <script type="text/javascript">
-      $(function() {
+    $(function() {
         var y = 1988;
-        var datasets = [
-          {
-              data: []
-          }
-        ];
+        var datasets = [{
+            data: []
+        }];
         for (var i = 0; i < 18; i++) {
-          datasets[0].data.push([y+i,Math.sin(i/7) + Math.random()/6]);
+            datasets[0].data.push([y + i, Math.sin(i / 7) + Math.random() / 6]);
         };
+
         function plotAccordingToChoices() {
-          if (datasets.length > 0) {
-            $.plot("#placeholder", datasets, {
-              yaxis: {
-                min: 0
-              },
-              xaxis: {
-                tickDecimals: 0
-              }
-            });
-          }
+            if (datasets.length > 0) {
+                $.plot("#placeholder", datasets, {
+                    yaxis: {
+                        min: 0
+                    },
+                    xaxis: {
+                        tickDecimals: 0
+                    }
+                });
+            }
         }
         plotAccordingToChoices();
-      });    
+    });
     </script>
 
-  </body>
+</body>
+
 </html>

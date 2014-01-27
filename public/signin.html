@@ -1,22 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     {{.Header}}
     <link href="/css/signin.css" rel="stylesheet">
-  </head>
-  <body>
+</head>
+
+<body>
     {{.Navbar}}
     <div class="jumbotron">
-      <div class="container">
-        <form class="form-signin" action="/noauth/login.json" method="POST" >
-          <h2 class="form-signin-heading">DataCon - Please sign in</h2>
-          <font color="#FF0000">{{.Custom.fail}}</font>
-          <input name="username" type="text" class="form-control" placeholder="Email address" required autofocus>
-          <input name="password" type="password" class="form-control" placeholder="Password" required>
-          <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
-        </form>
-      </div> <!-- /container -->
-    </div> <!-- /jumbotron -->
+        <div class="container">
+            <form class="form-signin" action="/noauth/login.json" method="POST">
+                <h2 class="form-signin-heading">DataCon - Please sign in</h2>
+                <font color="#FF0000">{{.Custom.fail}}</font>
+                <input name="username" type="text" class="form-control" placeholder="Email address" required autofocus>
+                <input name="password" type="password" class="form-control" placeholder="Password" required>
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+            </form>
+        </div>
+        <!-- /container -->
+    </div>
+    <!-- /jumbotron -->
     {{.Footer}}
-  </body>
+</body>
+
 </html>
