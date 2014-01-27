@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func serialize(method, commandStr string) {
+func serialize(method, commandStr string) []byte {
 	if method == "" {
 		if strings.HasSuffix(commandStr, ";") {
 			method = "voidEval"
@@ -54,6 +54,29 @@ func serialize(method, commandStr string) {
 	for k, _ := range uintbuf {
 		buf[k+4] = uintbuf[k]
 	}
+	//     buf.writeUInt16LE(strlen, 17); // Length of the string
+	// Now, I don't fully understand this in the node thing. But I am going to just go along with it.
+	datalength = uint32(strlen)
+	err = binary.Write(tbuf, binary.LittleEndian, datalength)
+	if err != nil {
+		panic("wat")
+	}
+	uintbuf = make([]byte, 4)
+	n, err = tbuf.Read(uintbuf)
+	if n != 4 || err != nil {
+		panic("wat man")
+	}
+	for k, _ := range uintbuf {
+		buf[k+17] = uintbuf[k]
+	}
+	//     buf.writeUInt8(0x04, 16);  // Data is a string
+	buf[16] = 0x04
+	// And now actually write the string into the buffer.
+	commandBytes := []byte(commandStr)
+	for k, _ := range commandBytes {
+		buf[k+20] = commandBytes[k]
+	}
+	return buf
 }
 
 // serialize = function(method, commandStr) {
