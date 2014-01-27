@@ -19,7 +19,7 @@ func New() RServeConnection {
 	return a
 }
 
-func (self RServeConnection) Connect(IP string, port int) error {
+func (self RServeConnection) Connect(IP string, port int) (ee error) {
 	if port > 65536 {
 		erm := errors.New("The TCP Stack does not allow ports to be above 2^16")
 		return erm
@@ -54,7 +54,7 @@ func (self RServeConnection) Connect(IP string, port int) error {
 	} else {
 		return fmt.Errorf("Unsupported API version, This could work but I am not going to risk it version: '%s'", handshakelines[0])
 	}
-	return nil
+	return ee
 }
 
 func getcommandcode(method string) byte {

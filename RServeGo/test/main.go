@@ -3,11 +3,18 @@ package main
 import (
 	Rserve "../src"
 	"fmt"
+	"log"
+	"os"
 )
 
 func main() {
+	logger := log.New(os.Stderr, "[test] ", log.Ldate)
 	fmt.Println("Test")
 	a := Rserve.New()
-	e := a.Connect("localhost", 6311)
-	fmt.Println(e)
+	a.AllowUnknownVersions = true
+	e := a.Connect("192.168.1.122", 6311)
+	if e != nil {
+		logger.Fatal("Cannot connect to the RServer")
+	}
+	logger.Println("Server vesion is", a.ServerBanner)
 }
