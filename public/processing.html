@@ -1,25 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  {{.Header}}
+    {{.Header}}
 </head>
 
 <body>
-  {{.Navbar}}
-  <div class="jumbotron">
-    <div class="container">
-      <h1>Importing Data...</h1>
-      <p>Hold on while we fetch this unit of data and process it.</p>
-      <p>The page will automatically refresh when more infomation is avalible.</p>
-    </div> <!-- /container -->
-  </div> <!-- /jumbotron -->
-  {{.Footer}}
-  <script>
+    {{.Navbar}}
+    <div class="jumbotron">
+        <div class="container">
+            <h1>Importing Data...</h1>
+            <p>Hold on while we fetch this unit of data and process it.</p>
+            <p>The page will automatically refresh when more infomation is avalible.</p>
+        </div>
+        <!-- /container -->
+    </div>
+    <!-- /jumbotron -->
+    {{.Footer}}
+    <script>
     requirejs([
-      'jquery'
-    ], function () {
-          requirejs(['app/processing']);
+        'jquery'
+    ], function() {
+        requirejs(['app/processing']);
     });
-  </script> 
+    </script>
 </body>
+
 </html>
