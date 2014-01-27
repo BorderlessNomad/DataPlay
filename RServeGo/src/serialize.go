@@ -1,6 +1,8 @@
 package Rserve
 
 import (
+	"bytes"
+	"encoding/binary"
 	"strings"
 )
 
@@ -13,7 +15,7 @@ func serialize(method, commandStr string) {
 		}
 	}
 	strlen := len([]byte(commandStr))
-	if strlen % 4 {
+	if strlen%4 == 0 {
 		strlen += 4 - (strlen % 4) // Not even sure why this is a thing
 		// I've gathered it is to "Ensure it's a multiple of 4"
 	}
@@ -21,7 +23,24 @@ func serialize(method, commandStr string) {
 	for i := 0; i < len(buf); i++ {
 		buf[i] = 0x00
 	}
+
 	cmdcode := uint32(getcommandcode(method))
+
+	//     buf.writeUInt32LE(cmdCode, 0); // Command code
+	tbuf := new(bytes.Buffer)
+	err := binary.Write(tbuf, binary.LittleEndian, cmdcode)
+	if err != nil {
+		panic("wat")
+	}
+	uintbuf := make([]byte, 4)
+	n, err := tbuf.Read(uintbuf)
+	if n != 4 || err != nil {
+		panic("wat man")
+	}
+	for k, _ := range uintbuf {
+		buf[k] = uintbuf[k]
+	}
+	//     buf.writeUInt32LE(4 + strlen, 4); // data length
 
 }
 
