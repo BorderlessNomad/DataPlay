@@ -1,6 +1,29 @@
 package Rserve
 
-import ()
+import (
+	"strings"
+)
+
+func serialize(method, commandStr string) {
+	if method == "" {
+		if strings.HasSuffix(commandStr, ";") {
+			method = "voidEval"
+		} else {
+			method = "eval"
+		}
+	}
+	strlen := len([]byte(commandStr))
+	if strlen % 4 {
+		strlen += 4 - (strlen % 4) // Not even sure why this is a thing
+		// I've gathered it is to "Ensure it's a multiple of 4"
+	}
+	buf := make([]byte, 16+4+strlen)
+	for i := 0; i < len(buf); i++ {
+		buf[i] = 0x00
+	}
+	cmdcode := uint32(getcommandcode(method))
+
+}
 
 // serialize = function(method, commandStr) {
 //     if (_.isUndefined(commandStr)) {
