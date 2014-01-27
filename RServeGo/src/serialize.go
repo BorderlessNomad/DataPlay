@@ -41,7 +41,19 @@ func serialize(method, commandStr string) {
 		buf[k] = uintbuf[k]
 	}
 	//     buf.writeUInt32LE(4 + strlen, 4); // data length
-
+	datalength := uint32(strlen + 4)
+	err = binary.Write(tbuf, binary.LittleEndian, datalength)
+	if err != nil {
+		panic("wat")
+	}
+	uintbuf = make([]byte, 4)
+	n, err = tbuf.Read(uintbuf)
+	if n != 4 || err != nil {
+		panic("wat man")
+	}
+	for k, _ := range uintbuf {
+		buf[k+4] = uintbuf[k]
+	}
 }
 
 // serialize = function(method, commandStr) {
