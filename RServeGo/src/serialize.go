@@ -19,6 +19,7 @@ func serialize(method, commandStr string) []byte {
 		strlen += 4 - (strlen % 4) // Not even sure why this is a thing
 		// I've gathered it is to "Ensure it's a multiple of 4"
 	}
+	strlen++ // We need a nul term on there
 	buf := make([]byte, 16+4+strlen)
 	for i := 0; i < len(buf); i++ {
 		buf[i] = 0x00

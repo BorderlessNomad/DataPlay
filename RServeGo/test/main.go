@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 )
 
 func main() {
@@ -19,4 +20,5 @@ func main() {
 	logger.Println("Server vesion is", a.ServerBanner)
 	e = a.Eval("1+1")
 	logger.Println(e)
+	time.Sleep(time.Second * 5)
 }
