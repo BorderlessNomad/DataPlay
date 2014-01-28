@@ -19,7 +19,7 @@ func New() RServeConnection {
 	return a
 }
 
-func (self RServeConnection) Connect(IP string, port int) (ee error) {
+func (self *RServeConnection) Connect(IP string, port int) (ee error) {
 	if port > 65536 {
 		erm := errors.New("The TCP Stack does not allow ports to be above 2^16")
 		return erm
@@ -49,15 +49,17 @@ func (self RServeConnection) Connect(IP string, port int) (ee error) {
 	*/
 	handshakelines := strings.Split(strbuf, "\n")
 	self.ServerBanner = handshakelines[0]
+	fmt.Println(self.ServerBanner)
 	if (len(handshakelines) < 2 && strings.HasPrefix(handshakelines[0], "Rsrv0103QAP1")) || (self.AllowUnknownVersions && strings.HasPrefix(handshakelines[0], "Rsrv")) {
 		// Umm, I guess the connection worked then
+		self.connection = conn
 	} else {
 		return fmt.Errorf("Unsupported API version, This could work but I am not going to risk it version: '%s'", handshakelines[0])
 	}
 	return ee
 }
 
-func (self RServeConnection) Eval(val string) error {
+func (self *RServeConnection) Eval(val string) error {
 	if self.ServerBanner == "" {
 		return fmt.Errorf("You cannot run eval commands when you are not connected!")
 	}
