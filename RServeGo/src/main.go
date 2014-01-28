@@ -57,6 +57,16 @@ func (self RServeConnection) Connect(IP string, port int) (ee error) {
 	return ee
 }
 
+func (self RServeConnection) Eval(val string) error {
+	if self.ServerBanner != "" {
+
+	} else {
+		return fmt.Errorf("You cannot run eval commands when you are not connected!")
+	}
+
+	return fmt.Errorf("Wat")
+}
+
 func getcommandcode(method string) byte {
 
 	if method == "eval" {
