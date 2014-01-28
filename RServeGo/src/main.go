@@ -58,13 +58,12 @@ func (self RServeConnection) Connect(IP string, port int) (ee error) {
 }
 
 func (self RServeConnection) Eval(val string) error {
-	if self.ServerBanner != "" {
-
-	} else {
+	if self.ServerBanner == "" {
 		return fmt.Errorf("You cannot run eval commands when you are not connected!")
 	}
 
-	return fmt.Errorf("Wat")
+	_, e := self.connection.Write(serialize("eval", val))
+	return e
 }
 
 func getcommandcode(method string) byte {
