@@ -10,3 +10,4 @@ tools/ckandownloader/x*
 node_modules/
 public/js/
 public/css/
+public/lib/openlayers/lib/OpenLayers.js
