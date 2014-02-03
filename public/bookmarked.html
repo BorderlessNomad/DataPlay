@@ -1,77 +1,76 @@
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    {{.Header}}
-    <link href="/css/charts.css" rel="stylesheet">
+  {{.Header}}
+  <link href="/css/charts.css" rel="stylesheet">
 </head>
 
 <body>
-    {{.Navbar}}
-    <div class="jumbotron">
-        <div class="container">
-            <h2>Viewing Dataset
-                <font id="FillInDataSet">...</font>
-            </h2>
-            <div id='data-container' class="row">
-                <!-- Chart -->
-                <div id="chart" class="col-md-9">
-                    <h2>Loading Chart ...</h2>
-                    <p>Hold on.</p>
-                </div>
-                <!-- Wikidata -->
-                <div id='wikidata' class="col-md-3">
-                    <h2>Loading data ...</h2>
-                    <p>Hold on.</p>
-                </div>
-            </div>
-            <div class="row">
-                <div id="selectors" class='col-xs-6'>
-                    <div class="row">
-                        Override X Axis:
-                        <select id="pickxaxis" onchange="ReJigGraph()">
-                            <option>Loading...</option>
-                        </select>
-                    </div>
-                    <div class="row">
-                        Override Y Axis:
-                        <select id="pickyaxis" onchange="ReJigGraph()">
-                            <option>Loading...</option>
-                        </select>
-                    </div>
-                </div>
-                <!-- selectors -->
-            </div>
-
+  {{.Navbar}}
+  <div class="jumbotron">
+    <div class="container">
+      <h2>Viewing Dataset <font id="FillInDataSet">...</font></h2>
+      <div id='data-container' class="row">
+        <!-- Chart -->
+        <div id="chart" class="col-md-9">
+          <h2>Loading Chart ...</h2>
+          <p>Hold on.</p>
         </div>
-        <!-- /container -->
-    </div>
-    <!-- /jumbotron -->
-    {{.Footer}}
-    <script type="text/html" id="pointDataTemplate">
-    <% !data.title && (data.title = '');
-    !data.text && (data.text = '');
-    console.log(data); %> < div class = 'pointDataContainer' > < h4 > Info < /h4>
+        <!-- Wikidata -->
+        <div id='wikidata' class="col-md-3">
+          <h2>Loading data ...</h2>
+          <p>Hold on.</p>
+        </div>
+      </div>     
+      <div class="row">
+        <div id="selectors" class='col-xs-6'>
+          <div class="row">
+            Override X Axis:
+            <select id="pickxaxis" onchange="ReJigGraph()">
+              <option>Loading...</option>
+            </select>
+          </div>
+          <div class="row">
+            Override Y Axis:
+            <select id="pickyaxis" onchange="ReJigGraph()">
+              <option>Loading...</option>
+            </select>
+          </div>
+        </div> <!-- selectors -->
+      </div>
+
+    </div> <!-- /container -->     
+  </div> <!-- /jumbotron -->
+  {{.Footer}}
+  <script type="text/html" id="pointDataTemplate">
+    <% 
+       !data.title && (data.title='');
+       !data.text && (data.text='');
+       console.log(data);
+    %>
+    <div class='pointDataContainer'>
+      <h4>Info</h4>
       <div class='pointInfo'>
         <form name="pointForm-<%= data.id %>" submit="javascript:void(0);">
           <input type='text' id="pointInfoTitleInput-<%= data.id %>" name="pointInfoTitleInput-<%= data.id %>" class='pointInfoTitleInput' placeholder='Title' value="<%= data.title %>">
           <input type='text' id="pointInfoTextInput-<%= data.id %>" name="pointInfoTextInput-<%= data.id %>" class='pointInfoTextInput' placeholder='Text' value="<%= data.text %>">
           <input type="submit" value="Submit">
-        </form > < /div>
-    </div >
-    </script>
+        </form>
+      </div>
+    </div>
+  </script>
 
-    <script>
+  <script>
     requirejs([
-        'd3',
-        'backbone',
-        'app/common',
-        'app/PGChartPoint',
-        'app/PGChart',
-    ], function() {
-        requirejs(['app/bookmarked']);
+      'd3',
+      'backbone',
+      'app/common',
+      'app/PGChartPoint',
+      'app/PGChart', 
+    ], function () {
+          requirejs(['app/bookmarked']);
     });
-    </script>
+  </script>  
 </body>
-
 </html>

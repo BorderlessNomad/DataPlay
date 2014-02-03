@@ -1,31 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    {{.Header}}
-    <link href="/dc/dc.css" rel="stylesheet">
-    <link href="/css/charts.css" rel="stylesheet">
+  {{.Header}}
+  <link href="/dc/dc.css" rel="stylesheet">
+  <link href="/css/charts.css" rel="stylesheet">
 </head>
 
 <body>
-    {{.Navbar}}
-    <div class="jumbotron">
-        <div class="container">
-            <div id='data-container' class="row">
-                <!-- Chart -->
-                <div id="charts">
-                    <h2>Loading Charts .......</h2>
-                    <p>Hold on.</p>
-                </div>
-            </div>
+  {{.Navbar}}
+  <div class="jumbotron">
+    <div class="container">
+      <div id='data-container' class="row">
+        <!-- Chart -->
+        <div id="charts">
+          <h2>Loading Charts .......</h2>
+          <p>Hold on.</p>
         </div>
-        <!-- /container -->
-    </div>
-    <!-- /jumbotron -->
-    {{.Footer}}
-    <script>
-    requirejs(['app/overview']);
-    </script>
+      </div>
+    </div> <!-- /container -->     
+  </div> <!-- /jumbotron -->
+{{.Footer}}
+<script>
+  requirejs(['app/overview']);
+</script>   
 </body>
-
 </html>

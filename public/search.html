@@ -1,57 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    {{.Header}}
+  {{.Header}}
 </head>
-
 <body>
-    {{.Navbar}}
-    <div class="jumbotron">
-        <div class="container">
-            <h1>Search</h1>
-            <input class="form-control input-sm" type="text" id="SBox" placeholder="Enter your query here">
-            <table class="table" id="ResultsTable">
-                <tr>
-                    <td>Name</td>
-                    <td>Link</td>
-                </tr>
-            </table>
-        </div>
-        <!-- /container -->
-    </div>
-    <!-- /jumbotron -->
-    {{.Footer}}
+  {{.Navbar}}
+  <div class="jumbotron">
+    <div class="container">
+      <h1>Search</h1>
+      <input class="form-control input-sm" type="text" id="SBox" placeholder="Enter your query here">
+      <table class="table" id="ResultsTable">
+        <tr><td>Name</td><td>Link</td></tr>
+      </table>
+    </div> <!-- /container -->
+  </div> <!-- /jumbotron -->
+  {{.Footer}}
 
-    <script type="text/html" id="searchResultsTemplate">
-    <%
-    if (data.Title) { %> < tr id = '<%= data.GUID %>'
-        class = 'success' > < td style = 'width: 70%;' > <%= data.Title %> < /td> 
+  <script type="text/html" id="searchResultsTemplate">
+    <% if (data.Title) { %>
+      <tr id='<%= data.GUID %>' class='success'>
+        <td style='width: 70%;'><%= data.Title %></td> 
         <td id='Note<%= data.GUID %>'>
-          <a href='/charts / <%= data.GUID %> '>View &raquo;</a>&nbsp;
-          <a href=' / overview / <%= data.GUID %> '>Overview &raquo;</a>&nbsp;
+          <a href='/charts/<%= data.GUID %>'>View &raquo;</a>&nbsp;
+          <a href='/overview/<%= data.GUID %>'>Overview &raquo;</a>&nbsp;
           <% if (data.LocationData === "true") { %>
-                <a href=' / maptest / <%= data.GUID %> '>Map &raquo;</a>
+                <a href='/maptest/<%= data.GUID %>'>Map &raquo;</a>
           <%  }  %>
         </td> 
       </tr>     
     <% } %>
-    </script>
+  </script>
 
-    <script type="text/html" id="searchResultsOverlayTemplate">
-    <%
-    if (data.Title) { %> < tr id = '<%= data.GUID %>'
-        class = 'success' > < td style = 'width: 70%;' > <%= data.Title %> < /td> 
+  <script type="text/html" id="searchResultsOverlayTemplate">
+    <% if (data.Title) { %>
+      <tr id='<%= data.GUID %>' class='success'>
+        <td style='width: 70%;'><%= data.Title %></td> 
         <td id='Note<%= data.GUID %>'>
-          <a href='/overlay / <%= data.GUID %> '>Overlay &raquo;</a>
+          <a href='/overlay/<%= data.GUID %>'>Overlay &raquo;</a>
         </td> 
       </tr>     
     <% } %>
-    </script>
+  </script>
 
-    <script>
+  <script>
     requirejs(['app/search']);
-    </script>
+  </script>
 </body>
-
 </html>
