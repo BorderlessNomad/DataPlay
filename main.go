@@ -133,10 +133,6 @@ func main() {
 	m.Use(ProabblyAPI)
 	m.Use(recovery.Recovery())
 	m.Use(martini.Static("node_modules"))
-
-	// CAUTION!!! remove the following line when in production!!!! 
-	m.Use(martini.Static("./"))
-
 	m.Run()
 }
 
