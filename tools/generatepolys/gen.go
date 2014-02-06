@@ -4,6 +4,7 @@ import (
 	msql "../../databasefuncs"
 	// "database/sql"
 	"fmt"
+	"github.com/cheggaaa/pb"
 	"github.com/skelterjohn/go.matrix" // daa59528eefd43623a4c8e36373a86f9eef870a2
 )
 
@@ -43,6 +44,12 @@ func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 	return c
 }
 
+type ScanJob struct {
+	TableName string
+	X         string
+	Y         string
+}
+
 func main() {
 	database := msql.GetDB()
 	database.Ping()
@@ -57,5 +64,28 @@ func main() {
 		q.Scan(&TTS)
 		TableScanTargets = append(TableScanTargets, TTS)
 	}
-	fmt.Println(TableScanTargets)
+	bar := pb.StartNew(len(TableScanTargets))
+	jobs := make([]ScanJob, 0)
+	for _, v := range TableScanTargets {
+		bar.Increment()
+		q := database.QueryRow(fmt.Sprintf("SHOW CREATE TABLE %s", v))
+		CreateSQL := ""
+		q.Scan(&CreateSQL)
+		Bits := ParseCreateTableSQL(CreateSQL)
+		for _, bit := range Bits {
+			if bit.Sqltype == "int" || bit.Sqltype == "float" {
+				for _, bit2 := range Bits {
+					if bit.Sqltype == "int" || bit.Sqltype == "float" {
+						newJob := ScanJob{
+							TableName: v,
+							X:         bit.Name,
+							Y:         bit2.Name,
+						}
+						jobs = append(jobs, newJob)
+					}
+				}
+			}
+		}
+	}
+	fmt.Println(jobs)
 }
