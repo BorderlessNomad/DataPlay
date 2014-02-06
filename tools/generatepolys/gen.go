@@ -93,7 +93,7 @@ func main() {
 	fmt.Printf("Preparing to do %d jobs", len(jobs))
 	bar := pb.StartNew(len(jobs))
 	for _, job := range jobs {
-		fmt.Println(job.TableName)
+		// fmt.Println(job.TableName)
 		DoPoly(job, database)
 		bar.Increment()
 	}
@@ -108,6 +108,8 @@ func DoPoly(job ScanJob, db *sql.DB) {
 		q.Scan(&f1, &f2)
 		xfloat = append(xfloat, f1)
 		yfloat = append(yfloat, f1)
+
 	}
-	fmt.Sprintf("", GetPolyResults(xfloat, yfloat))
+	a := GetPolyResults(xfloat, yfloat)
+	db.Exec("INSERT INTO `DataCon`.`priv_statcheck` (`table`, `x`, `y`, `p1`, `p2`, `p3`) VALUES (?, ?, ?, ?, ?, ?);", job.TableName, job.X, job.Y, a[0], a[1], a[2])
 }
