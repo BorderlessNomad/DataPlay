@@ -55,6 +55,7 @@ func main() {
 	for q.Next() {
 		TTS := ""
 		q.Scan(&TTS)
+		TableScanTargets = append(TableScanTargets, TTS)
 	}
 	fmt.Println(TableScanTargets)
 }
