@@ -64,13 +64,13 @@ func main() {
 		q.Scan(&TTS)
 		TableScanTargets = append(TableScanTargets, TTS)
 	}
-	bar := pb.StartNew(len(TableScanTargets))
+
 	jobs := make([]ScanJob, 0)
 	for _, v := range TableScanTargets {
-		bar.Increment()
-		q := database.QueryRow(fmt.Sprintf("SHOW CREATE TABLE %s", v))
-		CreateSQL := ""
-		q.Scan(&CreateSQL)
+
+		var CreateSQL string
+		database.QueryRow(fmt.Sprintf("SHOW CREATE TABLE `DataCon`.`%s`", v)).Scan(&v, &CreateSQL)
+
 		Bits := ParseCreateTableSQL(CreateSQL)
 		for _, bit := range Bits {
 			if bit.Sqltype == "int" || bit.Sqltype == "float" {
@@ -87,5 +87,6 @@ func main() {
 			}
 		}
 	}
-	fmt.Println(jobs)
+	bar := pb.StartNew(len(TableScanTargets))
+	bar.Increment()
 }
