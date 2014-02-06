@@ -15,6 +15,9 @@ func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 	if m != len(xGiven) {
 		return []float64{0, 0, 0} // Send it back, There is nothing sane here.
 	}
+	if m < 5 {
+		return []float64{0, 0, 0} // don't process stupidly small datasets.
+	}
 	n := degree + 1
 	y := matrix.MakeDenseMatrix(yGiven, m, 1)
 	x := matrix.Zeros(m, n)
@@ -90,6 +93,7 @@ func main() {
 	fmt.Printf("Preparing to do %d jobs", len(jobs))
 	bar := pb.StartNew(len(jobs))
 	for _, job := range jobs {
+		fmt.Println(job.TableName)
 		DoPoly(job, database)
 		bar.Increment()
 	}
