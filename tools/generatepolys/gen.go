@@ -40,7 +40,7 @@ func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 		}
 		c[i] /= r.Get(i, i)
 	}
-	fmt.Println(c)
+	// fmt.Println(c)
 	return c
 }
 
@@ -88,7 +88,7 @@ func main() {
 		}
 	}
 	fmt.Printf("Preparing to do %d jobs", len(jobs))
-	bar := pb.StartNew(len(TableScanTargets))
+	bar := pb.StartNew(len(jobs))
 	for _, job := range jobs {
 		DoPoly(job, database)
 		bar.Increment()
@@ -97,9 +97,13 @@ func main() {
 
 func DoPoly(job ScanJob, db *sql.DB) {
 	q, _ := db.Query(fmt.Sprintf("SELECT `%s`,`%s` FROM `%s`", job.X, job.Y, job.TableName))
+	xfloat := make([]float64, 0)
+	yfloat := make([]float64, 0)
 	for q.Next() {
 		var f1, f2 float64
 		q.Scan(&f1, &f2)
-		fmt.Println(f1, f2)
+		xfloat = append(xfloat, f1)
+		yfloat = append(yfloat, f1)
 	}
+	fmt.Sprintf("", GetPolyResults(xfloat, yfloat))
 }
