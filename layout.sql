@@ -60,6 +60,21 @@ CREATE TABLE IF NOT EXISTS `priv_shares` (
 -- Data exporting was unselected.
 
 
+-- Dumping structure for table DataCon.priv_statcheck
+CREATE TABLE IF NOT EXISTS `priv_statcheck` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `table` varchar(96) NOT NULL,
+  `x` varchar(50) NOT NULL,
+  `y` varchar(50) NOT NULL,
+  `p1` int(11) NOT NULL,
+  `p2` int(11) NOT NULL,
+  `p3` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- Data exporting was unselected.
+
+
 -- Dumping structure for table DataCon.priv_tracking
 CREATE TABLE IF NOT EXISTS `priv_tracking` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
