@@ -2,7 +2,7 @@ package main
 
 import (
 	msql "../../databasefuncs"
-	// "database/sql"
+	"database/sql"
 	"fmt"
 	"github.com/cheggaaa/pb"
 	"github.com/skelterjohn/go.matrix" // daa59528eefd43623a4c8e36373a86f9eef870a2
@@ -64,7 +64,7 @@ func main() {
 		q.Scan(&TTS)
 		TableScanTargets = append(TableScanTargets, TTS)
 	}
-
+	fmt.Println("Building Job List...")
 	jobs := make([]ScanJob, 0)
 	for _, v := range TableScanTargets {
 
@@ -87,6 +87,19 @@ func main() {
 			}
 		}
 	}
+	fmt.Printf("Preparing to do %d jobs", len(jobs))
 	bar := pb.StartNew(len(TableScanTargets))
-	bar.Increment()
+	for _, job := range jobs {
+		DoPoly(job, database)
+		bar.Increment()
+	}
+}
+
+func DoPoly(job ScanJob, db *sql.DB) {
+	q, _ := db.Query(fmt.Sprintf("SELECT `%s`,`%s` FROM `%s`", job.X, job.Y, job.TableName))
+	for q.Next() {
+		var f1, f2 float64
+		q.Scan(&f1, &f2)
+		fmt.Println(f1, f2)
+	}
 }
