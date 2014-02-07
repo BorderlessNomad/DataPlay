@@ -80,7 +80,7 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 }
 
 func ProcessSearchResults(rows *sql.Rows, e error, database *sql.DB) []SearchResult {
-	Results := make([]SearchResult, 1)
+	Results := make([]SearchResult, 0)
 	if e != nil {
 		panic(e)
 	}
