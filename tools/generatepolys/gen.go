@@ -4,7 +4,7 @@ import (
 	msql "../../databasefuncs"
 	"database/sql"
 	"fmt"
-	"github.com/cheggaaa/pb"
+	"github.com/cheggaaa/pb"           // 66139f61bba9938c8f87e64bea6a8a47f40fdc32
 	"github.com/skelterjohn/go.matrix" // daa59528eefd43623a4c8e36373a86f9eef870a2
 )
 
@@ -16,7 +16,12 @@ func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 		return []float64{0, 0, 0} // Send it back, There is nothing sane here.
 	}
 	if m < 5 {
-		return []float64{0, 0, 0} // don't process stupidly small datasets.
+		// Prevent the processing of really small datasets, This is becauase there
+		// appears to be a bug in the libary that will trigger a crash in the go.matrix
+		// if some (small) amount of values are entered. I don't know why this happens
+		// (Otherwise I would have fixed it) but the URL for the github issue is:
+		// https://github.com/skelterjohn/go.matrix/issues/11
+		return []float64{0, 0, 0}
 	}
 	n := degree + 1
 	y := matrix.MakeDenseMatrix(yGiven, m, 1)
@@ -43,7 +48,6 @@ func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 		}
 		c[i] /= r.Get(i, i)
 	}
-	// fmt.Println(c)
 	return c
 }
 
@@ -92,8 +96,8 @@ func main() {
 	}
 	fmt.Printf("Preparing to do %d jobs", len(jobs))
 	bar := pb.StartNew(len(jobs))
+	fmt.Println(jobs[4379])
 	for _, job := range jobs {
-		// fmt.Println(job.TableName)
 		DoPoly(job, database)
 		bar.Increment()
 	}
