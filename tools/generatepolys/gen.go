@@ -10,10 +10,10 @@ import (
 
 var degree = 2
 
-func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
+func GetPolyResults(xGiven []float64, yGiven []float64) (res []float64, p bool) {
 	m := len(yGiven)
 	if m != len(xGiven) {
-		return []float64{0, 0, 0} // Send it back, There is nothing sane here.
+		return []float64{0, 0, 0}, false // Send it back, There is nothing sane here.
 	}
 	if m < 5 {
 		// Prevent the processing of really small datasets, This is becauase there
@@ -21,7 +21,7 @@ func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 		// if some (small) amount of values are entered. I don't know why this happens
 		// (Otherwise I would have fixed it) but the URL for the github issue is:
 		// https://github.com/skelterjohn/go.matrix/issues/11
-		return []float64{0, 0, 0}
+		return []float64{0, 0, 0}, false
 	}
 	n := degree + 1
 	y := matrix.MakeDenseMatrix(yGiven, m, 1)
@@ -38,7 +38,7 @@ func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 	qty, err := q.Transpose().Times(y)
 	if err != nil {
 		fmt.Println(err)
-		return []float64{0, 0, 0}
+		return []float64{0, 0, 0}, false
 	}
 	c := make([]float64, n)
 	for i := n - 1; i >= 0; i-- {
@@ -48,7 +48,7 @@ func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 		}
 		c[i] /= r.Get(i, i)
 	}
-	return c
+	return c, true
 }
 
 type ScanJob struct {
@@ -113,6 +113,8 @@ func DoPoly(job ScanJob, db *sql.DB) {
 		yfloat = append(yfloat, f1)
 
 	}
-	a := GetPolyResults(xfloat, yfloat)
-	db.Exec("INSERT INTO `DataCon`.`priv_statcheck` (`table`, `x`, `y`, `p1`, `p2`, `p3`) VALUES (?, ?, ?, ?, ?, ?);", job.TableName, job.X, job.Y, a[0], a[1], a[2])
+	a, r := GetPolyResults(xfloat, yfloat)
+	if r {
+		db.Exec("INSERT INTO `DataCon`.`priv_statcheck` (`table`, `x`, `y`, `p1`, `p2`, `p3`) VALUES (?, ?, ?, ?, ?, ?);", job.TableName, job.X, job.Y, a[0], a[1], a[2])
+	}
 }
