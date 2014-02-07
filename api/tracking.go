@@ -22,13 +22,15 @@ func GetLastVisited(rw http.ResponseWriter, req *http.Request, monager *session.
 			for rows.Next() {
 				var guid string
 				var title string
-				var status string
+
 				rows.Scan(&guid, &title)
-				result2 := make([]string, 0)
-				status = HasTableGotLocationData(guid, database)
-				result2 = append(result2, guid)
-				result2 = append(result2, title)
-				result2 = append(result2, status)
+
+				r := HasTableGotLocationData(guid, database)
+				result2 := []string{
+					guid,
+					title,
+					r,
+				}
 
 				result = append(result, result2)
 			}
