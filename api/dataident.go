@@ -37,7 +37,7 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Par
 		Request: prams["id"],
 	}
 	b, _ := json.Marshal(returnobj)
-	return string(b[:])
+	return string(b)
 }
 
 func FetchTableCols(guid string, database *sql.DB) (output []ColType) {
