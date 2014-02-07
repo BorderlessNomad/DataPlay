@@ -61,7 +61,7 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 	}
 	rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", prams["s"]+"%")
 
-	Results := make([]SearchResult, 1)
+	Results := make([]SearchResult, 0)
 	Results = ProcessSearchResults(rows, e, database)
 	if len(Results) == 1 {
 		fmt.Println("falling back to overkill search")
