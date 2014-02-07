@@ -45,17 +45,19 @@ func GetLastVisited(rw http.ResponseWriter, req *http.Request, monager *session.
 func HasTableGotLocationData(datasetGUID string, database *sql.DB) string {
 	cols := FetchTableCols(datasetGUID, database)
 
-	for _, col1 := range cols {
-		if strings.ToLower(col1.Name) == "lat" {
-			// This ensures there is both a lat AND long
-			for _, col2 := range cols {
-				if strings.ToLower(col2.Name) == "lon" || strings.ToLower(col2.Name) == "long" {
-					return "true"
-				}
-			}
-		}
+	if containsTableCol(cols, "lat") && (containsTableCol(cols, "lon") || containsTableCol(cols, "long")) {
+		return "true"
 	}
 	return "false"
+}
+
+func containsTableCol(cols []ColType, target string) {
+	for _, v := range cols {
+		if strings.ToLower(v.Name) == target {
+			return true
+		}
+	}
+	return false
 }
 
 func TrackVisited(guid string, user string) {
