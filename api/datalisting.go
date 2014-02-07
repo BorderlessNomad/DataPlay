@@ -40,7 +40,7 @@ func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params,
 		UserID:   intuid,
 	}
 	b, _ := json.Marshal(returnobj)
-	return string(b[:])
+	return string(b)
 }
 
 type SearchResult struct {
@@ -76,7 +76,7 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 	}
 	defer rows.Close()
 	b, _ := json.Marshal(Results)
-	return string(b[:])
+	return string(b)
 }
 
 func ProcessSearchResults(rows *sql.Rows, e error, database *sql.DB) []SearchResult {
@@ -141,7 +141,7 @@ func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) 
 	}
 
 	b, _ := json.Marshal(returner)
-	return string(b[:])
+	return string(b)
 }
 
 func scanrow(values []interface{}, columns []string) map[string]interface{} {

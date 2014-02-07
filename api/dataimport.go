@@ -37,5 +37,5 @@ func CheckImportStatus(res http.ResponseWriter, req *http.Request, prams martini
 		Request: prams["id"],
 	}
 	b, _ := json.Marshal(returnobj)
-	return string(b[:])
+	return string(b)
 }
