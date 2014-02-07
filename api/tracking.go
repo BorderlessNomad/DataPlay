@@ -53,7 +53,7 @@ func HasTableGotLocationData(datasetGUID string, database *sql.DB) string {
 	return "false"
 }
 
-func containsTableCol(cols []ColType, target string) {
+func containsTableCol(cols []ColType, target string) bool {
 	for _, v := range cols {
 		if strings.ToLower(v.Name) == target {
 			return true
