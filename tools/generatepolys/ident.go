@@ -16,24 +16,6 @@ type ColType struct {
 	Sqltype string
 }
 
-// func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-// 	// This function checks to see if the data has been imported yet or still is in need of importing
-// 	database := msql.GetDB()
-// 	defer database.Close()
-// 	if prams["id"] == "" {
-// 		http.Error(res, "There was no ID request", http.StatusBadRequest)
-// 		return ""
-// 	}
-// 	results := FetchTableCols(string(prams["id"]), database)
-
-// 	returnobj := IdentifyResponce{
-// 		Cols:    results,
-// 		Request: prams["id"],
-// 	}
-// 	b, _ := json.Marshal(returnobj)
-// 	return string(b[:])
-// }
-
 func FetchTableCols(guid string, database *sql.DB) (output []ColType) {
 	if guid == "" {
 		return output
@@ -91,55 +73,6 @@ func ParseCreateTableSQL(input string) []ColType {
 type SuggestionResponce struct {
 	Request string
 }
-
-// func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-// 	database := msql.GetDB()
-// 	defer database.Close()
-// 	if prams["table"] == "" || prams["col"] == "" {
-// 		http.Error(res, "There was no ID request", http.StatusBadRequest)
-// 		return ""
-// 	}
-
-// 	var tablename string
-// 	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["table"]).Scan(&tablename)
-// 	if tablename == "" {
-// 		http.Error(res, "Could not find that table", http.StatusNotFound)
-// 		return ""
-// 	}
-
-// 	var createcode string
-// 	database.QueryRow("SHOW CREATE TABLE "+tablename).Scan(&tablename, &createcode)
-// 	if createcode == "" {
-// 		http.Error(res, `Uhh, That table does not seem to acutally exist.
-// 		this really should not happen.
-// 		Check if someone have been messing around in the database.`, http.StatusBadRequest)
-// 		return ""
-// 	}
-// 	if CheckIfColExists(createcode, prams["col"]) {
-// 		// Alrighty so I am now going to go though the whole table
-// 		// and check what the data looks like
-// 		// What that means for now is I am going to try and convert them all to ints and see if any of them breaks, If they do not, then I will suggest
-// 		// that they be ints!
-// 		rows, e := database.Query(fmt.Sprintf("SELECT `%s` FROM `%s`", prams["col"], tablename))
-// 		if e == nil {
-// 			for rows.Next() {
-// 				var TestSubject string
-// 				rows.Scan(&TestSubject)
-// 				_, e := strconv.ParseInt(TestSubject, 10, 64)
-// 				if e != nil {
-// 					return "false"
-// 				}
-// 			}
-// 			return "true"
-// 		}
-// 		http.Error(res, fmt.Sprintf("Well somthing went wrong during the reading of that col, go and grab ben and show him this. %s", e), http.StatusInternalServerError)
-// 		return ""
-// 	} else {
-// 		http.Error(res, "You have requested a col that does not exist. Please avoid doing this in the future.", http.StatusBadRequest)
-// 		return "" // Shut up go
-// 	}
-// 	return "This isnt suppose to happen"
-// }
 
 func CheckIfColExists(createcode string, targettable string) bool {
 
