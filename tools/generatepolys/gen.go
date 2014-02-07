@@ -96,7 +96,6 @@ func main() {
 	}
 	fmt.Printf("Preparing to do %d jobs", len(jobs))
 	bar := pb.StartNew(len(jobs))
-	fmt.Println(jobs[4379])
 	for _, job := range jobs {
 		DoPoly(job, database)
 		bar.Increment()
