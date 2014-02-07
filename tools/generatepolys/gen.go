@@ -82,7 +82,7 @@ func main() {
 		for _, bit := range Bits {
 			if bit.Sqltype == "int" || bit.Sqltype == "float" {
 				for _, bit2 := range Bits {
-					if bit2.Sqltype == "int" || bit.Sqltype == "float" {
+					if bit2.Sqltype == "int" || bit2.Sqltype == "float" {
 						newJob := ScanJob{
 							TableName: v,
 							X:         bit.Name,
