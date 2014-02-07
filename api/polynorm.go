@@ -12,6 +12,14 @@ func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 	if m != len(xGiven) {
 		return []float64{0, 0, 0} // Send it back, There is nothing sane here.
 	}
+	if m < 5 {
+		// Prevent the processing of really small datasets, This is becauase there
+		// appears to be a bug in the libary that will trigger a crash in the go.matrix
+		// if some (small) amount of values are entered. I don't know why this happens
+		// (Otherwise I would have fixed it) but the URL for the github issue is:
+		// https://github.com/skelterjohn/go.matrix/issues/11
+		return []float64{0, 0, 0} // Send it back, There is nothing sane here.
+	}
 	n := degree + 1
 	y := matrix.MakeDenseMatrix(yGiven, m, 1)
 	x := matrix.Zeros(m, n)
