@@ -40,6 +40,20 @@ func main() {
 }
 
 func IndexTable(job ScanJob, db *sql.DB) {
+	q, _ := db.Query(fmt.Sprintf("SELECT `%s` FROM `%s`", job.X, job.TableName))
+	// xarray := make([]string, 0)
+	checkingdict := make(map[string]bool)
+	for q.Next() {
+		var strout string
+		q.Scan(&strout)
+		if checkingdict[strout] {
+			db.Exec("UPDATE `priv_stringsearch` SET `count`=`count`+1 WHERE  `tablename`=? AND `x`=? AND `value`=? LIMIT 1;", job.TableName, job.X, strout)
+		} else {
+			db.Exec("INSERT INTO `priv_stringsearch` (`tablename`, `x`, `value`) VALUES (?, ?, ?);", job.TableName, job.X, strout)
+			checkingdict[strout] = true
+		}
+		// xarray = append(xarray, strout)
+	}
 
 }
 
