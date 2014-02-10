@@ -175,10 +175,31 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 
 	CCode := ""
 	database.QueryRow(fmt.Sprintf("SHOW CREATE TABLE `%s`;", RealTableName)).Scan(&RealTableName, &CCode)
-	if !CheckIfColExists(createcode, prams["x"]) || !CheckIfColExists(createcode, prams["y"]) {
+	if !CheckIfColExists(CCode, prams["x"]) || !CheckIfColExists(CCode, prams["y"]) {
 		http.Error(res, "Could not find the X or Y", http.StatusInternalServerError)
 		return ""
 	}
 
+	// Now we need to check if it exists in the stats table. so we can compare its poly to other poly's
+	HitCount := 0
+	database.QueryRow("SELECT COUNT(*) FROM `priv_statcheck` WHERE `table` = ? AND `x` = ? AND `y` = ?", RealTableName, prams["x"], prams["y"]).Scan(&HitCount)
+
+	if HitCount == 0 {
+		http.Error(res, "Cannot find the poly code for that table x and y combo. It's probs not there because its not possible", http.StatusBadRequest)
+		return ""
+	}
+
+	id := 0
+	table := ""
+	x := 0.1
+	y := 0.1
+	p1 := 0.1
+	p2 := 0.1
+	p3 := 0.1
+	xstart := 0.1
+	xend := 0.1
+
+	database.QueryRow("SELECT * FROM `priv_statcheck` WHERE `table` = ? AND `x` = ? AND `y` = ? LIMIT 1", RealTableName, prams["x"], prams["y"]).Scan(&id, &table, &x, &y, &p1, &p2, &p3, &xstart, &xend)
+	fmt.Println(id, table, x, y, p1, p2, p3, xstart, xend)
 	return "wat"
 }
