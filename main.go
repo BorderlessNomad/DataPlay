@@ -129,6 +129,7 @@ func main() {
 	m.Post("/api/setdefaults/:id", api.SetDefaults)
 	m.Get("/api/getdefaults/:id", api.GetDefaults)
 	m.Get("/api/identifydata/:id", api.IdentifyTable)
+	m.Get("/api/findmatches/:id/:x/:y", api.AttemptToFindMatches)
 	m.Get("/api/classifydata/:table/:col", api.SuggestColType)
 	m.Use(ProabblyAPI)
 	m.Use(recovery.Recovery())
