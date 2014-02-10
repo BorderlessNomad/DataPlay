@@ -113,8 +113,11 @@ func DoPoly(job ScanJob, db *sql.DB) {
 		yfloat = append(yfloat, f1)
 
 	}
-	a, r := GetPolyResults(xfloat, yfloat)
-	if r {
-		db.Exec("INSERT INTO `DataCon`.`priv_statcheck` (`table`, `x`, `y`, `p1`, `p2`, `p3`) VALUES (?, ?, ?, ?, ?, ?);", job.TableName, job.X, job.Y, a[0], a[1], a[2])
+	if xfloat[0] < xfloat[len(xfloat)-1] {
+		a, r := GetPolyResults(xfloat, yfloat)
+		if r {
+			db.Exec("INSERT INTO `DataCon`.`priv_statcheck` (`table`, `x`, `y`, `p1`, `p2`, `p3`, `xstart`, `xend`) VALUES (?, ?, ?, ?, ?, ?, ?, ?);", job.TableName, job.X, job.Y, a[0], a[1], a[2], xfloat[0], xfloat[len(xfloat)-1])
+		}
 	}
+
 }
