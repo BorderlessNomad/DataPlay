@@ -12,7 +12,6 @@ import (
 type ScanJob struct {
 	TableName string
 	X         string
-	Y         string
 }
 
 func main() {
@@ -53,16 +52,11 @@ func MakeJobs(database *sql.DB, TableScanTargets []string) (jobs []ScanJob) {
 		Bits := ParseCreateTableSQL(CreateSQL)
 		for _, bit := range Bits {
 			if bit.Sqltype == "varchar" {
-				for _, bit2 := range Bits {
-					if (bit2.Sqltype == "varchar") && (bit.Name != bit2.Name) {
-						newJob := ScanJob{
-							TableName: v,
-							X:         bit.Name,
-							Y:         bit2.Name,
-						}
-						jobs = append(jobs, newJob)
-					}
+				newJob := ScanJob{
+					TableName: v,
+					X:         bit.Name,
 				}
+				jobs = append(jobs, newJob)
 			}
 		}
 	}
