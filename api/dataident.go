@@ -168,6 +168,17 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 	database := msql.GetDB()
 	defer database.Close()
 	// m.Get("/api/findmatches/:id/:x/:y", api.AttemptToFindMatches)
+	RealTableName := getRealTableName(prams["id"], database, res)
+	if RealTableName == "Error" {
+		return ""
+	}
+
+	CCode := ""
+	database.QueryRow(fmt.Sprintf("SHOW CREATE TABLE `%s`;", RealTableName)).Scan(&RealTableName, &CCode)
+	if !CheckIfColExists(createcode, prams["x"]) || !CheckIfColExists(createcode, prams["y"]) {
+		http.Error(res, "Could not find the X or Y", http.StatusInternalServerError)
+		return ""
+	}
 
 	return "wat"
 }
