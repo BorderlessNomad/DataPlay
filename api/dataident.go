@@ -163,3 +163,11 @@ func CheckIfColExists(createcode string, targettable string) bool {
 	}
 	return false
 }
+
+func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
+	database := msql.GetDB()
+	defer database.Close()
+	// m.Get("/api/findmatches/:id/:x/:y", api.AttemptToFindMatches)
+
+	return "wat"
+}

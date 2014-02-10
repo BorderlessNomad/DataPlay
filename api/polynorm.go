@@ -48,7 +48,3 @@ func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 	fmt.Println(c)
 	return c
 }
-
-func AttemptToFindMatches() string {
-	return "wat"
-}
