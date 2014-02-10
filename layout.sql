@@ -77,6 +77,17 @@ CREATE TABLE IF NOT EXISTS `priv_statcheck` (
 -- Data exporting was unselected.
 
 
+-- Dumping structure for table DataCon.priv_stringsearch
+CREATE TABLE IF NOT EXISTS `priv_stringsearch` (
+  `tablename` varchar(96) NOT NULL,
+  `x` varchar(96) NOT NULL,
+  `value` varchar(96) NOT NULL,
+  `count` int(11) NOT NULL DEFAULT '1'
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- Data exporting was unselected.
+
+
 -- Dumping structure for table DataCon.priv_tracking
 CREATE TABLE IF NOT EXISTS `priv_tracking` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
