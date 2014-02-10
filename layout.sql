@@ -66,9 +66,11 @@ CREATE TABLE IF NOT EXISTS `priv_statcheck` (
   `table` varchar(96) NOT NULL,
   `x` varchar(50) NOT NULL,
   `y` varchar(50) NOT NULL,
-  `p1` int(11) NOT NULL,
-  `p2` int(11) NOT NULL,
-  `p3` int(11) NOT NULL,
+  `p1` float NOT NULL,
+  `p2` float NOT NULL,
+  `p3` float NOT NULL,
+  `xstart` float NOT NULL,
+  `xend` float NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
