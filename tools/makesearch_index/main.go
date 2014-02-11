@@ -42,27 +42,21 @@ func main() {
 func IndexTable(job ScanJob, db *sql.DB) {
 	q, _ := db.Query(fmt.Sprintf("SELECT `%s` FROM `%s`", job.X, job.TableName))
 	// xarray := make([]string, 0)
-	checkingdict := make(map[string]bool)
-	UpdateQ, e := db.Prepare("UPDATE `priv_stringsearch` SET `count`=`count`+1 WHERE  `tablename`=? AND `x`=? AND `value`=? LIMIT 1;")
-	if e != nil {
-		panic(e)
-	}
-	InsertQ, e := db.Prepare("INSERT INTO `priv_stringsearch` (`tablename`, `x`, `value`) VALUES (?, ?, ?);")
+	checkingdict := make(map[string]int)
+	InsertQ, e := db.Prepare("INSERT INTO `priv_stringsearch` (`tablename`, `x`, `value`, `count`) VALUES (?, ?, ?, ?);")
 	if e != nil {
 		panic(e)
 	}
 	for q.Next() {
 		var strout string
 		q.Scan(&strout)
-		if checkingdict[strout] {
-			UpdateQ.Exec(job.TableName, job.X, strout)
-		} else {
-			InsertQ.Exec(job.TableName, job.X, strout)
-			checkingdict[strout] = true
-		}
+		checkingdict[strout]++
 		// xarray = append(xarray, strout)
 	}
 
+	for k, v := range checkingdict {
+		InsertQ.Exec(job.TableName, job.X, k, v)
+	}
 }
 
 func MakeJobs(database *sql.DB, TableScanTargets []string) (jobs []ScanJob) {
