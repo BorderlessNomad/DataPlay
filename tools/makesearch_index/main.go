@@ -41,19 +41,18 @@ func main() {
 
 func IndexTable(job ScanJob, db *sql.DB) {
 	q, _ := db.Query(fmt.Sprintf("SELECT `%s` FROM `%s`", job.X, job.TableName))
-	// xarray := make([]string, 0)
 	checkingdict := make(map[string]int)
 	InsertQ, e := db.Prepare("INSERT INTO `priv_stringsearch` (`tablename`, `x`, `value`, `count`) VALUES (?, ?, ?, ?);")
 	if e != nil {
 		panic(e)
 	}
+	// Count up all the vars in this col
 	for q.Next() {
 		var strout string
 		q.Scan(&strout)
 		checkingdict[strout]++
-		// xarray = append(xarray, strout)
 	}
-
+	// Now spit them into INSERT's on the table
 	for k, v := range checkingdict {
 		InsertQ.Exec(job.TableName, job.X, k, v)
 	}
