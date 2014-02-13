@@ -170,6 +170,7 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 	// m.Get("/api/findmatches/:id/:x/:y", api.AttemptToFindMatches)
 	RealTableName := getRealTableName(prams["id"], database, res)
 	if RealTableName == "Error" {
+		http.Error(res, "Could not find that table", http.StatusInternalServerError)
 		return ""
 	}
 
@@ -203,4 +204,8 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 	fmt.Println(id, table, x, y, p1, p2, p3, xstart, xend)
 
 	return "wat"
+}
+
+func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) {
+
 }
