@@ -22,9 +22,7 @@ type AuthResponce struct {
 func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params, manager *session.SessionManager) string {
 	//This function is used to gather what is the username is
 
-	// This is used on the home page where it says "Welcome ..." and then replaces the ... with the user name, its also a nice check to see
-	// if you are still logged in or not
-
+	// This used to be used on the front page but now it is mainly used as a "noop" call to check if the user is logged in or not.
 	session := manager.GetSession(res, req)
 	database := msql.GetDB()
 	defer database.Close()
@@ -50,11 +48,9 @@ type SearchResult struct {
 }
 
 func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	// The three holy commands to setup HTTP handlers
-	// session := manager.GetSession(res, req)
 	database := msql.GetDB()
 	defer database.Close()
-	// End
+
 	if prams["s"] == "" {
 		http.Error(res, "There was no search request", http.StatusBadRequest)
 		return ""
@@ -185,7 +181,7 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 	// Due to what seems to be a golang bug, everything is outputted as a string.
 
 	if prams["id"] == "" {
-		http.Error(res, "u wot (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
+		http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
 		return
 	}
 	database := msql.GetDB()
@@ -229,7 +225,7 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 	// :id/:x/:startx/:endx
 
 	if prams["id"] == "" {
-		http.Error(res, "u wot (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
+		http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
 		return
 	}
 
@@ -462,7 +458,7 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 	// Due to what seems to be a golang bug, everything is outputted as a string.
 
 	if prams["id"] == "" {
-		http.Error(res, "u wot (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
+		http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
 		return
 	}
 	database := msql.GetDB()
@@ -545,7 +541,7 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 	// one type of graph that has now been rewritten.
 
 	if prams["id"] == "" {
-		http.Error(res, "u wot (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
+		http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
 		return
 	}
 	if prams["x"] == "" || prams["y"] == "" {
