@@ -35,6 +35,7 @@ func main() {
 	bar := pb.StartNew(len(jobs))
 	for _, job := range jobs {
 		IndexTable(job, database)
+		database.Exec(fmt.Sprintf("ALTER TABLE `%s` COMMENT='!Indexed!';", job.TableName))
 		bar.Increment()
 	}
 }
