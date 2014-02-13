@@ -213,8 +213,6 @@ type StringMatchResult struct {
 
 func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
 	database := msql.GetDB()
-	var db *sql.DB
-	db = &database
 	defer database.Close()
 
 	if prams["word"] == "" {
@@ -225,7 +223,11 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini
 	Results := make([]StringMatchResult, 0)
 
 	if prams["x"] != "" {
-		rows, e := db.Query("SELECT tablename,count FROM priv_stringsearch WHERE x = ? AND value = ?", prams["x"], prams["word"])
+		rows, e := database.Query("SELECT tablename,count FROM priv_stringsearch WHERE x = ? AND value = ?", prams["x"], prams["word"])
+		if e != nil {
+			http.Error(res, "SQL error", http.StatusInternalServerError)
+			return ""
+		}
 		for rows.Next() {
 			name := ""
 			count := 0
@@ -237,7 +239,11 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini
 			Results = append(Results, temp)
 		}
 	} else {
-		rows, e := db.Query("SELECT tablename,count FROM priv_stringsearch WHERE value = ?", prams["word"])
+		rows, e := database.Query("SELECT tablename,count FROM priv_stringsearch WHERE value = ?", prams["word"])
+		if e != nil {
+			http.Error(res, "SQL error", http.StatusInternalServerError)
+			return ""
+		}
 		for rows.Next() {
 			name := ""
 			count := 0
