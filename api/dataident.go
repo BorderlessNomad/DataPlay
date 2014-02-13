@@ -222,6 +222,8 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini
 
 	Results := make([]StringMatchResult, 0)
 
+	name := ""
+	count := 0
 	if prams["x"] != "" {
 		rows, e := database.Query("SELECT tablename,count FROM priv_stringsearch WHERE x = ? AND value = ?", prams["x"], prams["word"])
 		if e != nil {
@@ -229,8 +231,6 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini
 			return ""
 		}
 		for rows.Next() {
-			name := ""
-			count := 0
 			rows.Scan(&name, &count)
 			temp := StringMatchResult{
 				Count: count,
@@ -245,8 +245,6 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini
 			return ""
 		}
 		for rows.Next() {
-			name := ""
-			count := 0
 			rows.Scan(&name, &count)
 			temp := StringMatchResult{
 				Count: count,
