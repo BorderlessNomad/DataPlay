@@ -165,9 +165,9 @@ func CheckIfColExists(createcode string, targettable string) bool {
 }
 
 func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
+	// m.Get("/api/findmatches/:id/:x/:y", api.AttemptToFindMatches)
 	database := msql.GetDB()
 	defer database.Close()
-	// m.Get("/api/findmatches/:id/:x/:y", api.AttemptToFindMatches)
 	RealTableName := getRealTableName(prams["id"], database, res)
 	if RealTableName == "Error" {
 		http.Error(res, "Could not find that table", http.StatusInternalServerError)
@@ -206,6 +206,54 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 	return "wat"
 }
 
-func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) {
+type StringMatchResult struct {
+	Count int
+	Match string
+}
 
+func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
+	database := msql.GetDB()
+	var db *sql.DB
+	db = &database
+	defer database.Close()
+
+	if prams["word"] == "" {
+		http.Error(res, "Please add a word", http.StatusBadRequest)
+		return ""
+	}
+
+	Results := make([]StringMatchResult, 0)
+
+	if prams["x"] != "" {
+		rows, e := db.Query("SELECT tablename,count FROM priv_stringsearch WHERE x = ? AND value = ?", prams["x"], prams["word"])
+		for rows.Next() {
+			name := ""
+			count := 0
+			rows.Scan(&name, &count)
+			temp := StringMatchResult{
+				Count: count,
+				Match: name,
+			}
+			Results = append(Results, temp)
+		}
+	} else {
+		rows, e := db.Query("SELECT tablename,count FROM priv_stringsearch WHERE value = ?", prams["word"])
+		for rows.Next() {
+			name := ""
+			count := 0
+			rows.Scan(&name, &count)
+			temp := StringMatchResult{
+				Count: count,
+				Match: name,
+			}
+			Results = append(Results, temp)
+		}
+	}
+
+	b, e := json.Marshal(Results)
+	if e != nil {
+		http.Error(res, "Could not marshal JSON", http.StatusInternalServerError)
+		return ""
+	}
+	return string(b)
 }

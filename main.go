@@ -131,6 +131,8 @@ func main() {
 	m.Get("/api/identifydata/:id", api.IdentifyTable)
 	m.Get("/api/findmatches/:id/:x/:y", api.AttemptToFindMatches)
 	m.Get("/api/classifydata/:table/:col", api.SuggestColType)
+	m.Get("/api/stringmatch/:word/", api.FindStringMatches)
+	m.Get("/api/stringmatch/:word/:x", api.FindStringMatches)
 	m.Use(ProabblyAPI)
 	m.Use(recovery.Recovery())
 	m.Use(martini.Static("node_modules"))
