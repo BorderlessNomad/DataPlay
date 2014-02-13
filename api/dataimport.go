@@ -26,7 +26,7 @@ func CheckImportStatus(res http.ResponseWriter, req *http.Request, prams martini
 	database.QueryRow("SELECT COUNT(*) FROM `priv_onlinedata` WHERE GUID = ? LIMIT 10", prams["id"]).Scan(&count)
 	var state string
 
-	if count != 0 {
+	if count != 0 { // If we have any hits from that query then we have that dataset in the system
 		state = "online"
 	} else {
 		state = "offline"

@@ -154,7 +154,7 @@ func CheckIfColExists(createcode string, targettable string) bool {
 	for c, line := range SQLLines {
 		if c != 0 { // Clipping off the create part since its useless for me.
 			results := BuildREArrayForCreateTable(line)
-			if len(results) == 3 {
+			if len(results) == 3 { // 3 is the amount you would expect the regex to match. Even though we only use the first part
 				if results[1] == "`"+targettable+"`" {
 					return true
 				}

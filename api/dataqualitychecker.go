@@ -12,7 +12,7 @@ type CheckDataQualityResponce struct {
 }
 
 func CheckDataQuality(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-
+	// 3 is the amount that is considered by the client as "high quality"
 	returnobj := CheckDataQualityResponce{
 		Amount:  3,
 		Request: prams["id"],
