@@ -31,7 +31,7 @@ func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params,
 
 	var uid string
 	uid = fmt.Sprint(session.Value)
-	intuid, _ := strconv.ParseInt(uid, 10, 16)
+	intuid, _ := strconv.ParseInt(uid, 10, 32)
 	var username string
 	database.QueryRow("select email from priv_users where uid = ?", uid).Scan(&username)
 
