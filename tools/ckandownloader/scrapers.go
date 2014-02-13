@@ -37,12 +37,6 @@ func ImportAllDatasets(url string) {
 	doc = nil
 }
 
-func JustHashIt(input string) string {
-	hash := sha1.New()
-	hash.Write([]byte(input))
-	return fmt.Sprintf("%x", hash.Sum(nil))
-}
-
 func JustBloddyHashIt(input []byte) string {
 	hash := sha1.New()
 	hash.Write(input)
@@ -58,7 +52,7 @@ func DownloadDataset(url string, guid string) {
 	if e == nil {
 		// fmt.Println(response.Header)
 		full, _ := ioutil.ReadAll(response.Body)
-		filename := "./data/" + JustBloddyHashIt(full) + "_" + JustHashIt(guid)
+		filename := "./data/" + JustBloddyHashIt(full) + "_" + JustBloddyHashIt([]byte(guid))
 		fmt.Println(guid + " | " + url + " => " + filename)
 		if response.Header.Get("Content-Type") == "text/csv" {
 			ioutil.WriteFile(filename+".csv", full, 0667)
