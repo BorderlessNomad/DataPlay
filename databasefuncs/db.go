@@ -7,8 +7,6 @@ import (
 	"os"
 )
 
-// err = db.QueryRow("select name from users where id = ?", 1).Scan(&name)
-
 func GetSingleNumberValue(rows *sql.Rows) (out int, e error) {
 	rows.Next()
 	var outputnumber int
