@@ -332,7 +332,9 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 			res := ""
 			for r.Next() {
 				r.Scan(&res)
-				tablelist = append(tablelist, res)
+				if !stringInSlice(res, tablelist) {
+					tablelist = append(tablelist, res)
+				}
 			}
 
 			Combo := PossibleCombo{
@@ -348,4 +350,13 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 		return ""
 	}
 	return string(b)
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }
