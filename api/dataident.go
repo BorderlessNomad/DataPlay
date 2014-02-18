@@ -304,7 +304,8 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 		q, e := database.Query(fmt.Sprintf("SELECT `%s` FROM `%s`", v.X, v.TableName))
 
 		if e != nil {
-			panic(e)
+			http.Error(res, "Could not read from target table", http.StatusInternalServerError)
+			return ""
 		}
 		// Count up all the vars in this col
 		for q.Next() {
@@ -327,7 +328,8 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 			tablelist := make([]string, 0)
 			r, e := database.Query("SELECT `priv_onlinedata`.GUID FROM priv_stringsearch, priv_onlinedata, `index` WHERE (value = ?) AND `priv_stringsearch`.tablename = `priv_onlinedata`.TableName AND `priv_onlinedata`.GUID = `index`.GUID AND priv_stringsearch.count > 2", k)
 			if e != nil {
-				panic(e)
+				http.Error(res, "Could not read off data lookups", http.StatusInternalServerError)
+				return ""
 			}
 			res := ""
 			for r.Next() {
