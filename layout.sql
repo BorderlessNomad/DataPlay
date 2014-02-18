@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS `priv_users` (
   `email` varchar(128) NOT NULL DEFAULT '0',
   `password` varchar(128) NOT NULL DEFAULT '0',
   PRIMARY KEY (`uid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='This is the users table, as of right now the passwords are MD5 :(';
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='This is the users table, The passwords can be MD5 [ :( ] or they can be bcrypt. MD5 passwords are auto upgraded so if you wanna make an account, you can just use the MD5() function in mysql and your password will be securerered';
 
 -- Data exporting was unselected.
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
