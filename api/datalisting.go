@@ -59,11 +59,11 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 
 	Results := make([]SearchResult, 0)
 	Results = ProcessSearchResults(rows, e, database)
-	if len(Results) == 1 {
+	if len(Results) == 0 {
 		fmt.Println("falling back to overkill search")
 		rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", "%"+prams["s"]+"%")
 		Results = ProcessSearchResults(rows, e, database)
-		if len(Results) == 1 {
+		if len(Results) == 0 {
 			fmt.Println("Going 100 persent mad search")
 			query := strings.Replace(prams["s"], " ", "%", -1)
 			rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", "%"+query+"%")
