@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS `index` (
   `Notes` text NOT NULL,
   `ckan_url` varchar(256) NOT NULL,
   PRIMARY KEY (`GUID`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='This table contains all of the datasets that are registered. Even if a dataset is not ready it must be in here. \r\n\r\nTo put somthing in the system manually you must add it to both this table and also priv_onlinedata to signal that \r\nthe data is ready to use and avalible. You also tell what table it is inside priv_onlinedata.\r\n\r\nGUID is the thing that is used on the URL''s so its probs a nice idea to make it a nice SEO friendly one rather than the a\r\nactual GUID, all the GUID col needs to be is uniq enough to not collide anywhere.';
 
 -- Data exporting was unselected.
 
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `index` (
 CREATE TABLE IF NOT EXISTS `priv_cache` (
   `cid` varchar(50) DEFAULT NULL,
   `contents` text
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='This is the cache table, it can be cleared as often as needed, its a good idea to clear stuff like this atleast daily';
 
 -- Data exporting was unselected.
 
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS `priv_shares` (
   `jsoninfo` text,
   `privateinfo` text COMMENT 'Contains the parent of it and the owner',
   PRIMARY KEY (`shareid`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='This is where (old school) book marks are stored it is likely that this is going to be removed at some point in the future since we\r\nhave a better way in the designes to do this, that does not involve loading JSON in on the fly.';
 
 -- Data exporting was unselected.
 
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS `priv_stringsearch` (
   `x` varchar(96) NOT NULL,
   `value` varchar(96) NOT NULL,
   `count` int(11) NOT NULL DEFAULT '1'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='This table contains every string value in every datatable in the system. It is used for Correlation searching and general searching for datasets. There is a tool inside tools/makesearch_index/main.go that will make this index.';
 
 -- Data exporting was unselected.
 
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS `priv_tracking` (
   `user` varchar(6) DEFAULT NULL,
   `guid` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='When a user visits a dataset, there action is appended here. This is to serve as a "Latest visited" and also a oppertunity for intergrating it into Gaminomics and or Perdiction IO to give users reccomendations.';
 
 -- Data exporting was unselected.
 
@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS `priv_users` (
   `email` varchar(128) NOT NULL DEFAULT '0',
   `password` varchar(128) NOT NULL DEFAULT '0',
   PRIMARY KEY (`uid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='This is the users table, as of right now the passwords are MD5 :(';
 
 -- Data exporting was unselected.
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
