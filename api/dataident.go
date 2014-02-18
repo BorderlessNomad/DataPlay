@@ -293,5 +293,22 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 	}
 	// Okay now we have a "job list" that looks a great deal like
 	// the one in "makesearch_index" (Hint: Thats because its basically doing the same thing)
+	checkingdict := make(map[string]int)
+
+	for _, v := range jobs {
+		q, _ := db.Query(fmt.Sprintf("SELECT `%s` FROM `%s`", v.X, v.TableName))
+
+		if e != nil {
+			panic(e)
+		}
+		// Count up all the vars in this col
+		for q.Next() {
+			var strout string
+			q.Scan(&strout)
+			checkingdict[strout]++
+		}
+
+	}
+
 	return ""
 }
