@@ -72,7 +72,6 @@ func main() {
 				failedstr = "You're password has been upgraded, please login again."
 			} else if queryprams.Get("/login?failed") == "3" {
 				failedstr = "Failed to login you in, Sorry!"
-
 			}
 		}
 		custom := map[string]string{
@@ -159,12 +158,13 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 	session := monager.GetSession(res, req)
 	username := req.FormValue("username")
 	password := req.FormValue("password")
-	fmt.Println()
+
 	rows, e := database.Query("SELECT `password` FROM priv_users where email = ? LIMIT 1", username)
 	check(e)
 	rows.Next()
 	var usrpassword string
 	e = rows.Scan(&usrpassword)
+
 	if usrpassword != "" && bcrypt.CompareHashAndPassword([]byte(usrpassword), []byte(password)) == nil {
 		var uid int
 		e := database.QueryRow("SELECT uid FROM priv_users where email = ? LIMIT 1", username).Scan(&uid)
@@ -174,6 +174,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 	} else {
 		var md5test int
 		e := database.QueryRow("SELECT count(*) FROM priv_users where email = ? AND password = MD5( ? ) LIMIT 1", username, password).Scan(&md5test)
+
 		if e == nil {
 			if md5test != 0 {
 				// Ooooh, We need to upgrade this password!
@@ -184,10 +185,10 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 				}
 				http.Redirect(res, req, fmt.Sprintf("/login?failed=3&r=%s", e), http.StatusFound)
 			} else {
-				http.Redirect(res, req, "/login?failed=1", http.StatusFound)
+				http.Redirect(res, req, "/login?failed=1", http.StatusFound) // The user has failed this test as well :sad tuba:
 			}
 		} else {
-			http.Redirect(res, req, "/login?failed=1", http.StatusFound)
+			http.Redirect(res, req, "/login?failed=1", http.StatusFound) // Ditto to the above
 		}
 	}
 }
