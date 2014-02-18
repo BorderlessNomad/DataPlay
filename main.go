@@ -10,6 +10,7 @@ package main
 import (
 	api "./api"
 	msql "./databasefuncs"
+	bcrypt "code.google.com/p/go.crypto/bcrypt"
 	"fmt"
 	"github.com/codegangsta/martini"              // Worked at 890a2a52d2e59b007758538f9b845fa0ed7daccb
 	"github.com/dre1080/martini-contrib/recovery" // Worked at efb5afbb743444c561125d607ba887554a0b9ee2
@@ -67,6 +68,12 @@ func main() {
 		queryprams, _ := url.ParseQuery(req.URL.String())
 		if queryprams.Get("/login?failed") != "" {
 			failedstr = "Incorrect User Name or Password"
+			if queryprams.Get("/login?failed") == "2" {
+				failedstr = "You're password has been upgraded, please login again."
+			} else if queryprams.Get("/login?failed") == "3" {
+				failedstr = "Failed to login you in, Sorry!"
+
+			}
 		}
 		custom := map[string]string{
 			"fail": failedstr,
@@ -153,20 +160,35 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 	fmt.Println()
-	rows, e := database.Query("SELECT COUNT(*) as count FROM priv_users where email = ? and password = MD5( ? ) LIMIT 1", username, password)
+	rows, e := database.Query("SELECT `password` FROM priv_users where email = ? LIMIT 1", username)
 	check(e)
 	rows.Next()
-	var count int
-	e = rows.Scan(&count)
-	fmt.Println("SQL user", count)
-	if count != 0 {
+	var usrpassword string
+	e = rows.Scan(&usrpassword)
+	if usrpassword != "" && bcrypt.CompareHashAndPassword([]byte(usrpassword), []byte(password)) == nil {
 		var uid int
-		e := database.QueryRow("SELECT uid FROM priv_users where email = ? and password = MD5( ? ) LIMIT 1", username, password).Scan(&uid)
+		e := database.QueryRow("SELECT uid FROM priv_users where email = ? LIMIT 1", username).Scan(&uid)
 		check(e)
 		session.Value = fmt.Sprintf("%d", uid)
 		http.Redirect(res, req, "/", http.StatusFound)
 	} else {
-		http.Redirect(res, req, "/login?failed=1", http.StatusFound)
+		var md5test int
+		e := database.QueryRow("SELECT count(*) FROM priv_users where email = ? AND password = MD5( ? ) LIMIT 1", username, password).Scan(&md5test)
+		if e == nil {
+			if md5test != 0 {
+				// Ooooh, We need to upgrade this password!
+				pwd, e := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+				if e == nil {
+					database.Exec("UPDATE `DataCon`.`priv_users` SET `password`= ? WHERE `email`=?", pwd, username)
+					http.Redirect(res, req, "/login?failed=2", http.StatusFound)
+				}
+				http.Redirect(res, req, fmt.Sprintf("/login?failed=3&r=%s", e), http.StatusFound)
+			} else {
+				http.Redirect(res, req, "/login?failed=1", http.StatusFound)
+			}
+		} else {
+			http.Redirect(res, req, "/login?failed=1", http.StatusFound)
+		}
 	}
 }
 
