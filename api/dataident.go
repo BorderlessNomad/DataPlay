@@ -296,7 +296,7 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 	checkingdict := make(map[string]int)
 
 	for _, v := range jobs {
-		q, _ := db.Query(fmt.Sprintf("SELECT `%s` FROM `%s`", v.X, v.TableName))
+		q, e := database.Query(fmt.Sprintf("SELECT `%s` FROM `%s`", v.X, v.TableName))
 
 		if e != nil {
 			panic(e)
