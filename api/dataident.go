@@ -261,3 +261,37 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini
 	}
 	return string(b)
 }
+
+type ScanJob struct {
+	TableName string
+	X         string
+}
+
+func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
+	database := msql.GetDB()
+	defer database.Close()
+
+	RealTableName := getRealTableName(prams["id"], database, res)
+	if RealTableName == "Error" {
+		http.Error(res, "Could not find that table", http.StatusInternalServerError)
+		return ""
+	}
+
+	jobs := make([]ScanJob, 0)
+	var CreateSQL string
+	database.QueryRow(fmt.Sprintf("SHOW CREATE TABLE `DataCon`.`%s`", RealTableName)).Scan(&RealTableName, &CreateSQL)
+
+	Bits := ParseCreateTableSQL(CreateSQL)
+	for _, bit := range Bits {
+		if bit.Sqltype == "varchar" {
+			newJob := ScanJob{
+				TableName: RealTableName,
+				X:         bit.Name,
+			}
+			jobs = append(jobs, newJob)
+		}
+	}
+	// Okay now we have a "job list" that looks a great deal like
+	// the one in "makesearch_index" (Hint: Thats because its basically doing the same thing)
+	return ""
+}
