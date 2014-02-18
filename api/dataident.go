@@ -22,6 +22,25 @@ type ColType struct {
 	Sqltype string
 }
 
+type SuggestionResponce struct {
+	Request string
+}
+
+type StringMatchResult struct {
+	Count int
+	Match string
+}
+
+type ScanJob struct {
+	TableName string
+	X         string
+}
+
+type PossibleCombo struct {
+	Match  string
+	Tables []string
+}
+
 func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
 	// This function checks to see if the data has been imported yet or still is in need of importing
 	database := msql.GetDB()
@@ -92,10 +111,6 @@ func ParseCreateTableSQL(input string) []ColType {
 		}
 	}
 	return returnerr
-}
-
-type SuggestionResponce struct {
-	Request string
 }
 
 func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
@@ -206,11 +221,6 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 	return "wat"
 }
 
-type StringMatchResult struct {
-	Count int
-	Match string
-}
-
 func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
 	database := msql.GetDB()
 	defer database.Close()
@@ -260,16 +270,6 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini
 		return ""
 	}
 	return string(b)
-}
-
-type ScanJob struct {
-	TableName string
-	X         string
-}
-
-type PossibleCombo struct {
-	Match  string
-	Tables []string
 }
 
 func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
