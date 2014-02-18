@@ -267,11 +267,16 @@ type ScanJob struct {
 	X         string
 }
 
+type PossibleCombo struct {
+	Match  string
+	Tables []string
+}
+
 func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
 	database := msql.GetDB()
 	defer database.Close()
 
-	RealTableName := getRealTableName(prams["id"], database, res)
+	RealTableName := getRealTableName(prams["guid"], database, res)
 	if RealTableName == "Error" {
 		http.Error(res, "Could not find that table", http.StatusInternalServerError)
 		return ""
@@ -309,6 +314,38 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 		}
 
 	}
+	Combos := make([]PossibleCombo, 0)
+	// Okay so at this point checkingdict has all of the vals of the strings that we should search for.
+	for k, v := range checkingdict {
+		if v < 5 || k == "" {
+			// Lets be sensible here
+			continue
+		}
+		var cnt int
+		e := database.QueryRow("SELECT COUNT(*) FROM priv_stringsearch WHERE value = ? LIMIT 1", k).Scan(&cnt)
+		if e == nil && cnt != 0 {
+			tablelist := make([]string, 0)
+			r, e := database.Query("SELECT `priv_onlinedata`.GUID FROM priv_stringsearch, priv_onlinedata, `index` WHERE (value = ?) AND `priv_stringsearch`.tablename = `priv_onlinedata`.TableName AND `priv_onlinedata`.GUID = `index`.GUID AND priv_stringsearch.count > 2", k)
+			if e != nil {
+				panic(e)
+			}
+			res := ""
+			for r.Next() {
+				r.Scan(&res)
+				tablelist = append(tablelist, res)
+			}
 
-	return ""
+			Combo := PossibleCombo{
+				Match:  k,
+				Tables: tablelist,
+			}
+			Combos = append(Combos, Combo)
+		}
+	}
+	b, e := json.Marshal(Combos)
+	if e != nil {
+		http.Error(res, "JSON failed", http.StatusInternalServerError)
+		return ""
+	}
+	return string(b)
 }
