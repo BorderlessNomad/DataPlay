@@ -82,7 +82,8 @@ CREATE TABLE IF NOT EXISTS `priv_stringsearch` (
   `tablename` varchar(96) NOT NULL,
   `x` varchar(96) NOT NULL,
   `value` varchar(96) NOT NULL,
-  `count` int(11) NOT NULL DEFAULT '1'
+  `count` int(11) NOT NULL DEFAULT '1',
+  KEY `value` (`value`(5))
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='This table contains every string value in every datatable in the system. It is used for Correlation searching and general searching for datasets. There is a tool inside tools/makesearch_index/main.go that will make this index.';
 
 -- Data exporting was unselected.
