@@ -9,10 +9,12 @@ node_modules/.bin/lessc src/less/signin.less public/css/signin.css &&
 node_modules/.bin/lessc src/less/charts.less public/css/charts.css &&
 node_modules/.bin/lessc src/less/maptest.less public/css/maptest.css &&
 
-cd public/lib/openlayers/build &&
-python build.py &&
-cp -r OpenLayers.js ../../../../public/lib/dependencies/js/ &&
-cd ../../../../ &&
+if [ ! -f public/lib/openlayers/build/OpenLayers.js ]; then
+	cd public/lib/openlayers/build &&
+	python build.py &&
+	cp -r OpenLayers.js ../../../../public/lib/dependencies/js/ &&
+	cd ../../../../
+fi
 
 echo 'BUILDING GOGRAM' &&
 go build &&
