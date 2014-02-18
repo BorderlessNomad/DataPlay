@@ -68,6 +68,11 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 			query := strings.Replace(prams["s"], " ", "%", -1)
 			rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", "%"+query+"%")
 			Results = ProcessSearchResults(rows, e, database)
+			if len(Results) == 0 {
+				fmt.Println("Searching in string table")
+				rows, e := database.Query("SELECT `priv_onlinedata`.GUID,`index`.Title FROM priv_stringsearch, priv_onlinedata, `index` WHERE (value LIKE ? OR `x` LIKE ?) AND `priv_stringsearch`.tablename = `priv_onlinedata`.TableName AND `priv_onlinedata`.GUID = `index`.GUID ORDER BY `count` DESC LIMIT 10", "%"+prams["s"]+"%", "%"+prams["s"]+"%")
+				Results = ProcessSearchResults(rows, e, database)
+			}
 		}
 	}
 	defer rows.Close()
