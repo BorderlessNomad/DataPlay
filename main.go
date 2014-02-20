@@ -79,6 +79,13 @@ func main() {
 		}
 		renderTemplate("public/signin.html", custom, res)
 	})
+	m.Get("/register", func(res http.ResponseWriter, req *http.Request) {
+		failedstr := ""
+		custom := map[string]string{
+			"fail": failedstr,
+		}
+		renderTemplate("public/register.html", custom, res)
+	})
 	m.Get("/charts/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params, monager *session.SessionManager) {
 		checkAuth(res, req, monager)
 		session := monager.GetSession(res, req)
