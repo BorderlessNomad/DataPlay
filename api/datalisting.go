@@ -47,30 +47,34 @@ type SearchResult struct {
 	LocationData string
 }
 
-func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
+func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Params, monager *session.SessionManager) string {
 	database := msql.GetDB()
 	defer database.Close()
+	session := monager.GetSession(res, req)
+	var uid string
+	uid = fmt.Sprint(session.Value)
+	intuid, _ := strconv.ParseInt(uid, 10, 32)
 
 	if prams["s"] == "" {
 		http.Error(res, "There was no search request", http.StatusBadRequest)
 		return ""
 	}
-	rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", prams["s"]+"%")
+	rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? AND `index`.Owner = 0 OR `index`.Owner = ? LIMIT 10", prams["s"]+"%", intuid)
 
 	Results := make([]SearchResult, 0)
 	Results = ProcessSearchResults(rows, e, database)
 	if len(Results) == 0 {
 		fmt.Println("falling back to overkill search")
-		rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", "%"+prams["s"]+"%")
+		rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? AND `index`.Owner = 0 OR `index`.Owner = ? LIMIT 10", "%"+prams["s"]+"%", intuid)
 		Results = ProcessSearchResults(rows, e, database)
 		if len(Results) == 0 {
 			fmt.Println("Going 100 persent mad search")
 			query := strings.Replace(prams["s"], " ", "%", -1)
-			rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? LIMIT 10", "%"+query+"%")
+			rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? AND `index`.Owner = 0 OR `index`.Owner = ? LIMIT 10", "%"+query+"%", intuid)
 			Results = ProcessSearchResults(rows, e, database)
 			if len(Results) == 0 {
 				fmt.Println("Searching in string table")
-				rows, e := database.Query("SELECT `priv_onlinedata`.GUID,`index`.Title FROM priv_stringsearch, priv_onlinedata, `index` WHERE (value LIKE ? OR `x` LIKE ?) AND `priv_stringsearch`.tablename = `priv_onlinedata`.TableName AND `priv_onlinedata`.GUID = `index`.GUID ORDER BY `count` DESC LIMIT 10", "%"+prams["s"]+"%", "%"+prams["s"]+"%")
+				rows, e := database.Query("SELECT `priv_onlinedata`.GUID,`index`.Title FROM priv_stringsearch, priv_onlinedata, `index` WHERE (value LIKE ? OR `x` LIKE ?) AND `priv_stringsearch`.tablename = `priv_onlinedata`.TableName AND `priv_onlinedata`.GUID = `index`.GUID AND `index`.Owner = 0 OR `index`.Owner = ? ORDER BY `count` DESC LIMIT 10", "%"+prams["s"]+"%", "%"+prams["s"]+"%", intuid)
 				Results = ProcessSearchResults(rows, e, database)
 			}
 		}
