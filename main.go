@@ -117,6 +117,7 @@ func main() {
 	})
 
 	m.Post("/noauth/login.json", HandleLogin)
+	m.Post("/noauth/register.json", HandleRegister)
 	m.Get("/api/user", api.CheckAuth)
 	m.Get("/api/visited", api.GetLastVisited)
 	m.Get("/api/search/:s", api.SearchForData)
@@ -192,6 +193,37 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 			http.Redirect(res, req, "/login?failed=1", http.StatusFound) // Ditto to the above
 		}
 	}
+}
+
+func HandleRegister(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) string {
+	database := msql.GetDB()
+	session := monager.GetSession(res, req)
+	username := req.FormValue("username")
+	password := req.FormValue("password")
+
+	rows, e := database.Query("SELECT COUNT(*) FROM priv_users where email = ? LIMIT 1", username)
+	check(e)
+	rows.Next()
+	var doesusrexist int
+	e = rows.Scan(&doesusrexist)
+
+	if doesusrexist == 0 {
+		pwd, e := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if e != nil {
+			return "The password you entered is invalid."
+		}
+		r, e := database.Exec("INSERT INTO `DataCon`.`priv_users` (`email`, `password`) VALUES (?, ?);", username, pwd)
+		if e != nil {
+			return "Could not make the user you requested."
+		}
+		newid, _ := r.LastInsertId()
+		session.Value = fmt.Sprintf("%d", newid)
+		http.Redirect(res, req, "/", http.StatusFound)
+		return ""
+	} else {
+		return "That username is already registered."
+	}
+	return ""
 }
 
 func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
