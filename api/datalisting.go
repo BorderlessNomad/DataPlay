@@ -72,7 +72,7 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 			query := strings.Replace(prams["s"], " ", "%", -1)
 			rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? AND (`index`.Owner = 0 OR `index`.Owner = ?) LIMIT 10", "%"+query+"%", intuid)
 			Results = ProcessSearchResults(rows, e, database)
-			if len(Results) == 0 {
+			if len(Results) == 0 && (len(prams["s"]) > 3 && len(prams["s"]) < 20) {
 				fmt.Println("Searching in string table")
 				rows, e := database.Query("SELECT DISTINCT(`priv_onlinedata`.GUID),`index`.Title FROM priv_stringsearch, priv_onlinedata, `index` WHERE (value LIKE ? OR `x` LIKE ?) AND `priv_stringsearch`.tablename = `priv_onlinedata`.TableName AND `priv_onlinedata`.GUID = `index`.GUID AND (`index`.Owner = 0 OR `index`.Owner = ?) ORDER BY `count` DESC LIMIT 10", "%"+prams["s"]+"%", "%"+prams["s"]+"%", intuid)
 				Results = ProcessSearchResults(rows, e, database)
