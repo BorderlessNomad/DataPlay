@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS `index` (
   `Title` varchar(256) NOT NULL,
   `Notes` text NOT NULL,
   `ckan_url` varchar(256) NOT NULL,
+  `Owner` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`GUID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='This table contains all of the datasets that are registered. Even if a dataset is not ready it must be in here. \r\n\r\nTo put somthing in the system manually you must add it to both this table and also priv_onlinedata to signal that \r\nthe data is ready to use and avalible. You also tell what table it is inside priv_onlinedata.\r\n\r\nGUID is the thing that is used on the URL''s so its probs a nice idea to make it a nice SEO friendly one rather than the a\r\nactual GUID, all the GUID col needs to be is uniq enough to not collide anywhere.';
 
