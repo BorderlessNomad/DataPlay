@@ -183,7 +183,10 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 				pwd, e := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 				if e == nil {
 					database.Exec("UPDATE `DataCon`.`priv_users` SET `password`= ? WHERE `email`=?", pwd, username)
-					http.Redirect(res, req, "/login?failed=2", http.StatusFound)
+					e := database.QueryRow("SELECT uid FROM priv_users where email = ? LIMIT 1", username).Scan(&uid)
+					check(e)
+					session.Value = fmt.Sprintf("%d", newid)
+					http.Redirect(res, req, "/", http.StatusFound)
 				}
 				http.Redirect(res, req, fmt.Sprintf("/login?failed=3&r=%s", e), http.StatusFound)
 			} else {
