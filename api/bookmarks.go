@@ -29,7 +29,8 @@ func SetBookmark(res http.ResponseWriter, req *http.Request, prams martini.Param
 	privatejson, _ := json.Marshal(BMData)
 	_, e := database.Query("INSERT INTO `priv_shares` (`jsoninfo`,`privateinfo`) VALUES (?);", jsondata, string(privatejson))
 	if e != nil {
-		panic(e)
+		http.Error(res, "Could not save bookmark", http.StatusInternalServerError)
+		return ""
 	}
 	r := database.QueryRow("SELECT `shareid` FROM priv_shares ORDER BY `shareid` DESC LIMIT 1")
 
