@@ -20,7 +20,7 @@ func main() {
 
 	q, e := database.Query("SELECT `TableName` FROM priv_onlinedata")
 	if e != nil {
-		panic(":(")
+		panic(e)
 	}
 	TableScanTargets := make([]string, 0)
 	for q.Next() {
