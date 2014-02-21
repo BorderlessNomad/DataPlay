@@ -220,7 +220,7 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 	if UsingRanges {
 		rows, err = database.Query(fmt.Sprintf("SELECT * FROM `%s` LIMIT %d,%d", tablename, top, bot))
 	} else {
-		rows, err = database.Query("SELECT * FROM " + tablename)
+		rows, err = database.Query(fmt.Sprintf("SELECT * FROM `%s`", tablename))
 	}
 
 	if err != nil {
