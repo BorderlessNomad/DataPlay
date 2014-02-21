@@ -94,10 +94,6 @@ func main() {
 		}
 		renderTemplate("public/charts.html", nil, res)
 	})
-	m.Get("/viewbookmark/:id", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
-		checkAuth(res, req, monager)
-		renderTemplate("public/bookmarked.html", nil, res)
-	})
 	m.Get("/search/overlay", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 		checkAuth(res, req, monager)
 		renderTemplate("public/search.html", nil, res)
@@ -138,8 +134,6 @@ func main() {
 	m.Get("/api/getreduceddata/:id", api.DumpReducedTable)
 	m.Get("/api/getreduceddata/:id/:persent", api.DumpReducedTable)
 	m.Get("/api/getreduceddata/:id/:persent/:min", api.DumpReducedTable)
-	m.Post("/api/setbookmark/", api.SetBookmark)
-	m.Get("/api/getbookmark/:id", api.GetBookmark)
 	m.Post("/api/setdefaults/:id", api.SetDefaults)
 	m.Get("/api/getdefaults/:id", api.GetDefaults)
 	m.Get("/api/identifydata/:id", api.IdentifyTable)
