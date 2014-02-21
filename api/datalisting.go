@@ -235,12 +235,26 @@ func DumpTablePaged(res http.ResponseWriter, req *http.Request, prams martini.Pa
 		http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
 		return
 	}
+
+	if prams["top"] == "" || prams["bot"] == "" {
+		http.Error(res, "You didnt give a valid top and bot", http.StatusBadRequest)
+		return
+	}
+
+	top, te := strconv.ParseInt(prams["top"], 10, 64)
+	bot, be := strconv.ParseInt(prams["bot"], 10, 64)
+
+	if te != nil || be != nil {
+		http.Error(res, "Please give valid numbers for top and bot", http.StatusBadRequest)
+		return
+	}
+
 	database := msql.GetDB()
 	defer database.Close()
 
 	tablename := getRealTableName(prams["id"], database, res)
 
-	rows, err := database.Query(fmt.Sprintf("SELECT * FROM `%s` LIMIT %d,%d", tablename, 0, 100))
+	rows, err := database.Query(fmt.Sprintf("SELECT * FROM `%s` LIMIT %d,%d", tablename, top, bot))
 	if err != nil {
 		panic(err)
 	}
