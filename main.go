@@ -127,6 +127,7 @@ func main() {
 	m.Get("/api/getinfo/:id", api.GetEntry)
 	m.Get("/api/getimportstatus/:id", api.CheckImportStatus)
 	m.Get("/api/getdata/:id", api.DumpTable)
+	m.Get("/api/getdata/:id/:top/:bot", api.DumpTable)
 	m.Get("/api/getdata/:id/:x/:startx/:endx", api.DumpTableRange)
 	m.Get("/api/getdatagrouped/:id/:x/:y", api.DumpTableGrouped)
 	m.Get("/api/getdatapred/:id/:x/:y", api.DumpTablePrediction)

@@ -196,65 +196,33 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 	database := msql.GetDB()
 	defer database.Close()
 
-	tablename := getRealTableName(prams["id"], database, res)
+	var top int64 = 0
+	var bot int64 = 0
 
-	rows, err := database.Query("SELECT * FROM " + tablename)
-	if err != nil {
-		panic(err)
-	}
-	columns, err := rows.Columns()
-	if err != nil {
-		panic(err)
-	}
-
-	scanArgs := make([]interface{}, len(columns))
-	values := make([]interface{}, len(columns))
-	for i := range values {
-		scanArgs[i] = &values[i]
-	}
-
-	array := make([]map[string]interface{}, 0)
-	for rows.Next() {
-		err = rows.Scan(scanArgs...) // This may look like a typo, But it is infact not. This is what you use for interfaces.
-		if err != nil {
-			panic(err)
-		}
-		record := scanrow(values, columns)
-		array = append(array, record)
-	}
-	s, _ := json.Marshal(array)
-	res.Write(s)
-	io.WriteString(res, "\n")
-}
-
-func DumpTablePaged(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-	// This function will empty a whole table out into JSON
-	// Due to what seems to be a golang bug, everything is outputted as a string.
-
-	if prams["id"] == "" {
-		http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
-		return
-	}
-
+	UsingRanges := true
 	if prams["top"] == "" || prams["bot"] == "" {
-		http.Error(res, "You didnt give a valid top and bot", http.StatusBadRequest)
-		return
+		UsingRanges = false
+	} else {
+		top, te := strconv.ParseInt(prams["top"], 10, 64)
+		bot, be := strconv.ParseInt(prams["bot"], 10, 64)
+		top = top * 1 // This is to stop a compiler issue inside golang where it would not see it as in use and proceed to fail the compile.
+		bot = bot * 1
+		if te != nil || be != nil {
+			http.Error(res, "Please give valid numbers for top and bot", http.StatusBadRequest)
+			return
+		}
 	}
-
-	top, te := strconv.ParseInt(prams["top"], 10, 64)
-	bot, be := strconv.ParseInt(prams["bot"], 10, 64)
-
-	if te != nil || be != nil {
-		http.Error(res, "Please give valid numbers for top and bot", http.StatusBadRequest)
-		return
-	}
-
-	database := msql.GetDB()
-	defer database.Close()
 
 	tablename := getRealTableName(prams["id"], database, res)
+	var rows *sql.Rows
+	var err error
 
-	rows, err := database.Query(fmt.Sprintf("SELECT * FROM `%s` LIMIT %d,%d", tablename, top, bot))
+	if UsingRanges {
+		rows, err = database.Query(fmt.Sprintf("SELECT * FROM `%s` LIMIT %d,%d", tablename, top, bot))
+	} else {
+		rows, err = database.Query("SELECT * FROM " + tablename)
+	}
+
 	if err != nil {
 		panic(err)
 	}
