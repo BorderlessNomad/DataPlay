@@ -203,10 +203,10 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 	if prams["top"] == "" || prams["bot"] == "" {
 		UsingRanges = false
 	} else {
-		top, te := strconv.ParseInt(prams["top"], 10, 64)
-		bot, be := strconv.ParseInt(prams["bot"], 10, 64)
-		top = top * 1 // This is to stop a compiler issue inside golang where it would not see it as in use and proceed to fail the compile.
-		bot = bot * 1
+		var te, be error
+		top, te = strconv.ParseInt(prams["top"], 10, 64)
+		bot, be = strconv.ParseInt(prams["bot"], 10, 64)
+
 		if te != nil || be != nil {
 			http.Error(res, "Please give valid numbers for top and bot", http.StatusBadRequest)
 			return
