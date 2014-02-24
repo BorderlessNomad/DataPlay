@@ -64,16 +64,16 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 	Results := make([]SearchResult, 0)
 	Results = ProcessSearchResults(rows, e, database)
 	if len(Results) == 0 {
-		fmt.Println("falling back to overkill search")
+		Logger.Println("falling back to overkill search")
 		rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? AND (`index`.Owner = 0 OR `index`.Owner = ?) LIMIT 10", "%"+prams["s"]+"%", intuid)
 		Results = ProcessSearchResults(rows, e, database)
 		if len(Results) == 0 {
-			fmt.Println("Going 100 persent mad search")
+			Logger.Println("Going 100 persent mad search")
 			query := strings.Replace(prams["s"], " ", "%", -1)
 			rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? AND (`index`.Owner = 0 OR `index`.Owner = ?) LIMIT 10", "%"+query+"%", intuid)
 			Results = ProcessSearchResults(rows, e, database)
 			if len(Results) == 0 && (len(prams["s"]) > 3 && len(prams["s"]) < 20) {
-				fmt.Println("Searching in string table")
+				Logger.Println("Searching in string table")
 				rows, e := database.Query("SELECT DISTINCT(`priv_onlinedata`.GUID),`index`.Title FROM priv_stringsearch, priv_onlinedata, `index` WHERE (value LIKE ? OR `x` LIKE ?) AND `priv_stringsearch`.tablename = `priv_onlinedata`.TableName AND `priv_onlinedata`.GUID = `index`.GUID AND (`index`.Owner = 0 OR `index`.Owner = ?) ORDER BY `count` DESC LIMIT 10", "%"+prams["s"]+"%", "%"+prams["s"]+"%", intuid)
 				Results = ProcessSearchResults(rows, e, database)
 			}
@@ -160,7 +160,7 @@ func scanrow(values []interface{}, columns []string) map[string]interface{} {
 
 			switch t := col.(type) {
 			default:
-				fmt.Printf("Unexpected type %T\n", t)
+				Logger.Printf("Unexpected type %T\n", t)
 			case bool:
 				record[columns[i]] = col.(bool)
 			case int:
@@ -639,6 +639,7 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 }
 
 func getRealTableName(guid string, database *sql.DB, res http.ResponseWriter) string {
+	Logger.Println("hi")
 	var tablename string
 	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", guid).Scan(&tablename)
 	if tablename == "" {

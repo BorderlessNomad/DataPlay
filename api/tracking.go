@@ -67,7 +67,7 @@ func TrackVisited(guid string, user string) {
 	defer database.Close()
 	_, e := database.Exec("INSERT INTO `DataCon`.`priv_tracking` (`user`, `guid`) VALUES (?, ?);", user, guid)
 	if e != nil {
-		fmt.Println(e)
+		Logger.Println(e)
 	}
-	fmt.Println("Tracking page hit to ", guid, "by", user)
+	Logger.Println("Tracking page hit to ", guid, "by", user)
 }

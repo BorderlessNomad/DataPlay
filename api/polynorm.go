@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"github.com/skelterjohn/go.matrix" // daa59528eefd43623a4c8e36373a86f9eef870a2
 )
 
@@ -34,7 +33,7 @@ func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 	q, r := x.QR()
 	qty, err := q.Transpose().Times(y)
 	if err != nil {
-		fmt.Println(err)
+		Logger.Println(err)
 		return []float64{0, 0, 0}
 	}
 	c := make([]float64, n)
@@ -45,6 +44,6 @@ func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 		}
 		c[i] /= r.Get(i, i)
 	}
-	fmt.Println(c)
+	Logger.Println(c)
 	return c
 }

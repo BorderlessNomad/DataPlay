@@ -221,7 +221,7 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 	xend := ""
 
 	database.QueryRow("SELECT * FROM `priv_statcheck` WHERE `table` = ? AND `x` = ? AND `y` = ? LIMIT 1", RealTableName, prams["x"], prams["y"]).Scan(&id, &table, &x, &y, &p1, &p2, &p3, &xstart, &xend)
-	fmt.Println(id, table, x, y, p1, p2, p3, xstart, xend)
+	Logger.Println(id, table, x, y, p1, p2, p3, xstart, xend)
 
 	return "wat"
 }
