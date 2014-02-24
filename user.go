@@ -5,7 +5,6 @@ import (
 	dpsession "./session"
 	bcrypt "code.google.com/p/go.crypto/bcrypt"
 	"fmt"
-	"github.com/mattn/go-session-manager" // Worked at 02b4822c40b5b3996ebbd8bd747d20587635c41b
 	"net/http"
 )
 
@@ -65,7 +64,6 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 func HandleRegister(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) string {
 	database := msql.GetDB()
 	defer database.Close()
-	session := monager.GetSession(res, req)
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 
@@ -85,7 +83,7 @@ func HandleRegister(res http.ResponseWriter, req *http.Request, monager *session
 			return "Could not make the user you requested."
 		}
 		newid, _ := r.LastInsertId()
-		session.Value = fmt.Sprintf("%d", newid)
+		dpsession.SetSession(res, req, newid)
 		http.Redirect(res, req, "/", http.StatusFound)
 		return ""
 	} else {
