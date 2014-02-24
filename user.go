@@ -8,6 +8,14 @@ import (
 	"net/http"
 )
 
+func IsUserLoggedIn(res http.ResponseWriter, req *http.Request) bool {
+	return dpsession.IsUserLoggedIn(res, req)
+}
+
+func GetUserID(res http.ResponseWriter, req *http.Request) int {
+	return dpsession.GetUserID(res, req)
+}
+
 func checkAuth(res http.ResponseWriter, req *http.Request) {
 	if !(dpsession.IsUserLoggedIn(res, req)) {
 		http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
