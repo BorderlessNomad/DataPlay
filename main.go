@@ -154,14 +154,6 @@ func ProabblyAPI(res http.ResponseWriter, req *http.Request, monager *session.Se
 	}
 }
 
-func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
-	session := monager.GetSession(res, req)
-	if !(session.Value != nil) {
-		http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
-		return
-	}
-}
-
 func check(e error) {
 	if e != nil {
 		panic(e)

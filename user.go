@@ -8,6 +8,14 @@ import (
 	"net/http"
 )
 
+func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+	session := monager.GetSession(res, req)
+	if !(session.Value != nil) {
+		http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
+		return
+	}
+}
+
 func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 	database := msql.GetDB()
 	defer database.Close()
