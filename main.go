@@ -13,7 +13,6 @@ import (
 	bcrypt "code.google.com/p/go.crypto/bcrypt"
 	"fmt"
 	"github.com/codegangsta/martini"              // Worked at 890a2a52d2e59b007758538f9b845fa0ed7daccb
-	"github.com/dre1080/martini-contrib/recovery" // Worked at efb5afbb743444c561125d607ba887554a0b9ee2
 	"github.com/mattn/go-session-manager"         // Worked at 02b4822c40b5b3996ebbd8bd747d20587635c41b
 	"log"
 	"net/http"
@@ -144,7 +143,6 @@ func main() {
 	m.Get("/api/stringmatch/:word/:x", api.FindStringMatches)
 	m.Get("/api/relatedstrings/:guid", api.GetRelatedDatasetByStrings)
 	m.Use(ProabblyAPI)
-	m.Use(recovery.Recovery())
 	m.Use(martini.Static("node_modules"))
 	m.Run()
 }
