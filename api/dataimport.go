@@ -4,7 +4,6 @@ import (
 	msql "../databasefuncs"
 	"encoding/json"
 	"github.com/codegangsta/martini"
-	"github.com/mattn/go-session-manager"
 	"net/http"
 )
 
@@ -13,7 +12,7 @@ type CheckImportResponce struct {
 	Request string
 }
 
-func CheckImportStatus(res http.ResponseWriter, req *http.Request, prams martini.Params, manager *session.SessionManager) string {
+func CheckImportStatus(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
 	// This function checks to see if the data has been imported yet or still is in need of importing
 	database := msql.GetDB()
 	defer database.Close()

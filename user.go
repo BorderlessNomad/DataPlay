@@ -8,14 +8,14 @@ import (
 	"net/http"
 )
 
-func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+func checkAuth(res http.ResponseWriter, req *http.Request) {
 	if !(dpsession.IsUserLoggedIn(res, req)) {
 		http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
 		return
 	}
 }
 
-func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	database := msql.GetDB()
 	defer database.Close()
 	// session := monager.GetSession(res, req)
@@ -61,7 +61,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 	}
 }
 
-func HandleRegister(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) string {
+func HandleRegister(res http.ResponseWriter, req *http.Request) string {
 	database := msql.GetDB()
 	defer database.Close()
 	username := req.FormValue("username")
@@ -83,7 +83,7 @@ func HandleRegister(res http.ResponseWriter, req *http.Request, monager *session
 			return "Could not make the user you requested."
 		}
 		newid, _ := r.LastInsertId()
-		dpsession.SetSession(res, req, newid)
+		dpsession.SetSession(res, req, int(newid))
 		http.Redirect(res, req, "/", http.StatusFound)
 		return ""
 	} else {
