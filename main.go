@@ -204,6 +204,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 
 func HandleRegister(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) string {
 	database := msql.GetDB()
+	defer database.Close()
 	session := monager.GetSession(res, req)
 	username := req.FormValue("username")
 	password := req.FormValue("password")
