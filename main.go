@@ -12,8 +12,8 @@ import (
 	msql "./databasefuncs"
 	bcrypt "code.google.com/p/go.crypto/bcrypt"
 	"fmt"
-	"github.com/codegangsta/martini"              // Worked at 890a2a52d2e59b007758538f9b845fa0ed7daccb
-	"github.com/mattn/go-session-manager"         // Worked at 02b4822c40b5b3996ebbd8bd747d20587635c41b
+	"github.com/codegangsta/martini"      // Worked at 890a2a52d2e59b007758538f9b845fa0ed7daccb
+	"github.com/mattn/go-session-manager" // Worked at 02b4822c40b5b3996ebbd8bd747d20587635c41b
 	"log"
 	"net/http"
 	"net/url"
@@ -157,6 +157,7 @@ func ProabblyAPI(res http.ResponseWriter, req *http.Request, monager *session.Se
 
 func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 	database := msql.GetDB()
+	defer database.Close()
 	session := monager.GetSession(res, req)
 	username := req.FormValue("username")
 	password := req.FormValue("password")
