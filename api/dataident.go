@@ -8,9 +8,15 @@ import (
 	"github.com/codegangsta/martini"
 	"net/http"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 )
+
+type CheckDict struct {
+	Key   string
+	value int
+}
 
 type IdentifyResponce struct {
 	Cols    []ColType
@@ -312,20 +318,25 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 			q.Scan(&strout)
 			checkingdict[strout]++
 		}
-
 	}
 	Combos := make([]PossibleCombo, 0)
+	Cdict := ConvertIntoStructArrayAndSort(checkingdict)
+	var Amt int = 0
 	// Okay so at this point checkingdict has all of the vals of the strings that we should search for.
-	for k, v := range checkingdict {
-		if v < 5 || k == "" {
+	for _, v := range Cdict {
+		if v.value < 5 || v.Key == "" {
 			// Lets be sensible here
 			continue
 		}
+		Amt++
+		if Amt > 5 { // this acts as a "LIMIT 5" in the whole thing else this thing can literally takes mins to run.
+			continue
+		}
 		var cnt int
-		e := database.QueryRow("SELECT COUNT(*) FROM priv_stringsearch WHERE value = ? LIMIT 1", k).Scan(&cnt)
+		e := database.QueryRow("SELECT COUNT(*) FROM priv_stringsearch WHERE value = ? LIMIT 1", v.value).Scan(&cnt)
 		if e == nil && cnt != 0 {
 			tablelist := make([]string, 0)
-			r, e := database.Query("SELECT `priv_onlinedata`.GUID FROM priv_stringsearch, priv_onlinedata, `index` WHERE (value = ?) AND `priv_stringsearch`.tablename = `priv_onlinedata`.TableName AND `priv_onlinedata`.GUID = `index`.GUID AND priv_stringsearch.count > 2", k)
+			r, e := database.Query("SELECT `priv_onlinedata`.GUID FROM priv_stringsearch, priv_onlinedata, `index` WHERE (value = ?) AND `priv_stringsearch`.tablename = `priv_onlinedata`.TableName AND `priv_onlinedata`.GUID = `index`.GUID AND priv_stringsearch.count > 5", v.value)
 			if e != nil {
 				http.Error(res, "Could not read off data lookups", http.StatusInternalServerError)
 				return ""
@@ -339,7 +350,7 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 			}
 
 			Combo := PossibleCombo{
-				Match:  k,
+				Match:  v.Key,
 				Tables: tablelist,
 			}
 			Combos = append(Combos, Combo)
@@ -360,4 +371,23 @@ func stringInSlice(a string, list []string) bool {
 		}
 	}
 	return false
+}
+
+type ByVal []CheckDict
+
+func (a ByVal) Len() int           { return len(a) }
+func (a ByVal) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByVal) Less(i, j int) bool { return a[i].value < a[j].value }
+
+func ConvertIntoStructArrayAndSort(input map[string]int) (in []CheckDict) {
+	in = make([]CheckDict, 0)
+	for k, v := range input {
+		newd := CheckDict{
+			Key:   k,
+			value: v,
+		}
+		in = append(in, newd)
+	}
+	sort.Sort(ByVal(in))
+	return in
 }
