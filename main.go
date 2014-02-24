@@ -29,7 +29,7 @@ type AuthHandler struct {
 var manager *session.SessionManager
 
 func main() {
-	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	logger := log.New(os.Stdout, "[Sessions] ", log.Ldate|log.Ltime)
 	manager = session.NewSessionManager(logger)
 	manager.SetPath("/") // Thanks for telling me this is needed?
 
