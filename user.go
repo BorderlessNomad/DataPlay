@@ -2,6 +2,7 @@ package main
 
 import (
 	msql "./databasefuncs"
+	dpsession "./session"
 	bcrypt "code.google.com/p/go.crypto/bcrypt"
 	"fmt"
 	"github.com/mattn/go-session-manager" // Worked at 02b4822c40b5b3996ebbd8bd747d20587635c41b
@@ -9,8 +10,7 @@ import (
 )
 
 func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
-	session := monager.GetSession(res, req)
-	if !(session.Value != nil) {
+	if !(dpsession.IsUserLoggedIn(res, req)) {
 		http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
 		return
 	}
@@ -19,7 +19,7 @@ func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.Sess
 func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
 	database := msql.GetDB()
 	defer database.Close()
-	session := monager.GetSession(res, req)
+	// session := monager.GetSession(res, req)
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 
@@ -33,7 +33,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 		var uid int
 		e := database.QueryRow("SELECT uid FROM priv_users where email = ? LIMIT 1", username).Scan(&uid)
 		check(e)
-		session.Value = fmt.Sprintf("%d", uid)
+		dpsession.SetSession(res, req, uid)
 		http.Redirect(res, req, "/", http.StatusFound)
 	} else {
 		var md5test int
@@ -49,8 +49,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, monager *session.Se
 					var uid int
 					e := database.QueryRow("SELECT uid FROM priv_users where email = ? LIMIT 1", username).Scan(&uid)
 					check(e)
-					session.Value = fmt.Sprintf("%d", uid)
-
+					dpsession.SetSession(res, req, uid)
 					http.Redirect(res, req, "/", http.StatusFound)
 				}
 				http.Redirect(res, req, fmt.Sprintf("/login?failed=3&r=%s", e), http.StatusFound)
