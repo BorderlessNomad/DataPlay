@@ -2,11 +2,11 @@ package api
 
 import (
 	msql "../databasefuncs"
+	dpsession "../session"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/codegangsta/martini"
-	"github.com/mattn/go-session-manager"
 	"io"
 	"net/http"
 	"strconv"
@@ -19,16 +19,15 @@ type AuthResponce struct {
 	UserID   int64
 }
 
-func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params, manager *session.SessionManager) string {
+func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
 	//This function is used to gather what is the username is
 
 	// This used to be used on the front page but now it is mainly used as a "noop" call to check if the user is logged in or not.
-	session := manager.GetSession(res, req)
 	database := msql.GetDB()
 	defer database.Close()
 
 	var uid string
-	uid = fmt.Sprint(session.Value)
+	uid = fmt.Sprint(dpsession.GetUserID(res, req))
 	intuid, _ := strconv.ParseInt(uid, 10, 32)
 	var username string
 	database.QueryRow("select email from priv_users where uid = ?", uid).Scan(&username)
@@ -47,12 +46,12 @@ type SearchResult struct {
 	LocationData string
 }
 
-func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Params, monager *session.SessionManager) string {
+func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
 	database := msql.GetDB()
 	defer database.Close()
-	session := monager.GetSession(res, req)
+
 	var uid string
-	uid = fmt.Sprint(session.Value)
+	uid = fmt.Sprint(dpsession.GetUserID(res, req))
 	intuid, _ := strconv.ParseInt(uid, 10, 32)
 
 	if prams["s"] == "" {

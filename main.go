@@ -10,13 +10,11 @@ package main
 import (
 	api "./api"
 	msql "./databasefuncs"
+	dpsession "./session"
 	"fmt"
-	"github.com/codegangsta/martini"      // Worked at 890a2a52d2e59b007758538f9b845fa0ed7daccb
-	"github.com/mattn/go-session-manager" // Worked at 02b4822c40b5b3996ebbd8bd747d20587635c41b
-	"log"
+	"github.com/codegangsta/martini" // Worked at 890a2a52d2e59b007758538f9b845fa0ed7daccb
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 )
 
@@ -25,18 +23,7 @@ type AuthHandler struct {
 	Users map[string]string
 }
 
-var manager *session.SessionManager
-
 func main() {
-	logger := log.New(os.Stdout, "[Sessions] ", log.Ldate|log.Ltime)
-	manager = session.NewSessionManager(logger)
-	manager.SetPath("/") // Thanks for telling me this is needed?
-
-	manager.OnStart(func(session *session.Session) {
-		println("started new session", session.Id, session.Value)
-	})
-	manager.SetTimeout(120 * 60)
-
 	what := msql.GetDB()
 	what.Ping()
 
@@ -46,14 +33,12 @@ func main() {
 	fmt.Println("DataCon Server")
 	initTemplates()
 	m := martini.Classic()
-	m.Map(manager)
-	m.Get("/", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) { // res and req are injected by Martini
-		checkAuth(res, req, monager)
-		session := monager.GetSession(res, req)
+	m.Get("/", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
+		checkAuth(res, req)
 		database := msql.GetDB()
 		defer database.Close()
 		var uid string
-		uid = fmt.Sprint(session.Value)
+		uid = dpsession.GetUserID(res, req)
 		var username string
 		database.QueryRow("select email from priv_users where uid = ?", uid).Scan(&username)
 		custom := map[string]string{
@@ -84,36 +69,34 @@ func main() {
 		}
 		renderTemplate("public/register.html", custom, res)
 	})
-	m.Get("/charts/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params, monager *session.SessionManager) {
-		checkAuth(res, req, monager)
-		session := monager.GetSession(res, req)
-		if session.Value != nil {
-			api.TrackVisited(prams["id"], session.Value.(string))
+	m.Get("/charts/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
+		checkAuth(res, req)
+		if IsUserLoggedIn(res, req) {
+			api.TrackVisited(prams["id"], string(GetUserID(res, req)))
 		}
 		renderTemplate("public/charts.html", nil, res)
 	})
-	m.Get("/search/overlay", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
-		checkAuth(res, req, monager)
+	m.Get("/search/overlay", func(res http.ResponseWriter, req *http.Request) {
+		checkAuth(res, req)
 		renderTemplate("public/search.html", nil, res)
 	})
-	m.Get("/overlay/:id", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
-		checkAuth(res, req, monager)
+	m.Get("/overlay/:id", func(res http.ResponseWriter, req *http.Request) {
+		checkAuth(res, req)
 		renderTemplate("public/overlay.html", nil, res)
 	})
-	m.Get("/overview/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params, monager *session.SessionManager) {
-		checkAuth(res, req, monager)
-		session := monager.GetSession(res, req)
-		if session.Value != nil {
-			api.TrackVisited(prams["id"], session.Value.(string))
+	m.Get("/overview/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
+		checkAuth(res, req)
+		if IsUserLoggedIn(res, req) {
+			api.TrackVisited(prams["id"], string(GetUserID(res, req)))
 		}
 		renderTemplate("public/overview.html", nil, res)
 	})
-	m.Get("/search", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
-		checkAuth(res, req, monager)
+	m.Get("/search", func(res http.ResponseWriter, req *http.Request) {
+		checkAuth(res, req)
 		renderTemplate("public/search.html", nil, res)
 	})
-	m.Get("/maptest/:id", func(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
-		checkAuth(res, req, monager)
+	m.Get("/maptest/:id", func(res http.ResponseWriter, req *http.Request) {
+		checkAuth(res, req)
 		renderTemplate("public/maptest.html", nil, res)
 	})
 
@@ -146,10 +129,10 @@ func main() {
 	m.Run()
 }
 
-func ProabblyAPI(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {
+func ProabblyAPI(res http.ResponseWriter, req *http.Request) {
 	// Forces anything with /api to have a json doctype. Since it makes sence to
 	if strings.HasPrefix(req.RequestURI, "/api") {
-		checkAuth(res, req, monager) // Make everything in the API auth'd
+		checkAuth(res, req) // Make everything in the API auth'd
 		res.Header().Set("Content-Type", "application/json")
 	}
 }
