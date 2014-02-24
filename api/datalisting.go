@@ -639,7 +639,6 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 }
 
 func getRealTableName(guid string, database *sql.DB, res http.ResponseWriter) string {
-	Logger.Println("hi")
 	var tablename string
 	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", guid).Scan(&tablename)
 	if tablename == "" {
