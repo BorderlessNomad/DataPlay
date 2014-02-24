@@ -90,6 +90,19 @@ CREATE TABLE IF NOT EXISTS `priv_stringsearch` (
 -- Data exporting was unselected.
 
 
+-- Dumping structure for table DataCon.priv_timeline
+CREATE TABLE IF NOT EXISTS `priv_timeline` (
+  `eid` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'EventID',
+  `EventType` int(11) NOT NULL DEFAULT '0' COMMENT 'The ID for the event type',
+  `EventInfo` varchar(96) NOT NULL DEFAULT '' COMMENT 'A small bit of info to go along with it, for example the comment text',
+  `EventTarget` int(11) NOT NULL DEFAULT '0' COMMENT '0 for global, if it was destin for one one person (or just many people with diff eid''s) then set this to their username',
+  `EventMeta` text NOT NULL COMMENT 'Some JSON meta data for the event, Max 64k of text',
+  PRIMARY KEY (`eid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='This table powers the timeline / front page of the system. Look a the Column comments for more info.';
+
+-- Data exporting was unselected.
+
+
 -- Dumping structure for table DataCon.priv_tracking
 CREATE TABLE IF NOT EXISTS `priv_tracking` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
