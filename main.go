@@ -231,7 +231,6 @@ func HandleRegister(res http.ResponseWriter, req *http.Request, monager *session
 	} else {
 		return "That username is already registered."
 	}
-	return ""
 }
 
 func checkAuth(res http.ResponseWriter, req *http.Request, monager *session.SessionManager) {

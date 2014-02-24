@@ -159,7 +159,6 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 		http.Error(res, "You have requested a col that does not exist. Please avoid doing this in the future.", http.StatusBadRequest)
 		return "" // Shut up go
 	}
-	return "This isnt suppose to happen"
 }
 
 func CheckIfColExists(createcode string, targettable string) bool {
