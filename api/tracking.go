@@ -2,20 +2,19 @@ package api
 
 import (
 	msql "../databasefuncs"
+	dpsession "../session"
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/mattn/go-session-manager"
 	"net/http"
 	"strings"
 )
 
-func GetLastVisited(rw http.ResponseWriter, req *http.Request, monager *session.SessionManager) string {
+func GetLastVisited(rw http.ResponseWriter, req *http.Request) string {
 	database := msql.GetDB()
 	defer database.Close()
-	sess := monager.GetSession(rw, req)
-	if sess.Value != nil {
-		value := sess.Value.(string)
+	if dpsession.GetUserID(rw, req) != 0 {
+		value := string(dpsession.GetUserID(rw, req))
 		rows, e := database.Query("SELECT DISTINCT(guid),(SELECT Title FROM `index` WHERE `index`.GUID = priv_tracking.guid LIMIT 1) as a FROM priv_tracking WHERE user = ? ORDER BY id DESC LIMIT 5", value)
 		result := make([][]string, 0)
 		if e == nil {
