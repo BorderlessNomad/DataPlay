@@ -38,7 +38,7 @@ func main() {
 		database := msql.GetDB()
 		defer database.Close()
 		var uid string
-		uid = dpsession.GetUserID(res, req)
+		uid = fmt.Sprint(dpsession.GetUserID(res, req))
 		var username string
 		database.QueryRow("select email from priv_users where uid = ?", uid).Scan(&username)
 		custom := map[string]string{
