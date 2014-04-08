@@ -29,7 +29,6 @@ func checkAuth(res http.ResponseWriter, req *http.Request) {
 func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	database := msql.GetDB()
 	defer database.Close()
-	// session := monager.GetSession(res, req)
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 
