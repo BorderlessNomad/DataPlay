@@ -19,7 +19,7 @@ type ScanJob struct {
 
 func main() {
 	database := msql.GetDB()
-	database.Ping()
+	database.Ping() // Check if the database worked
 
 	q, e := database.Query("SELECT `TableName` FROM priv_onlinedata")
 	if e != nil {
@@ -33,12 +33,12 @@ func main() {
 	}
 
 	fmt.Println("Building Job List...")
-	jobs := MakeJobs(database, TableScanTargets)
+	jobs := MakeJobs(database, TableScanTargets) // This gets the create code from all the tables and makes a job list out of them
 	fmt.Printf("Preparing to do %d jobs", len(jobs))
 	bar := pb.StartNew(len(jobs))
 	for _, job := range jobs {
 		IndexTable(job, database)
-		database.Exec(fmt.Sprintf("ALTER TABLE `%s` COMMENT='!Indexed!';", job.TableName))
+		database.Exec(fmt.Sprintf("ALTER TABLE `%s` COMMENT='!Indexed!';", job.TableName)) // Set a marker to note that it has been indexed
 		bar.Increment()
 	}
 }
@@ -158,7 +158,7 @@ func CheckIfColExists(createcode string, targettable string) bool {
 		if c != 0 { // Clipping off the create part since its useless for me.
 			results := BuildREArrayForCreateTable(line)
 			if len(results) == 3 {
-				if results[1] == "`"+targettable+"`" {
+				if results[1] == fmt.Sprintf("`%s`", targettable) {
 					return true
 				}
 			}
