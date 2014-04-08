@@ -8,14 +8,17 @@ import (
 	"net/http"
 )
 
+// Proxy Function that uses the session module to check if a user is logged in (By checking their cookies)
 func IsUserLoggedIn(res http.ResponseWriter, req *http.Request) bool {
 	return dpsession.IsUserLoggedIn(res, req)
 }
 
+// Proxy Function that uses the session module to get the UserID.
 func GetUserID(res http.ResponseWriter, req *http.Request) int {
 	return dpsession.GetUserID(res, req)
 }
 
+// Shortcut function that is used to redirect users to the login page if they are not logged in.
 func checkAuth(res http.ResponseWriter, req *http.Request) {
 	if !(dpsession.IsUserLoggedIn(res, req)) {
 		http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
@@ -31,18 +34,19 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	password := req.FormValue("password")
 
 	rows, e := database.Query("SELECT `password` FROM priv_users where email = ? LIMIT 1", username)
-	check(e)
+	check(e) // Check if the thing error's out
 	rows.Next()
 	var usrpassword string
 	e = rows.Scan(&usrpassword)
 
-	if usrpassword != "" && bcrypt.CompareHashAndPassword([]byte(usrpassword), []byte(password)) == nil {
+	if usrpassword != "" && bcrypt.CompareHashAndPassword([]byte(usrpassword), []byte(password)) == nil { // Check the password with bcrypt
 		var uid int
 		e := database.QueryRow("SELECT uid FROM priv_users where email = ? LIMIT 1", username).Scan(&uid)
 		check(e)
 		dpsession.SetSession(res, req, uid)
 		http.Redirect(res, req, "/", http.StatusFound)
 	} else {
+		// Just in the case that the user is on a really old MD5 password (useful for admins resetting passwords too) check
 		var md5test int
 		e := database.QueryRow("SELECT count(*) FROM priv_users where email = ? AND password = MD5( ? ) LIMIT 1", username, password).Scan(&md5test)
 
