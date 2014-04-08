@@ -1,4 +1,7 @@
 <?php
+// This is a tool to get rid of all the 100% blank rows out of the data tables.
+// Because data.gov give you some VERY faulty CSV's
+
 // This file is written in PHP just to make things go a tad faster.
 mysql_connect("10.0.0.2", "root", "");
 mysql_select_db("DataCon");
