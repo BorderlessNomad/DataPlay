@@ -22,13 +22,11 @@ func ImportAllDatasets(url string) {
 		// fmt.Println(doc.Html())
 		runtime.GC() // :( why is this a thing
 		time.Sleep(time.Millisecond * 250)
-		doc.Find(".dropdown-menu").Each(func(i int, s *goq.Selection) {
+		doc.Find(".dropdown-menu").Each(func(i int, s *goq.Selection) { // The dropdown menu on data.gov that gives you the download options
 			s.Find("a").Each(func(i int, s *goq.Selection) {
 				url, exists := s.Attr("href")
 				html, _ := s.Html()
-				// fmt.Println(html)
-				if exists && strings.Contains(html, "icon-download-alt") {
-					// fmt.Println(url)
+				if exists && strings.Contains(html, "icon-download-alt") { // Select the download button, by the CSS icon it has
 					go DownloadDataset(url, ourl)
 				}
 			})
@@ -43,10 +41,11 @@ func JustBloddyHashIt(input []byte) string {
 	return fmt.Sprintf("%x", hash.Sum(nil))
 }
 
+// This function will inhale a CSV file and if it is not formatted stupidly (ALA: most of the stuff on data.gov.uk)
+// it will make a SQL table for it and then put the fact that the data exists in the online table allowing the client
+// to move along and to ensure that it wont be downloaded twice.
 func DownloadDataset(url string, guid string) {
-	// This function will inhale a CSV file and if it is not formatted stupidly (ALA: most of the stuff on data.gov.uk)
-	// it will make a SQL table for it and then put the fact that the data exists in the online table allowing the client
-	// to move along and to ensure that it wont be downloaded twice.
+
 	fmt.Println("Downloading dataset", url)
 	response, e := http.Get(url)
 	if e == nil {
