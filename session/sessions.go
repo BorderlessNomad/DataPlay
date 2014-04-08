@@ -83,6 +83,10 @@ func randString(n int) string {
 }
 
 func GetRedisConnection() (c *redis.Client, err error) {
-	c, err = redis.DialTimeout("tcp", "10.0.0.2:6379", time.Duration(10)*time.Second)
+	redishost := "10.0.0.2:6379"
+	if os.Getenv("redishost") != "" {
+		redishost = os.Getenv("redishost")
+	}
+	c, err = redis.DialTimeout("tcp", redishost, time.Duration(10)*time.Second)
 	return c, err
 }
