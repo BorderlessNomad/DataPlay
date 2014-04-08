@@ -212,7 +212,10 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 		}
 	}
 
-	tablename := getRealTableName(prams["id"], database, res)
+	tablename, e := getRealTableName(prams["id"], database, res)
+	if e != nil {
+		return
+	}
 	var rows *sql.Rows
 	var err error
 
@@ -269,8 +272,10 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 	database := msql.GetDB()
 	defer database.Close()
 
-	tablename := getRealTableName(prams["id"], database, res)
-
+	tablename, e := getRealTableName(prams["id"], database, res)
+	if e != nil {
+		return
+	}
 	rows, err := database.Query("SELECT * FROM `" + tablename + "`")
 	if err != nil {
 		panic(err)
@@ -323,10 +328,10 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 	io.WriteString(res, "\n")
 }
 
+// This call with use the GROUP BY function in mysql to query and get the sum of things
+// This is very useful for things like picharts
+// /api/getdatagrouped/:id/:x/:y
 func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-	// This call with use the GROUP BY function in mysql to query and get the sum of things
-	// This is very useful for things like picharts
-	// /api/getdatagrouped/:id/:x/:y
 
 	if prams["id"] == "" || prams["x"] == "" || prams["y"] == "" {
 		http.Error(res, "You did not provide enough infomation to make this kind of request :id/:x/:y", http.StatusBadRequest)
@@ -336,8 +341,10 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 	database := msql.GetDB()
 	defer database.Close()
 
-	tablename := getRealTableName(prams["id"], database, res)
-
+	tablename, e := getRealTableName(prams["id"], database, res)
+	if e != nil {
+		return
+	}
 	cls := FetchTableCols(prams["id"], database)
 	// Now we need to check that the rows that the client is asking for, are in the table.
 	Valid := false
@@ -411,7 +418,10 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 	database := msql.GetDB()
 	defer database.Close()
 
-	tablename := getRealTableName(prams["id"], database, res)
+	tablename, e := getRealTableName(prams["id"], database, res)
+	if e != nil {
+		return
+	}
 
 	cls := FetchTableCols(prams["id"], database)
 	// Now we need to check that the rows that the client is asking for, are in the table.
@@ -496,7 +506,10 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 	database := msql.GetDB()
 	defer database.Close()
 
-	tablename := getRealTableName(prams["id"], database, res)
+	tablename, e := getRealTableName(prams["id"], database, res)
+	if e != nil {
+		return
+	}
 
 	rows, e1 := database.Query("SELECT * FROM " + tablename)
 
@@ -584,7 +597,10 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 	database := msql.GetDB()
 	defer database.Close()
 
-	tablename := getRealTableName(prams["id"], database, res)
+	tablename, e := getRealTableName(prams["id"], database, res)
+	if e != nil {
+		return
+	}
 
 	rows, e1 := database.Query("SELECT * FROM " + tablename)
 
@@ -637,12 +653,12 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 	res.Write([]byte(output))
 }
 
-func getRealTableName(guid string, database *sql.DB, res http.ResponseWriter) string {
+func getRealTableName(guid string, database *sql.DB, res http.ResponseWriter) (out string, e error) {
 	var tablename string
 	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", guid).Scan(&tablename)
 	if tablename == "" {
 		http.Error(res, "Could not find that table", http.StatusNotFound)
-		return "Error"
+		return "", fmt.Errorf("Could not find table")
 	}
-	return tablename
+	return tablename, e
 }

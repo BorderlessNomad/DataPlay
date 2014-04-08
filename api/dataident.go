@@ -47,8 +47,8 @@ type PossibleCombo struct {
 	Tables []string
 }
 
+// This function checks to see if the data has been imported yet or still is in need of importing
 func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	// This function checks to see if the data has been imported yet or still is in need of importing
 	database := msql.GetDB()
 	defer database.Close()
 	if prams["id"] == "" {
@@ -188,8 +188,8 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 	// m.Get("/api/findmatches/:id/:x/:y", api.AttemptToFindMatches)
 	database := msql.GetDB()
 	defer database.Close()
-	RealTableName := getRealTableName(prams["id"], database, res)
-	if RealTableName == "Error" {
+	RealTableName, e := getRealTableName(prams["id"], database, res)
+	if e != nil {
 		http.Error(res, "Could not find that table", http.StatusInternalServerError)
 		return ""
 	}
@@ -281,8 +281,8 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 	database := msql.GetDB()
 	defer database.Close()
 
-	RealTableName := getRealTableName(prams["guid"], database, res)
-	if RealTableName == "Error" {
+	RealTableName, e := getRealTableName(prams["guid"], database, res)
+	if e != nil {
 		http.Error(res, "Could not find that table", http.StatusInternalServerError)
 		return ""
 	}
