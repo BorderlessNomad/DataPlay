@@ -1,4 +1,8 @@
 <?php
+// This is a tool that is used to link what ckandownloader makes and build a index on those names,
+// it is presuming that the tables have already been imported into the system just not linked
+// into the index table.
+
 // This file is written in PHP just to make things go a tad faster.
 
 function What($input) {

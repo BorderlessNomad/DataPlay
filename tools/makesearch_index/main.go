@@ -1,3 +1,6 @@
+// This tool takes whatever is in onlinedata, and will read all the strings in that table,
+// then put them into a string index to make searching though the whole system really easy.
+// this building process can take a really long time.
 package main
 
 import (
