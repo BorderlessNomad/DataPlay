@@ -455,7 +455,7 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 	}
 
 	columns, e2 := rows.Columns()
-	if e1 != nil || e2 != nil {
+	if e2 != nil {
 		http.Error(res, "Could not query the data from the datastore", http.StatusInternalServerError)
 		return
 	}
