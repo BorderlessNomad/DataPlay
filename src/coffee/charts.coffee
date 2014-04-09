@@ -163,7 +163,7 @@ define [
     if qs
       updateChart()
     else
-      Common.getUserDefaults(guid, $("#pickxaxis"), $("#pickyaxis"), updateChart)    
+      Common.getUserDefaults(guid, $("#pickxaxis"), $("#pickyaxis"), updateChart)
 
   handleAxesChange = ->
     if $("#pickxaxis").val() and $("#pickyaxis").val()
