@@ -19,10 +19,10 @@ type AuthResponce struct {
 	UserID   int64
 }
 
+//This function is used to gather what is the username is
+// This used to be used on the front page but now it is mainly used as a "noop" call to check if the user is logged in or not.
 func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	//This function is used to gather what is the username is
 
-	// This used to be used on the front page but now it is mainly used as a "noop" call to check if the user is logged in or not.
 	database := msql.GetDB()
 	defer database.Close()
 
@@ -46,6 +46,7 @@ type SearchResult struct {
 	LocationData string
 }
 
+// This is the search function that is called though the API
 func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
 	database := msql.GetDB()
 	defer database.Close()
@@ -115,9 +116,9 @@ type DataEntry struct {
 	Ckan_url string
 }
 
+// This function gets the extended infomation from the index, things like the notes are used
+// in the "wiki" section of the page.
 func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	// This function gets the extended infomation from the index, things like the notes are used
-	// in the "wiki" section of the page.
 	database := msql.GetDB()
 	defer database.Close()
 	if prams["id"] == "" {
@@ -148,11 +149,12 @@ func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) 
 	return string(b)
 }
 
+// This function casts everything into what it /Should/ Be
+// But due to a obscureity in mysql / go / database\sql
+// everything wants to be a []byte. So I just cast them to that
+// then make them strings.
 func scanrow(values []interface{}, columns []string) map[string]interface{} {
-	// This function casts everything into what it /Should/ Be
-	// But due to a obscureity in mysql / go / database\sql
-	// everything wants to be a []byte. So I just cast them to that
-	// then make them strings.
+
 	record := make(map[string]interface{})
 	for i, col := range values {
 		if col != nil {
@@ -184,9 +186,9 @@ type DataResponce struct {
 	Name    string
 }
 
+// This function will empty a whole table out into JSON
+// Due to what seems to be a golang bug, everything is outputted as a string.
 func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-	// This function will empty a whole table out into JSON
-	// Due to what seems to be a golang bug, everything is outputted as a string.
 
 	if prams["id"] == "" {
 		http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
@@ -253,9 +255,9 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 	io.WriteString(res, "\n")
 }
 
+// This function will empty a whole table out into JSON
+// Due to what seems to be a golang bug, everything is outputted as a string.
 func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-	// This function will empty a whole table out into JSON
-	// Due to what seems to be a golang bug, everything is outputted as a string.
 
 	// :id/:x/:startx/:endx
 
@@ -406,8 +408,8 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 	io.WriteString(res, "\n")
 }
 
+// This call will get a X,Y and a prediction of a value. that is asked for
 func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-	// This call will get a X,Y and a prediction of a value. that is asked for
 	// /api/getdatapred/:id/:x/:y
 
 	if prams["id"] == "" || prams["x"] == "" || prams["y"] == "" {
@@ -495,9 +497,9 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 	io.WriteString(res, "\n")
 }
 
+// This function will take a share of a table and return it as JSON
+// Due to what seems to be a golang bug, everything is outputted as a string.
 func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-	// This function will take a share of a table and return it as JSON
-	// Due to what seems to be a golang bug, everything is outputted as a string.
 
 	if prams["id"] == "" {
 		http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
@@ -580,10 +582,10 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 	io.WriteString(res, "\n")
 }
 
+// This function will empty a whole table out into CSV
+// This can proabbly be removed now as it was only there to support
+// one type of graph that has now been rewritten.
 func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-	// This function will empty a whole table out into CSV
-	// This can proabbly be removed now as it was only there to support
-	// one type of graph that has now been rewritten.
 
 	if prams["id"] == "" {
 		http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
@@ -653,6 +655,7 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 	res.Write([]byte(output))
 }
 
+// Turnes the GUID name (the "friendly" name) into the actual table named inside mysql
 func getRealTableName(guid string, database *sql.DB, res http.ResponseWriter) (out string, e error) {
 	var tablename string
 	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", guid).Scan(&tablename)
