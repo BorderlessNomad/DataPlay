@@ -461,9 +461,13 @@ This function inherits the functioanlity of `/api/stringmatch/:word` but allows 
 
 **Handled in api:GetRelatedDatasetByStrings:api/**
 
+**Warning** This call is really slow because of the nature of it looking though very large amounts of data, use with care.
+
 This looks at a dataset and will give you tables that contain similar data in them:
 
 Example: `/api/relatedstrings/1a0408b99c6355ac28f137f7acd82363b4ea5524d3161ab9105b706b889`
+
+
 ```json
 
 	[
