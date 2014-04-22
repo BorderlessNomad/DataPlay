@@ -8,7 +8,6 @@ package main
 // You will also need to run "go get" and hope to god the packages
 // still exist.
 import (
-	api "./api"
 	msql "./databasefuncs"
 	dpsession "./session"
 	"fmt"
@@ -72,7 +71,7 @@ func main() {
 	m.Get("/charts/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		checkAuth(res, req)
 		if IsUserLoggedIn(res, req) {
-			api.TrackVisited(prams["id"], string(GetUserID(res, req))) // Make sure the tracking module knows about their visit.
+			TrackVisited(prams["id"], string(GetUserID(res, req))) // Make sure the tracking module knows about their visit.
 		}
 		renderTemplate("public/charts.html", nil, res)
 	})
@@ -87,7 +86,7 @@ func main() {
 	m.Get("/overview/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		checkAuth(res, req)
 		if IsUserLoggedIn(res, req) {
-			api.TrackVisited(prams["id"], string(GetUserID(res, req)))
+			TrackVisited(prams["id"], string(GetUserID(res, req)))
 		}
 		renderTemplate("public/overview.html", nil, res)
 	})
@@ -102,28 +101,28 @@ func main() {
 
 	m.Post("/noauth/login.json", HandleLogin)
 	m.Post("/noauth/register.json", HandleRegister)
-	m.Get("/api/user", api.CheckAuth)
-	m.Get("/api/visited", api.GetLastVisited)
-	m.Get("/api/search/:s", api.SearchForData)
-	m.Get("/api/getinfo/:id", api.GetEntry)
-	m.Get("/api/getimportstatus/:id", api.CheckImportStatus)
-	m.Get("/api/getdata/:id", api.DumpTable)
-	m.Get("/api/getdata/:id/:top/:bot", api.DumpTable)
-	m.Get("/api/getdata/:id/:x/:startx/:endx", api.DumpTableRange)
-	m.Get("/api/getdatagrouped/:id/:x/:y", api.DumpTableGrouped)
-	m.Get("/api/getdatapred/:id/:x/:y", api.DumpTablePrediction)
-	m.Get("/api/getcsvdata/:id/:x/:y", api.GetCSV)
-	m.Get("/api/getreduceddata/:id", api.DumpReducedTable)
-	m.Get("/api/getreduceddata/:id/:persent", api.DumpReducedTable)
-	m.Get("/api/getreduceddata/:id/:persent/:min", api.DumpReducedTable)
-	m.Post("/api/setdefaults/:id", api.SetDefaults)
-	m.Get("/api/getdefaults/:id", api.GetDefaults)
-	m.Get("/api/identifydata/:id", api.IdentifyTable)
-	m.Get("/api/findmatches/:id/:x/:y", api.AttemptToFindMatches)
-	m.Get("/api/classifydata/:table/:col", api.SuggestColType)
-	m.Get("/api/stringmatch/:word", api.FindStringMatches)
-	m.Get("/api/stringmatch/:word/:x", api.FindStringMatches)
-	m.Get("/api/relatedstrings/:guid", api.GetRelatedDatasetByStrings)
+	m.Get("/api/user", CheckAuth)
+	m.Get("/api/visited", GetLastVisited)
+	m.Get("/api/search/:s", SearchForData)
+	m.Get("/api/getinfo/:id", GetEntry)
+	m.Get("/api/getimportstatus/:id", CheckImportStatus)
+	m.Get("/api/getdata/:id", DumpTable)
+	m.Get("/api/getdata/:id/:top/:bot", DumpTable)
+	m.Get("/api/getdata/:id/:x/:startx/:endx", DumpTableRange)
+	m.Get("/api/getdatagrouped/:id/:x/:y", DumpTableGrouped)
+	m.Get("/api/getdatapred/:id/:x/:y", DumpTablePrediction)
+	m.Get("/api/getcsvdata/:id/:x/:y", GetCSV)
+	m.Get("/api/getreduceddata/:id", DumpReducedTable)
+	m.Get("/api/getreduceddata/:id/:persent", DumpReducedTable)
+	m.Get("/api/getreduceddata/:id/:persent/:min", DumpReducedTable)
+	m.Post("/api/setdefaults/:id", SetDefaults)
+	m.Get("/api/getdefaults/:id", GetDefaults)
+	m.Get("/api/identifydata/:id", IdentifyTable)
+	m.Get("/api/findmatches/:id/:x/:y", AttemptToFindMatches)
+	m.Get("/api/classifydata/:table/:col", SuggestColType)
+	m.Get("/api/stringmatch/:word", FindStringMatches)
+	m.Get("/api/stringmatch/:word/:x", FindStringMatches)
+	m.Get("/api/relatedstrings/:guid", GetRelatedDatasetByStrings)
 	m.Use(ProabblyAPI)
 	m.Use(martini.Static("node_modules"))
 	m.Run()

@@ -1,4 +1,4 @@
-package api
+package main
 
 import (
 	"github.com/skelterjohn/go.matrix" // daa59528eefd43623a4c8e36373a86f9eef870a2

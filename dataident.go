@@ -1,7 +1,7 @@
-package api
+package main
 
 import (
-	msql "../databasefuncs"
+	msql "./databasefuncs"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -156,7 +156,7 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 			for rows.Next() {
 				var TestSubject string
 				rows.Scan(&TestSubject)
-				_, e := strconv.ParseFloat(TestSubject, 10, 64)
+				_, e := strconv.ParseFloat(TestSubject, 10)
 				if e != nil {
 					return "false"
 				}

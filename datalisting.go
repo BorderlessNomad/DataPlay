@@ -1,8 +1,8 @@
-package api
+package main
 
 import (
-	msql "../databasefuncs"
-	dpsession "../session"
+	msql "./databasefuncs"
+	dpsession "./session"
 	"database/sql"
 	"encoding/json"
 	"fmt"

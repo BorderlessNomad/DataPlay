@@ -1,7 +1,7 @@
-package api
+package main
 
 import (
-	msql "../databasefuncs"
+	msql "./databasefuncs"
 	"github.com/codegangsta/martini"
 	"net/http"
 )
