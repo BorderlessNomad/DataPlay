@@ -263,30 +263,93 @@ For example if I want to select years 1995 to 2000 in the dataset `GDP` I would 
 
 **Handled in api:DumpTableGrouped:api\datalisting.go**
 
+This call groups all the rows that share the same string in `:x` and then adds up all of their `:y` to be one.
+
+For example, If I wanted to find out how many follows I have observed in each CCode in the tweets dataset, I can do:
+
+`/api/getdatagrouped/tweets/CCode/followers`
+
+and I will get back:
+
+```json
+
+	[
+	    {
+	        "CCode": "AD",
+	        "followers": "220"
+	    },
+	    --------------- many lines later -----------------
+	    {
+	        "CCode": "XK",
+	        "followers": "2207"
+	    },
+	    {
+	        "CCode": "ZA",
+	        "followers": "21308"
+	    }
+	]
+
+```
+
 ### /api/getdatapred/:id/:x/:y
 **GET - Auth Cookie Checked**
 
 **Handled in api:DumpTablePrediction:api\datalisting.go**
+
+This function uses polynomial regression to produce a 3 coefficants that can be used to predict a dataset,
+
+for example, if I wanted to generate a graph to predict the GDP to year:
+`/api/getdatapred/gdp/year/GDP`
+
+and I would get back
+
+```json
+
+	[8.110694932491328e+08,-837975.4864626579,216.51286834986442]
+
+```
+
 
 ### /api/getcsvdata/:id/:x/:y
 **GET - Auth Cookie Checked**
 
 **Handled in api:GetCSV:api/datalisting.go**
 
+This function was part of a old graph type that has now been converted.
+At the time of writing it still works:
+
+`/api/getcsvdata/gdp/year/GDP` (get a csv of year vs gdp value from the dataset gdp)
+```
+
+	"name","word","count"
+	"1948","1948",276458
+	"1949","1949",286752
+	"1950","1950",297063
+	"1951","1951",306281
+	"1952","1952",307280
+
+```
+
 ### /api/getreduceddata/:id
 **GET - Auth Cookie Checked**
 
 **Handled in api:DumpReducedTable:api/datalisting.go**
+
+This call works like "getdata" but will return a limited set of it to ensure that the client requesting isnt overwelmed by a massive dataset.
 
 ### /api/getreduceddata/:id/:persent
 **GET - Auth Cookie Checked**
 
 **Handled in api:DumpReducedTable:api/datalisting.go**
 
+This extends the functionallity of `/api/getreduceddata/:id` but offers you to select what persentage of the dataset you want.
+
 ### /api/getreduceddata/:id/:persent/:min
 **GET - Auth Cookie Checked**
 
 **Handled in api:DumpReducedTable:api/datalisting.go**
+
+This extends the functionallity of `/api/getreduceddata/:id/:persent` but offers you to select what the min amount of data you want.
 
 ### "/api/setdefaults/:id
 **GET - Auth Cookie Checked**
