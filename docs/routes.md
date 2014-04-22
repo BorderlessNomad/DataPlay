@@ -144,15 +144,119 @@ A example query such as `api/search/bris` will return the following array of jso
 
 **Handled in api:DumpTable:api/datalisting.go**
 
+This function dumps the **whole** table as a array of json objects, Please make sure this is what you want to do before doing it!
+
+Here is a example output (with 99% of the data ommitted):
+
+```json
+
+	[
+	    {
+	        "date": "1950-01-01",
+	        "price": "34.73"
+	    },
+	    {
+	        "date": "1950-02-01",
+	        "price": "34.73"
+	    },
+	    {
+	        "date": "1950-03-01",
+	        "price": "34.73"
+	    }
+	]
+
+```
+
+Please note even if the output module will automatically cast *everything* that comes out of the database as a string.
+
 ### /api/getdata/:id/:top/:bot
 **GET - Auth Cookie Checked**
 
 **Handled in api:DumpTable:api/datalisting.go**
 
+This works similar to `getdata` above however has a way to load parts of the data at a time.
+
+the `:top` part is what row you want to start reading and the `:bot` part is how many rows you want to read for.
+
+For example the call: `/api/getdata/gold/0/1` will return
+
+```json
+
+	[
+	    {
+	        "date": "1950-01-01",
+	        "price": "34.73"
+	    }
+	]
+
+```
+
+and `/api/getdata/gold/1/1` will return the next entry in the dataset:
+
+
+```json
+
+	[
+	    {
+	        "date": "1950-02-01",
+	        "price": "34.73"
+	    }
+	]
+
+```
+
 ### /api/getdata/:id/:x/:startx/:endx
 **GET - Auth Cookie Checked**
 
 **Handled in api:DumpTableRange:api\datalisting.go**
+
+This allows you to select a part of a dataset to start reading from where `:x` is the colloum for a **numeric** value.
+
+For example if I want to select years 1995 to 2000 in the dataset `GDP` I would do `/api/getdata/gdp/year/1995/2000` and it would return:
+
+```json
+
+	[
+	    {
+	        "GDP": "1005050",
+	        "change": "3",
+	        "gdpindex": "71.7",
+	        "year": "1995"
+	    },
+	    {
+	        "GDP": "1036340",
+	        "change": "3",
+	        "gdpindex": "73.9",
+	        "year": "1996"
+	    },
+	    {
+	        "GDP": "1076350",
+	        "change": "4",
+	        "gdpindex": "76.8",
+	        "year": "1997"
+	    },
+	    {
+	        "GDP": "1114180",
+	        "change": "4",
+	        "gdpindex": "79.5",
+	        "year": "1998"
+	    },
+	    {
+	        "GDP": "1149460",
+	        "change": "3",
+	        "gdpindex": "82",
+	        "year": "1999"
+	    },
+	    {
+	        "GDP": "1198150",
+	        "change": "4",
+	        "gdpindex": "85.5",
+	        "year": "2000"
+	    }
+	]
+
+```
+
 
 ### /api/getdatagrouped/:id/:x/:y
 **GET - Auth Cookie Checked**
