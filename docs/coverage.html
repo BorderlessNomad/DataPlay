@@ -1,0 +1,1706 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">datacon\dataident.go</option>
+				
+				<option value="file1">datacon\dataimport.go</option>
+				
+				<option value="file2">datacon\datalisting.go</option>
+				
+				<option value="file3">datacon\dataqualitychecker.go</option>
+				
+				<option value="file4">datacon\defaultmanagment.go</option>
+				
+				<option value="file5">datacon\main.go</option>
+				
+				<option value="file6">datacon\polynorm.go</option>
+				
+				<option value="file7">datacon\template.go</option>
+				
+				<option value="file8">datacon\tracking.go</option>
+				
+				<option value="file9">datacon\user.go</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" >package main
+
+import (
+        msql "./databasefuncs"
+        "database/sql"
+        "encoding/json"
+        "fmt"
+        "github.com/codegangsta/martini"
+        "net/http"
+        "regexp"
+        "sort"
+        "strconv"
+        "strings"
+)
+
+type CheckDict struct {
+        Key   string
+        value int
+}
+
+type IdentifyResponce struct {
+        Cols    []ColType
+        Request string
+}
+
+type ColType struct {
+        Name    string
+        Sqltype string
+}
+
+type SuggestionResponce struct {
+        Request string
+}
+
+type StringMatchResult struct {
+        Count int
+        Match string
+}
+
+type ScanJob struct {
+        TableName string
+        X         string
+}
+
+type PossibleCombo struct {
+        Match  string
+        Tables []string
+}
+
+// This function checks to see if the data has been imported yet or still is in need of importing
+func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Params) string <span class="cov8" title="1">{
+        database := msql.GetDB()
+        defer database.Close()
+        if prams["id"] == "" </span><span class="cov0" title="0">{
+                http.Error(res, "There was no ID request", http.StatusBadRequest)
+                return ""
+        }</span>
+        <span class="cov8" title="1">results := FetchTableCols(string(prams["id"]), database)
+
+        returnobj := IdentifyResponce{
+                Cols:    results,
+                Request: prams["id"],
+        }
+        b, _ := json.Marshal(returnobj)
+        return string(b)</span>
+}
+
+func FetchTableCols(guid string, database *sql.DB) (output []ColType) <span class="cov8" title="1">{
+        if guid == "" </span><span class="cov0" title="0">{
+                return output
+        }</span>
+
+        <span class="cov8" title="1">var tablename string
+        database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", guid).Scan(&amp;tablename)
+        if tablename == "" </span><span class="cov0" title="0">{
+                return output
+        }</span>
+
+        <span class="cov8" title="1">var createcode string
+        database.QueryRow("SHOW CREATE TABLE "+tablename).Scan(&amp;tablename, &amp;createcode)
+        if createcode == "" </span><span class="cov0" title="0">{
+                return output
+        }</span>
+        <span class="cov8" title="1">results := ParseCreateTableSQL(createcode)
+        return results</span>
+}
+
+// This is a shortcut function to do a the common action that is parsing the SQL create code.
+// Regex looks for things that look like
+// `colname` INT,
+func BuildREArrayForCreateTable(input string) []string <span class="cov8" title="1">{
+        re := ".*?(`.*?`).*?((?:[a-z][a-z]+))" // http://i.imgur.com/dkbyB.jpg
+        // This regex looks for things that look like
+        // `colname` INT,
+
+        var sqlRE = regexp.MustCompile(re)
+        results := sqlRE.FindStringSubmatch(input)
+        return results
+}</span>
+
+func ParseCreateTableSQL(input string) []ColType <span class="cov8" title="1">{
+        returnerr := make([]ColType, 0) // Setup the array that I will be append()ing to.
+        SQLLines := strings.Split(input, "\n")
+        // The mysql server gives you the SQL create code formatted. So I exploit this by
+        // using it to split the system up by \n
+
+        for c, line := range SQLLines </span><span class="cov8" title="1">{
+                // Ignore the first line of the file, since its useless and can in some cases parse :eek:
+                if c != 0 &amp;&amp; strings.HasPrefix(strings.TrimSpace(line), "`") </span><span class="cov8" title="1">{ // Clipping off the create part since its useless for me.
+                        results := BuildREArrayForCreateTable(line)
+                        if len(results) == 3 </span><span class="cov8" title="1">{
+                                // We expect there to be 3 matches from the Regex, if not then we probs don't
+                                // have what we want
+                                DeQuoted := strings.Replace(results[1], "`", "", -1)
+                                NewCol := ColType{
+                                        Name:    DeQuoted,
+                                        Sqltype: results[2],
+                                }
+                                returnerr = append(returnerr, NewCol)
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">return returnerr</span>
+}
+
+func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Params) string <span class="cov0" title="0">{
+        database := msql.GetDB()
+        defer database.Close()
+        if prams["table"] == "" || prams["col"] == "" </span><span class="cov0" title="0">{
+                http.Error(res, "There was no ID request", http.StatusBadRequest)
+                return ""
+        }</span>
+
+        <span class="cov0" title="0">var tablename string
+        database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["table"]).Scan(&amp;tablename)
+        if tablename == "" </span><span class="cov0" title="0">{
+                http.Error(res, "Could not find that table", http.StatusNotFound)
+                return ""
+        }</span>
+
+        <span class="cov0" title="0">var createcode string
+        database.QueryRow("SHOW CREATE TABLE "+tablename).Scan(&amp;tablename, &amp;createcode)
+        if createcode == "" </span><span class="cov0" title="0">{
+                http.Error(res, `Uhh, That table does not seem to acutally exist.
+                this really should not happen. 
+                Check if someone have been messing around in the database.`, http.StatusBadRequest)
+                return ""
+        }</span>
+        <span class="cov0" title="0">if CheckIfColExists(createcode, prams["col"]) </span><span class="cov0" title="0">{
+                // Alrighty so I am now going to go though the whole table
+                // and check what the data looks like
+                // What that means for now is I am going to try and convert them all to ints and see if any of them breaks, If they do not, then I will suggest
+                // that they be ints!
+                rows, e := database.Query(fmt.Sprintf("SELECT `%s` FROM `%s`", prams["col"], tablename))
+                if e == nil </span><span class="cov0" title="0">{
+                        for rows.Next() </span><span class="cov0" title="0">{
+                                var TestSubject string
+                                rows.Scan(&amp;TestSubject)
+                                _, e := strconv.ParseFloat(TestSubject, 10)
+                                if e != nil </span><span class="cov0" title="0">{
+                                        return "false"
+                                }</span>
+                        }
+                        <span class="cov0" title="0">return "true"</span>
+                }
+                <span class="cov0" title="0">http.Error(res, fmt.Sprintf("Well somthing went wrong during the reading of that col, go and grab ben and show him this. %s", e), http.StatusInternalServerError)
+                return ""</span>
+        } <span class="cov0" title="0">else {
+                http.Error(res, "You have requested a col that does not exist. Please avoid doing this in the future.", http.StatusBadRequest)
+                return "" // Shut up go
+        }</span>
+}
+
+func CheckIfColExists(createcode string, targettable string) bool <span class="cov0" title="0">{
+
+        SQLLines := strings.Split(createcode, "\n")
+
+        for c, line := range SQLLines </span><span class="cov0" title="0">{
+                if c != 0 </span><span class="cov0" title="0">{ // Clipping off the create part since its useless for me.
+                        results := BuildREArrayForCreateTable(line)
+                        if len(results) == 3 </span><span class="cov0" title="0">{ // 3 is the amount you would expect the regex to match. Even though we only use the first part
+                                if results[1] == "`"+targettable+"`" </span><span class="cov0" title="0">{
+                                        return true
+                                }</span>
+                        }
+                }
+        }
+        <span class="cov0" title="0">return false</span>
+}
+
+func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) string <span class="cov0" title="0">{
+        // m.Get("/api/findmatches/:id/:x/:y", api.AttemptToFindMatches)
+        database := msql.GetDB()
+        defer database.Close()
+        RealTableName, e := getRealTableName(prams["id"], database, res)
+        if e != nil </span><span class="cov0" title="0">{
+                http.Error(res, "Could not find that table", http.StatusInternalServerError)
+                return ""
+        }</span>
+
+        <span class="cov0" title="0">CCode := ""
+        database.QueryRow(fmt.Sprintf("SHOW CREATE TABLE `%s`;", RealTableName)).Scan(&amp;RealTableName, &amp;CCode)
+        if !CheckIfColExists(CCode, prams["x"]) || !CheckIfColExists(CCode, prams["y"]) </span><span class="cov0" title="0">{
+                http.Error(res, "Could not find the X or Y", http.StatusInternalServerError)
+                return ""
+        }</span>
+
+        // Now we need to check if it exists in the stats table. so we can compare its poly to other poly's
+        <span class="cov0" title="0">HitCount := 0
+        database.QueryRow("SELECT COUNT(*) FROM `priv_statcheck` WHERE `table` = ? AND `x` = ? AND `y` = ?", RealTableName, prams["x"], prams["y"]).Scan(&amp;HitCount)
+
+        if HitCount == 0 </span><span class="cov0" title="0">{
+                http.Error(res, "Cannot find the poly code for that table x and y combo. It's probs not there because its not possible", http.StatusBadRequest)
+                return ""
+        }</span>
+
+        <span class="cov0" title="0">id := 0
+        table := ""
+        x := ""
+        y := ""
+        p1 := ""
+        p2 := ""
+        p3 := ""
+        xstart := ""
+        xend := ""
+
+        database.QueryRow("SELECT * FROM `priv_statcheck` WHERE `table` = ? AND `x` = ? AND `y` = ? LIMIT 1", RealTableName, prams["x"], prams["y"]).Scan(&amp;id, &amp;table, &amp;x, &amp;y, &amp;p1, &amp;p2, &amp;p3, &amp;xstart, &amp;xend)
+        Logger.Println(id, table, x, y, p1, p2, p3, xstart, xend)
+
+        return "wat"</span>
+}
+
+func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) string <span class="cov0" title="0">{
+        database := msql.GetDB()
+        defer database.Close()
+
+        if prams["word"] == "" </span><span class="cov0" title="0">{
+                http.Error(res, "Please add a word", http.StatusBadRequest)
+                return ""
+        }</span>
+
+        <span class="cov0" title="0">Results := make([]StringMatchResult, 0)
+
+        name := ""
+        count := 0
+        if prams["x"] != "" </span><span class="cov0" title="0">{
+                rows, e := database.Query("SELECT tablename,count FROM priv_stringsearch WHERE x = ? AND value = ?", prams["x"], prams["word"])
+                if e != nil </span><span class="cov0" title="0">{
+                        http.Error(res, "SQL error", http.StatusInternalServerError)
+                        return ""
+                }</span>
+                <span class="cov0" title="0">for rows.Next() </span><span class="cov0" title="0">{
+                        rows.Scan(&amp;name, &amp;count)
+                        temp := StringMatchResult{
+                                Count: count,
+                                Match: name,
+                        }
+                        Results = append(Results, temp)
+                }</span>
+        } <span class="cov0" title="0">else {
+                rows, e := database.Query("SELECT tablename,count FROM priv_stringsearch WHERE value = ?", prams["word"])
+                if e != nil </span><span class="cov0" title="0">{
+                        http.Error(res, "SQL error", http.StatusInternalServerError)
+                        return ""
+                }</span>
+                <span class="cov0" title="0">for rows.Next() </span><span class="cov0" title="0">{
+                        rows.Scan(&amp;name, &amp;count)
+                        temp := StringMatchResult{
+                                Count: count,
+                                Match: name,
+                        }
+                        Results = append(Results, temp)
+                }</span>
+        }
+
+        <span class="cov0" title="0">b, e := json.Marshal(Results)
+        if e != nil </span><span class="cov0" title="0">{
+                http.Error(res, "Could not marshal JSON", http.StatusInternalServerError)
+                return ""
+        }</span>
+        <span class="cov0" title="0">return string(b)</span>
+}
+
+func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, prams martini.Params) string <span class="cov0" title="0">{
+        database := msql.GetDB()
+        defer database.Close()
+
+        RealTableName, e := getRealTableName(prams["guid"], database, res)
+        if e != nil </span><span class="cov0" title="0">{
+                http.Error(res, "Could not find that table", http.StatusInternalServerError)
+                return ""
+        }</span>
+
+        <span class="cov0" title="0">jobs := make([]ScanJob, 0)
+        var CreateSQL string
+        database.QueryRow(fmt.Sprintf("SHOW CREATE TABLE `DataCon`.`%s`", RealTableName)).Scan(&amp;RealTableName, &amp;CreateSQL)
+
+        Bits := ParseCreateTableSQL(CreateSQL)
+        for _, bit := range Bits </span><span class="cov0" title="0">{
+                if bit.Sqltype == "varchar" </span><span class="cov0" title="0">{
+                        newJob := ScanJob{
+                                TableName: RealTableName,
+                                X:         bit.Name,
+                        }
+                        jobs = append(jobs, newJob)
+                }</span>
+        }
+        // Okay now we have a "job list" that looks a great deal like
+        // the one in "makesearch_index" (Hint: Thats because its basically doing the same thing)
+        <span class="cov0" title="0">checkingdict := make(map[string]int)
+
+        for _, v := range jobs </span><span class="cov0" title="0">{
+                q, e := database.Query(fmt.Sprintf("SELECT `%s` FROM `%s`", v.X, v.TableName))
+
+                if e != nil </span><span class="cov0" title="0">{
+                        http.Error(res, "Could not read from target table", http.StatusInternalServerError)
+                        return ""
+                }</span>
+                // Count up all the vars in this col
+                <span class="cov0" title="0">for q.Next() </span><span class="cov0" title="0">{
+                        var strout string
+                        q.Scan(&amp;strout)
+                        checkingdict[strout]++
+                }</span>
+        }
+        <span class="cov0" title="0">Combos := make([]PossibleCombo, 0)
+        Cdict := ConvertIntoStructArrayAndSort(checkingdict)
+        var Amt int = 0
+        // Okay so at this point checkingdict has all of the vals of the strings that we should search for.
+        for _, v := range Cdict </span><span class="cov0" title="0">{
+                if v.value &lt; 5 || v.Key == "" </span><span class="cov0" title="0">{
+                        // Lets be sensible here
+                        continue</span>
+                }
+                <span class="cov0" title="0">Amt++
+                if Amt &gt; 5 </span><span class="cov0" title="0">{ // this acts as a "LIMIT 5" in the whole thing else this thing can literally takes mins to run.
+                        continue</span>
+                }
+                <span class="cov0" title="0">var cnt int
+                e := database.QueryRow("SELECT COUNT(*) FROM priv_stringsearch WHERE value = ? LIMIT 1", v.value).Scan(&amp;cnt)
+                if e == nil &amp;&amp; cnt != 0 </span><span class="cov0" title="0">{
+                        tablelist := make([]string, 0)
+                        r, e := database.Query("SELECT `priv_onlinedata`.GUID FROM priv_stringsearch, priv_onlinedata, `index` WHERE (value = ?) AND `priv_stringsearch`.tablename = `priv_onlinedata`.TableName AND `priv_onlinedata`.GUID = `index`.GUID AND priv_stringsearch.count &gt; 5", v.value)
+                        if e != nil </span><span class="cov0" title="0">{
+                                http.Error(res, "Could not read off data lookups", http.StatusInternalServerError)
+                                return ""
+                        }</span>
+                        <span class="cov0" title="0">res := ""
+                        for r.Next() </span><span class="cov0" title="0">{
+                                r.Scan(&amp;res)
+                                if !stringInSlice(res, tablelist) </span><span class="cov0" title="0">{
+                                        tablelist = append(tablelist, res)
+                                }</span>
+                        }
+
+                        <span class="cov0" title="0">Combo := PossibleCombo{
+                                Match:  v.Key,
+                                Tables: tablelist,
+                        }
+                        Combos = append(Combos, Combo)</span>
+                }
+        }
+        <span class="cov0" title="0">b, e := json.Marshal(Combos)
+        if e != nil </span><span class="cov0" title="0">{
+                http.Error(res, "JSON failed", http.StatusInternalServerError)
+                return ""
+        }</span>
+        <span class="cov0" title="0">return string(b)</span>
+}
+
+func stringInSlice(a string, list []string) bool <span class="cov0" title="0">{
+        for _, b := range list </span><span class="cov0" title="0">{
+                if b == a </span><span class="cov0" title="0">{
+                        return true
+                }</span>
+        }
+        <span class="cov0" title="0">return false</span>
+}
+
+type ByVal []CheckDict
+
+func (a ByVal) Len() int           <span class="cov0" title="0">{ return len(a) }</span>
+func (a ByVal) Swap(i, j int)      <span class="cov0" title="0">{ a[i], a[j] = a[j], a[i] }</span>
+func (a ByVal) Less(i, j int) bool <span class="cov0" title="0">{ return a[i].value &lt; a[j].value }</span>
+
+func ConvertIntoStructArrayAndSort(input map[string]int) (in []CheckDict) <span class="cov0" title="0">{
+        in = make([]CheckDict, 0)
+        for k, v := range input </span><span class="cov0" title="0">{
+                newd := CheckDict{
+                        Key:   k,
+                        value: v,
+                }
+                in = append(in, newd)
+        }</span>
+        <span class="cov0" title="0">sort.Sort(ByVal(in))
+        return in</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package main
+
+import (
+        msql "./databasefuncs"
+        "encoding/json"
+        "github.com/codegangsta/martini"
+        "net/http"
+)
+
+type CheckImportResponce struct {
+        State   string
+        Request string
+}
+
+func CheckImportStatus(res http.ResponseWriter, req *http.Request, prams martini.Params) string <span class="cov0" title="0">{
+        // This function checks to see if the data has been imported yet or still is in need of importing
+        database := msql.GetDB()
+        defer database.Close()
+        if prams["id"] == "" </span><span class="cov0" title="0">{
+                http.Error(res, "There was no ID request", http.StatusBadRequest)
+                return ""
+        }</span>
+
+        <span class="cov0" title="0">var count int
+        database.QueryRow("SELECT COUNT(*) FROM `priv_onlinedata` WHERE GUID = ? LIMIT 10", prams["id"]).Scan(&amp;count)
+        var state string
+
+        if count != 0 </span><span class="cov0" title="0">{ // If we have any hits from that query then we have that dataset in the system
+                state = "online"
+        }</span> <span class="cov0" title="0">else {
+                state = "offline"
+        }</span>
+
+        <span class="cov0" title="0">returnobj := CheckImportResponce{
+                State:   state,
+                Request: prams["id"],
+        }
+        b, _ := json.Marshal(returnobj)
+        return string(b)</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package main
+
+import (
+        msql "./databasefuncs"
+        dpsession "./session"
+        "database/sql"
+        "encoding/json"
+        "fmt"
+        "github.com/codegangsta/martini"
+        "io"
+        "net/http"
+        "strconv"
+        "strings"
+        "time"
+)
+
+type AuthResponce struct {
+        Username string
+        UserID   int64
+}
+
+//This function is used to gather what is the username is
+// This used to be used on the front page but now it is mainly used as a "noop" call to check if the user is logged in or not.
+func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params) string <span class="cov8" title="1">{
+
+        database := msql.GetDB()
+        defer database.Close()
+
+        var uid string
+        uid = fmt.Sprint(dpsession.GetUserID(res, req))
+        intuid, _ := strconv.ParseInt(uid, 10, 32)
+        var username string
+        database.QueryRow("select email from priv_users where uid = ?", uid).Scan(&amp;username)
+
+        returnobj := AuthResponce{
+                Username: username,
+                UserID:   intuid,
+        }
+        b, _ := json.Marshal(returnobj)
+        return string(b)
+}</span>
+
+type SearchResult struct {
+        Title        string
+        GUID         string
+        LocationData string
+}
+
+// This is the search function that is called though the API
+func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Params) string <span class="cov8" title="1">{
+        database := msql.GetDB()
+        defer database.Close()
+
+        var uid string
+        uid = fmt.Sprint(dpsession.GetUserID(res, req))
+        intuid, _ := strconv.ParseInt(uid, 10, 32)
+
+        if prams["s"] == "" </span><span class="cov0" title="0">{
+                http.Error(res, "There was no search request", http.StatusBadRequest)
+                return ""
+        }</span>
+        <span class="cov8" title="1">rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? AND (`index`.Owner = 0 OR `index`.Owner = ?) LIMIT 10", prams["s"]+"%", intuid)
+
+        Results := make([]SearchResult, 0)
+        Results = ProcessSearchResults(rows, e, database)
+        if len(Results) == 0 </span><span class="cov8" title="1">{
+                Logger.Println("falling back to overkill search")
+                rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? AND (`index`.Owner = 0 OR `index`.Owner = ?) LIMIT 10", "%"+prams["s"]+"%", intuid)
+                Results = ProcessSearchResults(rows, e, database)
+                if len(Results) == 0 </span><span class="cov8" title="1">{
+                        Logger.Println("Going 100 persent mad search")
+                        query := strings.Replace(prams["s"], " ", "%", -1)
+                        rows, e := database.Query("SELECT GUID,Title FROM `index` WHERE Title LIKE ? AND (`index`.Owner = 0 OR `index`.Owner = ?) LIMIT 10", "%"+query+"%", intuid)
+                        Results = ProcessSearchResults(rows, e, database)
+                        if len(Results) == 0 &amp;&amp; (len(prams["s"]) &gt; 3 &amp;&amp; len(prams["s"]) &lt; 20) </span><span class="cov8" title="1">{
+                                Logger.Println("Searching in string table")
+                                rows, e := database.Query("SELECT DISTINCT(`priv_onlinedata`.GUID),`index`.Title FROM priv_stringsearch, priv_onlinedata, `index` WHERE (value LIKE ? OR `x` LIKE ?) AND `priv_stringsearch`.tablename = `priv_onlinedata`.TableName AND `priv_onlinedata`.GUID = `index`.GUID AND (`index`.Owner = 0 OR `index`.Owner = ?) ORDER BY `count` DESC LIMIT 10", "%"+prams["s"]+"%", "%"+prams["s"]+"%", intuid)
+                                Results = ProcessSearchResults(rows, e, database)
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">defer rows.Close()
+        b, _ := json.Marshal(Results)
+        return string(b)</span>
+}
+
+func ProcessSearchResults(rows *sql.Rows, e error, database *sql.DB) []SearchResult <span class="cov8" title="1">{
+        Results := make([]SearchResult, 0)
+        if e != nil </span><span class="cov0" title="0">{
+                panic(e)
+        }</span>
+        <span class="cov8" title="1">for rows.Next() </span><span class="cov8" title="1">{
+                var id string
+                var name string
+
+                err := rows.Scan(&amp;id, &amp;name)
+                if err != nil </span><span class="cov0" title="0">{
+                        panic(err)
+                }</span>
+                <span class="cov8" title="1">Location := HasTableGotLocationData(id, database)
+                SR := SearchResult{
+                        Title:        name,
+                        GUID:         id,
+                        LocationData: Location,
+                }
+                Results = append(Results, SR)</span>
+        }
+        <span class="cov8" title="1">return Results</span>
+}
+
+type DataEntry struct {
+        GUID     string
+        Name     string
+        Title    string
+        Notes    string
+        Ckan_url string
+}
+
+// This function gets the extended infomation from the index, things like the notes are used
+// in the "wiki" section of the page.
+func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) string <span class="cov8" title="1">{
+        database := msql.GetDB()
+        defer database.Close()
+        if prams["id"] == "" </span><span class="cov0" title="0">{
+                http.Error(res, "There was no ID request", http.StatusBadRequest)
+                return ""
+        }</span>
+        <span class="cov8" title="1">var GUID string
+        var Name string
+        var Title string
+        var Notes string
+        var ckan_url string
+        e := database.QueryRow("SELECT * FROM `index` WHERE GUID LIKE ? LIMIT 10", prams["id"]+"%").Scan(&amp;GUID, &amp;Name, &amp;Title, &amp;Notes, &amp;ckan_url)
+        strings.Replace(ckan_url, "//", "/", -1)
+
+        returner := DataEntry{
+                GUID:     GUID,
+                Name:     Name,
+                Title:    Title,
+                Notes:    Notes,
+                Ckan_url: ckan_url,
+        }
+        if e != nil </span><span class="cov8" title="1">{
+                http.Error(res, "Could not find that data.", http.StatusNotFound)
+                return ""
+        }</span>
+
+        <span class="cov0" title="0">b, _ := json.Marshal(returner)
+        return string(b)</span>
+}
+
+// This function casts everything into what it /Should/ Be
+// But due to a obscureity in mysql / go / database\sql
+// everything wants to be a []byte. So I just cast them to that
+// then make them strings.
+func scanrow(values []interface{}, columns []string) map[string]interface{} <span class="cov8" title="1">{
+
+        record := make(map[string]interface{})
+        for i, col := range values </span><span class="cov8" title="1">{
+                if col != nil </span><span class="cov8" title="1">{
+
+                        switch t := col.(type) </span>{
+                        <span class="cov0" title="0">default:
+                                Logger.Printf("Unexpected type %T\n", t)</span>
+                        <span class="cov0" title="0">case bool:
+                                record[columns[i]] = col.(bool)</span>
+                        <span class="cov0" title="0">case int:
+                                record[columns[i]] = col.(int)</span>
+                        <span class="cov0" title="0">case int64:
+                                record[columns[i]] = col.(int64)</span>
+                        <span class="cov0" title="0">case float64:
+                                record[columns[i]] = col.(float64)</span>
+                        <span class="cov0" title="0">case string:
+                                record[columns[i]] = col.(string)</span>
+                        <span class="cov8" title="1">case []byte: // -- all cases go HERE!
+                                record[columns[i]] = string(col.([]byte))</span>
+                        <span class="cov0" title="0">case time.Time:</span>
+                        }
+                }
+        }
+        <span class="cov8" title="1">return record</span>
+}
+
+type DataResponce struct {
+        Results []interface{}
+        Name    string
+}
+
+// This function will empty a whole table out into JSON
+// Due to what seems to be a golang bug, everything is outputted as a string.
+func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params) <span class="cov0" title="0">{
+
+        if prams["id"] == "" </span><span class="cov0" title="0">{
+                http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
+                return
+        }</span>
+        <span class="cov0" title="0">database := msql.GetDB()
+        defer database.Close()
+
+        var top int64 = 0
+        var bot int64 = 0
+
+        UsingRanges := true
+        if prams["top"] == "" || prams["bot"] == "" </span><span class="cov0" title="0">{
+                UsingRanges = false
+        }</span> <span class="cov0" title="0">else {
+                var te, be error
+                top, te = strconv.ParseInt(prams["top"], 10, 64)
+                bot, be = strconv.ParseInt(prams["bot"], 10, 64)
+
+                if te != nil || be != nil </span><span class="cov0" title="0">{
+                        http.Error(res, "Please give valid numbers for top and bot", http.StatusBadRequest)
+                        return
+                }</span>
+        }
+
+        <span class="cov0" title="0">tablename, e := getRealTableName(prams["id"], database, res)
+        if e != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov0" title="0">var rows *sql.Rows
+        var err error
+
+        if UsingRanges </span><span class="cov0" title="0">{
+                rows, err = database.Query(fmt.Sprintf("SELECT * FROM `%s` LIMIT %d,%d", tablename, top, bot))
+        }</span> <span class="cov0" title="0">else {
+                rows, err = database.Query(fmt.Sprintf("SELECT * FROM `%s`", tablename))
+        }</span>
+
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                panic(err)
+        }</span>
+        <span class="cov0" title="0">columns, err := rows.Columns()
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)
+        }</span>
+
+        <span class="cov0" title="0">scanArgs := make([]interface{}, len(columns))
+        values := make([]interface{}, len(columns))
+        for i := range values </span><span class="cov0" title="0">{
+                scanArgs[i] = &amp;values[i]
+        }</span>
+
+        <span class="cov0" title="0">array := make([]map[string]interface{}, 0)
+        for rows.Next() </span><span class="cov0" title="0">{
+                err = rows.Scan(scanArgs...) // This may look like a typo, But it is infact not. This is what you use for interfaces.
+                if err != nil </span><span class="cov0" title="0">{
+                        panic(err)
+                }</span>
+                <span class="cov0" title="0">record := scanrow(values, columns)
+                array = append(array, record)</span>
+        }
+        <span class="cov0" title="0">s, _ := json.Marshal(array)
+        res.Write(s)
+        io.WriteString(res, "\n")</span>
+}
+
+// This function will empty a whole table out into JSON
+// Due to what seems to be a golang bug, everything is outputted as a string.
+func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Params) <span class="cov0" title="0">{
+
+        // :id/:x/:startx/:endx
+
+        if prams["id"] == "" </span><span class="cov0" title="0">{
+                http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
+                return
+        }</span>
+
+        <span class="cov0" title="0">if prams["x"] == "" || prams["startx"] == "" || prams["endx"] == "" </span><span class="cov0" title="0">{
+                http.Error(res, "You did not provide enough infomation to make this kind of request :id/:x/:startx/:endx", http.StatusBadRequest)
+                return
+        }</span>
+
+        <span class="cov0" title="0">database := msql.GetDB()
+        defer database.Close()
+
+        tablename, e := getRealTableName(prams["id"], database, res)
+        if e != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov0" title="0">rows, err := database.Query("SELECT * FROM `" + tablename + "`")
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)
+        }</span>
+        <span class="cov0" title="0">columns, err := rows.Columns()
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)
+        }</span>
+
+        <span class="cov0" title="0">var xcol int
+        xcol = 999
+        startx, starte := strconv.ParseInt(prams["startx"], 10, 64)
+        endx, ende := strconv.ParseInt(prams["endx"], 10, 64)
+        if starte != nil || ende != nil </span><span class="cov0" title="0">{
+                http.Error(res, "You didnt pass me proper numbers to start with.", http.StatusBadRequest)
+                return
+        }</span>
+
+        <span class="cov0" title="0">for number, colname := range columns </span><span class="cov0" title="0">{
+                if colname == prams["x"] </span><span class="cov0" title="0">{
+                        xcol = number
+                }</span>
+        }
+        <span class="cov0" title="0">scanArgs := make([]interface{}, len(columns))
+        values := make([]interface{}, len(columns))
+        for i := range values </span><span class="cov0" title="0">{
+                scanArgs[i] = &amp;values[i]
+        }</span>
+
+        <span class="cov0" title="0">array := make([]map[string]interface{}, 0)
+        for rows.Next() </span><span class="cov0" title="0">{
+                err = rows.Scan(scanArgs...)
+                if err != nil </span><span class="cov0" title="0">{
+                        panic(err)
+                }</span>
+
+                <span class="cov0" title="0">xvalue, e := strconv.ParseInt(string(values[xcol].([]byte)), 10, 0) // TODO: Fix this so it can take ints too.
+
+                if e != nil </span><span class="cov0" title="0">{
+                        http.Error(res, "Read loop error D: Looks like I tried to read somthing that was not a int.", http.StatusInternalServerError)
+                        return
+                }</span>
+                <span class="cov0" title="0">if xvalue &gt;= startx &amp;&amp; xvalue &lt;= endx </span><span class="cov0" title="0">{
+                        record := scanrow(values, columns)
+                        array = append(array, record)
+                }</span>
+        }
+        <span class="cov0" title="0">s, _ := json.Marshal(array)
+        res.Write(s)
+        io.WriteString(res, "\n")</span>
+}
+
+// This call with use the GROUP BY function in mysql to query and get the sum of things
+// This is very useful for things like picharts
+// /api/getdatagrouped/:id/:x/:y
+func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.Params) <span class="cov8" title="1">{
+
+        if prams["id"] == "" || prams["x"] == "" || prams["y"] == "" </span><span class="cov0" title="0">{
+                http.Error(res, "You did not provide enough infomation to make this kind of request :id/:x/:y", http.StatusBadRequest)
+                return
+        }</span>
+
+        <span class="cov8" title="1">database := msql.GetDB()
+        defer database.Close()
+
+        tablename, e := getRealTableName(prams["id"], database, res)
+        if e != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov8" title="1">cls := FetchTableCols(prams["id"], database)
+        // Now we need to check that the rows that the client is asking for, are in the table.
+        Valid := false
+        for _, clm := range cls </span><span class="cov8" title="1">{
+                if clm.Name == prams["x"] </span><span class="cov8" title="1">{
+                        Valid = true
+                }</span>
+        }
+        <span class="cov8" title="1">if !Valid </span><span class="cov8" title="1">{
+                http.Error(res, "Col X is invalid.", http.StatusBadRequest)
+                return
+        }</span>
+        <span class="cov8" title="1">Valid = false
+        for _, clm := range cls </span><span class="cov8" title="1">{
+                if clm.Name == prams["y"] </span><span class="cov8" title="1">{
+                        Valid = true
+                }</span>
+        }
+        <span class="cov8" title="1">if !Valid </span><span class="cov0" title="0">{
+                http.Error(res, "Col Y is invalid.", http.StatusBadRequest)
+                return
+        }</span>
+        <span class="cov8" title="1">rows, e1 := database.Query(fmt.Sprintf("SELECT `%s`,SUM(%s) AS %s FROM `%s` GROUP BY %s", prams["x"], prams["y"], prams["y"], tablename, prams["x"]))
+        // You may think the above might have some security downsides, It could but what you
+        // are proabs thinking is not true, if a user wants to SQL inject as any of the %s's
+        // then the table col name will also have to be the SQLi, and frankly, if a user
+        // does that then I have no idea what that user should expect, apart from broken queries
+        // =
+        // This could also be filtered at the import level as a form as "moron detection"
+        if e1 != nil </span><span class="cov8" title="1">{
+                http.Error(res, "Could not query the data from the datastore", http.StatusInternalServerError)
+                return
+        }</span>
+
+        <span class="cov8" title="1">columns, e2 := rows.Columns()
+        if e1 != nil || e2 != nil </span><span class="cov0" title="0">{
+                http.Error(res, "Could not query the data from the datastore", http.StatusInternalServerError)
+                return
+        }</span>
+
+        <span class="cov8" title="1">scanArgs := make([]interface{}, len(columns))
+        values := make([]interface{}, len(columns))
+        for i := range values </span><span class="cov8" title="1">{
+                scanArgs[i] = &amp;values[i]
+        }</span>
+
+        <span class="cov8" title="1">array := make([]map[string]interface{}, 0)
+        for rows.Next() </span><span class="cov8" title="1">{
+                err := rows.Scan(scanArgs...)
+                if err != nil </span><span class="cov0" title="0">{
+                        panic(err)
+                }</span>
+
+                <span class="cov8" title="1">record := scanrow(values, columns)
+                array = append(array, record)</span>
+        }
+        <span class="cov8" title="1">s, _ := json.Marshal(array)
+        res.Write(s)
+        io.WriteString(res, "\n")</span>
+}
+
+// This call will get a X,Y and a prediction of a value. that is asked for
+func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams martini.Params) <span class="cov0" title="0">{
+        // /api/getdatapred/:id/:x/:y
+
+        if prams["id"] == "" || prams["x"] == "" || prams["y"] == "" </span><span class="cov0" title="0">{
+                http.Error(res, "You did not provide enough infomation to make this kind of request :id/:x/:y", http.StatusBadRequest)
+                return
+        }</span>
+
+        <span class="cov0" title="0">database := msql.GetDB()
+        defer database.Close()
+
+        tablename, e := getRealTableName(prams["id"], database, res)
+        if e != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov0" title="0">cls := FetchTableCols(prams["id"], database)
+        // Now we need to check that the rows that the client is asking for, are in the table.
+        Valid := false
+        for _, clm := range cls </span><span class="cov0" title="0">{
+                if clm.Name == prams["x"] </span><span class="cov0" title="0">{
+                        Valid = true
+                }</span>
+        }
+        <span class="cov0" title="0">if !Valid </span><span class="cov0" title="0">{
+                http.Error(res, "Col X is invalid.", http.StatusBadRequest)
+                return
+        }</span>
+        <span class="cov0" title="0">Valid = false
+        for _, clm := range cls </span><span class="cov0" title="0">{
+                if clm.Name == prams["y"] </span><span class="cov0" title="0">{
+                        Valid = true
+                }</span>
+        }
+        <span class="cov0" title="0">if !Valid </span><span class="cov0" title="0">{
+                http.Error(res, "Col Y is invalid.", http.StatusBadRequest)
+                return
+        }</span>
+        <span class="cov0" title="0">rows, e1 := database.Query(fmt.Sprintf("SELECT `%s`,`%s` FROM `%s`", prams["x"], prams["y"], tablename))
+
+        if e1 != nil </span><span class="cov0" title="0">{
+                http.Error(res, "Could not query the data from the datastore", http.StatusInternalServerError)
+                return
+        }</span>
+
+        <span class="cov0" title="0">columns, e2 := rows.Columns()
+        if e2 != nil </span><span class="cov0" title="0">{
+                http.Error(res, "Could not query the data from the datastore", http.StatusInternalServerError)
+                return
+        }</span>
+        <span class="cov0" title="0">scanArgs := make([]interface{}, len(columns))
+        values := make([]interface{}, len(columns))
+        for i := range values </span><span class="cov0" title="0">{
+                scanArgs[i] = &amp;values[i]
+        }</span>
+
+        <span class="cov0" title="0">array := make([]map[string]interface{}, 0)
+        xarray := make([]float64, 0)
+        yarray := make([]float64, 0)
+
+        for rows.Next() </span><span class="cov0" title="0">{
+                err := rows.Scan(scanArgs...)
+                if err != nil </span><span class="cov0" title="0">{
+                        panic(err)
+                }</span>
+
+                <span class="cov0" title="0">record := scanrow(values, columns)
+                /*Going to if both things are float's else I can't predict them*/
+                f1, e := strconv.ParseFloat(record[columns[0]].(string), 64)
+                if e != nil </span><span class="cov0" title="0">{
+                        http.Error(res, "Could not parse one of the values into a float, there for cannot run Poly Prediction over it", http.StatusBadRequest)
+                        return
+                }</span>
+                <span class="cov0" title="0">f2, e := strconv.ParseFloat(record[columns[1]].(string), 64)
+                if e != nil </span><span class="cov0" title="0">{
+                        http.Error(res, "Could not parse one of the values into a float, there for cannot run Poly Prediction over it", http.StatusBadRequest)
+                        return
+                }</span>
+                <span class="cov0" title="0">xarray = append(xarray, f1)
+                yarray = append(yarray, f2)
+                array = append(array, record)</span>
+        }
+        <span class="cov0" title="0">wat := GetPolyResults(xarray, yarray)
+        s, _ := json.Marshal(wat)
+        res.Write(s)
+        io.WriteString(res, "\n")</span>
+}
+
+// This function will take a share of a table and return it as JSON
+// Due to what seems to be a golang bug, everything is outputted as a string.
+func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.Params) <span class="cov8" title="1">{
+
+        if prams["id"] == "" </span><span class="cov0" title="0">{
+                http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
+                return
+        }</span>
+        <span class="cov8" title="1">database := msql.GetDB()
+        defer database.Close()
+
+        tablename, e := getRealTableName(prams["id"], database, res)
+        if e != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">rows, e1 := database.Query("SELECT * FROM " + tablename)
+
+        if e1 != nil </span><span class="cov0" title="0">{
+                http.Error(res, "Could not read that table", http.StatusInternalServerError)
+                return
+        }</span>
+        <span class="cov8" title="1">columns, e2 := rows.Columns()
+        if e2 != nil </span><span class="cov0" title="0">{
+                http.Error(res, "Could not read that table", http.StatusInternalServerError)
+                return
+        }</span>
+
+        <span class="cov8" title="1">var DataLength int
+        database.QueryRow("SELECT COUNT(*) FROM " + tablename).Scan(&amp;DataLength)
+        RealDL := DataLength
+        if prams["persent"] == "" </span><span class="cov0" title="0">{
+                DataLength = DataLength / 25
+        }</span> <span class="cov8" title="1">else {
+                Persent := prams["persent"]
+                Divider, e := strconv.ParseInt(Persent, 10, 64)
+                if e != nil </span><span class="cov0" title="0">{
+                        http.Error(res, "Invalid Persentage", http.StatusBadRequest)
+                        return // Halt!
+                }</span>
+                <span class="cov8" title="1">Temp := (float64(Divider) / 100) * float64(DataLength)
+                if Temp &lt; 1 </span><span class="cov0" title="0">{
+                        Temp = 1
+                }</span>
+                <span class="cov8" title="1">DataLength = DataLength / int(Temp)
+                if prams["min"] != "" </span><span class="cov8" title="1">{
+                        MinSpend, e := strconv.ParseInt(prams["min"], 10, 64)
+                        if e != nil </span><span class="cov0" title="0">{
+                                http.Error(res, "Invalid Min", http.StatusBadRequest)
+                                return // Halt!
+                        }</span>
+                        <span class="cov8" title="1">if int(RealDL/DataLength) &lt; int(MinSpend) </span><span class="cov8" title="1">{
+                                DataLength = RealDL / int(MinSpend)
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">if DataLength &lt; 1 </span><span class="cov8" title="1">{
+                DataLength = 1 // In the case that the persentage returnes a super small amount, then
+                // force it to be 1, and return it all
+        }</span>
+        <span class="cov8" title="1">var RowsScanned int
+        RowsScanned = 0
+        scanArgs := make([]interface{}, len(columns))
+        values := make([]interface{}, len(columns))
+        for i := range values </span><span class="cov8" title="1">{
+                scanArgs[i] = &amp;values[i]
+        }</span>
+
+        <span class="cov8" title="1">array := make([]map[string]interface{}, 0)
+        for rows.Next() </span><span class="cov8" title="1">{
+                err := rows.Scan(scanArgs...)
+                if err != nil </span><span class="cov0" title="0">{
+                        panic(err)
+                }</span>
+                <span class="cov8" title="1">if RowsScanned%DataLength == 0 </span><span class="cov8" title="1">{
+                        record := scanrow(values, columns)
+                        array = append(array, record)
+                }</span>
+                <span class="cov8" title="1">RowsScanned++</span>
+        }
+        <span class="cov8" title="1">s, _ := json.Marshal(array)
+        res.Write(s)
+        io.WriteString(res, "\n")</span>
+}
+
+// This function will empty a whole table out into CSV
+// This can proabbly be removed now as it was only there to support
+// one type of graph that has now been rewritten.
+func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) <span class="cov0" title="0">{
+
+        if prams["id"] == "" </span><span class="cov0" title="0">{
+                http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
+                return
+        }</span>
+        <span class="cov0" title="0">if prams["x"] == "" || prams["y"] == "" </span><span class="cov0" title="0">{
+                http.Error(res, "I don't have a x and y to make the CSV for.", http.StatusBadRequest)
+                return
+        }</span>
+
+        <span class="cov0" title="0">database := msql.GetDB()
+        defer database.Close()
+
+        tablename, e := getRealTableName(prams["id"], database, res)
+        if e != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov0" title="0">rows, e1 := database.Query("SELECT * FROM " + tablename)
+
+        if e1 != nil </span><span class="cov0" title="0">{
+                http.Error(res, "Could not read that table", http.StatusInternalServerError)
+                return
+        }</span>
+        <span class="cov0" title="0">columns, e2 := rows.Columns()
+        if e2 != nil </span><span class="cov0" title="0">{
+                http.Error(res, "Could not read that table", http.StatusInternalServerError)
+                return
+        }</span>
+        // We need to find the Columns to relay back.
+
+        <span class="cov0" title="0">var xcol int
+        var ycol int
+        xcol = -1
+        ycol = -1
+        for number, colname := range columns </span><span class="cov0" title="0">{
+                if colname == prams["x"] </span><span class="cov0" title="0">{
+                        xcol = number
+                }</span> <span class="cov0" title="0">else if colname == prams["y"] </span><span class="cov0" title="0">{
+                        ycol = number
+                }</span>
+        }
+        <span class="cov0" title="0">if xcol == -1 || ycol == -1 </span><span class="cov0" title="0">{
+                http.Error(res, "Could not find some of the columns that you asked for.", http.StatusNotFound)
+                return
+        }</span>
+
+        <span class="cov0" title="0">var output string
+        output = "\"name\",\"word\",\"count\"\n"
+        scanArgs := make([]interface{}, len(columns))
+        values := make([]interface{}, len(columns))
+        for i := range values </span><span class="cov0" title="0">{
+                scanArgs[i] = &amp;values[i]
+        }</span>
+
+        <span class="cov0" title="0">array := make([]map[string]interface{}, 0)
+        for rows.Next() </span><span class="cov0" title="0">{
+                err := rows.Scan(scanArgs...)
+                if err != nil </span><span class="cov0" title="0">{
+                        panic(err)
+                }</span>
+
+                <span class="cov0" title="0">output = output + fmt.Sprintf("\"%s\",\"%s\",%s\n", values[xcol], values[xcol], values[ycol])
+                record := scanrow(values, columns)
+                array = append(array, record)</span>
+        }
+        <span class="cov0" title="0">res.Write([]byte(output))</span>
+}
+
+// Turnes the GUID name (the "friendly" name) into the actual table named inside mysql
+func getRealTableName(guid string, database *sql.DB, res http.ResponseWriter) (out string, e error) <span class="cov8" title="1">{
+        var tablename string
+        database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", guid).Scan(&amp;tablename)
+        if tablename == "" </span><span class="cov0" title="0">{
+                http.Error(res, "Could not find that table", http.StatusNotFound)
+                return "", fmt.Errorf("Could not find table")
+        }</span>
+        <span class="cov8" title="1">return tablename, e</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package main
+
+import (
+        "encoding/json"
+        "github.com/codegangsta/martini"
+        "net/http"
+)
+
+type CheckDataQualityResponce struct {
+        Amount  int
+        Request string
+}
+
+// This is a old legacy function that should not be used anymore, can be removed at any time
+// anyone wants to take responsibility to fix the broken ness ( I don't expect there to be lots of it )
+func CheckDataQuality(res http.ResponseWriter, req *http.Request, prams martini.Params) string <span class="cov0" title="0">{
+        // 3 is the amount that is considered by the client as "high quality"
+        returnobj := CheckDataQualityResponce{
+                Amount:  3,
+                Request: prams["id"],
+        }
+        b, _ := json.Marshal(returnobj)
+        return string(b)
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package main
+
+import (
+        msql "./databasefuncs"
+        "github.com/codegangsta/martini"
+        "net/http"
+)
+
+// The set Defaults function is there to save small bits of data that the client might set.
+// things like "the key 'date' is a int" really does need to be stored. Thus these pair of calls
+// allow the browser to put data next to the row and get it back with ease.
+func SetDefaults(res http.ResponseWriter, req *http.Request, prams martini.Params) string <span class="cov0" title="0">{
+
+        if prams["id"] == "" </span><span class="cov0" title="0">{
+                http.Error(res, "You didnt give me a id to store for", http.StatusBadRequest)
+                return ""
+        }</span>
+
+        <span class="cov0" title="0">database := msql.GetDB()
+        defer database.Close()
+        jsondata := req.FormValue("data")
+
+        database.Exec("UPDATE `priv_onlinedata` SET `Defaults`=? WHERE  `GUID`=? LIMIT 1", jsondata, prams["id"])
+        return "{\"result\":\"OK\"}"</span>
+}
+
+// The GetDefaults function is the retrival function for SetDefaults
+func GetDefaults(res http.ResponseWriter, req *http.Request, prams martini.Params) string <span class="cov8" title="1">{
+        database := msql.GetDB()
+        defer database.Close()
+
+        if prams["id"] == "" </span><span class="cov0" title="0">{
+                http.Error(res, "You didnt give me a id to lookup", http.StatusBadRequest)
+                return ""
+        }</span>
+
+        <span class="cov8" title="1">rows := database.QueryRow("SELECT Defaults FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["id"])
+        var output string
+        rows.Scan(&amp;output)
+        return output</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package main
+
+// Hi there. You can find the SQL layout in "layout.sql"
+// You can get the data from http://data.gov.uk/data/dumps
+// Not actually sure they want you to do that. But it works for now.
+// For those who want to build this in the future (Hi future!)
+// This was written in Go 1.1.1 or 1.2
+// You will also need to run "go get" and hope to god the packages
+// still exist.
+import (
+        msql "./databasefuncs"
+        dpsession "./session"
+        "fmt"
+        "github.com/codegangsta/martini" // Worked at 890a2a52d2e59b007758538f9b845fa0ed7daccb
+        "net/http"
+        "net/url"
+        "strings"
+)
+
+type AuthHandler struct {
+        http.Handler
+        Users map[string]string
+}
+
+func main() <span class="cov8" title="1">{
+        what := msql.GetDB()
+        what.Ping() // Check that the database is actually there and isnt ~spooking~ around
+
+        _, e := what.Exec("SHOW TABLES") // A null query to test functionaility of the SQL server
+        check(e)
+        what.Close() // Close down the SQL connection since it does nothing after this.
+        fmt.Println("DataCon Server")
+        initTemplates() // Load all templates from the fs ready to serve to clients.
+        m := martini.Classic()
+        m.Get("/", func(res http.ResponseWriter, req *http.Request) </span><span class="cov8" title="1">{ // res and req are injected by Martini
+                checkAuth(res, req)
+                database := msql.GetDB()
+                defer database.Close()
+                var uid string
+                uid = fmt.Sprint(dpsession.GetUserID(res, req))
+                var username string
+                database.QueryRow("select email from priv_users where uid = ?", uid).Scan(&amp;username) // get the user's email so I can bake it into the page I am about to send
+                custom := map[string]string{
+                        "username": username,
+                }
+                renderTemplate("public/home.html", custom, res)
+        }</span>)
+        <span class="cov8" title="1">m.Get("/login", func(res http.ResponseWriter, req *http.Request) </span><span class="cov8" title="1">{
+                failedstr := ""
+                queryprams, _ := url.ParseQuery(req.URL.String())
+                if queryprams.Get("/login?failed") != "" </span><span class="cov8" title="1">{
+                        failedstr = "Incorrect User Name or Password" // They are wrong
+                        if queryprams.Get("/login?failed") == "2" </span><span class="cov0" title="0">{
+                                failedstr = "You're password has been upgraded, please login again." // This should not show anymore, we auto redirect
+                        }</span> <span class="cov8" title="1">else if queryprams.Get("/login?failed") == "3" </span><span class="cov0" title="0">{
+                                failedstr = "Failed to login you in, Sorry!" // somehting went wrong in password upgrade.
+                        }</span>
+                }
+                <span class="cov8" title="1">custom := map[string]string{
+                        "fail": failedstr,
+                }
+                renderTemplate("public/signin.html", custom, res)</span>
+        })
+        <span class="cov8" title="1">m.Get("/register", func(res http.ResponseWriter, req *http.Request) </span><span class="cov0" title="0">{
+                failedstr := ""
+                custom := map[string]string{
+                        "fail": failedstr,
+                }
+                renderTemplate("public/register.html", custom, res)
+        }</span>)
+        <span class="cov8" title="1">m.Get("/charts/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) </span><span class="cov8" title="1">{
+                checkAuth(res, req)
+                if IsUserLoggedIn(res, req) </span><span class="cov8" title="1">{
+                        TrackVisited(prams["id"], string(GetUserID(res, req))) // Make sure the tracking module knows about their visit.
+                }</span>
+                <span class="cov8" title="1">renderTemplate("public/charts.html", nil, res)</span>
+        })
+        <span class="cov8" title="1">m.Get("/search/overlay", func(res http.ResponseWriter, req *http.Request) </span><span class="cov0" title="0">{
+                checkAuth(res, req)
+                renderTemplate("public/search.html", nil, res)
+        }</span>)
+        <span class="cov8" title="1">m.Get("/overlay/:id", func(res http.ResponseWriter, req *http.Request) </span><span class="cov0" title="0">{
+                checkAuth(res, req)
+                renderTemplate("public/overlay.html", nil, res)
+        }</span>)
+        <span class="cov8" title="1">m.Get("/overview/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) </span><span class="cov8" title="1">{
+                checkAuth(res, req)
+                if IsUserLoggedIn(res, req) </span><span class="cov8" title="1">{
+                        TrackVisited(prams["id"], string(GetUserID(res, req)))
+                }</span>
+                <span class="cov8" title="1">renderTemplate("public/overview.html", nil, res)</span>
+        })
+        <span class="cov8" title="1">m.Get("/search", func(res http.ResponseWriter, req *http.Request) </span><span class="cov8" title="1">{
+                checkAuth(res, req)
+                renderTemplate("public/search.html", nil, res)
+        }</span>)
+        <span class="cov8" title="1">m.Get("/maptest/:id", func(res http.ResponseWriter, req *http.Request) </span><span class="cov8" title="1">{
+                checkAuth(res, req)
+                renderTemplate("public/maptest.html", nil, res)
+        }</span>)
+
+        <span class="cov8" title="1">m.Post("/noauth/login.json", HandleLogin)
+        m.Post("/noauth/register.json", HandleRegister)
+        m.Get("/api/user", CheckAuth)
+        m.Get("/api/visited", GetLastVisited)
+        m.Get("/api/search/:s", SearchForData)
+        m.Get("/api/getinfo/:id", GetEntry)
+        m.Get("/api/getimportstatus/:id", CheckImportStatus)
+        m.Get("/api/getdata/:id", DumpTable)
+        m.Get("/api/getdata/:id/:top/:bot", DumpTable)
+        m.Get("/api/getdata/:id/:x/:startx/:endx", DumpTableRange)
+        m.Get("/api/getdatagrouped/:id/:x/:y", DumpTableGrouped)
+        m.Get("/api/getdatapred/:id/:x/:y", DumpTablePrediction)
+        m.Get("/api/getcsvdata/:id/:x/:y", GetCSV)
+        m.Get("/api/getreduceddata/:id", DumpReducedTable)
+        m.Get("/api/getreduceddata/:id/:persent", DumpReducedTable)
+        m.Get("/api/getreduceddata/:id/:persent/:min", DumpReducedTable)
+        m.Post("/api/setdefaults/:id", SetDefaults)
+        m.Get("/api/getdefaults/:id", GetDefaults)
+        m.Get("/api/identifydata/:id", IdentifyTable)
+        m.Get("/api/findmatches/:id/:x/:y", AttemptToFindMatches)
+        m.Get("/api/classifydata/:table/:col", SuggestColType)
+        m.Get("/api/stringmatch/:word", FindStringMatches)
+        m.Get("/api/stringmatch/:word/:x", FindStringMatches)
+        m.Get("/api/relatedstrings/:guid", GetRelatedDatasetByStrings)
+        m.Use(ProabblyAPI)
+        m.Use(martini.Static("node_modules"))
+        m.Run()</span>
+}
+
+// A HTTP middleware that Forces anything with /api
+// to have a json doctype. Since it makes sence to
+func ProabblyAPI(res http.ResponseWriter, req *http.Request) <span class="cov8" title="1">{
+        if strings.HasPrefix(req.RequestURI, "/api") </span><span class="cov8" title="1">{
+                checkAuth(res, req) // Make everything in the API auth'd
+                res.Header().Set("Content-Type", "application/json")
+        }</span>
+}
+
+func check(e error) <span class="cov8" title="1">{
+        if e != nil </span><span class="cov0" title="0">{
+                panic(e)
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package main
+
+import (
+        "github.com/skelterjohn/go.matrix" // daa59528eefd43623a4c8e36373a86f9eef870a2
+)
+
+var degree = 2
+
+func GetPolyResults(xGiven []float64, yGiven []float64) []float64 <span class="cov0" title="0">{
+        m := len(yGiven)
+        if m != len(xGiven) </span><span class="cov0" title="0">{
+                return []float64{0, 0, 0} // Send it back, There is nothing sane here.
+        }</span>
+        <span class="cov0" title="0">if m &lt; 5 </span><span class="cov0" title="0">{
+                // Prevent the processing of really small datasets, This is becauase there
+                // appears to be a bug in the libary that will trigger a crash in the go.matrix
+                // if some (small) amount of values are entered. I don't know why this happens
+                // (Otherwise I would have fixed it) but the URL for the github issue is:
+                // https://github.com/skelterjohn/go.matrix/issues/11
+                return []float64{0, 0, 0} // Send it back, There is nothing sane here.
+        }</span>
+        <span class="cov0" title="0">n := degree + 1
+        y := matrix.MakeDenseMatrix(yGiven, m, 1)
+        x := matrix.Zeros(m, n)
+        for i := 0; i &lt; m; i++ </span><span class="cov0" title="0">{
+                ip := float64(1)
+                for j := 0; j &lt; n; j++ </span><span class="cov0" title="0">{
+                        x.Set(i, j, ip)
+                        ip *= xGiven[i]
+                }</span>
+        }
+
+        <span class="cov0" title="0">q, r := x.QR()
+        qty, err := q.Transpose().Times(y)
+        if err != nil </span><span class="cov0" title="0">{
+                Logger.Println(err)
+                return []float64{0, 0, 0}
+        }</span>
+        <span class="cov0" title="0">c := make([]float64, n)
+        for i := n - 1; i &gt;= 0; i-- </span><span class="cov0" title="0">{
+                c[i] = qty.Get(i, 0)
+                for j := i + 1; j &lt; n; j++ </span><span class="cov0" title="0">{
+                        c[i] -= c[j] * r.Get(i, j)
+                }</span>
+                <span class="cov0" title="0">c[i] /= r.Get(i, i)</span>
+        }
+        <span class="cov0" title="0">Logger.Println(c)
+        return c</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package main
+
+import (
+        "html/template"
+        "io/ioutil"
+        "net/http"
+)
+
+type Page struct {
+        Header template.HTML
+        Navbar template.HTML
+        Footer template.HTML
+        Custom map[string]string
+}
+
+var h template.HTML // Header
+var n template.HTML // Navbar
+var f template.HTML // Footer
+
+func ApplyTemplate(FileName string, Inject string, res http.ResponseWriter) <span class="cov0" title="0">{
+        b, _ := ioutil.ReadFile(FileName)
+        t := template.New("TPage") // Not sure why we have to name these, but we are basically forced to.
+        t.Parse(string(b))
+        t.Execute(res, Inject)
+}</span>
+
+func renderTemplate(fileName string, custom map[string]string, res http.ResponseWriter) <span class="cov8" title="1">{
+        p := &amp;Page{Header: h, Navbar: n, Footer: f, Custom: custom}
+        t, _ := template.ParseFiles(fileName)
+        t.Execute(res, p)
+}</span>
+
+// GoTemplates need to be compiled. We do this on start so we don't have to read them over and over,
+// this does mean however that you need to restart the server when you make changes to the below templates
+// * public/templates/header.html
+// * public/templates/navbar.html
+// * public/templates/footer.html
+func initTemplates() <span class="cov8" title="1">{
+        hf, _ := ioutil.ReadFile("public/templates/header.html")
+        h = template.HTML(hf)
+        nf, _ := ioutil.ReadFile("public/templates/navbar.html")
+        n = template.HTML(nf)
+        ff, _ := ioutil.ReadFile("public/templates/footer.html")
+        f = template.HTML(ff)
+}</span>
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package main
+
+import (
+        msql "./databasefuncs"
+        dpsession "./session"
+        "database/sql"
+        "encoding/json"
+        "fmt"
+        "net/http"
+        "strings"
+)
+
+func GetLastVisited(rw http.ResponseWriter, req *http.Request) string <span class="cov8" title="1">{
+        database := msql.GetDB()
+        defer database.Close()
+        if dpsession.GetUserID(rw, req) != 0 </span><span class="cov8" title="1">{
+                value := string(dpsession.GetUserID(rw, req))
+                rows, e := database.Query("SELECT DISTINCT(guid),(SELECT Title FROM `index` WHERE `index`.GUID = priv_tracking.guid LIMIT 1) as a FROM priv_tracking WHERE user = ? ORDER BY id DESC LIMIT 5", value)
+                result := make([][]string, 0)
+                if e == nil </span><span class="cov8" title="1">{
+                        for rows.Next() </span><span class="cov8" title="1">{
+                                var guid string
+                                var title string
+
+                                rows.Scan(&amp;guid, &amp;title)
+
+                                r := HasTableGotLocationData(guid, database)
+                                result2 := []string{
+                                        guid,
+                                        title,
+                                        r,
+                                }
+
+                                result = append(result, result2)
+                        }</span>
+                }
+                <span class="cov8" title="1">if e != nil </span><span class="cov0" title="0">{
+                        fmt.Println(e)
+                }</span>
+                <span class="cov8" title="1">b, _ := json.Marshal(result)
+                return (string(b))</span>
+        }
+        <span class="cov0" title="0">return ""</span>
+}
+
+func HasTableGotLocationData(datasetGUID string, database *sql.DB) string <span class="cov8" title="1">{
+        cols := FetchTableCols(datasetGUID, database)
+
+        if containsTableCol(cols, "lat") &amp;&amp; (containsTableCol(cols, "lon") || containsTableCol(cols, "long")) </span><span class="cov8" title="1">{
+                return "true"
+        }</span>
+        <span class="cov8" title="1">return "false"</span>
+}
+
+func containsTableCol(cols []ColType, target string) bool <span class="cov8" title="1">{
+        for _, v := range cols </span><span class="cov8" title="1">{
+                if strings.ToLower(v.Name) == target </span><span class="cov8" title="1">{
+                        return true
+                }</span>
+        }
+        <span class="cov8" title="1">return false</span>
+}
+
+func TrackVisited(guid string, user string) <span class="cov8" title="1">{
+        database := msql.GetDB()
+        defer database.Close()
+        _, e := database.Exec("INSERT INTO `DataCon`.`priv_tracking` (`user`, `guid`) VALUES (?, ?);", user, guid)
+        if e != nil </span><span class="cov0" title="0">{
+                Logger.Println(e)
+        }</span>
+        <span class="cov8" title="1">Logger.Println("Tracking page hit to ", guid, "by", user)</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package main
+
+import (
+        msql "./databasefuncs"
+        dpsession "./session"
+        bcrypt "code.google.com/p/go.crypto/bcrypt"
+        "fmt"
+        "net/http"
+)
+
+// Proxy Function that uses the session module to check if a user is logged in (By checking their cookies)
+func IsUserLoggedIn(res http.ResponseWriter, req *http.Request) bool <span class="cov8" title="1">{
+        return dpsession.IsUserLoggedIn(res, req)
+}</span>
+
+// Proxy Function that uses the session module to get the UserID.
+func GetUserID(res http.ResponseWriter, req *http.Request) int <span class="cov8" title="1">{
+        return dpsession.GetUserID(res, req)
+}</span>
+
+// Shortcut function that is used to redirect users to the login page if they are not logged in.
+func checkAuth(res http.ResponseWriter, req *http.Request) <span class="cov8" title="1">{
+        if !(dpsession.IsUserLoggedIn(res, req)) </span><span class="cov8" title="1">{
+                http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
+                return
+        }</span>
+}
+
+func HandleLogin(res http.ResponseWriter, req *http.Request) <span class="cov8" title="1">{
+        database := msql.GetDB()
+        defer database.Close()
+        username := req.FormValue("username")
+        password := req.FormValue("password")
+
+        rows, e := database.Query("SELECT `password` FROM priv_users where email = ? LIMIT 1", username)
+        check(e) // Check if the thing error's out
+        rows.Next()
+        var usrpassword string
+        e = rows.Scan(&amp;usrpassword)
+
+        if usrpassword != "" &amp;&amp; bcrypt.CompareHashAndPassword([]byte(usrpassword), []byte(password)) == nil </span><span class="cov8" title="1">{ // Check the password with bcrypt
+                var uid int
+                e := database.QueryRow("SELECT uid FROM priv_users where email = ? LIMIT 1", username).Scan(&amp;uid)
+                check(e)
+                dpsession.SetSession(res, req, uid)
+                http.Redirect(res, req, "/", http.StatusFound)
+        }</span> <span class="cov8" title="1">else {
+                // Just in the case that the user is on a really old MD5 password (useful for admins resetting passwords too) check
+                var md5test int
+                e := database.QueryRow("SELECT count(*) FROM priv_users where email = ? AND password = MD5( ? ) LIMIT 1", username, password).Scan(&amp;md5test)
+
+                if e == nil </span><span class="cov8" title="1">{
+                        if md5test != 0 </span><span class="cov0" title="0">{
+                                // Ooooh, We need to upgrade this password!
+                                pwd, e := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+                                if e == nil </span><span class="cov0" title="0">{
+                                        database.Exec("UPDATE `DataCon`.`priv_users` SET `password`= ? WHERE `email`=?", pwd, username)
+
+                                        var uid int
+                                        e := database.QueryRow("SELECT uid FROM priv_users where email = ? LIMIT 1", username).Scan(&amp;uid)
+                                        check(e)
+                                        dpsession.SetSession(res, req, uid)
+                                        http.Redirect(res, req, "/", http.StatusFound)
+                                }</span>
+                                <span class="cov0" title="0">http.Redirect(res, req, fmt.Sprintf("/login?failed=3&amp;r=%s", e), http.StatusFound)</span>
+                        } <span class="cov8" title="1">else {
+                                http.Redirect(res, req, "/login?failed=1", http.StatusFound) // The user has failed this test as well :sad tuba:
+                        }</span>
+                } <span class="cov0" title="0">else {
+                        http.Redirect(res, req, "/login?failed=1", http.StatusFound) // Ditto to the above
+                }</span>
+        }
+}
+
+func HandleRegister(res http.ResponseWriter, req *http.Request) string <span class="cov0" title="0">{
+        database := msql.GetDB()
+        defer database.Close()
+        username := req.FormValue("username")
+        password := req.FormValue("password")
+
+        rows, e := database.Query("SELECT COUNT(*) FROM priv_users where email = ? LIMIT 1", username)
+        check(e)
+        rows.Next()
+        var doesusrexist int
+        e = rows.Scan(&amp;doesusrexist)
+
+        if doesusrexist == 0 </span><span class="cov0" title="0">{
+                pwd, e := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+                if e != nil </span><span class="cov0" title="0">{
+                        return "The password you entered is invalid."
+                }</span>
+                <span class="cov0" title="0">r, e := database.Exec("INSERT INTO `DataCon`.`priv_users` (`email`, `password`) VALUES (?, ?);", username, pwd)
+                if e != nil </span><span class="cov0" title="0">{
+                        return "Could not make the user you requested."
+                }</span>
+                <span class="cov0" title="0">newid, _ := r.LastInsertId()
+                dpsession.SetSession(res, req, int(newid))
+                http.Redirect(res, req, "/", http.StatusFound)
+                return ""</span>
+        } <span class="cov0" title="0">else {
+                return "That username is already registered."
+        }</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible = document.getElementById('file0');
+		files.addEventListener('change', onChange, false);
+		function onChange() {
+			visible.style.display = 'none';
+			visible = document.getElementById(files.value);
+			visible.style.display = 'block';
+			window.scrollTo(0, 0);
+		}
+	})();
+	</script>
+</html>
