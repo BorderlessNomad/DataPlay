@@ -152,7 +152,7 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 			for rows.Next() {
 				var TestSubject string
 				rows.Scan(&TestSubject)
-				_, e := strconv.ParseInt(TestSubject, 10, 64)
+				_, e := strconv.ParseFloat(TestSubject, 10, 64)
 				if e != nil {
 					return "false"
 				}
