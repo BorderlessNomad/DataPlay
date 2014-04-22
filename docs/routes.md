@@ -351,42 +351,139 @@ This extends the functionallity of `/api/getreduceddata/:id` but offers you to s
 
 This extends the functionallity of `/api/getreduceddata/:id/:persent` but offers you to select what the min amount of data you want.
 
-### "/api/setdefaults/:id
-**GET - Auth Cookie Checked**
+### /api/setdefaults/:id
+**POST - Auth Cookie Checked**
 
 **Handled in api:SetDefaults:api/**
+
+Posting a string to this will put it next to that dataset.
 
 ### /api/getdefaults/:id
 **GET - Auth Cookie Checked**
 
 **Handled in api:GetDefaults:api/**
 
+Gets the stings that was put into a dataset using `/api/setdefaults/:id`
+
 ### /api/identifydata/:id
 **GET - Auth Cookie Checked**
 
 **Handled in api:IdentifyTable:api/**
 
-### /api/findmatches/:id/:x/:y
-**GET - Auth Cookie Checked**
+This parses the SQL table and outputs the parsed output in a friendly output for the end application to use to make desisions:
 
-**Handled in api:AttemptToFindMatches:api/**
+To get the layout of the `GDP` dataset then you can query `/api/identifydata/GDP`
+
+```json
+
+	{
+	    "Cols": [
+	        {
+	            "Name": "year",
+	            "Sqltype": "int"
+	        },
+	        {
+	            "Name": "GDP",
+	            "Sqltype": "float"
+	        },
+	        {
+	            "Name": "change",
+	            "Sqltype": "float"
+	        },
+	        {
+	            "Name": "gdpindex",
+	            "Sqltype": "float"
+	        }
+	    ],
+	    "Request": "GDP"
+	}
+
+```
 
 ### /api/classifydata/:table/:col
 **GET - Auth Cookie Checked**
 
 **Handled in api:SuggestColType:api/**
 
+This returns `true` or `false` for if the `:col` in dataset `:table` is numeric.
+
+Example: `/api/classifydata/tweets/id`
+
+```json
+	
+	true
+
+```
+
+
 ### /api/stringmatch/:word
 **GET - Auth Cookie Checked**
 
 **Handled in api:FindStringMatches:api/**
+
+This searches **all** datasets for a string inside, Useful for a related datasets bar.
+
+`/api/stringmatch/BBC/` gives back:
+
+```json
+
+	[
+	    {
+	        "Count": 1,
+	        "Match": "imp015c046f5b98b36486ed0c794fe8e1d711b2e097_6fa3560e60b224c9f68"
+	    },
+	    {
+	        "Count": 1,
+	        "Match": "imp10d50e756b7e31907d86aa2eda09ae724b1fed31_dded73f34760686b725"
+	    },
+	    {
+	        "Count": 1,
+	        "Match": "impe88601a6cee601e9fea744def250d16f264c963e_dded73f34760686b725"
+	    },
+	    {
+	        "Count": 6,
+	        "Match": "proc"
+	    }
+	]
+
+```
 
 ### /api/stringmatch/:word/:x
 **GET - Auth Cookie Checked**
 
 **Handled in api:FindStringMatches:api/**
 
+This function inherits the functioanlity of `/api/stringmatch/:word` but allows you to limit what `col` it came from using `:x`
+
 ### /api/relatedstrings/:guid
 **GET - Auth Cookie Checked**
 
 **Handled in api:GetRelatedDatasetByStrings:api/**
+
+This looks at a dataset and will give you tables that contain similar data in them:
+
+Example: `/api/relatedstrings/1a0408b99c6355ac28f137f7acd82363b4ea5524d3161ab9105b706b889`
+```json
+
+	[
+	    {
+	        "Match": "HEREFORD WORCESTER FIRE BRIGADE",
+	        "Tables": [
+	            "027b42a92100fed4347ff8cc41aeda13ea32be1ddded73f34760686b725",
+	---many---
+	            "ff66d78bea6e30cc3582473bcb08a37c38c4e5773759982115eec0d6048",
+	            "fffdb25ee6b6a3f8e1fca12d4c6be865ec09b846c37b20778b8bac50d96"
+	        ]
+	    },
+	    {
+	        "Match": "HALTON BC",
+	        "Tables": [
+	            "027b42a92100fed4347ff8cc41aeda13ea32be1ddded73f34760686b725",
+	            "02cc87162978680907a5c59ee76cfbde47357cf18c789d35dfcc847ddfd",
+	---many---
+	            "fffdb25ee6b6a3f8e1fca12d4c6be865ec09b846c37b20778b8bac50d96"
+	        ]
+	    }
+	]
+
+```
