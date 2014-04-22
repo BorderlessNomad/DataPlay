@@ -25,13 +25,13 @@ type AuthHandler struct {
 
 func main() {
 	what := msql.GetDB()
-	what.Ping()
+	what.Ping() // Check that the database is actually there and isnt ~spooking~ around
 
-	_, e := what.Exec("SHOW TABLES")
+	_, e := what.Exec("SHOW TABLES") // A null query to test functionaility of the SQL server
 	check(e)
 	what.Close() // Close down the SQL connection since it does nothing after this.
 	fmt.Println("DataCon Server")
-	initTemplates()
+	initTemplates() // Load all templates from the fs ready to serve to clients.
 	m := martini.Classic()
 	m.Get("/", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
 		checkAuth(res, req)
@@ -40,7 +40,7 @@ func main() {
 		var uid string
 		uid = fmt.Sprint(dpsession.GetUserID(res, req))
 		var username string
-		database.QueryRow("select email from priv_users where uid = ?", uid).Scan(&username)
+		database.QueryRow("select email from priv_users where uid = ?", uid).Scan(&username) // get the user's email so I can bake it into the page I am about to send
 		custom := map[string]string{
 			"username": username,
 		}
@@ -50,11 +50,11 @@ func main() {
 		failedstr := ""
 		queryprams, _ := url.ParseQuery(req.URL.String())
 		if queryprams.Get("/login?failed") != "" {
-			failedstr = "Incorrect User Name or Password"
+			failedstr = "Incorrect User Name or Password" // They are wrong
 			if queryprams.Get("/login?failed") == "2" {
-				failedstr = "You're password has been upgraded, please login again."
+				failedstr = "You're password has been upgraded, please login again." // This should not show anymore, we auto redirect
 			} else if queryprams.Get("/login?failed") == "3" {
-				failedstr = "Failed to login you in, Sorry!"
+				failedstr = "Failed to login you in, Sorry!" // somehting went wrong in password upgrade.
 			}
 		}
 		custom := map[string]string{
@@ -72,7 +72,7 @@ func main() {
 	m.Get("/charts/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		checkAuth(res, req)
 		if IsUserLoggedIn(res, req) {
-			api.TrackVisited(prams["id"], string(GetUserID(res, req)))
+			api.TrackVisited(prams["id"], string(GetUserID(res, req))) // Make sure the tracking module knows about their visit.
 		}
 		renderTemplate("public/charts.html", nil, res)
 	})

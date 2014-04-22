@@ -85,6 +85,9 @@ func FetchTableCols(guid string, database *sql.DB) (output []ColType) {
 	return results
 }
 
+// This is a shortcut function to do a the common action that is parsing the SQL create code.
+// Regex looks for things that look like
+// `colname` INT,
 func BuildREArrayForCreateTable(input string) []string {
 	re := ".*?(`.*?`).*?((?:[a-z][a-z]+))" // http://i.imgur.com/dkbyB.jpg
 	// This regex looks for things that look like
@@ -102,6 +105,7 @@ func ParseCreateTableSQL(input string) []ColType {
 	// using it to split the system up by \n
 
 	for c, line := range SQLLines {
+		// Ignore the first line of the file, since its useless and can in some cases parse :eek:
 		if c != 0 && strings.HasPrefix(strings.TrimSpace(line), "`") { // Clipping off the create part since its useless for me.
 			results := BuildREArrayForCreateTable(line)
 			if len(results) == 3 {
