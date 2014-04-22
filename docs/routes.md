@@ -1,6 +1,17 @@
 HTTP Routes
 ===
 
+##General notes
+
+There are a few things that happen before the function you ask for gets run.
+
+![](http://i.imgur.com/OD43LnY.png)
+
+CheckAuth uses the Redis server to check the session, and ProabblyAPI (Can be found in main.go) makes sure
+everything gets outputted as a json document type to ensure that jquery does not get upset.
+
+##HTTP routes
+
 ### /noauth/login.json
 **POST - No auth needed**
 
