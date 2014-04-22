@@ -1,4 +1,4 @@
-package msql
+package main
 
 import (
 	"database/sql"

@@ -8,8 +8,6 @@ package main
 // You will also need to run "go get" and hope to god the packages
 // still exist.
 import (
-	msql "./databasefuncs"
-	dpsession "./session"
 	"fmt"
 	"github.com/codegangsta/martini" // Worked at 890a2a52d2e59b007758538f9b845fa0ed7daccb
 	"net/http"
@@ -23,7 +21,7 @@ type AuthHandler struct {
 }
 
 func main() {
-	what := msql.GetDB()
+	what := GetDB()
 	what.Ping() // Check that the database is actually there and isnt ~spooking~ around
 
 	_, e := what.Exec("SHOW TABLES") // A null query to test functionaility of the SQL server
@@ -34,10 +32,10 @@ func main() {
 	m := martini.Classic()
 	m.Get("/", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
 		checkAuth(res, req)
-		database := msql.GetDB()
+		database := GetDB()
 		defer database.Close()
 		var uid string
-		uid = fmt.Sprint(dpsession.GetUserID(res, req))
+		uid = fmt.Sprint(GetUserID(res, req))
 		var username string
 		database.QueryRow("select email from priv_users where uid = ?", uid).Scan(&username) // get the user's email so I can bake it into the page I am about to send
 		custom := map[string]string{

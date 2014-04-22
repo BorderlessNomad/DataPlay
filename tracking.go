@@ -1,8 +1,6 @@
 package main
 
 import (
-	msql "./databasefuncs"
-	dpsession "./session"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -11,10 +9,10 @@ import (
 )
 
 func GetLastVisited(rw http.ResponseWriter, req *http.Request) string {
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
-	if dpsession.GetUserID(rw, req) != 0 {
-		value := string(dpsession.GetUserID(rw, req))
+	if GetUserID(rw, req) != 0 {
+		value := string(GetUserID(rw, req))
 		rows, e := database.Query("SELECT DISTINCT(guid),(SELECT Title FROM `index` WHERE `index`.GUID = priv_tracking.guid LIMIT 1) as a FROM priv_tracking WHERE user = ? ORDER BY id DESC LIMIT 5", value)
 		result := make([][]string, 0)
 		if e == nil {
@@ -62,7 +60,7 @@ func containsTableCol(cols []ColType, target string) bool {
 }
 
 func TrackVisited(guid string, user string) {
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 	_, e := database.Exec("INSERT INTO `DataCon`.`priv_tracking` (`user`, `guid`) VALUES (?, ?);", user, guid)
 	if e != nil {

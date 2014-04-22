@@ -1,8 +1,6 @@
 package main
 
 import (
-	msql "./databasefuncs"
-	dpsession "./session"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -23,11 +21,11 @@ type AuthResponce struct {
 // This used to be used on the front page but now it is mainly used as a "noop" call to check if the user is logged in or not.
 func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
 
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 
 	var uid string
-	uid = fmt.Sprint(dpsession.GetUserID(res, req))
+	uid = fmt.Sprint(GetUserID(res, req))
 	intuid, _ := strconv.ParseInt(uid, 10, 32)
 	var username string
 	database.QueryRow("select email from priv_users where uid = ?", uid).Scan(&username)
@@ -48,11 +46,11 @@ type SearchResult struct {
 
 // This is the search function that is called though the API
 func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 
 	var uid string
-	uid = fmt.Sprint(dpsession.GetUserID(res, req))
+	uid = fmt.Sprint(GetUserID(res, req))
 	intuid, _ := strconv.ParseInt(uid, 10, 32)
 
 	if prams["s"] == "" {
@@ -119,7 +117,7 @@ type DataEntry struct {
 // This function gets the extended infomation from the index, things like the notes are used
 // in the "wiki" section of the page.
 func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 	if prams["id"] == "" {
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
@@ -194,7 +192,7 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 		http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
 		return
 	}
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 
 	var top int64 = 0
@@ -271,7 +269,7 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 		return
 	}
 
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 
 	tablename, e := getRealTableName(prams["id"], database, res)
@@ -340,7 +338,7 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 		return
 	}
 
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 
 	tablename, e := getRealTableName(prams["id"], database, res)
@@ -417,7 +415,7 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 		return
 	}
 
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 
 	tablename, e := getRealTableName(prams["id"], database, res)
@@ -505,7 +503,7 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 		http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
 		return
 	}
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 
 	tablename, e := getRealTableName(prams["id"], database, res)
@@ -596,7 +594,7 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		return
 	}
 
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 
 	tablename, e := getRealTableName(prams["id"], database, res)

@@ -1,33 +1,21 @@
 package main
 
 import (
-	msql "./databasefuncs"
-	dpsession "./session"
 	bcrypt "code.google.com/p/go.crypto/bcrypt"
 	"fmt"
 	"net/http"
 )
 
-// Proxy Function that uses the session module to check if a user is logged in (By checking their cookies)
-func IsUserLoggedIn(res http.ResponseWriter, req *http.Request) bool {
-	return dpsession.IsUserLoggedIn(res, req)
-}
-
-// Proxy Function that uses the session module to get the UserID.
-func GetUserID(res http.ResponseWriter, req *http.Request) int {
-	return dpsession.GetUserID(res, req)
-}
-
 // Shortcut function that is used to redirect users to the login page if they are not logged in.
 func checkAuth(res http.ResponseWriter, req *http.Request) {
-	if !(dpsession.IsUserLoggedIn(res, req)) {
+	if !(IsUserLoggedIn(res, req)) {
 		http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
 		return
 	}
 }
 
 func HandleLogin(res http.ResponseWriter, req *http.Request) {
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 	username := req.FormValue("username")
 	password := req.FormValue("password")
@@ -42,7 +30,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 		var uid int
 		e := database.QueryRow("SELECT uid FROM priv_users where email = ? LIMIT 1", username).Scan(&uid)
 		check(e)
-		dpsession.SetSession(res, req, uid)
+		SetSession(res, req, uid)
 		http.Redirect(res, req, "/", http.StatusFound)
 	} else {
 		// Just in the case that the user is on a really old MD5 password (useful for admins resetting passwords too) check
@@ -59,7 +47,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 					var uid int
 					e := database.QueryRow("SELECT uid FROM priv_users where email = ? LIMIT 1", username).Scan(&uid)
 					check(e)
-					dpsession.SetSession(res, req, uid)
+					SetSession(res, req, uid)
 					http.Redirect(res, req, "/", http.StatusFound)
 				}
 				http.Redirect(res, req, fmt.Sprintf("/login?failed=3&r=%s", e), http.StatusFound)
@@ -73,7 +61,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 }
 
 func HandleRegister(res http.ResponseWriter, req *http.Request) string {
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 	username := req.FormValue("username")
 	password := req.FormValue("password")
@@ -94,7 +82,7 @@ func HandleRegister(res http.ResponseWriter, req *http.Request) string {
 			return "Could not make the user you requested."
 		}
 		newid, _ := r.LastInsertId()
-		dpsession.SetSession(res, req, int(newid))
+		SetSession(res, req, int(newid))
 		http.Redirect(res, req, "/", http.StatusFound)
 		return ""
 	} else {

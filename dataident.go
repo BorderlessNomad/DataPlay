@@ -1,7 +1,6 @@
 package main
 
 import (
-	msql "./databasefuncs"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -49,7 +48,7 @@ type PossibleCombo struct {
 
 // This function checks to see if the data has been imported yet or still is in need of importing
 func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 	if prams["id"] == "" {
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
@@ -124,7 +123,7 @@ func ParseCreateTableSQL(input string) []ColType {
 }
 
 func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 	if prams["table"] == "" || prams["col"] == "" {
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
@@ -190,7 +189,7 @@ func CheckIfColExists(createcode string, targettable string) bool {
 
 func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
 	// m.Get("/api/findmatches/:id/:x/:y", api.AttemptToFindMatches)
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 	RealTableName, e := getRealTableName(prams["id"], database, res)
 	if e != nil {
@@ -231,7 +230,7 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 }
 
 func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 
 	if prams["word"] == "" {
@@ -282,7 +281,7 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini
 }
 
 func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 
 	RealTableName, e := getRealTableName(prams["guid"], database, res)

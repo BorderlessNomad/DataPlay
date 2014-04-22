@@ -1,7 +1,6 @@
 package main
 
 import (
-	msql "./databasefuncs"
 	"github.com/codegangsta/martini"
 	"net/http"
 )
@@ -16,7 +15,7 @@ func SetDefaults(res http.ResponseWriter, req *http.Request, prams martini.Param
 		return ""
 	}
 
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 	jsondata := req.FormValue("data")
 
@@ -26,7 +25,7 @@ func SetDefaults(res http.ResponseWriter, req *http.Request, prams martini.Param
 
 // The GetDefaults function is the retrival function for SetDefaults
 func GetDefaults(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	database := msql.GetDB()
+	database := GetDB()
 	defer database.Close()
 
 	if prams["id"] == "" {
