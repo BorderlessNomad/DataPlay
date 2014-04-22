@@ -15,6 +15,8 @@ import (
 	"strings"
 )
 
+var Logger *log.Logger = log.New(os.Stdout, "[API] ", log.Lshortfile)
+
 type AuthHandler struct {
 	http.Handler
 	Users map[string]string
