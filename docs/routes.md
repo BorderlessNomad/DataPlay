@@ -24,16 +24,84 @@ Will then set the login cookie and redirect the user to the root of the domain `
 
 **Handled in main:HandleRegister:main.go**
 
+Expects a HTTP form input that has `username` and `password`.
+In the case that it the user registering already exists, then the service will respond back with
+
+`That username is already registered.`
+
+eles it will 302 redirect to the homepage with the new user logged in, ready to go.
 
 ### /api/user
 **GET - Auth Cookie Checked**
 
 **Handled in api:CheckAuth:api/datalisting.go**
 
+This is used to get the user infomation, it can also be used as a way to check if the user is still logged into the server.
+
+The responce is a json encoded payload that follows:
+
+```json
+
+	{
+	    "Username": "ben@playgen.com",
+	    "UserID": 2
+	}
+
+```
+
 ### /api/visited
 **GET - Auth Cookie Checked**
 
 **Handled in api:GetLastVisited:api/tracking.go**
+
+This is used to get the last datasets that the authenticated user visited, the top 5 are given back in the form of a JSON array.
+
+an example payload is as follows:
+
+```json
+
+	[
+		"hips",
+		"Hip Fractures",
+		"false"
+	],
+
+```
+
+`hips` is the GUID of the dataset that can be used on the URL slug. `Hip Fractures` is the friendly name of the dataset that should be displayed to the user and the final string `false` is if the dataset contains location data, if it is `true` then you need to offer the user a map view of the data.
+
+
+```json
+
+	[
+	    [
+	        "2e933891cf7c8e5db3704632c6a0b72cde17e488a90c4b68c43ececcda5",
+	        "DCMS Government Procurement Card Spend Ã¢â‚¬â€œTransactions over Ã‚Â£500, 1 April 2011 - October 2011",
+	        "false"
+	    ],
+	    [
+	        "hips",
+	        "Hip Fractures",
+	        "false"
+	    ],
+	    [
+	        "weather_uk",
+	        "UK Weather",
+	        "true"
+	    ],
+	    [
+	        "c47dea484967a26ee56bd326fc1d361b70f84c70ff13b3b8c17771fc033",
+	        "Contracts and Tenders from Bristol City Council",
+	        "false"
+	    ],
+	    [
+	        "547edfc17a8e430c292e6d3da78b14bb1e8b640dd82ed9c89b7f55d8c8c",
+	        "April 2013 Spend over Ã‚Â£25k",
+	        "false"
+	    ]
+	]
+
+```
 
 ### /api/search/:s
 **GET - Auth Cookie Checked**
