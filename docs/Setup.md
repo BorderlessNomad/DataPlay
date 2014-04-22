@@ -14,6 +14,9 @@ Then start a Redis server up and note down the host name.
 
 Then goto the root of the dataplay directory and run "npm install" This will install a bunch of stuff needed to build the front end of dataplay.
 
+then run `go get` in the src directory to fetch the deps.
+
 then run start.sh.
 
 In the case that you cannot connect to databases you can set the database name though a ENV var called `DATABASE` and it should be in the format of `1.1.1.1:123`
+like wise with the redis host can be changed with `redishost` env var.
