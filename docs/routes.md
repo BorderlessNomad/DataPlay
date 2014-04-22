@@ -76,7 +76,7 @@ an example payload is as follows:
 	[
 	    [
 	        "2e933891cf7c8e5db3704632c6a0b72cde17e488a90c4b68c43ececcda5",
-	        "DCMS Government Procurement Card Spend Ã¢â‚¬â€œTransactions over Ã‚Â£500, 1 April 2011 - October 2011",
+	        "DCMS Government Procurement Card Spend أƒآ¢أ¢â€ڑآ¬أ¢â‚¬إ“Transactions over أƒâ€ڑأ‚آ£500, 1 April 2011 - October 2011",
 	        "false"
 	    ],
 	    [
@@ -96,7 +96,7 @@ an example payload is as follows:
 	    ],
 	    [
 	        "547edfc17a8e430c292e6d3da78b14bb1e8b640dd82ed9c89b7f55d8c8c",
-	        "April 2013 Spend over Ã‚Â£25k",
+	        "April 2013 Spend over أƒâ€ڑأ‚آ£25k",
 	        "false"
 	    ]
 	]
@@ -107,6 +107,27 @@ an example payload is as follows:
 **GET - Auth Cookie Checked**
 
 **Handled in api:SearchForData:api/datalisting.go**
+
+This call is used to search the index for datasets that match words.
+
+A example query such as `api/search/bris` will return the following array of json payloads:
+
+```json
+
+	[
+	    {
+	        "Title": "Contracts and Tenders from Bristol City Council",
+	        "GUID": "066b4f97fa16d12af8be2b1be67e8d2d363b2807ff13b3b8c17771fc033",
+	        "LocationData": "false"
+	    },
+	    {
+	        "Title": "Contracts and Tenders from Bristol City Council",
+	        "GUID": "2ece89a545d7e610b3878ce2ba7ba4f57f3e96c2ff13b3b8c17771fc033",
+	        "LocationData": "false"
+	    }
+	]
+
+```
 
 ### /api/getinfo/:id
 **GET - Auth Cookie Checked**
