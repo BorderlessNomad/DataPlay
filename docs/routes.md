@@ -415,7 +415,7 @@ To get the layout of the `GDP` dataset then you can query `/api/identifydata/GDP
 ### /api/classifydata/:table/:col
 **GET - Auth Cookie Checked**
 
-**Handled in api:SuggestColType:api/**
+**Handled in api:SuggestColType:api\dataident.go**
 
 This returns `true` or `false` for if the `:col` in dataset `:table` is numeric.
 
@@ -431,7 +431,7 @@ Example: `/api/classifydata/tweets/id`
 ### /api/stringmatch/:word
 **GET - Auth Cookie Checked**
 
-**Handled in api:FindStringMatches:api/**
+**Handled in api:FindStringMatches:api\dataident.go**
 
 This searches **all** datasets for a string inside, Useful for a related datasets bar.
 
@@ -463,14 +463,14 @@ This searches **all** datasets for a string inside, Useful for a related dataset
 ### /api/stringmatch/:word/:x
 **GET - Auth Cookie Checked**
 
-**Handled in api:FindStringMatches:api/**
+**Handled in api:FindStringMatches:api\dataident.go**
 
 This function inherits the functioanlity of `/api/stringmatch/:word` but allows you to limit what `col` it came from using `:x`
 
 ### /api/relatedstrings/:guid
 **GET - Auth Cookie Checked**
 
-**Handled in api:GetRelatedDatasetByStrings:api/**
+**Handled in api:GetRelatedDatasetByStrings:api\dataident.go**
 
 **Warning** This call is really slow because of the nature of it looking though very large amounts of data, use with care.
 
