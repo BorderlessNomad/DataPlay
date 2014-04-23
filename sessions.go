@@ -13,7 +13,7 @@ import (
 func IsUserLoggedIn(res http.ResponseWriter, req *http.Request) bool {
 	cookie, _ := req.Cookie("DPSession")
 	c, err := GetRedisConnection()
-	if cookie != nil && err != nil {
+	if cookie != nil && err == nil {
 		defer c.Close()
 		r := c.Cmd("GET", cookie.Value)
 		i, err := r.Int()
@@ -33,7 +33,7 @@ func IsUserLoggedIn(res http.ResponseWriter, req *http.Request) bool {
 func GetUserID(res http.ResponseWriter, req *http.Request) int {
 	cookie, _ := req.Cookie("DPSession")
 	c, err := GetRedisConnection()
-	if cookie != nil && err != nil {
+	if cookie != nil && err == nil {
 		defer c.Close()
 		r := c.Cmd("GET", cookie.Value)
 		i, err := r.Int()
