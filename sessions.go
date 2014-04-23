@@ -81,5 +81,8 @@ func GetRedisConnection() (c *redis.Client, err error) {
 		redishost = os.Getenv("redishost")
 	}
 	c, err = redis.DialTimeout("tcp", redishost, time.Duration(10)*time.Second)
+	if err != nil {
+		Logger.Println("Could not connect to the redis server. Is it running? Sessions wont work otherwise !!1")
+	}
 	return c, err
 }
