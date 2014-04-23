@@ -13,11 +13,7 @@ import (
 func IsUserLoggedIn(res http.ResponseWriter, req *http.Request) bool {
 	cookie, _ := req.Cookie("DPSession")
 	c, err := GetRedisConnection()
-	defer c.Close()
-	if cookie != nil {
-		if err != nil {
-			return false
-		}
+	if cookie != nil && err != nil {
 		defer c.Close()
 		r := c.Cmd("GET", cookie.Value)
 		i, err := r.Int()
@@ -37,11 +33,7 @@ func IsUserLoggedIn(res http.ResponseWriter, req *http.Request) bool {
 func GetUserID(res http.ResponseWriter, req *http.Request) int {
 	cookie, _ := req.Cookie("DPSession")
 	c, err := GetRedisConnection()
-	defer c.Close()
-	if cookie != nil {
-		if err != nil {
-			return 0
-		}
+	if cookie != nil && err != nil {
 		defer c.Close()
 		r := c.Cmd("GET", cookie.Value)
 		i, err := r.Int()
@@ -61,10 +53,10 @@ func GetUserID(res http.ResponseWriter, req *http.Request) int {
 func SetSession(res http.ResponseWriter, req *http.Request, userid int) (e error) {
 	NewSessionID := randString(64)
 	c, err := GetRedisConnection()
-	defer c.Close()
 	if err != nil {
 		return fmt.Errorf("Could not connect to redis server to make session")
 	}
+	defer c.Close()
 	r := c.Cmd("SET", NewSessionID, userid)
 	if r.Err != nil {
 		return fmt.Errorf("Could not store session in Redis D:")

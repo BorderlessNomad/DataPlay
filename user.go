@@ -30,7 +30,11 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 		var uid int
 		e := database.QueryRow("SELECT uid FROM priv_users where email = ? LIMIT 1", username).Scan(&uid)
 		check(e)
-		SetSession(res, req, uid)
+		e = SetSession(res, req, uid)
+		if e != nil {
+			http.Error(res, "Could not setup session.", http.StatusInternalServerError)
+			return
+		}
 		http.Redirect(res, req, "/", http.StatusFound)
 	} else {
 		// Just in the case that the user is on a really old MD5 password (useful for admins resetting passwords too) check
@@ -47,7 +51,11 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 					var uid int
 					e := database.QueryRow("SELECT uid FROM priv_users where email = ? LIMIT 1", username).Scan(&uid)
 					check(e)
-					SetSession(res, req, uid)
+					e = SetSession(res, req, uid)
+					if e != nil {
+						http.Error(res, "Could not setup session.", http.StatusInternalServerError)
+						return
+					}
 					http.Redirect(res, req, "/", http.StatusFound)
 				}
 				http.Redirect(res, req, fmt.Sprintf("/login?failed=3&r=%s", e), http.StatusFound)
