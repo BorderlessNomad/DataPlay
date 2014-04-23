@@ -20,3 +20,5 @@ then run start.sh.
 
 In the case that you cannot connect to databases you can set the database name though a ENV var called `DATABASE` and it should be in the format of `1.1.1.1:123`
 like wise with the redis host can be changed with `redishost` env var.
+
+You can then start loading in your own mysql tables (use just varchar, int and float for now) and then add them into both `priv_index` and `priv_onlinedata` to make sure they are searchable. there are many tools in the `tool` folder to help you out with lots of things like data filitering.
