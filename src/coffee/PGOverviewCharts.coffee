@@ -109,10 +109,10 @@ define ['jquery', 'crossfilter', 'd3', 'dc'], ($, crossfilter, d3, dc) ->
               when 'label', 'text' then "#{d}".substring(0, 20)
               else d
         )
-        if ordinals
-          chart.xUnits(dc.units.ordinal)
-          l = ordinals.length
-          chart.xAxis().tickValues([ordinals[0], ordinals[Math.floor(l/2)], ordinals[l-1]])
+      if ordinals
+        chart.xUnits(dc.units.ordinal)
+        l = ordinals.length
+        chart.xAxis().tickValues([ordinals[0], ordinals[Math.floor(l/2)], ordinals[l-1]])
         # TODO: Everything should deliver a chart, thrash the workaround below when well-tested
         # if isNaN chart.yAxisMin()
         #   $(@container).find("##{entry.type}-#{entry.x}-#{entry.y}").remove()
