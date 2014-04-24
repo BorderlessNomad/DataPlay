@@ -73,7 +73,7 @@ func main() {
 	m.Get("/charts/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		checkAuth(res, req)
 		if IsUserLoggedIn(res, req) {
-			TrackVisited(prams["id"], string(GetUserID(res, req))) // Make sure the tracking module knows about their visit.
+			TrackVisited(prams["id"], fmt.Sprint(GetUserID(res, req))) // Make sure the tracking module knows about their visit.
 		}
 		renderTemplate("public/charts.html", nil, res)
 	})
@@ -88,7 +88,7 @@ func main() {
 	m.Get("/overview/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		checkAuth(res, req)
 		if IsUserLoggedIn(res, req) {
-			TrackVisited(prams["id"], string(GetUserID(res, req)))
+			TrackVisited(prams["id"], fmt.Sprint(GetUserID(res, req)))
 		}
 		renderTemplate("public/overview.html", nil, res)
 	})
