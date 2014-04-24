@@ -7,6 +7,8 @@ MAINTAINER Ben Cartwright Cox "ben@playgen.com"
 
 # make sure the package repository is up to date
 RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt/sources.list
+RUN apt-get update
+RUN apt-get install -y python-software-properties
 RUN apt-add-repository -y ppa:chris-lea/node.js
 RUN apt-get update
 
