@@ -12,7 +12,11 @@ node_modules/.bin/lessc src/less/maptest.less public/css/maptest.css &&
 if [ ! -f public/lib/openlayers/build/OpenLayers.js ]; then
 	cd public/lib/openlayers/build &&
 	python build.py &&
-	cp -r OpenLayers.js ../../../../public/lib/dependencies/js/ &&
+	mkdir ../../../../public/ &&
+	mkdir ../../../../public/lib/ &&
+	mkdir ../../../../public/lib/dependencies/ &&
+	mkdir ../../../../public/lib/dependencies/js/ &&
+	cp -r OpenLayers.js ../../../../public/lib/dependencies/js/
 	cd ../../../../
 fi
 
