@@ -12,10 +12,10 @@ RUN apt-get install -y python-software-properties
 RUN apt-add-repository -y ppa:chris-lea/node.js
 RUN apt-get update
 
+RUN echo "Test version 1"
+
 RUN apt-get install -y openssh-server screen gcc mysql-server curl git mercurial make binutils bison build-essential wget python-software-properties nodejs
 RUN mkdir /var/run/sshd
-#RUN screen -dmS SSHD /usr/sbin/sshd -D
-#RUN screen -dmS mysql mysqld_safe
 RUN echo 'root:dataplay' |chpasswd
 RUN mkdir /build/
 RUN mkdir /build/redis
