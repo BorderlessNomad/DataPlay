@@ -17,5 +17,5 @@ if [ ! -f public/lib/openlayers/build/OpenLayers.js ]; then
 fi
 
 echo 'BUILDING GOGRAM' &&
-go build &&
+go build -o datacon &&
 ./datacon
