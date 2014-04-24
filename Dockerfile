@@ -30,6 +30,8 @@ ENV GOPATH /build/DataPlay/
 RUN git clone --recursive https://github.com/playgenhub/DataPlay.git /build/DataPlay
 RUN sh -c "cd /build/DataPlay; go get; go build"
 
+ENV database 127.0.0.1:3306
+ENV redishost 127.0.0.1:6379
 
 EXPOSE 22 3000 3306
 CMD screen -dmS SSHD /usr/sbin/sshd -D && screen -dmS mysql mysqld_safe && sleep 10 && cat /build/DataPlay/layout.sql | mysql && /build/DataPlay/start.sh
