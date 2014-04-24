@@ -658,7 +658,9 @@ func getRealTableName(guid string, database *sql.DB, res http.ResponseWriter) (o
 	var tablename string
 	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", guid).Scan(&tablename)
 	if tablename == "" {
-		http.Error(res, "Could not find that table", http.StatusNotFound)
+		if res != nil {
+			http.Error(res, "Could not find that table", http.StatusNotFound)
+		}
 		return "", fmt.Errorf("Could not find table")
 	}
 	return tablename, e

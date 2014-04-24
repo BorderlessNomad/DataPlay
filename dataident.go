@@ -64,14 +64,15 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Par
 	return string(b)
 }
 
+// This fetches a array of all the col names and their types.
 func FetchTableCols(guid string, database *sql.DB) (output []ColType) {
 	if guid == "" {
 		return output
 	}
 
 	var tablename string
-	database.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", guid).Scan(&tablename)
-	if tablename == "" {
+	tablename, e := getRealTableName(guid, database, nil)
+	if e != nil {
 		return output
 	}
 
@@ -187,6 +188,7 @@ func CheckIfColExists(createcode string, targettable string) bool {
 	return false
 }
 
+// Unfinished function
 func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
 	// m.Get("/api/findmatches/:id/:x/:y", api.AttemptToFindMatches)
 	database := GetDB()
@@ -197,7 +199,7 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 		return ""
 	}
 
-	CCode := ""
+	var CCode string
 	database.QueryRow(fmt.Sprintf("SHOW CREATE TABLE `%s`;", RealTableName)).Scan(&RealTableName, &CCode)
 	if !CheckIfColExists(CCode, prams["x"]) || !CheckIfColExists(CCode, prams["y"]) {
 		http.Error(res, "Could not find the X or Y", http.StatusInternalServerError)
@@ -240,8 +242,8 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini
 
 	Results := make([]StringMatchResult, 0)
 
-	name := ""
-	count := 0
+	var name string
+	var count int = 0
 	if prams["x"] != "" {
 		rows, e := database.Query("SELECT tablename,count FROM priv_stringsearch WHERE x = ? AND value = ?", prams["x"], prams["word"])
 		if e != nil {

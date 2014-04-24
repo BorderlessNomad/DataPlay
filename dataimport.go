@@ -11,8 +11,8 @@ type CheckImportResponce struct {
 	Request string
 }
 
+// This function checks to see if the data has been imported yet or still is in need of importing
 func CheckImportStatus(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	// This function checks to see if the data has been imported yet or still is in need of importing
 	database := GetDB()
 	defer database.Close()
 	if prams["id"] == "" {
@@ -21,7 +21,7 @@ func CheckImportStatus(res http.ResponseWriter, req *http.Request, prams martini
 	}
 
 	var count int
-	database.QueryRow("SELECT COUNT(*) FROM `priv_onlinedata` WHERE GUID = ? LIMIT 10", prams["id"]).Scan(&count)
+	database.QueryRow("SELECT COUNT(*) FROM `priv_onlinedata` WHERE GUID = ?", prams["id"]).Scan(&count)
 	var state string
 
 	if count != 0 { // If we have any hits from that query then we have that dataset in the system

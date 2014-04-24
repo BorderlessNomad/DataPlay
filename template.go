@@ -17,6 +17,8 @@ var h template.HTML // Header
 var n template.HTML // Navbar
 var f template.HTML // Footer
 
+// Not actually sure if this function is used a great deal. Going though the application with
+// a coverage util makes it seems like there is no code that calls it.
 func ApplyTemplate(FileName string, Inject string, res http.ResponseWriter) {
 	b, _ := ioutil.ReadFile(FileName)
 	t := template.New("TPage") // Not sure why we have to name these, but we are basically forced to.

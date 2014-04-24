@@ -6,6 +6,21 @@ import (
 
 var degree = 2
 
+// This function takes in two arrays one with the xArray (xGiven)
+// And one with the y arrray yGiven.
+// You can think of this function as a graph equasion producer.
+//
+//  y |
+//  a |        _-------_-___
+//  r |      _-
+//  r | ____-
+//  a |-
+//  y |_____________________
+//    xarray
+//
+// It then takes in both of the members of the array and does a
+// Least squares solution using QR decomposition.
+// Just make sure you put in correct numbers in and it won't crash horribly.
 func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 	m := len(yGiven)
 	if m != len(xGiven) {
