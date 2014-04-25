@@ -68,3 +68,21 @@ Query OK, 1 row affected, 1 warning (0.00 sec)
 
 ```
 
+Recapping the `testtable` now looks like this:
+
+```
+
+mysql> SELECT * FROM testtable;
++------+---------+-----------+
+| year | dollers | happyness |
++------+---------+-----------+
+| 1995 |     100 |        99 |
+| 1996 |     150 |        99 |
+| 1997 |     500 |        99 |
+| 1998 |    1000 |        76 |
+| 1999 |    8949 |        76 |
++------+---------+-----------+
+5 rows in set (0.00 sec)
+
+```
+
