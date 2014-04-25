@@ -7,26 +7,6 @@ import (
 	"os"
 )
 
-func GetSingleNumberValue(rows *sql.Rows) (out int, e error) {
-	rows.Next()
-	var outputnumber int
-	ee := rows.Scan(&outputnumber)
-	if e == nil {
-		return outputnumber, ee
-	}
-	return 0, ee
-}
-
-func GetSingleStringValue(rows *sql.Rows) (out string, e error) {
-	rows.Next()
-	var outputstr string
-	ee := rows.Scan(&outputstr)
-	if e == nil {
-		return outputstr, ee
-	}
-	return "", ee
-}
-
 func GetDB() *sql.DB {
 	fmt.Println("[database] Asked for MySQL connection")
 	dbhost := "10.0.0.2:3306"
