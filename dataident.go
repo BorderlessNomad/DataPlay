@@ -215,15 +215,8 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 		return ""
 	}
 
-	id := 0
-	table := ""
-	x := ""
-	y := ""
-	p1 := ""
-	p2 := ""
-	p3 := ""
-	xstart := ""
-	xend := ""
+	var id int = 0
+	var table, x, y, p1, p2, p3, xstart, xend string
 
 	database.QueryRow("SELECT * FROM `priv_statcheck` WHERE `table` = ? AND `x` = ? AND `y` = ? LIMIT 1", RealTableName, prams["x"], prams["y"]).Scan(&id, &table, &x, &y, &p1, &p2, &p3, &xstart, &xend)
 	Logger.Println(id, table, x, y, p1, p2, p3, xstart, xend)

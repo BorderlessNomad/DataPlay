@@ -16,6 +16,8 @@ func GetLastVisited(rw http.ResponseWriter, req *http.Request) string {
 		rows, e := database.Query("SELECT DISTINCT(guid),(SELECT Title FROM `index` WHERE `index`.GUID = priv_tracking.guid LIMIT 1) as a FROM priv_tracking WHERE user = ? ORDER BY id DESC LIMIT 5", value)
 		result := make([][]string, 0)
 		if e == nil {
+
+			// Read out the rows now we know that nothing went wrong.
 			for rows.Next() {
 				var guid string
 				var title string
@@ -31,8 +33,8 @@ func GetLastVisited(rw http.ResponseWriter, req *http.Request) string {
 
 				result = append(result, result2)
 			}
-		}
-		if e != nil {
+
+		} else {
 			fmt.Println(e)
 		}
 		b, _ := json.Marshal(result)
