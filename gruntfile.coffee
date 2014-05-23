@@ -37,13 +37,13 @@ module.exports = (grunt) ->
     #     src: 'style.css'
 
     # JS
-    # coffeelint:
-    #   options:
-    #     configFile: "coffeelint.json"
-    #   js:
-    #     expand: true
-    #     cwd: '<%= srcPath %>/coffee/'
-    #     src: '*'
+    coffeelint:
+      options:
+        configFile: "coffeelint.json"
+      js:
+        expand: true
+        cwd: '<%= srcPath %>/coffee/'
+        src: '*'
 
     coffee:
       options:
@@ -77,7 +77,7 @@ module.exports = (grunt) ->
 
   # Complainers
   # grunt.loadNpmTasks 'grunt-contrib-csslint'
-  # grunt.loadNpmTasks 'grunt-coffeelint'
+  grunt.loadNpmTasks 'grunt-coffeelint'
 
   # Util
   grunt.loadNpmTasks 'grunt-contrib-clean'
