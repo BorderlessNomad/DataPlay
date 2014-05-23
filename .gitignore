@@ -10,5 +10,7 @@ tools/ckandownloader/x*
 node_modules/
 public/js/
 public/css/
+public/*.html
+public/templates
 public/lib/dependencies/js/
 coverage.out

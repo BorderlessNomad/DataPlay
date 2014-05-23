@@ -55,11 +55,22 @@ module.exports = (grunt) ->
         dest: '<%= destPath %>/js/'
         ext: '.js'
 
+    # Templates
+    copy:
+      templates:
+        expand: true
+        cwd: '<%= srcPath %>/templates/'
+        src: '**/*'
+        dest: '<%= destPath %>/'
+
+    # Util
     clean:
       css:
         src: '<%= destPath %>/css'
       js:
         src: '<%= destPath %>/js'
+      templates:
+        src: ['<%= destPath %>/*.html', '<%=destPath %>/templates']
 
     watch:
       css:
@@ -68,6 +79,9 @@ module.exports = (grunt) ->
       js:
         files: ['<%= srcPath %>/coffee/*']
         tasks: ['js']
+      templates:
+        files: ['<%= srcPath %>/templates/*']
+        tasks: ['templates']
 
   # Builders
   grunt.loadNpmTasks 'grunt-contrib-less'
@@ -82,7 +96,7 @@ module.exports = (grunt) ->
   # Util
   grunt.loadNpmTasks 'grunt-contrib-clean'
   grunt.loadNpmTasks 'grunt-contrib-watch'
-  # grunt.loadNpmTasks 'grunt-contrib-copy'
+  grunt.loadNpmTasks 'grunt-contrib-copy'
   # grunt.loadNpmTasks 'grunt-contrib-concat'
   # grunt.loadNpmTasks 'grunt-contrib-htmlmin'
 
@@ -100,4 +114,8 @@ module.exports = (grunt) ->
   grunt.registerTask 'js', [
     # 'coffeelint:js'
     'coffee:js'
+  ]
+  grunt.registerTask 'templates', [
+    # 'hogan:templates'
+    'copy:templates'
   ]
