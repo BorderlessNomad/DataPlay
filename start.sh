@@ -18,5 +18,5 @@ oldgo=$GOPATH
 export GOPATH=$(pwd)
 go get dataplay &&
 go install dataplay &&
-(./bin/dataplay || ./bin/dataplay.exe)
+./bin/dataplay
 export GOPATH=$oldgo
