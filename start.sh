@@ -13,6 +13,10 @@ if [ ! -f public/lib/openlayers/build/OpenLayers.js ]; then
 	popd
 fi
 
-echo 'BUILDING GOGRAM' &&
-go build -o datacon &&
-./datacon
+echo 'BUILDING GOGRAM'
+oldgo=$GOPATH
+export GOPATH=$(pwd)
+go get dataplay &&
+go install dataplay &&
+(./bin/dataplay || ./bin/dataplay.exe)
+export GOPATH=$oldgo

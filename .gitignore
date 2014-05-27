@@ -8,6 +8,10 @@
 datacon
 tools/ckandownloader/x*
 node_modules/
+bin/
+pkg/
+src/code.google.com/
+src/github.com/
 public/js/
 public/css/
 public/*.html
