@@ -104,6 +104,7 @@ module.exports = (grunt) ->
     'clean'
     'css'
     'js'
+    'templates'
   ]
 
   grunt.registerTask 'css', [
