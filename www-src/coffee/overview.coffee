@@ -1,4 +1,14 @@
-define ['jquery', 'app/PGPatternMatcher', 'app/PGOverviewCharts'], ($, PGPatternMatcher, PGOverviewCharts) ->
+define [
+  'jquery'
+  'd3'
+  'app/PGPatternMatcher'
+  'app/PGOverviewCharts'
+], (
+  $
+  d3
+  PGPatternMatcher
+  PGOverviewCharts
+) ->
   'use strict'
   guid = window.location.href.split('/')[window.location.href.split('/').length - 1]
   $ () ->
