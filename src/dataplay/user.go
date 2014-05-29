@@ -81,6 +81,7 @@ func HandleRegister(res http.ResponseWriter, req *http.Request) string {
 	rows, e := database.Query("SELECT COUNT(*) FROM priv_users where email = ? LIMIT 1", username)
 	check(e)
 	rows.Next()
+
 	var doesusrexist int
 	e = rows.Scan(&doesusrexist)
 
@@ -89,15 +90,19 @@ func HandleRegister(res http.ResponseWriter, req *http.Request) string {
 		if e != nil {
 			return "The password you entered is invalid."
 		}
+
 		r, e := database.Exec("INSERT INTO `DataCon`.`priv_users` (`email`, `password`) VALUES (?, ?);", username, pwd)
 		if e != nil {
 			return "Could not make the user you requested."
 		}
+
 		newid, _ := r.LastInsertId()
 		SetSession(res, req, int(newid))
+
 		http.Redirect(res, req, "/", http.StatusFound)
 		return ""
 	} else {
+		http.Error(res, "That username is already registered.", http.StatusConflict)
 		return "That username is already registered."
 	}
 }

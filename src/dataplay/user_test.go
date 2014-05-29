@@ -71,5 +71,15 @@ func handleLoginValidData(t *testing.T) {
 }
 
 func TestHandleRegister(t *testing.T) {
+	Convey("On HTTP Request", t, func() {
+		request, _ := http.NewRequest("POST", "/", strings.NewReader("username=mayur@dataplay.com&password=whoru007"))
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
+		response := httptest.NewRecorder()
 
+		HandleRegister(response, request)
+
+		Convey("When User already exists", func() {
+			So(response.Code, ShouldEqual, http.StatusConflict)
+		})
+	})
 }

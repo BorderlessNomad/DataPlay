@@ -1,12 +1,13 @@
 package main
 
 import "testing"
-import "time"
+
+// import "time"
 
 func TestMain(t *testing.T) {
-	go func() {
-		main()
-	}()
+	// go func() {
+	// 	main()
+	// }()
 
-	time.Sleep(time.Second * 120)
+	// time.Sleep(time.Second * 120)
 }
