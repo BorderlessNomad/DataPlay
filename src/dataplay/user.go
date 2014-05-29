@@ -23,6 +23,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	rows, e := database.Query("SELECT `password` FROM priv_users where email = ? LIMIT 1", username)
 	check(e) // Check if the thing error's out
 	rows.Next()
+
 	var usrpassword string
 	e = rows.Scan(&usrpassword)
 
@@ -35,6 +36,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 			http.Error(res, "Could not setup session.", http.StatusInternalServerError)
 			return
 		}
+
 		http.Redirect(res, req, "/", http.StatusFound)
 	} else {
 		// Just in the case that the user is on a really old MD5 password (useful for admins resetting passwords too) check
@@ -56,14 +58,16 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 						http.Error(res, "Could not setup session.", http.StatusInternalServerError)
 						return
 					}
+
 					http.Redirect(res, req, "/", http.StatusFound)
 				}
+
 				http.Redirect(res, req, fmt.Sprintf("/login?failed=3&r=%s", e), http.StatusFound)
 			} else {
-				http.Redirect(res, req, "/login?failed=1", http.StatusFound) // The user has failed this test as well :sad tuba:
+				http.Redirect(res, req, "/login?failed=1", http.StatusNotFound) // The user has failed this test as well :sad tuba:
 			}
 		} else {
-			http.Redirect(res, req, "/login?failed=1", http.StatusFound) // Ditto to the above
+			http.Redirect(res, req, "/login?failed=1", http.StatusNotFound) // Ditto to the above
 		}
 	}
 }
