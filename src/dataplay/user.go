@@ -74,6 +74,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 
 func HandleLogout(res http.ResponseWriter, req *http.Request) {
 	ClearSession(res, req)
+
 	http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
 	return
 }

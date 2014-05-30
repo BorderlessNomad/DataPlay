@@ -27,7 +27,12 @@ func ApplyTemplate(FileName string, Inject string, res http.ResponseWriter) {
 }
 
 func renderTemplate(fileName string, custom map[string]string, res http.ResponseWriter) {
-	p := &Page{Header: h, Navbar: n, Footer: f, Custom: custom}
+	p := &Page{
+		Header: h,
+		Navbar: n,
+		Footer: f,
+		Custom: custom,
+	}
 	t, _ := template.ParseFiles(fileName)
 	t.Execute(res, p)
 }

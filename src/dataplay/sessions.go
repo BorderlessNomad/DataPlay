@@ -67,7 +67,14 @@ func SetSession(res http.ResponseWriter, req *http.Request, userid int) (e error
 	if r.Err != nil {
 		return fmt.Errorf("Could not store session in Redis") // I'm not sure how this would ever happen (Plane crash in mid query?) but protecting against it.
 	}
-	res.Header().Set("Set-Cookie", fmt.Sprintf("DPSession=%s; path=/; expires=Thu, 01-Jan-2030 00:00:00 GMT;", NewSessionID))
+
+	NewCookie := &http.Cookie{
+		Name:    "DPSession",
+		Value:   NewSessionID,
+		Path:    "/",
+		Expires: time.Now().AddDate(1, 0, 0), // +1 Year
+	}
+	http.SetCookie(res, NewCookie)
 	return e
 }
 
@@ -95,13 +102,13 @@ func ClearSession(res http.ResponseWriter, req *http.Request) (e error) {
 		return fmt.Errorf("Could not update session in Redis")
 	}
 
-	newCookie := &http.Cookie{
-		Name:   "DPSession",
-		Value:  "",
-		Path:   "/",
-		MaxAge: -1,
+	NewCookie := &http.Cookie{
+		Name:    "DPSession",
+		Value:   "",
+		Path:    "/",
+		Expires: time.Now().AddDate(-1, 0, 0), // -1 Year = Expired
 	}
-	http.SetCookie(res, newCookie)
+	http.SetCookie(res, NewCookie)
 	return e
 }
 

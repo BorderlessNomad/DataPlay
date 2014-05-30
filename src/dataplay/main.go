@@ -79,8 +79,9 @@ func main() {
 	})
 
 	m.Get("/logout", func(res http.ResponseWriter, req *http.Request) {
-		failedstr := ""
+		HandleLogout(res, req)
 
+		failedstr := ""
 		custom := map[string]string{
 			"fail": failedstr,
 		}

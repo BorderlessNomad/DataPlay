@@ -72,6 +72,19 @@ func handleLoginValidData(t *testing.T) {
 	})
 }
 
+func TestHandleLogout(t *testing.T) {
+	request, _ := http.NewRequest("GET", "/", nil)
+	response := httptest.NewRecorder()
+
+	Convey("On HTTP Request", t, func() {
+		HandleLogout(response, request)
+
+		Convey("Should Logout", func() {
+			So(response.Code, ShouldEqual, http.StatusTemporaryRedirect)
+		})
+	})
+}
+
 func TestHandleRegister(t *testing.T) {
 	Convey("On HTTP Request", t, func() {
 		handleRegisterValidData(t)
