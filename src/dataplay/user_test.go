@@ -82,7 +82,7 @@ func TestHandleRegister(t *testing.T) {
 func handleRegisterValidData(t *testing.T) {
 	time := time.Now()
 	testuser := fmt.Sprintf("testuser_%d", time.Unix())
-	request, _ := http.NewRequest("POST", "/", strings.NewReader("username="+testuser+"@dataplay.com&password=whoru007"))
+	request, _ := http.NewRequest("POST", "/", strings.NewReader("username="+testuser+"@dataplay.com&password=123456"))
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
 	response := httptest.NewRecorder()
 

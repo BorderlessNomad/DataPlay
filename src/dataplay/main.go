@@ -78,6 +78,16 @@ func main() {
 		renderTemplate("public/signin.html", custom, res)
 	})
 
+	m.Get("/logout", func(res http.ResponseWriter, req *http.Request) {
+		failedstr := ""
+
+		custom := map[string]string{
+			"fail": failedstr,
+		}
+
+		renderTemplate("public/signin.html", custom, res)
+	})
+
 	m.Get("/register", func(res http.ResponseWriter, req *http.Request) {
 		failedstr := ""
 		custom := map[string]string{
@@ -131,6 +141,7 @@ func main() {
 	})
 
 	m.Post("/noauth/login.json", HandleLogin)
+	m.Post("/noauth/logout.json", HandleLogout)
 	m.Post("/noauth/register.json", HandleRegister)
 	m.Get("/api/user", CheckAuth)
 	m.Get("/api/visited", GetLastVisited)

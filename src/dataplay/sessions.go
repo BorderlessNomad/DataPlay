@@ -65,9 +65,43 @@ func SetSession(res http.ResponseWriter, req *http.Request, userid int) (e error
 	defer c.Close()
 	r := c.Cmd("SET", NewSessionID, userid)
 	if r.Err != nil {
-		return fmt.Errorf("Could not store session in Redis D:") // I'm not sure how this would ever happen (Plane crash in mid query?) but protecting against it.
+		return fmt.Errorf("Could not store session in Redis") // I'm not sure how this would ever happen (Plane crash in mid query?) but protecting against it.
 	}
 	res.Header().Set("Set-Cookie", fmt.Sprintf("DPSession=%s; path=/; expires=Thu, 01-Jan-2030 00:00:00 GMT;", NewSessionID))
+	return e
+}
+
+func ClearSession(res http.ResponseWriter, req *http.Request) (e error) {
+	cookie, _ := req.Cookie("DPSession")
+	c, errc := GetRedisConnection()
+	if errc != nil {
+		return fmt.Errorf("Could not connect to redis server to make session")
+	}
+
+	defer c.Close()
+
+	if cookie == nil {
+		return fmt.Errorf("No cookie found")
+	}
+
+	get := c.Cmd("GET", cookie.Value)
+	_, errg := get.Int() // Get back from Redis the Int value of that cookie.
+	if errg != nil {
+		return fmt.Errorf("Could not find session in Redis")
+	}
+
+	set := c.Cmd("SET", cookie.Value, 0)
+	if set.Err != nil {
+		return fmt.Errorf("Could not update session in Redis")
+	}
+
+	newCookie := &http.Cookie{
+		Name:   "DPSession",
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1,
+	}
+	http.SetCookie(res, newCookie)
 	return e
 }
 
