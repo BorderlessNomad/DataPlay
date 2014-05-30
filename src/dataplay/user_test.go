@@ -23,7 +23,7 @@ func TestCheckAuth(t *testing.T) {
 		})
 
 		Convey("When authentication is unsuccessful", func() {
-			// So(response.Code, ShouldNotBeIn, []int{200, 201, 301, 302, 303, 307})
+			So(response.Code, ShouldNotBeIn, []int{200, 201})
 			// So(response.Code, ShouldNotEqual, http.StatusTemporaryRedirect)
 		})
 	})
