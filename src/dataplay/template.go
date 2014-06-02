@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -33,7 +34,11 @@ func renderTemplate(fileName string, custom map[string]string, res http.Response
 		Footer: f,
 		Custom: custom,
 	}
-	t, _ := template.ParseFiles(fileName)
+	t, e := template.ParseFiles(fileName)
+	if e != nil {
+		fmt.Println("[template] ParseFile Error:", e)
+		return
+	}
 	t.Execute(res, p)
 }
 

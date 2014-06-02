@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"playgen/database"
 	"strings"
 )
 
@@ -24,6 +25,11 @@ type AuthHandler struct {
 	Users map[string]string
 }
 
+var Database struct {
+	database.Database
+	enabled bool
+}
+
 /**
  * @details Application bootstrap
  *   Checks database connection,
@@ -31,13 +37,17 @@ type AuthHandler struct {
  *   Init Martini API
  */
 func main() {
-	what := GetDB()
-	what.Ping() // Check that the database is actually there and isnt ~spooking~ around
-
-	_, e := what.Exec("SHOW TABLES") // A null query to test functionaility of the SQL server
-	check(e)
-	what.Close() // Close down the SQL connection since it does nothing after this.
-	fmt.Println("DataCon Server")
+	Database.SetupFlags()
+	Database.ParseEnvironment()
+	e := Database.Connect()
+	if e == nil {
+		/* Database connection will be closed only when Server closes */
+		defer Database.DB.Close()
+		fmt.Println("[Init] ---[ Welcome to DataCon Server ]---")
+	} else {
+		panic(fmt.Sprintf("[database] Unable to connect to the Database: %s\n", e))
+		return
+	}
 
 	initTemplates() // Load all templates from the fs ready to serve to clients.
 
@@ -45,13 +55,11 @@ func main() {
 
 	m.Get("/", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
 		checkAuth(res, req)
-		database := GetDB()
-		defer database.Close()
 
 		var uid, username string
 		uid = fmt.Sprint(GetUserID(res, req))
 
-		database.QueryRow("select email from priv_users where uid = ?", uid).Scan(&username) // get the user's email so I can bake it into the page I am about to send
+		Database.DB.QueryRow("select email from priv_users where uid = ?", uid).Scan(&username) // get the user's email so I can bake it into the page I am about to send
 		custom := map[string]string{
 			"username": username,
 		}
