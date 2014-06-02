@@ -380,9 +380,8 @@ json = {
 }
 
 
-
-define ['app/PGChart'], (PGChart) ->
-  class PGForceDirectedChart extends PGChart 
+define ['jquery', 'd3', 'app/PGChart'], ($, d3, PGChart) ->
+  class PGForceDirectedChart extends PGChart
     forceDirectedEl: null
     force: null
     allNodes: null
@@ -394,7 +393,7 @@ define ['app/PGChart'], (PGChart) ->
       @value = value
       @initialDepth = initialDepth if initialDepth
       super container, margin, dataset, axes, patterns, limit
-      
+
 
     # --------------------- Chart creating Functions ------------------------ #
     setScales: ->
@@ -404,7 +403,7 @@ define ['app/PGChart'], (PGChart) ->
     createForceDirected: ->
       @allNodes = []
       @flatten @allNodes, @dataset, 0
-      @nodes = @filterNodes @allNodes 
+      @nodes = @filterNodes @allNodes
       @forceDirectedEl = @chart.append('g')
         .attr('id', 'forcedirected')
 
@@ -412,7 +411,7 @@ define ['app/PGChart'], (PGChart) ->
       if node.values
         node.name = node.key
         node.children = node.values
-        for child in node.values 
+        for child in node.values
           do (child) =>
             child.parent = node
             @flatten nodes, child, depth+1
@@ -422,13 +421,13 @@ define ['app/PGChart'], (PGChart) ->
 
     filterNodes: (nodes) ->
       res = []
-      for node in nodes 
+      for node in nodes
         do (node) ->
           aux = node.parent
           aux = aux.parent while aux?.expand
-          if not aux 
-            node.children = if node.expand then node.values else null 
-            res.push node  
+          if not aux
+            node.children = if node.expand then node.values else null
+            res.push node
       res
 
     initChart: ->
@@ -438,17 +437,17 @@ define ['app/PGChart'], (PGChart) ->
       @renderForceDirected()
       d3.select('body').on('mouseup', () => @drag = true)
 
-    # --------------------- Update Functions ------------------------ 
+    # --------------------- Update Functions ------------------------
     updateAxes: ->
 
     renderForceDirected: ->
       color = d3.scale.category10()
       @links = d3.layout.tree().links(@nodes)
 
-      @force = d3.layout.force()  
-        .size([0.98*@width, 0.98*@height])  
+      @force = d3.layout.force()
+        .size([0.98*@width, 0.98*@height])
         .nodes(@nodes)
-        .links(@links)        
+        .links(@links)
         #.friction(0.1)
         .charge(-25)
         #.alpha(0)

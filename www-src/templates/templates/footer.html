@@ -1,4 +1,4 @@
-<script src="/requirejs/require.js"></script>    
+<script src="/requirejs/require.js"></script>
 <script>
 	requirejs.config({
 		baseUrl: "/",
@@ -31,8 +31,11 @@
 			'crossfilter': {
 				exports: 'crossfilter'
 			},
+			'd3': {
+				exports: 'd3'
+			},
 			'dc': {
-				deps: ['crossfilter', 'd3'],
+				deps: ['crossfilter', 'app/d3fix'],
 				exports: 'dc'
 			},
 			'leafletMarkercluster': {

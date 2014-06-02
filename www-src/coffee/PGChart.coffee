@@ -1,9 +1,9 @@
- define ['jquery', 'd3', 'app/Common', 'app/PGChartPoint', 'app/PGChartPointView'], ($, d3, Common, PGChartPoint, PGChartPointView) -> 
-  class PGChart 
+ define ['jquery', 'd3', 'app/Common', 'app/PGChartPoint', 'app/PGChartPointView'], ($, d3, Common, PGChartPoint, PGChartPointView) ->
+  class PGChart
     container: 'body'
     margin: {top: 50, right: 40, bottom: 50, left: 75}
     width: 800
-    height: 600  
+    height: 600
     dataset: []
     currDataset: []
     axes: {x: 'ValueX', y: 'ValueY'}
@@ -18,14 +18,14 @@
       @container = container unless not container
       @margin = margin unless not margin
       @width = $(container).width() - @margin.left - @margin.right
-      @height = $(container).height() - @margin.top - @margin.bottom    
-      @dataset = dataset unless not dataset      
+      @height = $(container).height() - @margin.top - @margin.bottom
+      @dataset = dataset unless not dataset
       @axes = axes unless not axes
-      @patterns = patterns unless not patterns 
-      @limit = limit unless not limit 
+      @patterns = patterns unless not patterns
+      @limit = limit unless not limit
       @initChart()
 
-    processDataset: -> 
+    processDataset: ->
       # TODO: Order first?????
       if @dataset.length > @limit
         inc = @dataset.length / @limit
@@ -45,21 +45,21 @@
       @scale[axis] = switch pattern
         when 'date' then d3.time.scale()
         when 'label' then d3.scale.ordinal()
-        else d3.scale.linear()   
+        else d3.scale.linear()
       switch pattern
         when 'label'
           dmn = []
           dmn.push d[0] for d in @currDataset when dmn.indexOf(d[0])<0
           rng = [0.01*@width, 0.98*@width]
           @scale[axis].domain(dmn)
-            .rangeBands(rng)          
+            .rangeBands(rng)
           @scale[axis].invert = (x) -> dmn[Math.round(dmn.length*(x-rng[0])/(rng[1]-rng[0]))]
-        else 
+        else
           @scale[axis].domain(d3.extent(@currDataset, (d) -> d[if axis is 'x' then 0 else 1]))
             .range([
               if axis is 'x' then 0.01*@width else 0.98*@height
               if axis is 'x' then 0.98*@width else 0.01*@height
-            ]) 
+            ])
       @axis[axis] = d3.svg.axis()
         .scale(@scale[axis])
         .orient(orient ? 'bottom')
@@ -103,7 +103,7 @@
         .attr('width', @width)
         .attr('height', @height)
 
-      svg.call d3.behavior.zoom().scaleExtent([1,10]).on 'zoom', () =>        
+      svg.call d3.behavior.zoom().scaleExtent([1,10]).on 'zoom', () =>
         if @drag
           s = d3.event.scale
           #console.log d3.event
@@ -112,13 +112,11 @@
           @transformElement svg, el.clientLeft, el.clientTop, s
 
       if @drag
-        svg.call d3.behavior.drag()
-          .origin((d) -> x: @clientLeft, y: @clientTop)
-          .on('drag', () => 
-            e = d3.event
-            if @drag
-              @transformElement svg, e.x, e.y, @chart.scale ? 1
-          )
+        svg.call d3.behavior.drag().origin((d) -> x: @clientLeft, y: @clientTop).on('drag', () =>
+          e = d3.event
+          if @drag
+            @transformElement svg, e.x, e.y, @chart.scale ? 1
+        )
 
     transformElement: (el, x, y, s) ->
       #console.log el
@@ -143,7 +141,7 @@
         .append("text")
         .attr("id", "yLabel")
         .style("text-anchor", "middle")
-        .text(@axes.y)  
+        .text(@axes.y)
         .attr("transform", "translate(0,-30)")
 
     initChart: ->
@@ -156,7 +154,7 @@
       # Draw the Axes
       @drawAxes()
 
-    # --------------------- Update Functions ------------------------ 
+    # --------------------- Update Functions ------------------------
     updateAxes: ->
        # x axis transition
       @chart.select('.x.axis')
@@ -178,17 +176,17 @@
       @dataset = dataset unless not dataset
       @axes = axes unless not axes
       # Preprocess dataset
-      @processDataset()    
+      @processDataset()
       # Adjust scales to axis data types
       @setScales()
       # Axes update /transitions
       @updateAxes()
 
 
-    # ------------------ Events driven Functions --------------------- 
+    # ------------------ Events driven Functions ---------------------
     newPointDialog: (x, y) ->
       # TODO: get id from server, saving it before, as it's new
-      point = new PGChartPoint(id: 1)    
+      point = new PGChartPoint(id: 1)
       #point.save()
       console.log point
       pointDialog = new PGChartPointView(

@@ -1,10 +1,10 @@
-define ['jquery', 'app/PGLinesChart'], ($, PGLinesChart) ->
-  class PGAreasChart extends PGLinesChart 
+define ['jquery', 'd3', 'app/PGLinesChart'], ($, d3, PGLinesChart) ->
+  class PGAreasChart extends PGLinesChart
     areas: null
 
     createModeButtons: ->
-      super  
-      $('button.mode').click () => @renderAreas() 
+      super
+      $('button.mode').click () => @renderAreas()
 
     # --------------------- Chart creating Functions ------------------------ #
     createAreas: ->
@@ -13,11 +13,11 @@ define ['jquery', 'app/PGLinesChart'], ($, PGLinesChart) ->
         .attr('clip-path', 'url(#chart-area)')
 
     initChart: ->
-      super   
+      super
       @createAreas()
       @renderAreas()
 
-    # --------------------- Update Functions ------------------------ 
+    # --------------------- Update Functions ------------------------
     renderAreas: ->
       area = d3.svg.area()
         .interpolate(@mode)
@@ -39,6 +39,6 @@ define ['jquery', 'app/PGLinesChart'], ($, PGLinesChart) ->
         .duration(1000)
         .attr("d", (d) => area(d))
 
-    updateChart: (dataset, axes) =>
+    updateChart: (dataset, axes) ->
       super dataset, axes
       @renderAreas()

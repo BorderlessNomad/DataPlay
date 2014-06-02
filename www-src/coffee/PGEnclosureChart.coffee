@@ -1,5 +1,5 @@
-define ['app/PGChart'], (PGChart) ->
-  class PGEnclosureChart extends PGChart 
+define ['jquery', 'd3', 'app/PGChart'], ($, d3, PGChart) ->
+  class PGEnclosureChart extends PGChart
     enclosure: null
     r: 200
     value: null
@@ -7,7 +7,7 @@ define ['app/PGChart'], (PGChart) ->
     constructor: (container, margin, dataset, axes, patterns, limit, value) ->
       @value = value
       super container, margin, dataset, axes, patterns, limit
-      
+
 
     # --------------------- Chart creating Functions ------------------------ #
     setScales: ->
@@ -25,7 +25,7 @@ define ['app/PGChart'], (PGChart) ->
       @createEnclosure()
       @renderEnclosure()
 
-    # --------------------- Update Functions ------------------------ 
+    # --------------------- Update Functions ------------------------
     updateAxes: ->
 
     renderEnclosure: ->
@@ -46,7 +46,7 @@ define ['app/PGChart'], (PGChart) ->
 
       circles.enter()
         .append("svg:circle")
-        .on('click', (d) => 
+        .on('click', (d) =>
           #console.log d
           @currDataset = d
           @renderEnclosure()
@@ -70,7 +70,7 @@ define ['app/PGChart'], (PGChart) ->
         .style('fill', (d) => if d[@value]<0 then '#884444' else colors(d.depth))
         .select('title')
         .text((d) => if d.values then "#{d.key}\n#{d.value}" else "#{d.value}")
-        
+
 
       labels = @enclosure.selectAll("text")
         .data(nodes)
@@ -93,7 +93,7 @@ define ['app/PGChart'], (PGChart) ->
         .text((d) -> (if d.values then d.key else d.value) if d.r>20)
         .style("opacity",  (d) -> if d.r>30 then 1 else 0.5)
 
-      
+
     updateChart: (dataset, axes) =>
       super dataset, axes
       @renderEnclosure()

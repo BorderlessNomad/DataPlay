@@ -1,5 +1,5 @@
-define ['app/PGChart'], (PGChart) ->
-  class PGBarsChart extends PGChart 
+define ['jquery', 'd3', 'app/PGChart'], ($, d3, PGChart) ->
+  class PGBarsChart extends PGChart
     bars: null
     padding: 30
     barsSet: []
@@ -55,7 +55,7 @@ define ['app/PGChart'], (PGChart) ->
       @createBars()
       @renderBars()
 
-    # --------------------- Update Functions ------------------------ 
+    # --------------------- Update Functions ------------------------
     renderBars: ->
       colors = d3.scale.category20c()
       bars = @bars.selectAll('rect.bar')
@@ -64,7 +64,7 @@ define ['app/PGChart'], (PGChart) ->
       bars.enter()
         .append("rect")
         .attr("class", "bar")
-        .attr('fill', (d, i) => colors(i))  
+        .attr('fill', (d, i) => colors(i))
         .on('click', (d) => @newPointDialog(d[0], d[1]))
         .append('title')
         .text((d) => "#{@axes.x}: #{d[0]}\n#{@axes.y}: #{d[1]}")

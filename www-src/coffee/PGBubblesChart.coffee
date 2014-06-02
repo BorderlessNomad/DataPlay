@@ -1,4 +1,4 @@
-define ['app/PGChart'], (PGChart) ->
+define ['jquery', 'd3', 'app/PGChart'], ($, d3, PGChart) ->
   class PGBubblesChart extends PGChart
     node: null
     label: null
@@ -29,7 +29,7 @@ define ['app/PGChart'], (PGChart) ->
       #@data = dataset
       #@initChart()
 
-    # --------------------- Auxiliary Functions ------------------------ #  
+    # --------------------- Auxiliary Functions ------------------------ #
 
     # I've abstracted the data value used to size each
     # into its own function. This should make it easy
@@ -44,7 +44,7 @@ define ['app/PGChart'], (PGChart) ->
     idValue: (d) -> d.name
 
     # function to define what to display in each bubble
-    #  again, abstracted to ease migration to 
+    #  again, abstracted to ease migration to
     #  a different dataset if desired
     textValue: (d) -> d.name
 
@@ -61,7 +61,7 @@ define ['app/PGChart'], (PGChart) ->
       # towards the horizontal or vertical
       ax = alpha / 8
       ay = alpha
-      
+
       # return a function that will modify the
       # node's x and y values
       (d) ->
@@ -88,7 +88,7 @@ define ['app/PGChart'], (PGChart) ->
             y = d.y - d2.y
             distance = Math.sqrt(x * x + y * y)
             # find current minimum space between two nodes
-            # using the forceR that was set to match the 
+            # using the forceR that was set to match the
             # visible radius of the nodes
             minDistance = d.forceR + d2.forceR + that.collisionPadding
 
@@ -124,7 +124,7 @@ define ['app/PGChart'], (PGChart) ->
     # - updates visual bubbles to reflect new force node locations
     tick: (e) =>
       dampenedAlpha = e.alpha * 0.1
-      
+
       # Most of the work is done by the gravity and collide
       # functions.
       @node.each @gravity(dampenedAlpha)
@@ -167,13 +167,13 @@ define ['app/PGChart'], (PGChart) ->
 
     # hover event
     mouseover: (d) =>
-      @node.classed("bubble-hover", (p) -> p == d)  
+      @node.classed("bubble-hover", (p) -> p == d)
 
     # remove hover class
     mouseout: (d) =>
       @node.classed("bubble-hover", false)
 
-       
+
     # --------------------- Chart creating Functions ------------------------ #
 
     setScales: ->
@@ -181,7 +181,7 @@ define ['app/PGChart'], (PGChart) ->
 
     # Creates new chart function. This is the 'constructor' of our
     #  visualization
-    # Check out http://bost.ocks.org/mike/chart/ 
+    # Check out http://bost.ocks.org/mike/chart/
     #  for a explanation and rational behind this function design
     chart: (selection) ->
       d3.select('body').on("mouseup", () => @drag = true)
@@ -204,12 +204,12 @@ define ['app/PGChart'], (PGChart) ->
           .on('mousedown', () -> d3.select(@).classed('panning', true))
           .on('mouseup', () -> d3.select(@).classed('panning', false))
         # zoom
-        svg.call d3.behavior.zoom().scaleExtent([1,10]).on 'zoom', () -> 
+        svg.call d3.behavior.zoom().scaleExtent([1,10]).on 'zoom', () ->
           t = d3.event.translate
           s = d3.event.scale#
           if that.drag
             svg.attr('transform', "translate(#{t})scale(#{s})")
-       
+
         # Clip chart
         svgEnter.append("clipPath")
            .attr('id', 'chart-area')
@@ -218,7 +218,7 @@ define ['app/PGChart'], (PGChart) ->
            .attr('y', 0)
            .attr('width', that.width)
            .attr('height', that.height)
-        
+
         # node will be used to group the bubbles
         that.node = svgEnter.append("g")
           .attr("id", "bubble-nodes")
@@ -232,9 +232,9 @@ define ['app/PGChart'], (PGChart) ->
           .attr("height", that.height)
           .on("click", that.clear)
 
-        # label is the container div for all the labels that sit on top of 
+        # label is the container div for all the labels that sit on top of
         # the bubbles
-        # - remember that we are keeping the labels in plain html and 
+        # - remember that we are keeping the labels in plain html and
         #  the bubbles in svg
         that.label = svgEnter.append("g")
           .attr("id", "bubble-labels")
@@ -243,7 +243,7 @@ define ['app/PGChart'], (PGChart) ->
 
         that.update()
 
-        # see if url includes an id already 
+        # see if url includes an id already
         that.hashchange()
 
         # automatically call hashchange when the url has changed
@@ -263,14 +263,14 @@ define ['app/PGChart'], (PGChart) ->
       @chart d3.select(@container).datum(@data)
 
 
-    # --------------------- Update Functions ------------------------ 
+    # --------------------- Update Functions ------------------------
     # update starts up the force directed layout and then
     # updates the nodes and labels
     update: () ->
       # add a radius to our data nodes that will serve to determine
       # when a collision has occurred. This uses the same scale as
       # the one used to size our bubbles, but it kicks up the minimum
-      # size to make it so smaller bubbles have a slightly larger 
+      # size to make it so smaller bubbles have a slightly larger
       # collision 'sphere'
       @data.forEach (d,i) =>
         d.forceR = Math.max(@minCollisionRadius, @rScale(@rValue(d)))
@@ -293,7 +293,7 @@ define ['app/PGChart'], (PGChart) ->
       @node = svg.selectAll(".bubble-node")
         .data(@data, (d) => @id(d))
 
-      # we don't actually remove any nodes from our data in this example 
+      # we don't actually remove any nodes from our data in this example
       # but if we did, this line of code would remove them from the
       # visualization as well
       nodeExit = @node.exit()
@@ -304,17 +304,17 @@ define ['app/PGChart'], (PGChart) ->
       nodeEnter = @node.enter()
       nodeEnter.append("a")
         .attr("class", "bubble-node")
-        .attr("xlink:href", (d) => "##{encodeURIComponent(@idValue(d))}")    
+        .attr("xlink:href", (d) => "##{encodeURIComponent(@idValue(d))}")
         .call(@connectEvents)
         .call(@force.drag)
         .append("circle")
         .attr("r", (d) => @rScale(@rValue(d)))
-        .attr('fill', (d, i) => colors(i))  
+        .attr('fill', (d, i) => colors(i))
         .style('opacity', 0.7)
 
 
     updateLabels: () ->
-      # as in updateNodes, we use idValue to define what the unique id for each data 
+      # as in updateNodes, we use idValue to define what the unique id for each data
       # point is
       svg = d3.select('svg')
       @label = svg.selectAll(".bubble-label")

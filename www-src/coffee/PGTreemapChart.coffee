@@ -1,12 +1,12 @@
-define ['app/PGChart'], (PGChart) ->
-  class PGTreemapChart extends PGChart 
+define ['jquery', 'd3', 'app/PGChart'], ($, d3, PGChart) ->
+  class PGTreemapChart extends PGChart
     treemap: null
     value: null
 
     constructor: (container, margin, dataset, axes, patterns, limit, value) ->
       @value = value
       super container, margin, dataset, axes, patterns, limit
-      
+
 
     # --------------------- Chart creating Functions ------------------------ #
     setScales: ->
@@ -22,7 +22,7 @@ define ['app/PGChart'], (PGChart) ->
       @createTreemap()
       @renderTreemap()
 
-    # --------------------- Update Functions ------------------------ 
+    # --------------------- Update Functions ------------------------
     updateAxes: ->
 
     renderTreemap: ->
@@ -35,11 +35,11 @@ define ['app/PGChart'], (PGChart) ->
         .round(true)
         .size([@width, @height])
         .sticky(false)
-      
+
       nodes = treemap.nodes(@currDataset)
         .filter((d) -> d.depth is 1)
         #.filter((d) -> not d.values)
-      
+
       #console.log nodes
 
       cells = @treemap.selectAll("g.cell")
@@ -48,7 +48,7 @@ define ['app/PGChart'], (PGChart) ->
       cellsEnter = cells.enter()
         .append("g")
         .attr("class", "cell")
-        .on('click', (d) => 
+        .on('click', (d) =>
           if d.key
             #console.log d
             @currDataset = d
@@ -71,7 +71,7 @@ define ['app/PGChart'], (PGChart) ->
         #.style('fill', (d) -> colors(d.parent.key))
       cellsUpdate.select('title')
         .text((d) => if d.values then "#{d.key}\n#{d.value}" else "#{d.value}")
-      cells.select('text')  
+      cells.select('text')
         .attr('x', (d) -> d.dx/2)
         .attr('y', (d) -> d.dy/2)
         .attr('dy', '.35em')
@@ -79,11 +79,11 @@ define ['app/PGChart'], (PGChart) ->
         #.text((d) => d[@value])
         .text((d) => if d.key then d.key else d.value)
         #.style('opacity', (d) -> if d.dx>d.w then 1 else 0)
-        .style('opacity', (d) -> 
+        .style('opacity', (d) ->
           d.w = @getComputedTextLength()
           if d.dy>20 and d.dx>d.w then 1 else 0
         )
-        
+
       cells.exit()
         .transition()
         .duration(1000)

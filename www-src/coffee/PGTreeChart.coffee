@@ -1,5 +1,5 @@
-define ['app/PGChart'], (PGChart) ->
-  class PGTreeChart extends PGChart 
+define ['jquery', 'd3', 'app/PGChart'], ($, d3, PGChart) ->
+  class PGTreeChart extends PGChart
     treeEl: null
     tree: null
     diagonal: null
@@ -10,7 +10,7 @@ define ['app/PGChart'], (PGChart) ->
     constructor: (container, margin, dataset, axes, patterns, limit, value, initialDepth) ->
       @value = value
       super container, margin, dataset, axes, patterns, limit
-      
+
 
     # --------------------- Chart creating Functions ------------------------ #
     setScales: ->
@@ -29,14 +29,14 @@ define ['app/PGChart'], (PGChart) ->
     expandNode: (node, depth) ->
       node.expand = true
       if --depth
-        @expandNode(child, depth) for child in node.values? 
+        @expandNode(child, depth) for child in node.values?
       else
         for child in node.values?
           do (child) ->
             child._children = child.values
             child.values = null
 
-    # --------------------- Update Functions ------------------------ 
+    # --------------------- Update Functions ------------------------
     updateAxes: ->
 
     renderTree: ->
@@ -51,14 +51,14 @@ define ['app/PGChart'], (PGChart) ->
       @currDataset.y0 = 0.01*@width
       @expandNode @currDataset, @initialDepth if @initialDepth
       @render @currDataset
-      
+
     render: (source) ->
       nodes = @tree.nodes(@currDataset)
-        .filter((d) -> 
+        .filter((d) ->
           #console.log d
           aux = d.parent
           aux = aux.parent while aux?.expand
-          if not aux 
+          if not aux
             if not d.expand
               d._children or= d.values
               d.values = null
@@ -81,7 +81,7 @@ define ['app/PGChart'], (PGChart) ->
         .attr("class", "node")
         .attr("transform", (d) -> "translate(#{source.y0},#{source.x0})")
         .on("click", (d) =>
-            @toggle(d)           
+            @toggle(d)
             @render(d)
         )
       nodeEnter.append("svg:circle")
@@ -142,7 +142,7 @@ define ['app/PGChart'], (PGChart) ->
         )
         .remove()
 
-      # nodes.forEach (d) => 
+      # nodes.forEach (d) =>
       #   if d.depth is 1 and d.values
       #     console.log d
       #     d._children = d.values

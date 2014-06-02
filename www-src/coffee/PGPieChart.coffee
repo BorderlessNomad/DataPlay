@@ -1,5 +1,5 @@
-define ['app/PGChart'], (PGChart) ->
-  class PGPieChart extends PGChart 
+define ['jquery', 'd3', 'app/PGChart'], ($, d3, PGChart) ->
+  class PGPieChart extends PGChart
     pie: null
     innerRadius: 20
     outerRadius: 200
@@ -20,7 +20,7 @@ define ['app/PGChart'], (PGChart) ->
       @createPie()
       @renderPie()
 
-    # --------------------- Update Functions ------------------------ 
+    # --------------------- Update Functions ------------------------
     updateAxes: ->
 
     renderPie: ->
@@ -49,7 +49,7 @@ define ['app/PGChart'], (PGChart) ->
 
       slices.transition()
         .duration(1000)
-        .attrTween "d", (d) -> 
+        .attrTween "d", (d) ->
           currArc = @currArc
           currArc or= startAngle: 0, endAngle: 0
           interpolate = d3.interpolate currArc, d
@@ -70,7 +70,7 @@ define ['app/PGChart'], (PGChart) ->
 
       labels.transition()
         .duration(1000)
-        .attr('transform', (d) -> 
+        .attr('transform', (d) ->
           dAng = (d.startAngle + d.endAngle)*90/Math.PI
           lAng = dAng + if dAng>180 then 90 else -90
           # if dAng > 2 && lAng > 2
@@ -84,7 +84,7 @@ define ['app/PGChart'], (PGChart) ->
         .attr('dy', '.35em')
         .attr('text-anchor', 'middle')
         .text(
-          (d) => 
+          (d) =>
             switch @patterns[@axes.x].valuePattern
               when 'date' then d.data[0].getFullYear()
               when 'label', 'text' then d.data[0].substring(0, 20)
