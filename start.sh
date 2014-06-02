@@ -15,8 +15,15 @@ fi
 
 echo 'BUILDING GOGRAM'
 oldgo=$GOPATH
-export GOPATH=$(pwd)
-go get dataplay &&
-go install dataplay &&
-./bin/dataplay
+if [[ "$OSTYPE" == "msys" ]]; then
+	GOPATH=$oldgo";"$(pwd -W)
+else
+	GOPATH=$oldgo:$(pwd)
+fi
+export GOPATH
+project=dataplay
+go get -v $project &&
+go install -v $project &&
+cd bin &&
+./$project $@
 export GOPATH=$oldgo

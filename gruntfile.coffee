@@ -2,7 +2,7 @@ module.exports = (grunt) ->
 
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
-    destPath: 'public'
+    destPath: 'bin/public'
     srcPath: 'www-src'
 
     # CSS
@@ -63,6 +63,13 @@ module.exports = (grunt) ->
         src: '**/*'
         dest: '<%= destPath %>/'
 
+    # Misc
+      public:
+        expand: true
+        cwd: 'public/'
+        src: '**/*'
+        dest: '<%= destPath %>/'
+
     # Util
     clean:
       css:
@@ -105,6 +112,7 @@ module.exports = (grunt) ->
     'css'
     'js'
     'templates'
+    'misc'
   ]
 
   grunt.registerTask 'css', [
@@ -119,4 +127,7 @@ module.exports = (grunt) ->
   grunt.registerTask 'templates', [
     # 'hogan:templates'
     'copy:templates'
+  ]
+  grunt.registerTask 'misc', [
+    'copy:public'
   ]

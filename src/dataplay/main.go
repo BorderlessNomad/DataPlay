@@ -169,7 +169,7 @@ func main() {
 
 	m.Use(ProabblyAPI)
 
-	m.Use(martini.Static("node_modules")) //Why?
+	m.Use(martini.Static("../node_modules")) //Why?
 
 	m.Run()
 }
