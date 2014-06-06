@@ -2,9 +2,8 @@ package database
 
 import (
 	"database/sql"
-	"flag"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 	"os"
 )
 
@@ -13,14 +12,21 @@ type Database struct {
 	User   string
 	Pass   string
 	Host   string
+	Port   int
 	Schema string
 }
 
-func (self *Database) SetupFlags() {
-	flag.StringVar(&self.User, "DBUser", "root", "The username to use while connecting to the mysql DB")
-	flag.StringVar(&self.Pass, "DBPasswd", "", "The password to use while connecting to the mysql DB")
-	flag.StringVar(&self.Schema, "DBDatabase", "DataCon", "The database name to use while connecting to the mysql DB")
-	flag.StringVar(&self.Host, "DBHost", "10.0.0.2:3306", "Where to connect to the mysql DB")
+func (self *Database) Setup(username string, password string, host string, port int, schema string) {
+	self.User = username
+	self.Pass = password
+	self.Host = host
+	self.Port = port
+	self.Schema = schema
+
+	// flag.StringVar(&self.User, "DBUser", "playgen", "The username to use while connecting to the postgresql DB")
+	// flag.StringVar(&self.Pass, "DBPasswd", "aDam3ntiUm", "The password to use while connecting to the postgresql DB")
+	// flag.StringVar(&self.Schema, "DBDatabase", "dataplay", "The database name to use while connecting to the postgresql DB")
+	// flag.StringVar(&self.Host, "DBHost", "10.0.0.2:5432", "Where to connect to the postgresql DB")
 }
 
 func (self *Database) ParseEnvironment() {
@@ -40,7 +46,7 @@ func (self *Database) Connect() (err error) {
 		return fmt.Errorf("No Database host inputted")
 	}
 
-	self.DB, err = sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/%s", self.User, self.Pass, self.Host, self.Schema))
+	self.DB, err = sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", self.User, self.Pass, self.Host, self.Port, self.Schema))
 	if err != nil {
 		// logger.Printf("Unable to set up database connection: %s\n", err)
 		return

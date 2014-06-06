@@ -32,12 +32,13 @@ var Database struct {
 
 /**
  * @details Application bootstrap
+ *
  *   Checks database connection,
  *   Init templates,
  *   Init Martini API
  */
 func main() {
-	Database.SetupFlags()
+	Database.Setup("playgen", "aDam3ntiUm", "10.0.0.2", 5432, "dataplay")
 	Database.ParseEnvironment()
 	e := Database.Connect()
 	if e == nil {
@@ -175,7 +176,7 @@ func main() {
 	m.Get("/api/stringmatch/:word/:x", FindStringMatches)
 	m.Get("/api/relatedstrings/:guid", GetRelatedDatasetByStrings)
 
-	m.Use(ProabblyAPI)
+	m.Use(JsonApiHandler)
 
 	m.Use(martini.Static("../node_modules")) //Why?
 
@@ -188,7 +189,7 @@ func main() {
  * @param http.ResponseWriter
  * @param *http.Request
  */
-func ProabblyAPI(res http.ResponseWriter, req *http.Request) {
+func JsonApiHandler(res http.ResponseWriter, req *http.Request) {
 	if strings.HasPrefix(req.RequestURI, "/api") {
 		checkAuth(res, req) // Make everything in the API auth'd
 		res.Header().Set("Content-Type", "application/json")
