@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
-	"strings"
 )
 
 type CheckDict struct {
@@ -74,13 +73,31 @@ func FetchTableCols(guid string, database *sql.DB) (output []ColType) {
 		return output
 	}
 
-	var createcode string
-	Database.DB.QueryRow("SHOW CREATE TABLE "+tablename).Scan(&tablename, &createcode)
-	if createcode == "" {
-		return output
-	}
-	results := ParseCreateTableSQL(createcode)
+	results := GetSQLTableSchema(tablename)
+
 	return results
+}
+
+func GetSQLTableSchema(table string) []ColType {
+	schema := make([]ColType, 0) // Setup the array that I will be append()ing to.
+
+	rows, e := Database.DB.Query("SELECT column_name, data_type FROM information_schema.columns WHERE table_catalog = 'dataplay' AND table_name = $1", table)
+
+	if e == nil {
+		for rows.Next() {
+			var column_name, data_type string
+			rows.Scan(&column_name, &data_type)
+
+			NewCol := ColType{
+				Name:    column_name,
+				Sqltype: data_type,
+			}
+
+			schema = append(schema, NewCol)
+		}
+	}
+
+	return schema
 }
 
 // This is a shortcut function to do a the common action that is parsing the SQL create code.
@@ -96,31 +113,6 @@ func BuildREArrayForCreateTable(input string) []string {
 	return results
 }
 
-func ParseCreateTableSQL(input string) []ColType {
-	returnerr := make([]ColType, 0) // Setup the array that I will be append()ing to.
-	SQLLines := strings.Split(input, "\n")
-	// The mysql server gives you the SQL create code formatted. So I exploit this by
-	// using it to split the system up by \n
-
-	for c, line := range SQLLines {
-		// Ignore the first line of the file, since its useless and can in some cases parse :eek:
-		if c != 0 && strings.HasPrefix(strings.TrimSpace(line), "`") { // Clipping off the create part since its useless for me.
-			results := BuildREArrayForCreateTable(line)
-			if len(results) == 3 {
-				// We expect there to be 3 matches from the Regex, if not then we probs don't
-				// have what we want
-				DeQuoted := strings.Replace(results[1], "`", "", -1)
-				NewCol := ColType{
-					Name:    DeQuoted,
-					Sqltype: results[2],
-				}
-				returnerr = append(returnerr, NewCol)
-			}
-		}
-	}
-	return returnerr
-}
-
 func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
 	if prams["table"] == "" || prams["col"] == "" {
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
@@ -128,26 +120,24 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 	}
 
 	var tablename string
-	Database.DB.QueryRow("SELECT TableName FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["table"]).Scan(&tablename)
+	Database.DB.QueryRow("SELECT TableName FROM priv_onlinedata WHERE GUID = $1 LIMIT 1", prams["table"]).Scan(&tablename)
 	if tablename == "" {
 		http.Error(res, "Could not find that table", http.StatusNotFound)
 		return ""
 	}
 
-	var createcode string
-	Database.DB.QueryRow("SHOW CREATE TABLE "+tablename).Scan(&tablename, &createcode)
-	if createcode == "" {
-		http.Error(res, `Uhh, That table does not seem to acutally exist.
-		this really should not happen.
-		Check if someone have been messing around in the Database.DB.`, http.StatusBadRequest)
+	rows, e := Database.DB.Query("SELECT column_name, data_type FROM information_schema.columns WHERE table_catalog = 'dataplay' AND table_name = $1", tablename)
+	if e != nil {
+		http.Error(res, "Uhh, That table does not seem to acutally exist. This really should not happen. Check if someone have been messing around in the Database.", http.StatusBadRequest)
 		return ""
 	}
-	if CheckIfColExists(createcode, prams["col"]) {
+
+	if CheckIfColExists(rows, prams["col"]) {
 		// Alrighty so I am now going to go though the whole table
 		// and check what the data looks like
 		// What that means for now is I am going to try and convert them all to ints and see if any of them breaks, If they do not, then I will suggest
 		// that they be ints!
-		rows, e := Database.DB.Query(fmt.Sprintf("SELECT `%s` FROM `%s`", prams["col"], tablename))
+		rows, e := Database.DB.Query("SELECT $1 FROM $2", prams["col"], tablename)
 		if e == nil {
 			for rows.Next() {
 				var TestSubject string
@@ -157,8 +147,10 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 					return "false"
 				}
 			}
+
 			return "true"
 		}
+
 		http.Error(res, fmt.Sprintf("Well somthing went wrong during the reading of that col, go and grab ben and show him this. %s", e), http.StatusInternalServerError)
 		return ""
 	} else {
@@ -167,20 +159,16 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 	}
 }
 
-func CheckIfColExists(createcode string, targettable string) bool {
+func CheckIfColExists(rows *sql.Rows, column string) bool {
+	for rows.Next() {
+		var column_name, data_type string
+		rows.Scan(&column_name, &data_type)
 
-	SQLLines := strings.Split(createcode, "\n")
-
-	for c, line := range SQLLines {
-		if c != 0 { // Clipping off the create part since its useless for me.
-			results := BuildREArrayForCreateTable(line)
-			if len(results) == 3 { // 3 is the amount you would expect the regex to match. Even though we only use the first part
-				if results[1] == "`"+targettable+"`" {
-					return true
-				}
-			}
+		if column_name == column {
+			return true
 		}
 	}
+
 	return false
 }
 
@@ -193,16 +181,20 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 		return ""
 	}
 
-	var CCode string
-	Database.DB.QueryRow(fmt.Sprintf("SHOW CREATE TABLE `%s`;", RealTableName)).Scan(&RealTableName, &CCode)
-	if !CheckIfColExists(CCode, prams["x"]) || !CheckIfColExists(CCode, prams["y"]) {
+	rows, e := Database.DB.Query("SELECT column_name, data_type FROM information_schema.columns WHERE table_catalog = 'dataplay' AND table_name = $1", RealTableName)
+	if e != nil {
+		http.Error(res, "Uhh, That table does not seem to acutally exist. This really should not happen. Check if someone have been messing around in the Database.", http.StatusBadRequest)
+		return ""
+	}
+
+	if !CheckIfColExists(rows, prams["x"]) || !CheckIfColExists(rows, prams["y"]) {
 		http.Error(res, "Could not find the X or Y", http.StatusInternalServerError)
 		return ""
 	}
 
 	// Now we need to check if it exists in the stats table. so we can compare its poly to other poly's
 	HitCount := 0
-	Database.DB.QueryRow("SELECT COUNT(*) FROM `priv_statcheck` WHERE `table` = ? AND `x` = ? AND `y` = ?", RealTableName, prams["x"], prams["y"]).Scan(&HitCount)
+	Database.DB.QueryRow("SELECT COUNT(*) FROM priv_statcheck WHERE table = $1 AND x = $2 AND y = $3", RealTableName, prams["x"], prams["y"]).Scan(&HitCount)
 
 	if HitCount == 0 {
 		http.Error(res, "Cannot find the poly code for that table x and y combo. It's probs not there because its not possible", http.StatusBadRequest)
@@ -212,7 +204,7 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 	var id int = 0
 	var table, x, y, p1, p2, p3, xstart, xend string
 
-	Database.DB.QueryRow("SELECT * FROM `priv_statcheck` WHERE `table` = ? AND `x` = ? AND `y` = ? LIMIT 1", RealTableName, prams["x"], prams["y"]).Scan(&id, &table, &x, &y, &p1, &p2, &p3, &xstart, &xend)
+	Database.DB.QueryRow("SELECT * FROM priv_statcheck WHERE table = $1 AND x = $2 AND y = $3 LIMIT 1", RealTableName, prams["x"], prams["y"]).Scan(&id, &table, &x, &y, &p1, &p2, &p3, &xstart, &xend)
 	Logger.Println(id, table, x, y, p1, p2, p3, xstart, xend)
 
 	return "wat"
@@ -229,21 +221,23 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini
 	var name string
 	var count int = 0
 	if prams["x"] != "" {
-		rows, e := Database.DB.Query("SELECT tablename,count FROM priv_stringsearch WHERE x = ? AND value = ?", prams["x"], prams["word"])
+		rows, e := Database.DB.Query("SELECT tablename, count FROM priv_stringsearch WHERE x = $1 AND value = $2", prams["x"], prams["word"])
 		if e != nil {
 			http.Error(res, "SQL error", http.StatusInternalServerError)
 			return ""
 		}
+
 		for rows.Next() {
 			rows.Scan(&name, &count)
 			temp := StringMatchResult{
 				Count: count,
 				Match: name,
 			}
+
 			Results = append(Results, temp)
 		}
 	} else {
-		rows, e := Database.DB.Query("SELECT tablename,count FROM priv_stringsearch WHERE value = ?", prams["word"])
+		rows, e := Database.DB.Query("SELECT tablename, count FROM priv_stringsearch WHERE value = $1", prams["word"])
 		if e != nil {
 			http.Error(res, "SQL error", http.StatusInternalServerError)
 			return ""
@@ -263,6 +257,7 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini
 		http.Error(res, "Could not marshal JSON", http.StatusInternalServerError)
 		return ""
 	}
+
 	return string(b)
 }
 
@@ -274,16 +269,16 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 	}
 
 	jobs := make([]ScanJob, 0)
-	var CreateSQL string
-	Database.DB.QueryRow(fmt.Sprintf("SHOW CREATE TABLE `DataCon`.`%s`", RealTableName)).Scan(&RealTableName, &CreateSQL)
 
-	Bits := ParseCreateTableSQL(CreateSQL)
+	Bits := GetSQLTableSchema(RealTableName)
+
 	for _, bit := range Bits {
-		if bit.Sqltype == "varchar" {
+		if bit.Sqltype == "character varying" {
 			newJob := ScanJob{
 				TableName: RealTableName,
 				X:         bit.Name,
 			}
+
 			jobs = append(jobs, newJob)
 		}
 	}
@@ -292,7 +287,7 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 	checkingdict := make(map[string]int)
 
 	for _, v := range jobs {
-		q, e := Database.DB.Query(fmt.Sprintf("SELECT `%s` FROM `%s`", v.X, v.TableName))
+		q, e := Database.DB.Query("SELECT $1 FROM $2", v.X, v.TableName)
 
 		if e != nil {
 			http.Error(res, "Could not read from target table", http.StatusInternalServerError)
@@ -305,6 +300,7 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 			checkingdict[strout]++
 		}
 	}
+
 	Combos := make([]PossibleCombo, 0)
 	Cdict := ConvertIntoStructArrayAndSort(checkingdict)
 	var Amt int = 0
@@ -314,19 +310,23 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 			// Lets be sensible here
 			continue
 		}
+
 		Amt++
+
 		if Amt > 5 { // this acts as a "LIMIT 5" in the whole thing else this thing can literally takes mins to run.
 			continue
 		}
+
 		var cnt int
-		e := Database.DB.QueryRow("SELECT COUNT(*) FROM priv_stringsearch WHERE value = ? LIMIT 1", v.value).Scan(&cnt)
+		e := Database.DB.QueryRow("SELECT COUNT(*) FROM priv_stringsearch WHERE value = $1 LIMIT 1", v.value).Scan(&cnt)
 		if e == nil && cnt != 0 {
 			tablelist := make([]string, 0)
-			r, e := Database.DB.Query("SELECT `priv_onlinedata`.GUID FROM priv_stringsearch, priv_onlinedata, `index` WHERE (value = ?) AND `priv_stringsearch`.tablename = `priv_onlinedata`.TableName AND `priv_onlinedata`.GUID = `index`.GUID AND priv_stringsearch.count > 5", v.value)
+			r, e := Database.DB.Query("SELECT priv_onlinedata.GUID FROM priv_stringsearch, priv_onlinedata, index WHERE (value = $1) AND priv_stringsearch.tablename = priv_onlinedata.TableName AND priv_onlinedata.GUID = index.GUID AND priv_stringsearch.count > 5", v.value)
 			if e != nil {
 				http.Error(res, "Could not read off data lookups", http.StatusInternalServerError)
 				return ""
 			}
+
 			res := ""
 			for r.Next() {
 				r.Scan(&res)
@@ -339,14 +339,17 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 				Match:  v.Key,
 				Tables: tablelist,
 			}
+
 			Combos = append(Combos, Combo)
 		}
 	}
+
 	b, e := json.Marshal(Combos)
 	if e != nil {
 		http.Error(res, "JSON failed", http.StatusInternalServerError)
 		return ""
 	}
+
 	return string(b)
 }
 
@@ -356,6 +359,7 @@ func stringInSlice(a string, list []string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 

@@ -60,7 +60,7 @@ func main() {
 		var uid, username string
 		uid = fmt.Sprint(GetUserID(res, req))
 
-		Database.DB.QueryRow("select email from priv_users where uid = ?", uid).Scan(&username) // get the user's email so I can bake it into the page I am about to send
+		Database.DB.QueryRow("SELECT email FROM priv_users WHERE uid = $1", uid).Scan(&username) // get the user's email so I can bake it into the page I am about to send
 		custom := map[string]string{
 			"username": username,
 		}

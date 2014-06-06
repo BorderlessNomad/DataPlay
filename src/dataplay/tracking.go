@@ -11,7 +11,7 @@ import (
 func GetLastVisited(rw http.ResponseWriter, req *http.Request) string {
 	if GetUserID(rw, req) != 0 {
 		value := string(GetUserID(rw, req))
-		rows, e := Database.DB.Query("SELECT DISTINCT(guid),(SELECT Title FROM `index` WHERE `index`.GUID = priv_tracking.guid LIMIT 1) as a FROM priv_tracking WHERE user = ? ORDER BY id DESC LIMIT 5", value)
+		rows, e := Database.DB.Query("SELECT DISTINCT(guid), (SELECT Title FROM index WHERE index.GUID = priv_tracking.guid LIMIT 1 ) as a FROM priv_tracking WHERE user = $1 ORDER BY id DESC LIMIT 5", value)
 
 		result := make([][]string, 0)
 
@@ -36,6 +36,7 @@ func GetLastVisited(rw http.ResponseWriter, req *http.Request) string {
 		} else {
 			fmt.Println(e)
 		}
+
 		b, _ := json.Marshal(result)
 
 		return (string(b))
@@ -50,6 +51,7 @@ func HasTableGotLocationData(datasetGUID string, database *sql.DB) string {
 	if containsTableCol(cols, "lat") && (containsTableCol(cols, "lon") || containsTableCol(cols, "long")) {
 		return "true"
 	}
+
 	return "false"
 }
 
@@ -59,11 +61,12 @@ func containsTableCol(cols []ColType, target string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
 func TrackVisited(guid string, user string) {
-	_, e := Database.DB.Exec("INSERT INTO `DataCon`.`priv_tracking` (`user`, `guid`) VALUES (?, ?);", user, guid)
+	_, e := Database.DB.Exec("INSERT INTO priv_tracking (user, guid) VALUES ($1, $2)", user, guid)
 	if e != nil {
 		Logger.Println(e)
 	}

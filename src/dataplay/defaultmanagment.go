@@ -16,7 +16,7 @@ func SetDefaults(res http.ResponseWriter, req *http.Request, prams martini.Param
 
 	jsondata := req.FormValue("data")
 
-	Database.DB.Exec("UPDATE `priv_onlinedata` SET `Defaults`=? WHERE  `GUID`=? LIMIT 1", jsondata, prams["id"])
+	Database.DB.Exec("UPDATE priv_onlinedata SET Defaults = $1 WHERE GUID = $2 LIMIT 1", jsondata, prams["id"])
 
 	return "{\"result\":\"OK\"}"
 }
@@ -28,7 +28,7 @@ func GetDefaults(res http.ResponseWriter, req *http.Request, prams martini.Param
 		return ""
 	}
 
-	rows := Database.DB.QueryRow("SELECT Defaults FROM `priv_onlinedata` WHERE GUID = ? LIMIT 1", prams["id"])
+	rows := Database.DB.QueryRow("SELECT Defaults FROM priv_onlinedata WHERE GUID = $1 LIMIT 1", prams["id"])
 	var output string
 	rows.Scan(&output)
 
