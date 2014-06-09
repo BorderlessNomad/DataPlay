@@ -58,6 +58,7 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Par
 		Request: prams["id"],
 	}
 	b, _ := json.Marshal(returnobj)
+
 	return string(b)
 }
 
@@ -87,6 +88,10 @@ func GetSQLTableSchema(table string) []ColType {
 		for rows.Next() {
 			var column_name, data_type string
 			rows.Scan(&column_name, &data_type)
+
+			if data_type == "character varying" {
+				data_type = "varchar"
+			}
 
 			NewCol := ColType{
 				Name:    column_name,

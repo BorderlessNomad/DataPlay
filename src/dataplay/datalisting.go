@@ -50,25 +50,26 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 		http.Error(res, "There was no search request", http.StatusBadRequest)
 		return ""
 	}
-	rows, e := Database.DB.Query("SELECT GUID, Title FROM index WHERE Title LIKE $1 AND (index.Owner = 0 OR index.Owner = $2) LIMIT 10", prams["s"]+"%", intuid)
+
+	rows, e := Database.DB.Query("SELECT GUID, Title FROM index WHERE LOWER(Title) LIKE LOWER($1) AND (index.Owner = 0 OR index.Owner = $2) LIMIT 10", prams["s"]+"%", intuid)
 
 	Results := make([]SearchResult, 0)
 	Results = ProcessSearchResults(rows, e, Database.DB)
 
 	if len(Results) == 0 {
 		Logger.Println("falling back to overkill search")
-		rows, e := Database.DB.Query("SELECT GUID, Title FROM index WHERE Title LIKE $1 AND (index.Owner = 0 OR index.Owner = $2) LIMIT 10", "%"+prams["s"]+"%", intuid)
+		rows, e := Database.DB.Query("SELECT GUID, Title FROM index WHERE LOWER(Title) LIKE LOWER($1) AND (index.Owner = 0 OR index.Owner = $2) LIMIT 10", "%"+prams["s"]+"%", intuid)
 		Results = ProcessSearchResults(rows, e, Database.DB)
 
 		if len(Results) == 0 {
 			Logger.Println("Going 100 persent mad search")
 			query := strings.Replace(prams["s"], " ", "%", -1)
-			rows, e := Database.DB.Query("SELECT GUID, Title FROM index WHERE Title LIKE $1 AND (index.Owner = 0 OR index.Owner = $2) LIMIT 10", "%"+query+"%", intuid)
+			rows, e := Database.DB.Query("SELECT GUID, Title FROM index WHERE LOWER(Title) LIKE LOWER($1) AND (index.Owner = 0 OR index.Owner = $2) LIMIT 10", "%"+query+"%", intuid)
 			Results = ProcessSearchResults(rows, e, Database.DB)
 
 			if len(Results) == 0 && (len(prams["s"]) > 3 && len(prams["s"]) < 20) {
 				Logger.Println("Searching in string table")
-				rows, e := Database.DB.Query("SELECT DISTINCT(priv_onlinedata.GUID), index.Title FROM priv_stringsearch, priv_onlinedata, index WHERE (value LIKE $1 OR x LIKE $2) AND priv_stringsearch.tablename = priv_onlinedata.TableName AND priv_onlinedata.GUID = index.GUID AND (index.Owner = 0 OR index.Owner = $3) ORDER BY 1 DESC LIMIT 10", "%"+prams["s"]+"%", "%"+prams["s"]+"%", intuid)
+				rows, e := Database.DB.Query("SELECT DISTINCT(priv_onlinedata.GUID), index.Title FROM priv_stringsearch, priv_onlinedata, index WHERE (LOWER(value) LIKE LOWER($1) OR LOWER(x) LIKE LOWER($2)) AND priv_stringsearch.tablename = priv_onlinedata.TableName AND priv_onlinedata.GUID = index.GUID AND (index.Owner = 0 OR index.Owner = $3) ORDER BY 1 DESC LIMIT 10", "%"+prams["s"]+"%", "%"+prams["s"]+"%", intuid)
 
 				Results = ProcessSearchResults(rows, e, Database.DB)
 			}
@@ -124,12 +125,10 @@ func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) 
 		return ""
 	}
 
-	var GUID string
-	var Name string
-	var Title string
-	var Notes string
-	var ckan_url string
-	e := Database.DB.QueryRow("SELECT * FROM index WHERE GUID LIKE $1 LIMIT 10", prams["id"]+"%").Scan(&GUID, &Name, &Title, &Notes, &ckan_url)
+	var GUID, Name, Title, Notes, ckan_url string
+	var Owner int
+
+	e := Database.DB.QueryRow("SELECT * FROM index WHERE LOWER(GUID) LIKE LOWER($1) LIMIT 10", prams["id"]+"%").Scan(&GUID, &Name, &Title, &Notes, &ckan_url, &Owner)
 	strings.Replace(ckan_url, "//", "/", -1)
 
 	returner := DataEntry{
@@ -141,6 +140,7 @@ func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) 
 	}
 
 	if e != nil {
+		panic(e)
 		http.Error(res, "Could not find that data.", http.StatusNotFound)
 		return ""
 	}
@@ -339,6 +339,7 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 	if e != nil {
 		return
 	}
+
 	cls := FetchTableCols(prams["id"], Database.DB)
 	// Now we need to check that the rows that the client is asking for, are in the table.
 	Valid := false
@@ -347,22 +348,25 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 			Valid = true
 		}
 	}
+
 	if !Valid {
 		http.Error(res, "Col X is invalid.", http.StatusBadRequest)
 		return
 	}
+
 	Valid = false
 	for _, clm := range cls {
 		if clm.Name == prams["y"] {
 			Valid = true
 		}
 	}
+
 	if !Valid {
 		http.Error(res, "Col Y is invalid.", http.StatusBadRequest)
 		return
 	}
-	// rows, e1 := Database.DB.Query(fmt.Sprintf("SELECT %s,SUM(%s) AS %s FROM %s GROUP BY %s", prams["x"], prams["y"], prams["y"], tablename, prams["x"]))
-	rows, e1 := Database.DB.Query("SELECT $1, SUM($2) AS $3 FROM $4 GROUP BY $5", prams["x"], prams["y"], prams["y"], tablename, prams["x"])
+
+	rows, e1 := Database.DB.Query(fmt.Sprintf("SELECT %[1]s, SUM(%[2]s) AS %[2]s FROM %[3]s GROUP BY %[1]s", prams["x"], prams["y"], tablename))
 	// You may think the above might have some security downsides, It could but what you
 	// are proabs thinking is not true, if a user wants to SQL inject as any of the %s's
 	// then the table col name will also have to be the SQLi, and frankly, if a user
@@ -370,13 +374,15 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 	// =
 	// This could also be filtered at the import level as a form as "moron detection"
 	if e1 != nil {
-		http.Error(res, "Could not query the data FROM the datastore", http.StatusInternalServerError)
+		panic(e1)
+		http.Error(res, "Could not query the data FROM the datastore E1", http.StatusInternalServerError)
 		return
 	}
 
 	columns, e2 := rows.Columns()
 	if e1 != nil || e2 != nil {
-		http.Error(res, "Could not query the data FROM the datastore", http.StatusInternalServerError)
+		panic(e2)
+		http.Error(res, "Could not query the data FROM the datastore E2", http.StatusInternalServerError)
 		return
 	}
 
@@ -396,6 +402,7 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 		record := scanrow(values, columns)
 		array = append(array, record)
 	}
+
 	s, _ := json.Marshal(array)
 	res.Write(s)
 	io.WriteString(res, "\n")
