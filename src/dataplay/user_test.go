@@ -34,6 +34,9 @@ func TestHandleLogin(t *testing.T) {
 		handleLoginNoData(t)
 		handleLoginInvalidData(t)
 		handleLoginValidData(t)
+		/**
+		* @todo Write some more test-cases to improve coverage
+		 */
 	})
 }
 
