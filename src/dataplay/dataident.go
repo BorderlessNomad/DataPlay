@@ -91,6 +91,8 @@ func GetSQLTableSchema(table string) []ColType {
 
 			if data_type == "character varying" {
 				data_type = "varchar"
+			} else if data_type == "numeric" {
+				data_type = "float"
 			}
 
 			NewCol := ColType{
