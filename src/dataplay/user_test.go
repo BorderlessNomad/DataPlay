@@ -34,6 +34,7 @@ func TestHandleLogin(t *testing.T) {
 		handleLoginNoData(t)
 		handleLoginInvalidData(t)
 		handleLoginValidData(t)
+		handleLoginValidDataMD5(t)
 		/**
 		* @todo Write some more test-cases to improve coverage
 		 */
@@ -75,6 +76,18 @@ func handleLoginValidData(t *testing.T) {
 	})
 }
 
+func handleLoginValidDataMD5(t *testing.T) {
+	request, _ := http.NewRequest("POST", "/", strings.NewReader("username=glyn@dataplay.com&password=123456"))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
+	response := httptest.NewRecorder()
+
+	HandleLogin(response, request)
+
+	Convey("When Correct data is provided but user has MD5 password", func() {
+		So(response.Code, ShouldEqual, http.StatusFound)
+	})
+}
+
 func TestHandleLogout(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
@@ -91,7 +104,7 @@ func TestHandleLogout(t *testing.T) {
 func TestHandleRegister(t *testing.T) {
 	Convey("On HTTP Request", t, func() {
 		handleRegisterValidData(t)
-		handleRegisterInvalidData(t)
+		handleRegisterExisitingData(t)
 	})
 }
 
@@ -104,12 +117,12 @@ func handleRegisterValidData(t *testing.T) {
 
 	HandleRegister(response, request)
 
-	Convey("When User does not exists", func() {
+	Convey("When User does not exist", func() {
 		So(response.Code, ShouldEqual, http.StatusFound)
 	})
 }
 
-func handleRegisterInvalidData(t *testing.T) {
+func handleRegisterExisitingData(t *testing.T) {
 	request, _ := http.NewRequest("POST", "/", strings.NewReader("username=mayur@dataplay.com&password=whoru007"))
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
 	response := httptest.NewRecorder()
