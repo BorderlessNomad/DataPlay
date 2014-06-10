@@ -25,10 +25,7 @@ type AuthHandler struct {
 	Users map[string]string
 }
 
-var Database struct {
-	database.Database
-	enabled bool
-}
+var DB database.DB
 
 /**
  * @details Application bootstrap
@@ -38,9 +35,9 @@ var Database struct {
  *   Init Martini API
  */
 func main() {
-	Database.Setup("playgen", "aDam3ntiUm", "10.0.0.2", 5432, "dataplay")
-	Database.ParseEnvironment()
-	e := Database.Connect()
+	DB.Setup()
+	DB.ParseEnvironment()
+	e := DB.Connect()
 	if e == nil {
 		/* Database connection will be closed only when Server closes */
 		defer Database.DB.Close()
@@ -60,7 +57,12 @@ func main() {
 		var uid, username string
 		uid = fmt.Sprint(GetUserID(res, req))
 
-		Database.DB.QueryRow("SELECT email FROM priv_users WHERE uid = $1", uid).Scan(&username) // get the user's email so I can bake it into the page I am about to send
+		// Get the user's email
+		err := DB.SQL.QueryRow("SELECT email FROM priv_users WHERE uid = $1", uid).Scan(&username)
+		if err != nil {
+			panic(err)
+		}
+
 		custom := map[string]string{
 			"username": username,
 		}

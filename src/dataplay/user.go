@@ -18,7 +18,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 
-	rows, e := Database.DB.Query("SELECT password FROM priv_users WHERE email = $1 LIMIT 1", username)
+	rows, e := DB.SQL.Query("SELECT password FROM priv_users WHERE email = $1 LIMIT 1", username)
 	check(e) // Check if the thing error's out
 	rows.Next()
 
@@ -27,7 +27,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 
 	if usrpassword != "" && bcrypt.CompareHashAndPassword([]byte(usrpassword), []byte(password)) == nil { // Check the password with bcrypt
 		var uid int
-		e := Database.DB.QueryRow("SELECT uid FROM priv_users WHERE email = $1 LIMIT 1", username).Scan(&uid)
+		e := DB.SQL.QueryRow("SELECT uid FROM priv_users WHERE email = $1 LIMIT 1", username).Scan(&uid)
 		check(e)
 		e = SetSession(res, req, uid)
 		if e != nil {
@@ -39,17 +39,17 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	} else {
 		// Just in the case that the user is on a really old MD5 password (useful for admins resetting passwords too) check
 		var md5test int
-		e := Database.DB.QueryRow("SELECT count(*) FROM priv_users WHERE email = $1 AND password = MD5('$2') LIMIT 1", username, password).Scan(&md5test)
+		e := DB.SQL.QueryRow("SELECT count(*) FROM priv_users WHERE email = $1 AND password = MD5('$2') LIMIT 1", username, password).Scan(&md5test)
 
 		if e == nil {
 			if md5test != 0 {
 				// Ooooh, We need to upgrade this password!
 				pwd, e := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 				if e == nil {
-					Database.DB.Exec("UPDATE DataCon.priv_users SET password = '$1' WHERE email = $2", pwd, username)
+					DB.SQL.Exec("UPDATE DataCon.priv_users SET password = '$1' WHERE email = $2", pwd, username)
 
 					var uid int
-					e := Database.DB.QueryRow("SELECT uid FROM priv_users WHERE email = $1 LIMIT 1", username).Scan(&uid)
+					e := DB.SQL.QueryRow("SELECT uid FROM priv_users WHERE email = $1 LIMIT 1", username).Scan(&uid)
 					check(e)
 					e = SetSession(res, req, uid)
 					if e != nil {
@@ -81,7 +81,7 @@ func HandleRegister(res http.ResponseWriter, req *http.Request) string {
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 
-	rows, e := Database.DB.Query("SELECT COUNT(*) FROM priv_users WHERE email = $1 LIMIT 1", username)
+	rows, e := DB.SQL.Query("SELECT COUNT(*) FROM priv_users WHERE email = $1 LIMIT 1", username)
 	check(e)
 	rows.Next()
 
@@ -94,7 +94,7 @@ func HandleRegister(res http.ResponseWriter, req *http.Request) string {
 			return "The password you entered is invalid."
 		}
 
-		r, e := Database.DB.Exec("INSERT INTO priv_users (email, password) VALUES ($1, '$2');", username, pwd)
+		r, e := DB.SQL.Exec("INSERT INTO priv_users (email, password) VALUES ($1, '$2');", username, pwd)
 		if e != nil {
 			return "Could not make the user you requested."
 		}

@@ -24,7 +24,7 @@ func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params)
 	uid = fmt.Sprint(GetUserID(res, req))
 	intuid, _ := strconv.ParseInt(uid, 10, 32)
 	var username string
-	Database.DB.QueryRow("SELECT email FROM priv_users WHERE uid = $1", uid).Scan(&username)
+	DB.SQL.QueryRow("SELECT email FROM priv_users WHERE uid = $1", uid).Scan(&username)
 
 	returnobj := AuthResponce{
 		Username: username,
@@ -51,27 +51,27 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 		return ""
 	}
 
-	rows, e := Database.DB.Query("SELECT GUID, Title FROM index WHERE LOWER(Title) LIKE LOWER($1) AND (index.Owner = 0 OR index.Owner = $2) LIMIT 10", prams["s"]+"%", intuid)
+	rows, e := DB.SQL.Query("SELECT GUID, Title FROM index WHERE LOWER(Title) LIKE LOWER($1) AND (index.Owner = 0 OR index.Owner = $2) LIMIT 10", prams["s"]+"%", intuid)
 
 	Results := make([]SearchResult, 0)
-	Results = ProcessSearchResults(rows, e, Database.DB)
+	Results = ProcessSearchResults(rows, e, DB.SQL)
 
 	if len(Results) == 0 {
 		Logger.Println("falling back to overkill search")
-		rows, e := Database.DB.Query("SELECT GUID, Title FROM index WHERE LOWER(Title) LIKE LOWER($1) AND (index.Owner = 0 OR index.Owner = $2) LIMIT 10", "%"+prams["s"]+"%", intuid)
-		Results = ProcessSearchResults(rows, e, Database.DB)
+		rows, e := DB.SQL.Query("SELECT GUID, Title FROM index WHERE LOWER(Title) LIKE LOWER($1) AND (index.Owner = 0 OR index.Owner = $2) LIMIT 10", "%"+prams["s"]+"%", intuid)
+		Results = ProcessSearchResults(rows, e, DB.SQL)
 
 		if len(Results) == 0 {
 			Logger.Println("Going 100 persent mad search")
 			query := strings.Replace(prams["s"], " ", "%", -1)
-			rows, e := Database.DB.Query("SELECT GUID, Title FROM index WHERE LOWER(Title) LIKE LOWER($1) AND (index.Owner = 0 OR index.Owner = $2) LIMIT 10", "%"+query+"%", intuid)
-			Results = ProcessSearchResults(rows, e, Database.DB)
+			rows, e := DB.SQL.Query("SELECT GUID, Title FROM index WHERE LOWER(Title) LIKE LOWER($1) AND (index.Owner = 0 OR index.Owner = $2) LIMIT 10", "%"+query+"%", intuid)
+			Results = ProcessSearchResults(rows, e, DB.SQL)
 
 			if len(Results) == 0 && (len(prams["s"]) > 3 && len(prams["s"]) < 20) {
 				Logger.Println("Searching in string table")
-				rows, e := Database.DB.Query("SELECT DISTINCT(priv_onlinedata.GUID), index.Title FROM priv_stringsearch, priv_onlinedata, index WHERE (LOWER(value) LIKE LOWER($1) OR LOWER(x) LIKE LOWER($2)) AND priv_stringsearch.tablename = priv_onlinedata.TableName AND priv_onlinedata.GUID = index.GUID AND (index.Owner = 0 OR index.Owner = $3) ORDER BY 1 DESC LIMIT 10", "%"+prams["s"]+"%", "%"+prams["s"]+"%", intuid)
+				rows, e := DB.SQL.Query("SELECT DISTINCT(priv_onlinedata.GUID), index.Title FROM priv_stringsearch, priv_onlinedata, index WHERE (LOWER(value) LIKE LOWER($1) OR LOWER(x) LIKE LOWER($1)) AND priv_stringsearch.tablename = priv_onlinedata.TableName AND priv_onlinedata.GUID = index.GUID AND (index.Owner = 0 OR index.Owner = $2) ORDER BY 1 DESC LIMIT 10", "%"+prams["s"]+"%", intuid)
 
-				Results = ProcessSearchResults(rows, e, Database.DB)
+				Results = ProcessSearchResults(rows, e, DB.SQL)
 			}
 		}
 	}
@@ -96,7 +96,7 @@ func ProcessSearchResults(rows *sql.Rows, e error, database *sql.DB) []SearchRes
 			panic(err)
 		}
 
-		Location := HasTableGotLocationData(id, Database.DB)
+		Location := HasTableGotLocationData(id, DB.SQL)
 		SR := SearchResult{
 			Title:        name,
 			GUID:         id,
@@ -128,7 +128,7 @@ func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) 
 	var GUID, Name, Title, Notes, ckan_url string
 	var Owner int
 
-	e := Database.DB.QueryRow("SELECT * FROM index WHERE LOWER(GUID) LIKE LOWER($1) LIMIT 10", prams["id"]+"%").Scan(&GUID, &Name, &Title, &Notes, &ckan_url, &Owner)
+	e := DB.SQL.QueryRow("SELECT * FROM index WHERE LOWER(GUID) LIKE LOWER($1) LIMIT 10", prams["id"]+"%").Scan(&GUID, &Name, &Title, &Notes, &ckan_url, &Owner)
 	strings.Replace(ckan_url, "//", "/", -1)
 
 	returner := DataEntry{
@@ -150,7 +150,7 @@ func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) 
 }
 
 // This function casts everything into what it /Should/ Be
-// But due to a obscureity in mysql / go / Database.DB\sql
+// But due to a obscureity in mysql / go / DB.SQL\sql
 // everything wants to be a []byte. So I just cast them to that
 // then make them strings.
 func scanrow(values []interface{}, columns []string) map[string]interface{} {
@@ -212,7 +212,7 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 		}
 	}
 
-	tablename, e := getRealTableName(prams["id"], Database.DB, res)
+	tablename, e := getRealTableName(prams["id"], DB.SQL, res)
 	if e != nil {
 		return
 	}
@@ -220,9 +220,9 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 	var err error
 
 	if UsingRanges {
-		rows, err = Database.DB.Query(fmt.Sprintf("SELECT * FROM %s LIMIT %d, %d", tablename, top, bot))
+		rows, err = DB.SQL.Query(fmt.Sprintf("SELECT * FROM %s LIMIT %d, %d", tablename, top, bot))
 	} else {
-		rows, err = Database.DB.Query(fmt.Sprintf("SELECT * FROM %s", tablename))
+		rows, err = DB.SQL.Query(fmt.Sprintf("SELECT * FROM %s", tablename))
 	}
 
 	if err != nil {
@@ -269,12 +269,12 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 		return
 	}
 
-	tablename, e := getRealTableName(prams["id"], Database.DB, res)
+	tablename, e := getRealTableName(prams["id"], DB.SQL, res)
 	if e != nil {
 		return
 	}
-	// rows, err := Database.DB.Query("SELECT * FROM " + tablename + "")
-	rows, err := Database.DB.Query("SELECT * FROM " + tablename)
+	// rows, err := DB.SQL.Query("SELECT * FROM " + tablename + "")
+	rows, err := DB.SQL.Query("SELECT * FROM " + tablename)
 	if err != nil {
 		panic(err)
 	}
@@ -335,12 +335,12 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 		return
 	}
 
-	tablename, e := getRealTableName(prams["id"], Database.DB, res)
+	tablename, e := getRealTableName(prams["id"], DB.SQL, res)
 	if e != nil {
 		return
 	}
 
-	cls := FetchTableCols(prams["id"], Database.DB)
+	cls := FetchTableCols(prams["id"], DB.SQL)
 	// Now we need to check that the rows that the client is asking for, are in the table.
 	Valid := false
 	for _, clm := range cls {
@@ -366,7 +366,7 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 		return
 	}
 
-	rows, e1 := Database.DB.Query(fmt.Sprintf("SELECT %[1]s, SUM(%[2]s) AS %[2]s FROM %[3]s GROUP BY %[1]s", prams["x"], prams["y"], tablename))
+	rows, e1 := DB.SQL.Query(fmt.Sprintf("SELECT %[1]s, SUM(%[2]s) AS %[2]s FROM %[3]s GROUP BY %[1]s", prams["x"], prams["y"], tablename))
 	// You may think the above might have some security downsides, It could but what you
 	// are proabs thinking is not true, if a user wants to SQL inject as any of the %s's
 	// then the table col name will also have to be the SQLi, and frankly, if a user
@@ -417,12 +417,12 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 		return
 	}
 
-	tablename, e := getRealTableName(prams["id"], Database.DB, res)
+	tablename, e := getRealTableName(prams["id"], DB.SQL, res)
 	if e != nil {
 		return
 	}
 
-	cls := FetchTableCols(prams["id"], Database.DB)
+	cls := FetchTableCols(prams["id"], DB.SQL)
 	// Now we need to check that the rows that the client is asking for, are in the table.
 	Valid := false
 	for _, clm := range cls {
@@ -444,7 +444,7 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 		http.Error(res, "Col Y is invalid.", http.StatusBadRequest)
 		return
 	}
-	rows, e1 := Database.DB.Query("SELECT $1, $2 FROM $3", prams["x"], prams["y"], tablename)
+	rows, e1 := DB.SQL.Query("SELECT $1, $2 FROM $3", prams["x"], prams["y"], tablename)
 
 	if e1 != nil {
 		http.Error(res, "Could not query the data FROM the datastore", http.StatusInternalServerError)
@@ -502,12 +502,12 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 		return
 	}
 
-	tablename, e := getRealTableName(prams["id"], Database.DB, res)
+	tablename, e := getRealTableName(prams["id"], DB.SQL, res)
 	if e != nil {
 		return
 	}
 
-	rows, e1 := Database.DB.Query("SELECT * FROM " + tablename)
+	rows, e1 := DB.SQL.Query("SELECT * FROM " + tablename)
 
 	if e1 != nil {
 		http.Error(res, "Could not read that table", http.StatusInternalServerError)
@@ -520,7 +520,7 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 	}
 
 	var DataLength int
-	Database.DB.QueryRow("SELECT COUNT(*) FROM " + tablename).Scan(&DataLength)
+	DB.SQL.QueryRow("SELECT COUNT(*) FROM " + tablename).Scan(&DataLength)
 	RealDL := DataLength
 	if prams["persent"] == "" {
 		DataLength = DataLength / 25
@@ -601,12 +601,12 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		return
 	}
 
-	tablename, e := getRealTableName(prams["id"], Database.DB, res)
+	tablename, e := getRealTableName(prams["id"], DB.SQL, res)
 	if e != nil {
 		return
 	}
 
-	rows, e1 := Database.DB.Query("SELECT * FROM " + tablename)
+	rows, e1 := DB.SQL.Query("SELECT * FROM " + tablename)
 
 	if e1 != nil {
 		http.Error(res, "Could not read that table", http.StatusInternalServerError)
@@ -662,7 +662,7 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 // Turnes the GUID name (the "friendly" name) into the actual table named inside mysql
 func getRealTableName(guid string, database *sql.DB, res http.ResponseWriter) (out string, e error) {
 	var tablename string
-	Database.DB.QueryRow("SELECT TableName FROM priv_onlinedata WHERE GUID = $1 LIMIT 1", guid).Scan(&tablename)
+	DB.SQL.QueryRow("SELECT TableName FROM priv_onlinedata WHERE GUID = $1 LIMIT 1", guid).Scan(&tablename)
 	if tablename == "" {
 		if res != nil {
 			http.Error(res, "Could not find that table", http.StatusNotFound)

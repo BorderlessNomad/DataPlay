@@ -51,7 +51,7 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Par
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
 		return ""
 	}
-	results := FetchTableCols(string(prams["id"]), Database.DB)
+	results := FetchTableCols(string(prams["id"]), DB.SQL)
 
 	returnobj := IdentifyResponce{
 		Cols:    results,
@@ -69,7 +69,7 @@ func FetchTableCols(guid string, database *sql.DB) (output []ColType) {
 	}
 
 	var tablename string
-	tablename, e := getRealTableName(guid, Database.DB, nil)
+	tablename, e := getRealTableName(guid, DB.SQL, nil)
 	if e != nil {
 		return output
 	}
@@ -82,7 +82,7 @@ func FetchTableCols(guid string, database *sql.DB) (output []ColType) {
 func GetSQLTableSchema(table string) []ColType {
 	schema := make([]ColType, 0) // Setup the array that I will be append()ing to.
 
-	rows, e := Database.DB.Query("SELECT column_name, data_type FROM information_schema.columns WHERE table_catalog = 'dataplay' AND table_name = $1", table)
+	rows, e := DB.SQL.Query("SELECT column_name, data_type FROM information_schema.columns WHERE table_catalog = 'dataplay' AND table_name = $1", table)
 
 	if e == nil {
 		for rows.Next() {
@@ -127,13 +127,13 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 	}
 
 	var tablename string
-	Database.DB.QueryRow("SELECT TableName FROM priv_onlinedata WHERE GUID = $1 LIMIT 1", prams["table"]).Scan(&tablename)
+	DB.SQL.QueryRow("SELECT TableName FROM priv_onlinedata WHERE GUID = $1 LIMIT 1", prams["table"]).Scan(&tablename)
 	if tablename == "" {
 		http.Error(res, "Could not find that table", http.StatusNotFound)
 		return ""
 	}
 
-	rows, e := Database.DB.Query("SELECT column_name, data_type FROM information_schema.columns WHERE table_catalog = 'dataplay' AND table_name = $1", tablename)
+	rows, e := DB.SQL.Query("SELECT column_name, data_type FROM information_schema.columns WHERE table_catalog = 'dataplay' AND table_name = $1", tablename)
 	if e != nil {
 		http.Error(res, "Uhh, That table does not seem to acutally exist. This really should not happen. Check if someone have been messing around in the Database.", http.StatusBadRequest)
 		return ""
@@ -144,7 +144,7 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 		// and check what the data looks like
 		// What that means for now is I am going to try and convert them all to ints and see if any of them breaks, If they do not, then I will suggest
 		// that they be ints!
-		rows, e := Database.DB.Query("SELECT $1 FROM $2", prams["col"], tablename)
+		rows, e := DB.SQL.Query("SELECT $1 FROM $2", prams["col"], tablename)
 		if e == nil {
 			for rows.Next() {
 				var TestSubject string
@@ -182,13 +182,13 @@ func CheckIfColExists(rows *sql.Rows, column string) bool {
 // Unfinished function
 func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
 	// m.Get("/api/findmatches/:id/:x/:y", api.AttemptToFindMatches)
-	RealTableName, e := getRealTableName(prams["id"], Database.DB, res)
+	RealTableName, e := getRealTableName(prams["id"], DB.SQL, res)
 	if e != nil {
 		http.Error(res, "Could not find that table", http.StatusInternalServerError)
 		return ""
 	}
 
-	rows, e := Database.DB.Query("SELECT column_name, data_type FROM information_schema.columns WHERE table_catalog = 'dataplay' AND table_name = $1", RealTableName)
+	rows, e := DB.SQL.Query("SELECT column_name, data_type FROM information_schema.columns WHERE table_catalog = 'dataplay' AND table_name = $1", RealTableName)
 	if e != nil {
 		http.Error(res, "Uhh, That table does not seem to acutally exist. This really should not happen. Check if someone have been messing around in the Database.", http.StatusBadRequest)
 		return ""
@@ -201,7 +201,7 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 
 	// Now we need to check if it exists in the stats table. so we can compare its poly to other poly's
 	HitCount := 0
-	Database.DB.QueryRow("SELECT COUNT(*) FROM priv_statcheck WHERE table = $1 AND x = $2 AND y = $3", RealTableName, prams["x"], prams["y"]).Scan(&HitCount)
+	DB.SQL.QueryRow("SELECT COUNT(*) FROM priv_statcheck WHERE table = $1 AND x = $2 AND y = $3", RealTableName, prams["x"], prams["y"]).Scan(&HitCount)
 
 	if HitCount == 0 {
 		http.Error(res, "Cannot find the poly code for that table x and y combo. It's probs not there because its not possible", http.StatusBadRequest)
@@ -211,7 +211,7 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 	var id int = 0
 	var table, x, y, p1, p2, p3, xstart, xend string
 
-	Database.DB.QueryRow("SELECT * FROM priv_statcheck WHERE table = $1 AND x = $2 AND y = $3 LIMIT 1", RealTableName, prams["x"], prams["y"]).Scan(&id, &table, &x, &y, &p1, &p2, &p3, &xstart, &xend)
+	DB.SQL.QueryRow("SELECT * FROM priv_statcheck WHERE table = $1 AND x = $2 AND y = $3 LIMIT 1", RealTableName, prams["x"], prams["y"]).Scan(&id, &table, &x, &y, &p1, &p2, &p3, &xstart, &xend)
 	Logger.Println(id, table, x, y, p1, p2, p3, xstart, xend)
 
 	return "wat"
@@ -228,7 +228,7 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini
 	var name string
 	var count int = 0
 	if prams["x"] != "" {
-		rows, e := Database.DB.Query("SELECT tablename, count FROM priv_stringsearch WHERE x = $1 AND value = $2", prams["x"], prams["word"])
+		rows, e := DB.SQL.Query("SELECT tablename, count FROM priv_stringsearch WHERE x = $1 AND value = $2", prams["x"], prams["word"])
 		if e != nil {
 			http.Error(res, "SQL error", http.StatusInternalServerError)
 			return ""
@@ -244,7 +244,7 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini
 			Results = append(Results, temp)
 		}
 	} else {
-		rows, e := Database.DB.Query("SELECT tablename, count FROM priv_stringsearch WHERE value = $1", prams["word"])
+		rows, e := DB.SQL.Query("SELECT tablename, count FROM priv_stringsearch WHERE value = $1", prams["word"])
 		if e != nil {
 			http.Error(res, "SQL error", http.StatusInternalServerError)
 			return ""
@@ -269,7 +269,7 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini
 }
 
 func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	RealTableName, e := getRealTableName(prams["guid"], Database.DB, res)
+	RealTableName, e := getRealTableName(prams["guid"], DB.SQL, res)
 	if e != nil {
 		http.Error(res, "Could not find that table", http.StatusInternalServerError)
 		return ""
@@ -294,7 +294,7 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 	checkingdict := make(map[string]int)
 
 	for _, v := range jobs {
-		q, e := Database.DB.Query("SELECT $1 FROM $2", v.X, v.TableName)
+		q, e := DB.SQL.Query("SELECT $1 FROM $2", v.X, v.TableName)
 
 		if e != nil {
 			http.Error(res, "Could not read from target table", http.StatusInternalServerError)
@@ -325,10 +325,10 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 		}
 
 		var cnt int
-		e := Database.DB.QueryRow("SELECT COUNT(*) FROM priv_stringsearch WHERE value = $1 LIMIT 1", v.value).Scan(&cnt)
+		e := DB.SQL.QueryRow("SELECT COUNT(*) FROM priv_stringsearch WHERE value = $1 LIMIT 1", v.value).Scan(&cnt)
 		if e == nil && cnt != 0 {
 			tablelist := make([]string, 0)
-			r, e := Database.DB.Query("SELECT priv_onlinedata.GUID FROM priv_stringsearch, priv_onlinedata, index WHERE (value = $1) AND priv_stringsearch.tablename = priv_onlinedata.TableName AND priv_onlinedata.GUID = index.GUID AND priv_stringsearch.count > 5", v.value)
+			r, e := DB.SQL.Query("SELECT priv_onlinedata.GUID FROM priv_stringsearch, priv_onlinedata, index WHERE (value = $1) AND priv_stringsearch.tablename = priv_onlinedata.TableName AND priv_onlinedata.GUID = index.GUID AND priv_stringsearch.count > 5", v.value)
 			if e != nil {
 				http.Error(res, "Could not read off data lookups", http.StatusInternalServerError)
 				return ""

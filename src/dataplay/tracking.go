@@ -11,7 +11,7 @@ import (
 func GetLastVisited(rw http.ResponseWriter, req *http.Request) string {
 	if GetUserID(rw, req) != 0 {
 		value := string(GetUserID(rw, req))
-		rows, e := Database.DB.Query("SELECT DISTINCT(guid), (SELECT Title FROM index WHERE index.GUID = priv_tracking.guid LIMIT 1 ) as a FROM priv_tracking WHERE user = $1 ORDER BY id DESC LIMIT 5", value)
+		rows, e := DB.SQL.Query("SELECT DISTINCT(guid), (SELECT Title FROM index WHERE index.GUID = priv_tracking.guid LIMIT 1 ) as a FROM priv_tracking WHERE user = $1 ORDER BY id DESC LIMIT 5", value)
 
 		result := make([][]string, 0)
 
@@ -23,7 +23,7 @@ func GetLastVisited(rw http.ResponseWriter, req *http.Request) string {
 
 				rows.Scan(&guid, &title)
 
-				r := HasTableGotLocationData(guid, Database.DB)
+				r := HasTableGotLocationData(guid, DB.SQL)
 				result2 := []string{
 					guid,
 					title,
@@ -46,7 +46,7 @@ func GetLastVisited(rw http.ResponseWriter, req *http.Request) string {
 }
 
 func HasTableGotLocationData(datasetGUID string, database *sql.DB) string {
-	cols := FetchTableCols(datasetGUID, Database.DB)
+	cols := FetchTableCols(datasetGUID, DB.SQL)
 
 	if containsTableCol(cols, "lat") && (containsTableCol(cols, "lon") || containsTableCol(cols, "long")) {
 		return "true"
@@ -66,7 +66,7 @@ func containsTableCol(cols []ColType, target string) bool {
 }
 
 func TrackVisited(guid string, user string) {
-	_, e := Database.DB.Exec("INSERT INTO priv_tracking (user, guid) VALUES ($1, $2)", user, guid)
+	_, e := DB.SQL.Exec("INSERT INTO priv_tracking (user, guid) VALUES ($1, $2)", user, guid)
 	if e != nil {
 		Logger.Println(e)
 	}
