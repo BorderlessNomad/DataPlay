@@ -45,3 +45,14 @@ func handleLoggedOut(t *testing.T) {
 		So(response.Code, ShouldEqual, http.StatusOK)
 	})
 }
+
+func TestRandString(t *testing.T) {
+	result := randString(5)
+
+	Convey("When Random String length is 5", t, func() {
+		So(len(result), ShouldEqual, 5)
+		So(len(result), ShouldNotEqual, 6)
+		So(result, ShouldNotContainSubstring, "!")
+
+	})
+}
