@@ -10,6 +10,7 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/martini" // Worked at 890a2a52d2e59b007758538f9b845fa0ed7daccb
+	// "github.com/jinzhu/gorm"
 	"log"
 	"net/http"
 	"net/url"
@@ -54,17 +55,14 @@ func main() {
 	m.Get("/", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
 		checkAuth(res, req)
 
-		var uid, username string
-		uid = fmt.Sprint(GetUserID(res, req))
-
-		// Get the user's email
-		err := DB.SQL.QueryRow("SELECT email FROM priv_users WHERE uid = $1", uid).Scan(&username)
+		user := User{}
+		err := DB.Select("email").Where("uid = ?", GetUserID(res, req)).Find(&user).Error
 		if err != nil {
 			panic(err)
 		}
 
 		custom := map[string]string{
-			"username": username,
+			"username": user.Email,
 		}
 
 		renderTemplate("public/home.html", custom, res)
@@ -73,6 +71,7 @@ func main() {
 	m.Get("/login", func(res http.ResponseWriter, req *http.Request) {
 		failedstr := ""
 		queryprams, _ := url.ParseQuery(req.URL.String())
+
 		if queryprams.Get("/login?failed") != "" {
 			failedstr = "Incorrect User Name or Password" // They are wrong
 			if queryprams.Get("/login?failed") == "2" {

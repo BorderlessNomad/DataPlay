@@ -52,6 +52,10 @@ func (self *Database) Connect() (err error) {
 	DB.DB().SetMaxOpenConns(100)
 	DB.DB().Ping()
 
+	/* Debug */
+	DB.LogMode(true)
+	// DB.SetLogger(gorm.Logger{revel.TRACE})
+
 	self.DB = &DB      // GORM *gorm.DB
 	self.SQL = DB.DB() // Backward compatible *sql.DB
 

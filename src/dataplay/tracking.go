@@ -9,9 +9,32 @@ import (
 )
 
 func GetLastVisited(rw http.ResponseWriter, req *http.Request) string {
-	if GetUserID(rw, req) != 0 {
-		value := string(GetUserID(rw, req))
-		rows, e := DB.SQL.Query("SELECT DISTINCT(guid), (SELECT Title FROM index WHERE index.GUID = priv_tracking.guid LIMIT 1 ) as a FROM priv_tracking WHERE user = $1 ORDER BY id DESC LIMIT 5", value)
+	uid := GetUserID(rw, req)
+
+	if uid != 0 {
+
+		query := `
+		SELECT
+			DISTINCT(t.guid),
+			t.id,
+			(
+				SELECT
+					i.title
+				FROM
+					index as i
+				WHERE
+					i.guid = t.guid
+				LIMIT 1
+			) as title
+		FROM
+			priv_tracking as t
+		WHERE
+			t.user = $1
+		ORDER BY
+			t.id DESC
+		LIMIT 5`
+
+		rows, e := DB.SQL.Query(query, uid)
 
 		result := make([][]string, 0)
 
