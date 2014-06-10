@@ -81,9 +81,12 @@ func handleLoginValidDataMD5(t *testing.T) {
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
 	response := httptest.NewRecorder()
 
+	//switch password to MD5
+	Database.DB.Exec("UPDATE `DataCon`.`priv_users` SET `password`= ? WHERE `email`=?", "e10adc3949ba59abbe56e057f20f883e", "glyn@dataplay.com")
+
 	HandleLogin(response, request)
 
-	Convey("When Correct data is provided but user has MD5 password", func() {
+	Convey("When user has old MD5 password", func() {
 		So(response.Code, ShouldEqual, http.StatusFound)
 	})
 }
