@@ -25,7 +25,7 @@ type AuthHandler struct {
 	Users map[string]string
 }
 
-var DB database.DB
+var DB database.Database
 
 /**
  * @details Application bootstrap
@@ -40,7 +40,7 @@ func main() {
 	e := DB.Connect()
 	if e == nil {
 		/* Database connection will be closed only when Server closes */
-		defer Database.DB.Close()
+		defer DB.Close()
 		fmt.Println("[Init] ---[ Welcome to DataCon Server ]---")
 	} else {
 		panic(fmt.Sprintf("[database] Unable to connect to the Database: %s\n", e))
