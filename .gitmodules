@@ -1,3 +1,0 @@
-[submodule "public/lib/openlayers"]
-	path = public/lib/openlayers
-	url = git://github.com/openlayers/openlayers.git
