@@ -10,7 +10,6 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/martini" // Worked at 890a2a52d2e59b007758538f9b845fa0ed7daccb
-	// "github.com/jinzhu/gorm"
 	"log"
 	"net/http"
 	"net/url"

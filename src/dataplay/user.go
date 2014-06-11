@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"github.com/jinzhu/gorm"
 	"net/http"
 )
 
@@ -37,7 +38,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	password := req.FormValue("password")
 
 	user := User{}
-	err := DB.Select("password").Where("email = ?", username).Find(&user).Error
+	err := DB.Select("uid, email, password").Where("email = ?", username).Find(&user).Error
 	check(err)
 
 	if user.Password != "" && bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) == nil { // Check the password with bcrypt
@@ -53,18 +54,15 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	} else {
 		// Just in the case that the user is on a really old MD5 password (useful for admins resetting passwords too) check
 		count := 0
-		err := DB.Count(&count).Where("email = ?", username).Where("password = ?", GetMD5Hash(password)).Find(&user).Error
+		err := DB.Model(&user).Where("password = ?", GetMD5Hash(password)).Count(&count).Error
 		check(err)
 
 		if count != 0 {
 			// Ooooh, We need to upgrade this password!
-			pwd, e := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+			hashedPassword, e := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 			if e == nil {
-				err1 := DB.Model(&user).Where("email = ?", username).Update("password", pwd).Error
-				check(err1)
-
-				err2 := DB.Select("uid").Where("email = ?", username).First(&user).Error
-				check(err2)
+				err := DB.Model(&user).Update("password", string(hashedPassword)).Error
+				check(err)
 
 				if SetSession(res, req, user.Uid) != nil {
 					http.Error(res, "Could not setup session.", http.StatusInternalServerError)
@@ -92,31 +90,27 @@ func HandleRegister(res http.ResponseWriter, req *http.Request) string {
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 
-	rows, e := DB.SQL.Query("SELECT COUNT(*) FROM priv_users WHERE email = $1 LIMIT 1", username)
-	check(e)
-	rows.Next()
-
-	var doesusrexist int
-	e = rows.Scan(&doesusrexist)
-
-	if doesusrexist == 0 {
-		pwd, e := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-		if e != nil {
-			return "The password you entered is invalid."
-		}
-
-		r, e := DB.SQL.Exec("INSERT INTO priv_users (email, password) VALUES ($1, '$2');", username, pwd)
-		if e != nil {
-			return "Could not make the user you requested."
-		}
-
-		newid, _ := r.LastInsertId()
-		SetSession(res, req, int(newid))
-
-		http.Redirect(res, req, "/", http.StatusFound)
-		return ""
-	} else {
+	user := User{}
+	err := DB.Where("email = ?", username).First(&user).Error
+	if err != gorm.RecordNotFound {
 		http.Error(res, "That username is already registered.", http.StatusConflict)
 		return "That username is already registered."
 	}
+
+	hashedPassword, err1 := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err1 != nil {
+		return "The password you entered is invalid."
+	}
+
+	user.Email = username
+	user.Password = string(hashedPassword)
+	err2 := DB.Save(&user).Error
+	if err2 != nil {
+		return "Could not make the user you requested."
+	}
+
+	SetSession(res, req, user.Uid)
+
+	http.Redirect(res, req, "/", http.StatusFound)
+	return ""
 }
