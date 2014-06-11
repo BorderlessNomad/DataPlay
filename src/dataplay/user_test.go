@@ -32,12 +32,15 @@ func TestCheckAuth(t *testing.T) {
 func TestHandleLogin(t *testing.T) {
 	Convey("On HTTP Request", t, func() {
 		handleLoginNoData(t)
+	})
+	Convey("On HTTP Request", t, func() {
 		handleLoginInvalidData(t)
+	})
+	Convey("On HTTP Request", t, func() {
 		handleLoginValidData(t)
+	})
+	Convey("On HTTP Request", t, func() {
 		handleLoginValidDataMD5(t)
-		/**
-		* @todo Write some more test-cases to improve coverage
-		 */
 	})
 }
 
@@ -105,8 +108,10 @@ func TestHandleLogout(t *testing.T) {
 }
 
 func TestHandleRegister(t *testing.T) {
-	Convey("On HTTP Request", t, func() {
+	Convey("On HTTP Request 1", t, func() {
 		handleRegisterValidData(t)
+	})
+	Convey("On HTTP Request 2", t, func() {
 		handleRegisterExisitingData(t)
 	})
 }
