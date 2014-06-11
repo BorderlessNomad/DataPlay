@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-type CheckImportResponce struct {
+type ImportResponce struct {
 	State   string
 	Request string
 }
@@ -18,21 +18,22 @@ func CheckImportStatus(res http.ResponseWriter, req *http.Request, prams martini
 		return ""
 	}
 
-	var count int
-	DB.SQL.QueryRow("SELECT COUNT(*) FROM priv_onlinedata WHERE GUID = $1", prams["id"]).Scan(&count)
-	var state string
+	onlinedata := OnlineData{}
+	count := 0
+	err := DB.Model(&onlinedata).Where("guid = ?", prams["id"]).Count(&count).Error
+	check(err)
 
-	if count != 0 { // If we have any hits from that query then we have that dataset in the system
+	state := "offline"
+	if count != 0 {
 		state = "online"
-	} else {
-		state = "offline"
 	}
 
-	returnobj := CheckImportResponce{
+	result := ImportResponce{
 		State:   state,
 		Request: prams["id"],
 	}
-	b, _ := json.Marshal(returnobj)
+
+	b, _ := json.Marshal(result)
 
 	return string(b)
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/codegangsta/martini"
+	"github.com/jinzhu/gorm"
 	"net/http"
 )
 
@@ -16,7 +17,9 @@ func SetDefaults(res http.ResponseWriter, req *http.Request, prams martini.Param
 
 	jsondata := req.FormValue("data")
 
-	DB.SQL.Exec("UPDATE priv_onlinedata SET Defaults = $1 WHERE GUID = $2 LIMIT 1", jsondata, prams["id"])
+	onlinedata := OnlineData{}
+	err := DB.Model(&onlinedata).Where("guid = ?", prams["id"]).UpdateColumn("defaults", jsondata).Error
+	check(err)
 
 	return "{\"result\":\"OK\"}"
 }
@@ -28,9 +31,17 @@ func GetDefaults(res http.ResponseWriter, req *http.Request, prams martini.Param
 		return ""
 	}
 
-	rows := DB.SQL.QueryRow("SELECT Defaults FROM priv_onlinedata WHERE GUID = $1 LIMIT 1", prams["id"])
-	var output string
-	rows.Scan(&output)
+	var d string
 
-	return output
+	onlinedata := OnlineData{}
+	err := DB.Select("defaults").Where("guid = ?", prams["id"]).First(&onlinedata).Error
+	if err == gorm.RecordNotFound {
+		d = "{}"
+	} else if err == nil {
+		d = onlinedata.Defaults
+	} else {
+		panic(err)
+	}
+
+	return d
 }

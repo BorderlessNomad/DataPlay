@@ -9,16 +9,6 @@ import (
 	"net/http"
 )
 
-type User struct {
-	Uid      int `primaryKey:"yes"`
-	Email    string
-	Password string
-}
-
-func (u User) TableName() string {
-	return "priv_users"
-}
-
 func GetMD5Hash(text string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(text))

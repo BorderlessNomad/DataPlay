@@ -8,29 +8,6 @@ import (
 	"strings"
 )
 
-type Tracking struct {
-	Id   int `primaryKey:"yes"`
-	User string
-	Guid string
-}
-
-func (t Tracking) TableName() string {
-	return "priv_tracking"
-}
-
-type Index struct {
-	Guid    int `primaryKey:"yes"`
-	Name    string
-	Title   string
-	Notes   string
-	CkanUrl string
-	Owner   int
-}
-
-func (i Index) TableName() string {
-	return "index"
-}
-
 func GetLastVisited(res http.ResponseWriter, req *http.Request) string {
 	uid := GetUserID(res, req)
 	data := make([][]string, 0)
@@ -42,7 +19,7 @@ func GetLastVisited(res http.ResponseWriter, req *http.Request) string {
 			Title string
 		}{}
 
-		err := DB.Select("DISTINCT(priv_tracking.guid), priv_tracking.id, (SELECT index.title FROM index WHERE index.guid = priv_tracking.guid LIMIT 1) as title").Where("priv_tracking.user = ?", uid).Order("priv_tracking.id desc").Limit(5).Find(&results).Error
+		err := DB.Select("DISTINCT ON (priv_tracking.guid) guid, priv_tracking.id, (SELECT index.title FROM index WHERE index.guid = priv_tracking.guid LIMIT 1) as title").Where("priv_tracking.user = ?", uid).Order("guid desc").Order("priv_tracking.id desc").Limit(5).Find(&results).Error
 		if err != nil {
 			panic(err)
 		}
