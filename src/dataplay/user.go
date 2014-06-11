@@ -38,13 +38,10 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	password := req.FormValue("password")
 
 	user := User{}
-	err := DB.Select("uid, email, password").Where("email = ?", username).Find(&user).Error
+	err := DB.Where("email = ?", username).Find(&user).Error
 	check(err)
 
 	if user.Password != "" && bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) == nil { // Check the password with bcrypt
-		err := DB.Select("uid").Where("email = ?", username).Find(&user).Error
-		check(err)
-
 		if SetSession(res, req, user.Uid) != nil {
 			http.Error(res, "Could not setup session.", http.StatusInternalServerError)
 			return

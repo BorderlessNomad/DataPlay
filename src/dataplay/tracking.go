@@ -3,69 +3,65 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
+	// "fmt"
 	"net/http"
 	"strings"
 )
 
-func GetLastVisited(rw http.ResponseWriter, req *http.Request) string {
-	uid := GetUserID(rw, req)
+type Tracking struct {
+	Id   int `primaryKey:"yes"`
+	User string
+	Guid string
+}
+
+func (t Tracking) TableName() string {
+	return "priv_tracking"
+}
+
+type Index struct {
+	Guid    int `primaryKey:"yes"`
+	Name    string
+	Title   string
+	Notes   string
+	CkanUrl string
+	Owner   int
+}
+
+func (i Index) TableName() string {
+	return "index"
+}
+
+func GetLastVisited(res http.ResponseWriter, req *http.Request) string {
+	uid := GetUserID(res, req)
+	data := make([][]string, 0)
 
 	if uid != 0 {
+		/* Anonymous struct for storing results */
+		results := []struct {
+			Tracking
+			Title string
+		}{}
 
-		query := `
-		SELECT
-			DISTINCT(t.guid),
-			t.id,
-			(
-				SELECT
-					i.title
-				FROM
-					index as i
-				WHERE
-					i.guid = t.guid
-				LIMIT 1
-			) as title
-		FROM
-			priv_tracking as t
-		WHERE
-			t.user = $1
-		ORDER BY
-			t.id DESC
-		LIMIT 5`
-
-		rows, e := DB.SQL.Query(query, uid)
-
-		result := make([][]string, 0)
-
-		if e == nil {
-			// Read out the rows now we know that nothing went wrong.
-			for rows.Next() {
-				var guid string
-				var title string
-
-				rows.Scan(&guid, &title)
-
-				r := HasTableGotLocationData(guid, DB.SQL)
-				result2 := []string{
-					guid,
-					title,
-					r,
-				}
-
-				result = append(result, result2)
-			}
-
-		} else {
-			fmt.Println(e)
+		err := DB.Select("DISTINCT(priv_tracking.guid), priv_tracking.id, (SELECT index.title FROM index WHERE index.guid = priv_tracking.guid LIMIT 1) as title").Where("priv_tracking.user = ?", uid).Order("priv_tracking.id desc").Limit(5).Find(&results).Error
+		if err != nil {
+			panic(err)
 		}
 
-		b, _ := json.Marshal(result)
+		for _, result := range results {
+			r := HasTableGotLocationData(result.Guid, DB.SQL)
 
-		return (string(b))
+			data = append(data, []string{
+				result.Guid,
+				result.Title,
+				r,
+			})
+		}
 	}
 
-	return ""
+	/* We ALWAYS return something [[], [], ...] or [] */
+	d, _ := json.Marshal(data)
+
+	return string(d)
 }
 
 func HasTableGotLocationData(datasetGUID string, database *sql.DB) string {
@@ -89,10 +85,15 @@ func containsTableCol(cols []ColType, target string) bool {
 }
 
 func TrackVisited(guid string, user string) {
-	_, e := DB.SQL.Exec("INSERT INTO priv_tracking (user, guid) VALUES ($1, $2)", user, guid)
-	if e != nil {
-		Logger.Println(e)
+	tracking := Tracking{
+		User: user,
+		Guid: guid,
 	}
 
-	Logger.Println("Tracking page hit to ", guid, "by", user)
+	err := DB.Save(&tracking).Error
+	if err != nil {
+		Logger.Println(err)
+	}
+
+	Logger.Println("Tracking page hit to:", tracking.Guid, "by user:", tracking.User)
 }

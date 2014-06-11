@@ -55,7 +55,7 @@ func main() {
 		checkAuth(res, req)
 
 		user := User{}
-		err := DB.Select("email").Where("uid = ?", GetUserID(res, req)).Find(&user).Error
+		err := DB.Where("uid = ?", GetUserID(res, req)).Find(&user).Error
 		if err != nil {
 			panic(err)
 		}
