@@ -347,7 +347,7 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 	return string(b)
 }
 
-func stringInSlice(a string, list []string) bool {
+func StringInSlice(a string, list []string) bool {
 	for _, b := range list {
 		if b == a {
 			return true
