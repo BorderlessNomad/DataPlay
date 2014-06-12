@@ -113,14 +113,14 @@ func TestGetCSV(t *testing.T) {
 		"y": "",
 	}
 
-	DumpTableRange(response,request,prams)
+	GetCSV(response,request,prams)
 	Convey("When no x or y parameters are provided", t, func() {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	prams["id"]= ""
 
-	DumpTableRange(response,request,prams)
+	GetCSV(response,request,prams)
 	Convey("When no ID parameter is provided", t, func() {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})

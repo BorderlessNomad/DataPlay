@@ -46,6 +46,18 @@ func handleLoggedOut(t *testing.T) {
 	})
 }
 
+func TestClearSession(t *testing.T) {
+	request, _ := http.NewRequest("GET", "/", nil)
+	response := httptest.NewRecorder()
+
+	e_return := ClearSession(response, request)
+
+	Convey("When there is no cookie to be found", t, func() {
+		So(e_return, ShouldEqual, "No cookie found")
+	})
+
+}
+
 func TestRandString(t *testing.T) {
 	result := randString(5)
 

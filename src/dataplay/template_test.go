@@ -6,6 +6,14 @@ import (
 	"testing"
 )
 
+func TestApplyTemplate(t *testing.T) {
+	response := httptest.NewRecorder()
+
+	Convey("On page template apply", t, func() {
+		ApplyTemplate("test", "test", response)
+	})
+}
+
 func TestRenderTemplate(t *testing.T) {
 	response := httptest.NewRecorder()
 	custom := map[string]string{"test" : "test"}
