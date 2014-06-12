@@ -72,5 +72,5 @@ func TrackVisited(guid string, user string) {
 		Logger.Println(err)
 	}
 
-	Logger.Println("Tracking page hit to:", tracking.Guid, "by user:", tracking.User)
+	Logger.Println("Tracking page hit to:", tracking.Guid, "by user:", tracking.User, "[ #", tracking.Id, "]")
 }

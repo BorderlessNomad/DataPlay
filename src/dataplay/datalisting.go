@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/codegangsta/martini"
+	"github.com/jinzhu/gorm"
 	"io"
 	"net/http"
 	"strconv"
@@ -212,7 +213,7 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 		}
 	}
 
-	tablename, e := getRealTableName(prams["id"], DB.SQL, res)
+	tablename, e := getRealTableName(prams["id"], res)
 	if e != nil {
 		return
 	}
@@ -269,7 +270,7 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 		return
 	}
 
-	tablename, e := getRealTableName(prams["id"], DB.SQL, res)
+	tablename, e := getRealTableName(prams["id"], res)
 	if e != nil {
 		return
 	}
@@ -335,7 +336,7 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 		return
 	}
 
-	tablename, e := getRealTableName(prams["id"], DB.SQL, res)
+	tablename, e := getRealTableName(prams["id"], res)
 	if e != nil {
 		return
 	}
@@ -417,7 +418,7 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 		return
 	}
 
-	tablename, e := getRealTableName(prams["id"], DB.SQL, res)
+	tablename, e := getRealTableName(prams["id"], res)
 	if e != nil {
 		return
 	}
@@ -502,7 +503,7 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 		return
 	}
 
-	tablename, e := getRealTableName(prams["id"], DB.SQL, res)
+	tablename, e := getRealTableName(prams["id"], res)
 	if e != nil {
 		return
 	}
@@ -601,7 +602,7 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		return
 	}
 
-	tablename, e := getRealTableName(prams["id"], DB.SQL, res)
+	tablename, e := getRealTableName(prams["id"], res)
 	if e != nil {
 		return
 	}
@@ -659,17 +660,24 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 	res.Write([]byte(output))
 }
 
-// Turnes the GUID name (the "friendly" name) into the actual table named inside mysql
-func getRealTableName(guid string, database *sql.DB, res http.ResponseWriter) (out string, e error) {
-	var tablename string
-	DB.SQL.QueryRow("SELECT TableName FROM priv_onlinedata WHERE GUID = $1 LIMIT 1", guid).Scan(&tablename)
-	if tablename == "" {
+/**
+ * @brief Converts GUID ('friendly' name) into actual table inside database
+ *
+ * @param string GUID
+ * @param http http.ResponseWriter
+ *
+ * @return string output, error
+ */
+func getRealTableName(guid string, res ...http.ResponseWriter) (out string, e error) {
+	data := OnlineData{}
+	err := DB.Select("tablename").Where("guid = ?", guid).Find(&data).Error
+	if err == gorm.RecordNotFound {
 		if res != nil {
-			http.Error(res, "Could not find that table", http.StatusNotFound)
+			http.Error(res[0], "Could not find that table", http.StatusNotFound)
 		}
 
 		return "", fmt.Errorf("Could not find table")
 	}
 
-	return tablename, e
+	return data.Tablename, err
 }
