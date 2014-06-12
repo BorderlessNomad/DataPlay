@@ -27,7 +27,7 @@ func ApplyTemplate(FileName string, Inject string, res http.ResponseWriter) {
 	t.Execute(res, Inject)
 }
 
-func renderTemplate(fileName string, custom map[string]string, res http.ResponseWriter) {
+func RenderTemplate(fileName string, custom map[string]string, res http.ResponseWriter) {
 	p := &Page{
 		Header: h,
 		Navbar: n,
