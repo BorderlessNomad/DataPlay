@@ -47,13 +47,13 @@ func GetLastVisited(rw http.ResponseWriter, req *http.Request) string {
 func HasTableGotLocationData(datasetGUID string, database *sql.DB) string {
 	cols := FetchTableCols(datasetGUID, Database.DB)
 
-	if containsTableCol(cols, "lat") && (containsTableCol(cols, "lon") || containsTableCol(cols, "long")) {
+	if ContainsTableCol(cols, "lat") && (ContainsTableCol(cols, "lon") || ContainsTableCol(cols, "long")) {
 		return "true"
 	}
 	return "false"
 }
 
-func containsTableCol(cols []ColType, target string) bool {
+func ContainsTableCol(cols []ColType, target string) bool {
 	for _, v := range cols {
 		if strings.ToLower(v.Name) == target {
 			return true
