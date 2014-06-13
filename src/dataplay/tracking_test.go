@@ -31,13 +31,13 @@ func TestGetLastVisited(t *testing.T) {
 }
 
 func TestHasTableGotLocatonData(t *testing.T) {
-	result := HasTableGotLocationData("tweets", DB.SQL)
+	result := HasTableGotLocationData("tweets")
 
 	Convey("Should find Lattitude and Longitude columns in dataset", t, func() {
 		So(result, ShouldEqual, "true")
 	})
 
-	result = HasTableGotLocationData("houseprices", DB.SQL)
+	result = HasTableGotLocationData("houseprices")
 
 	Convey("Should not find Lattitude and Longitude columns in dataset", t, func() {
 		So(result, ShouldEqual, "false")

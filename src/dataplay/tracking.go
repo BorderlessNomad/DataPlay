@@ -1,9 +1,7 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
-	// "fmt"
 	"net/http"
 	"strings"
 )
@@ -20,12 +18,11 @@ func GetLastVisited(res http.ResponseWriter, req *http.Request) string {
 		}{}
 
 		err := DB.Select("DISTINCT ON (priv_tracking.guid) guid, priv_tracking.id, (SELECT index.title FROM index WHERE index.guid = priv_tracking.guid LIMIT 1) as title").Where("priv_tracking.user = ?", uid).Order("guid desc").Order("priv_tracking.id desc").Limit(5).Find(&results).Error
-		if err != nil {
-			panic(err)
-		}
+
+		check(err)
 
 		for _, result := range results {
-			r := HasTableGotLocationData(result.Guid, DB.SQL)
+			r := HasTableGotLocationData(result.Guid)
 
 			data = append(data, []string{
 				result.Guid,
@@ -41,7 +38,7 @@ func GetLastVisited(res http.ResponseWriter, req *http.Request) string {
 	return string(d)
 }
 
-func HasTableGotLocationData(datasetGUID string, database *sql.DB) string {
+func HasTableGotLocationData(datasetGUID string) string {
 	cols := FetchTableCols(datasetGUID, DB.SQL)
 
 	if ContainsTableCol(cols, "lat") && (ContainsTableCol(cols, "lon") || ContainsTableCol(cols, "long")) {
