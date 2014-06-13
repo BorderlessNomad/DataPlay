@@ -85,7 +85,7 @@ func handleLoginValidDataMD5(t *testing.T) {
 	response := httptest.NewRecorder()
 
 	//switch password to MD5
-	Database.DB.Exec("UPDATE `DataCon`.`priv_users` SET `password`= ? WHERE `email`=?", "e10adc3949ba59abbe56e057f20f883e", "glyn@dataplay.com")
+	DB.SQL.Exec("UPDATE `DataCon`.`priv_users` SET `password`= ? WHERE `email`=?", "e10adc3949ba59abbe56e057f20f883e", "glyn@dataplay.com")
 
 	HandleLogin(response, request)
 
