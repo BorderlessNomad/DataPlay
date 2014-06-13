@@ -24,28 +24,27 @@ func TestGetLastVisited(t *testing.T) {
 		result := GetLastVisited(response, request)
 
 		Convey("Should Logout", func() {
-			So(result, ShouldEqual, "")
+			So(result, ShouldEqual, "[]")
 		})
 	})
 
 }
 
-func TestHasTableGotLocatonData(t *testing.T){
-	result :=HasTableGotLocationData("tweets", Database.DB )
+func TestHasTableGotLocatonData(t *testing.T) {
+	result := HasTableGotLocationData("tweets", DB.SQL)
 
 	Convey("Should find Lattitude and Longitude columns in dataset", t, func() {
 		So(result, ShouldEqual, "true")
 	})
 
-	result = HasTableGotLocationData("houseprices", Database.DB)
+	result = HasTableGotLocationData("houseprices", DB.SQL)
 
 	Convey("Should not find Lattitude and Longitude columns in dataset", t, func() {
 		So(result, ShouldEqual, "false")
 	})
 }
 
-
-func TestContainsTableCol (t *testing.T) {
+func TestContainsTableCol(t *testing.T) {
 	Cols := []ColType{{"X", "0"}, {"Y", "0"}}
 
 	result := ContainsTableCol(Cols, "y")
@@ -62,7 +61,7 @@ func TestContainsTableCol (t *testing.T) {
 }
 
 func TestTrackVisited(t *testing.T) {
-	Convey("Track visited", t , func() {
+	Convey("Track visited", t, func() {
 		TrackVisited("", "")
 	})
 }
