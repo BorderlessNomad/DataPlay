@@ -324,7 +324,7 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 			}
 
 			for _, id := range data {
-				if !stringInSlice(id, tablelist) {
+				if !StringInSlice(id, tablelist) {
 					tablelist = append(tablelist, id)
 				}
 			}

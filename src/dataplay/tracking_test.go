@@ -24,7 +24,7 @@ func TestGetLastVisited(t *testing.T) {
 		result := GetLastVisited(response, request)
 
 		Convey("Should Logout", func() {
-			So(result, ShouldEqual, "")
+			So(result, ShouldEqual, "[]")
 		})
 	})
 
