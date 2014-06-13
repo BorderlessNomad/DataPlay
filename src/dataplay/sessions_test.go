@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"net/http"
 	"net/http/httptest"
@@ -14,7 +15,7 @@ func TestIsUserLoggedIn(t *testing.T) {
 	response := httptest.NewRecorder()
 
 	Convey("On HTTP Request", t, func() {
-		HandleLogin(response, request)
+		// HandleLogin(response, request)
 		handleLoggedIn(t)
 
 		HandleLogout(response, request)
@@ -53,7 +54,7 @@ func TestClearSession(t *testing.T) {
 	e_return := ClearSession(response, request)
 
 	Convey("When there is no cookie to be found", t, func() {
-		So(e_return, ShouldEqual, "No cookie found")
+		So(fmt.Sprintf("%s", e_return), ShouldEqual, "No cookie found")
 	})
 
 }
