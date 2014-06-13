@@ -64,7 +64,7 @@ func main() {
 			"username": user.Email,
 		}
 
-		renderTemplate("public/home.html", custom, res)
+		RenderTemplate("public/home.html", custom, res)
 	})
 
 	m.Get("/login", func(res http.ResponseWriter, req *http.Request) {
@@ -84,7 +84,7 @@ func main() {
 			"fail": failedstr,
 		}
 
-		renderTemplate("public/signin.html", custom, res)
+		RenderTemplate("public/signin.html", custom, res)
 	})
 
 	m.Get("/logout", func(res http.ResponseWriter, req *http.Request) {
@@ -95,7 +95,7 @@ func main() {
 			"fail": failedstr,
 		}
 
-		renderTemplate("public/signin.html", custom, res)
+		RenderTemplate("public/signin.html", custom, res)
 	})
 
 	m.Get("/register", func(res http.ResponseWriter, req *http.Request) {
@@ -104,7 +104,7 @@ func main() {
 			"fail": failedstr,
 		}
 
-		renderTemplate("public/register.html", custom, res)
+		RenderTemplate("public/register.html", custom, res)
 	})
 
 	m.Get("/charts/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
@@ -114,19 +114,19 @@ func main() {
 			TrackVisited(prams["id"], fmt.Sprint(GetUserID(res, req))) // Make sure the tracking module knows about their visit.
 		}
 
-		renderTemplate("public/charts.html", nil, res)
+		RenderTemplate("public/charts.html", nil, res)
 	})
 
 	m.Get("/search/overlay", func(res http.ResponseWriter, req *http.Request) {
 		checkAuth(res, req)
 
-		renderTemplate("public/search.html", nil, res)
+		RenderTemplate("public/search.html", nil, res)
 	})
 
 	m.Get("/overlay/:id", func(res http.ResponseWriter, req *http.Request) {
 		checkAuth(res, req)
 
-		renderTemplate("public/overlay.html", nil, res)
+		RenderTemplate("public/overlay.html", nil, res)
 	})
 
 	m.Get("/overview/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
@@ -135,19 +135,19 @@ func main() {
 			TrackVisited(prams["id"], fmt.Sprint(GetUserID(res, req)))
 		}
 
-		renderTemplate("public/overview.html", nil, res)
+		RenderTemplate("public/overview.html", nil, res)
 	})
 
 	m.Get("/search", func(res http.ResponseWriter, req *http.Request) {
 		checkAuth(res, req)
 
-		renderTemplate("public/search.html", nil, res)
+		RenderTemplate("public/search.html", nil, res)
 	})
 
 	m.Get("/maptest/:id", func(res http.ResponseWriter, req *http.Request) {
 		checkAuth(res, req)
 
-		renderTemplate("public/maptest.html", nil, res)
+		RenderTemplate("public/maptest.html", nil, res)
 	})
 
 	m.Post("/noauth/login.json", HandleLogin)

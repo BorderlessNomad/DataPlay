@@ -8,7 +8,7 @@ var degree = 2
 
 // This function takes in two arrays one with the xArray (xGiven)
 // And one with the y arrray yGiven.
-// You can think of this function as a graph equasion producer.
+// You can think of this function as a graph equation producer.
 //
 //  y |
 //  a |        _-------_-___
@@ -24,10 +24,10 @@ var degree = 2
 func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 	m := len(yGiven)
 	if m != len(xGiven) {
-		return []float64{0, 0, 0} // Send it back, There is nothing sane here.
+		return []float64{0, 0, 0} // Send it back, there is nothing sane here.
 	}
 	if m < 5 {
-		// Prevent the processing of really small datasets, This is becauase there
+		// Prevent the processing of really small datasets, this is because there
 		// appears to be a bug in the libary that will trigger a crash in the go.matrix
 		// if some (small) amount of values are entered. I don't know why this happens
 		// (Otherwise I would have fixed it) but the URL for the github issue is:

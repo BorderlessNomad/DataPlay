@@ -45,3 +45,26 @@ func handleLoggedOut(t *testing.T) {
 		So(response.Code, ShouldEqual, http.StatusOK)
 	})
 }
+
+func TestClearSession(t *testing.T) {
+	request, _ := http.NewRequest("GET", "/", nil)
+	response := httptest.NewRecorder()
+
+	e_return := ClearSession(response, request)
+
+	Convey("When there is no cookie to be found", t, func() {
+		So(e_return, ShouldEqual, "No cookie found")
+	})
+
+}
+
+func TestRandString(t *testing.T) {
+	result := randString(5)
+
+	Convey("When Random String length is 5", t, func() {
+		So(len(result), ShouldEqual, 5)
+		So(len(result), ShouldNotEqual, 6)
+		So(result, ShouldNotContainSubstring, "!")
+
+	})
+}
