@@ -16,7 +16,7 @@ func GetMD5Hash(text string) string {
 }
 
 // Shortcut function that is used to redirect users to the login page if they are not logged in.
-func checkAuth(res http.ResponseWriter, req *http.Request) {
+func CheckAuthRedirect(res http.ResponseWriter, req *http.Request) {
 	if !(IsUserLoggedIn(res, req)) {
 		http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
 		return

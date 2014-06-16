@@ -9,7 +9,7 @@ import (
 )
 
 func TestIdentifyTable(t *testing.T) {
-	request, _ := http.NewRequest("POST", "/", nil)
+	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
 	prams := map[string]string{
 		"id": "",
@@ -22,11 +22,11 @@ func TestIdentifyTable(t *testing.T) {
 	})
 
 	// prams["id"] = "gold"
-	// result = SetDefaults(response, request, prams)
+	// result = IdentifyTable(response, request, prams)
 
 	// Convey("When ID parameter is provided", t, func() {
 	// 	So(result, ShouldNotBeBlank)
-	// 	})
+	// })
 }
 
 func TestAttemptToFindMatches(t *testing.T) {

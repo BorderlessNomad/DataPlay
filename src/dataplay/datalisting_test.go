@@ -30,7 +30,7 @@ import (
 // 	response := httptest.NewRecorder()
 
 // 	Convey("On HTTP Request", t, func() {
-// 		checkAuth(response, request)
+// 		CheckAuthRedirect(response, request)
 
 // 		Convey("When authentication is successful", func() {
 // 			// So(response.Code, ShouldBeIn, []int{200, 201, 301, 302, 303, 307})

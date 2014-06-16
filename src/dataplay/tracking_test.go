@@ -4,20 +4,17 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 )
 
 func TestGetLastVisited(t *testing.T) {
-	request, _ := http.NewRequest("GET", "/", strings.NewReader("user=1&guid=gold"))
-	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
+	request, _ := http.NewRequest("GET", "/", nil)
+	response := httptest.NewRecorder()
 
 	c := &http.Cookie{
 		Name:  "DPSession",
 		Value: "1",
 	}
-
-	response := httptest.NewRecorder()
 
 	Convey("On HTTP Request", t, func() {
 		request.Header.Set("Cookie", c.String())

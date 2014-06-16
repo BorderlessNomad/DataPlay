@@ -10,6 +10,25 @@ import (
 	"time"
 )
 
+func TestCheckAuthRedirect(t *testing.T) {
+	request, _ := http.NewRequest("GET", "/", nil)
+	response := httptest.NewRecorder()
+
+	Convey("On HTTP Request", t, func() {
+		CheckAuthRedirect(response, request)
+
+		Convey("When authentication is successful", func() {
+			// So(response.Code, ShouldBeIn, []int{200, 201, 301, 302, 303, 307})
+			So(response.Code, ShouldEqual, http.StatusTemporaryRedirect)
+		})
+
+		Convey("When authentication is unsuccessful", func() {
+			So(response.Code, ShouldNotBeIn, []int{200, 201})
+			// So(response.Code, ShouldNotEqual, http.StatusTemporaryRedirect)
+		})
+	})
+}
+
 
 func TestHandleLogin(t *testing.T) {
 	Convey("On HTTP Request 1", t, func() {
