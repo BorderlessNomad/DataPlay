@@ -82,7 +82,7 @@ func MakeJobs(database *sql.DB, TableScanTargets []string) (jobs []ScanJob) {
 	return jobs
 }
 
-type IdentifyResponce struct {
+type IdentifyResponse struct {
 	Cols    []ColType
 	Request string
 }

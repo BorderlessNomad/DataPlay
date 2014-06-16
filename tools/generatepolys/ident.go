@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-type IdentifyResponce struct {
+type IdentifyResponse struct {
 	Cols    []ColType
 	Request string
 }

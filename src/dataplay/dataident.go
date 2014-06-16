@@ -15,7 +15,7 @@ type CheckDict struct {
 	Value int
 }
 
-type IdentifyResponce struct {
+type IdentifyResponse struct {
 	Cols    []ColType
 	Request string
 }
@@ -52,7 +52,7 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Par
 	}
 	results := FetchTableCols(string(prams["id"]))
 
-	returnobj := IdentifyResponce{
+	returnobj := IdentifyResponse{
 		Cols:    results,
 		Request: prams["id"],
 	}
