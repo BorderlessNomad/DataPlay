@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-type ImportResponce struct {
+type ImportResponse struct {
 	State   string
 	Request string
 }
@@ -28,7 +28,7 @@ func CheckImportStatus(res http.ResponseWriter, req *http.Request, prams martini
 		state = "online"
 	}
 
-	result := ImportResponce{
+	result := ImportResponse{
 		State:   state,
 		Request: prams["id"],
 	}

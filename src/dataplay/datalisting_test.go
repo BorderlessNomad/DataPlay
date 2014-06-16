@@ -7,6 +7,44 @@ import (
 	"testing"
 )
 
+// func TestCheckAuth(t *testing.T) {
+// 	request, _ := http.NewRequest("POST", "/", strings.NewReader("username=mayur@dataplay.com&password=whoru007"))
+// 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
+// 	response := httptest.NewRecorder()
+
+// 	HandleLogin(response, request)
+// 	prams := map[string]string{
+// 		"s": "",
+// 	}
+
+// 	CheckAuth(response,request,prams)
+
+// 	Convey("When no search parameter is provided", t, func() {
+// 		So(response.Code, ShouldEqual, http.StatusBadRequest)
+// 	})
+
+// }
+
+// func TestCheckAuth(t *testing.T) {
+// 	request, _ := http.NewRequest("GET", "/", nil)
+// 	response := httptest.NewRecorder()
+
+// 	Convey("On HTTP Request", t, func() {
+// 		checkAuth(response, request)
+
+// 		Convey("When authentication is successful", func() {
+// 			// So(response.Code, ShouldBeIn, []int{200, 201, 301, 302, 303, 307})
+// 			So(response.Code, ShouldEqual, http.StatusTemporaryRedirect)
+// 		})
+
+// 		Convey("When authentication is unsuccessful", func() {
+// 			So(response.Code, ShouldNotBeIn, []int{200, 201})
+// 			// So(response.Code, ShouldNotEqual, http.StatusTemporaryRedirect)
+// 		})
+// 	})
+// }
+
+
 func TestSearchForData(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()

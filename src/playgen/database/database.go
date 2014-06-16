@@ -41,6 +41,7 @@ func (self *Database) ParseEnvironment() {
 }
 
 func (self *Database) Connect() (err error) {
+	fmt.Println("Database:", self)
 	DB, err := gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", self.User, self.Pass, self.Host, self.Port, self.Schema))
 	if err != nil {
 		panic(fmt.Sprintf("Error while connecting to Database: '%v'", err))

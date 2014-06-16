@@ -10,49 +10,32 @@ import (
 	"time"
 )
 
-func TestCheckAuth(t *testing.T) {
-	request, _ := http.NewRequest("GET", "/", nil)
-	response := httptest.NewRecorder()
-
-	Convey("On HTTP Request", t, func() {
-		checkAuth(response, request)
-
-		Convey("When authentication is successful", func() {
-			// So(response.Code, ShouldBeIn, []int{200, 201, 301, 302, 303, 307})
-			So(response.Code, ShouldEqual, http.StatusTemporaryRedirect)
-		})
-
-		Convey("When authentication is unsuccessful", func() {
-			So(response.Code, ShouldNotBeIn, []int{200, 201})
-			// So(response.Code, ShouldNotEqual, http.StatusTemporaryRedirect)
-		})
-	})
-}
 
 func TestHandleLogin(t *testing.T) {
-	Convey("On HTTP Request", t, func() {
+	Convey("On HTTP Request 1", t, func() {
 		handleLoginNoData(t)
 	})
-	Convey("On HTTP Request", t, func() {
+	Convey("On HTTP Request 2", t, func() {
 		handleLoginInvalidData(t)
 	})
-	Convey("On HTTP Request", t, func() {
+	Convey("On HTTP Request 3", t, func() {
 		handleLoginValidData(t)
 	})
-	Convey("On HTTP Request", t, func() {
+	Convey("On HTTP Request 4", t, func() {
 		handleLoginValidDataMD5(t)
 	})
 }
 
 func handleLoginNoData(t *testing.T) {
-	// request, _ := http.NewRequest("POST", "/", nil)
+	// request, _ := http.NewRequest("POST", "/", strings.NewReader("username=&password="))
+	// request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
 	// response := httptest.NewRecorder()
 
 	// HandleLogin(response, request)
 
-	Convey("When No data is provided", func() {
-		// So(response.Code, ShouldEqual, http.StatusNotFound)
-	})
+	// Convey("When No data is provided", func() {
+	// 	So(response.Code, ShouldEqual, http.StatusNotFound)
+	// })
 }
 
 func handleLoginInvalidData(t *testing.T) {
@@ -80,17 +63,17 @@ func handleLoginValidData(t *testing.T) {
 }
 
 func handleLoginValidDataMD5(t *testing.T) {
-	// request, _ := http.NewRequest("POST", "/", strings.NewReader("username=glyn@dataplay.com&password=123456"))
-	// request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
-	// response := httptest.NewRecorder()
+	request, _ := http.NewRequest("POST", "/", strings.NewReader("username=glyn@dataplay.com&password=123456"))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
+	response := httptest.NewRecorder()
 
-	// //switch password to MD5
-	// DB.SQL.Exec("UPDATE `DataCon`.`priv_users` SET `password`= ? WHERE `email`=?", "e10adc3949ba59abbe56e057f20f883e", "glyn@dataplay.com")
+	//switch stored password to MD5 version before test
+	DB.Model(&User{}).Where("email = ?", "glyn@dataplay.com").UpdateColumn("password", "e10adc3949ba59abbe56e057f20f883e")
 
-	// HandleLogin(response, request)
+	HandleLogin(response, request)
 
 	Convey("When user has old MD5 password", func() {
-		// So(response.Code, ShouldEqual, http.StatusFound)
+		So(response.Code, ShouldEqual, http.StatusFound)
 	})
 }
 

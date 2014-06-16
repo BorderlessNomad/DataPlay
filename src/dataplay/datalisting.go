@@ -63,7 +63,7 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 		Results = ProcessSearchResults(rows, e, DB.SQL)
 
 		if len(Results) == 0 {
-			Logger.Println("Going 100 persent mad search")
+			Logger.Println("Going 100 percent mad search")
 			query := strings.Replace(prams["s"], " ", "%", -1)
 			rows, e := DB.SQL.Query("SELECT GUID, Title FROM index WHERE LOWER(Title) LIKE LOWER($1) AND (index.Owner = 0 OR index.Owner = $2) LIMIT 10", "%"+query+"%", intuid)
 			Results = ProcessSearchResults(rows, e, DB.SQL)
