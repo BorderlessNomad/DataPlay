@@ -100,7 +100,10 @@ func GetSQLTableSchema(table string, databaseName ...string) []ColType {
 
 	tableSchema := []TableSchema{}
 	err := DB.Select("column_name, data_type").Where("table_catalog = ?", database).Where("table_name = ?", table).Find(&tableSchema).Error
-	check(err)
+
+	if err != gorm.RecordNotFound {
+		check(err)
+	}
 
 	schema := make([]ColType, 0)
 
@@ -252,7 +255,7 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 
 	/* Prepare a job list */
 	for _, bit := range Bits {
-		if bit.Sqltype == "varchar" {
+		if bit.Sqltype == "varchar" || bit.Sqltype == "character varying" {
 			newJob := ScanJob{
 				TableName: RealTableName,
 				X:         bit.Name,
@@ -324,7 +327,7 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 			}
 
 			for _, id := range data {
-				if !stringInSlice(id, tablelist) {
+				if !StringInSlice(id, tablelist) {
 					tablelist = append(tablelist, id)
 				}
 			}
@@ -347,7 +350,7 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 	return string(b)
 }
 
-func stringInSlice(a string, list []string) bool {
+func StringInSlice(a string, list []string) bool {
 	for _, b := range list {
 		if b == a {
 			return true
@@ -370,6 +373,7 @@ func ConvertIntoStructArrayAndSort(input map[string]int) (in []CheckDict) {
 			Key:   k,
 			Value: v,
 		}
+
 		in = append(in, newd)
 	}
 
