@@ -21,7 +21,7 @@ func (t Tracking) TableName() string {
 }
 
 type Index struct {
-	Guid    int `primaryKey:"yes"`
+	Guid    string
 	Name    string
 	Title   string
 	Notes   string
