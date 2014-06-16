@@ -166,12 +166,11 @@ func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) 
 // But due to a obscureity in mysql / go / DB.SQL\sql
 // everything wants to be a []byte. So I just cast them to that
 // then make them strings.
-func scanrow(values []interface{}, columns []string) map[string]interface{} {
-
+func ScanRow(values []interface{}, columns []string) map[string]interface{} {
 	record := make(map[string]interface{})
+
 	for i, col := range values {
 		if col != nil {
-
 			switch t := col.(type) {
 			default:
 				Logger.Printf("Unexpected type %T\n", t)
@@ -259,7 +258,7 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 		if err != nil {
 			panic(err)
 		}
-		record := scanrow(values, columns)
+		record := ScanRow(values, columns)
 		array = append(array, record)
 	}
 	s, _ := json.Marshal(array)
@@ -331,7 +330,7 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 			return
 		}
 		if xvalue >= startx && xvalue <= endx {
-			record := scanrow(values, columns)
+			record := ScanRow(values, columns)
 			array = append(array, record)
 		}
 	}
@@ -413,7 +412,7 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 			panic(err)
 		}
 
-		record := scanrow(values, columns)
+		record := ScanRow(values, columns)
 		array = append(array, record)
 	}
 
@@ -487,7 +486,7 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 			panic(err)
 		}
 
-		record := scanrow(values, columns)
+		record := ScanRow(values, columns)
 		/*Going to if both things are float's else I can't predict them*/
 		f1, e := strconv.ParseFloat(record[columns[0]].(string), 64)
 		if e != nil {
@@ -528,14 +527,20 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 		http.Error(res, "Could not read that table", http.StatusInternalServerError)
 		return
 	}
+
 	columns, e2 := rows.Columns()
 	if e2 != nil {
 		http.Error(res, "Could not read that table", http.StatusInternalServerError)
 		return
 	}
 
-	var DataLength int
-	DB.SQL.QueryRow("SELECT COUNT(*) FROM " + tablename).Scan(&DataLength)
+	DataLength := 0
+	err := DB.Table(tablename).Count(&DataLength).Error
+
+	if err != nil && err != gorm.RecordNotFound {
+		check(err)
+	}
+
 	RealDL := DataLength
 	if prams["persent"] == "" {
 		DataLength = DataLength / 25
@@ -590,7 +595,7 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 		}
 
 		if RowsScanned%DataLength == 0 {
-			record := scanrow(values, columns)
+			record := ScanRow(values, columns)
 			array = append(array, record)
 		}
 
@@ -667,7 +672,7 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		}
 
 		output = output + fmt.Sprintf("\"%s\",\"%s\",%s\n", values[xcol], values[xcol], values[ycol])
-		record := scanrow(values, columns)
+		record := ScanRow(values, columns)
 		array = append(array, record)
 	}
 

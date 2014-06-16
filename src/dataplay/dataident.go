@@ -1,9 +1,7 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
-	// "fmt"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"net/http"
@@ -52,7 +50,7 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Par
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
 		return ""
 	}
-	results := FetchTableCols(string(prams["id"]), DB.SQL)
+	results := FetchTableCols(string(prams["id"]))
 
 	returnobj := IdentifyResponce{
 		Cols:    results,
@@ -64,7 +62,7 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Par
 }
 
 // This fetches a array of all the col names and their types.
-func FetchTableCols(guid string, database *sql.DB) (output []ColType) {
+func FetchTableCols(guid string) (output []ColType) {
 	if guid == "" {
 		return output
 	}

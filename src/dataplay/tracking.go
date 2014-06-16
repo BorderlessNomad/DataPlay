@@ -39,7 +39,7 @@ func GetLastVisited(res http.ResponseWriter, req *http.Request) string {
 }
 
 func HasTableGotLocationData(datasetGUID string) string {
-	cols := FetchTableCols(datasetGUID, DB.SQL)
+	cols := FetchTableCols(datasetGUID)
 
 	if ContainsTableCol(cols, "lat") && (ContainsTableCol(cols, "lon") || ContainsTableCol(cols, "long")) {
 		return "true"
