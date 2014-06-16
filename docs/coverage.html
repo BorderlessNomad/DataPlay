@@ -53,39 +53,39 @@
 		<div id="topbar">
 			<div id="nav">
 				<select id="files">
-				
+
 				<option value="file0">datacon\dataident.go</option>
-				
+
 				<option value="file1">datacon\dataimport.go</option>
-				
+
 				<option value="file2">datacon\datalisting.go</option>
-				
+
 				<option value="file3">datacon\dataqualitychecker.go</option>
-				
+
 				<option value="file4">datacon\defaultmanagment.go</option>
-				
+
 				<option value="file5">datacon\main.go</option>
-				
+
 				<option value="file6">datacon\polynorm.go</option>
-				
+
 				<option value="file7">datacon\template.go</option>
-				
+
 				<option value="file8">datacon\tracking.go</option>
-				
+
 				<option value="file9">datacon\user.go</option>
-				
+
 				</select>
 			</div>
 			<div id="legend">
 				<span>not tracked</span>
-			
+
 				<span class="cov0">not covered</span>
 				<span class="cov8">covered</span>
-			
+
 			</div>
 		</div>
 		<div id="content">
-		
+
 		<pre class="file" id="file0" >package main
 
 import (
@@ -230,7 +230,7 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
         database.QueryRow("SHOW CREATE TABLE "+tablename).Scan(&amp;tablename, &amp;createcode)
         if createcode == "" </span><span class="cov0" title="0">{
                 http.Error(res, `Uhh, That table does not seem to acutally exist.
-                this really should not happen. 
+                this really should not happen.
                 Check if someone have been messing around in the database.`, http.StatusBadRequest)
                 return ""
         }</span>
@@ -484,7 +484,7 @@ func ConvertIntoStructArrayAndSort(input map[string]int) (in []CheckDict) <span 
         return in</span>
 }
 </pre>
-		
+
 		<pre class="file" id="file1" style="display: none">package main
 
 import (
@@ -494,7 +494,7 @@ import (
         "net/http"
 )
 
-type CheckImportResponce struct {
+type CheckImportResponse struct {
         State   string
         Request string
 }
@@ -518,7 +518,7 @@ func CheckImportStatus(res http.ResponseWriter, req *http.Request, prams martini
                 state = "offline"
         }</span>
 
-        <span class="cov0" title="0">returnobj := CheckImportResponce{
+        <span class="cov0" title="0">returnobj := CheckImportResponse{
                 State:   state,
                 Request: prams["id"],
         }
@@ -526,7 +526,7 @@ func CheckImportStatus(res http.ResponseWriter, req *http.Request, prams martini
         return string(b)</span>
 }
 </pre>
-		
+
 		<pre class="file" id="file2" style="display: none">package main
 
 import (
@@ -1195,7 +1195,7 @@ func getRealTableName(guid string, database *sql.DB, res http.ResponseWriter) (o
         <span class="cov8" title="1">return tablename, e</span>
 }
 </pre>
-		
+
 		<pre class="file" id="file3" style="display: none">package main
 
 import (
@@ -1221,7 +1221,7 @@ func CheckDataQuality(res http.ResponseWriter, req *http.Request, prams martini.
         return string(b)
 }</span>
 </pre>
-		
+
 		<pre class="file" id="file4" style="display: none">package main
 
 import (
@@ -1264,7 +1264,7 @@ func GetDefaults(res http.ResponseWriter, req *http.Request, prams martini.Param
         return output</span>
 }
 </pre>
-		
+
 		<pre class="file" id="file5" style="display: none">package main
 
 // Hi there. You can find the SQL layout in "layout.sql"
@@ -1300,7 +1300,7 @@ func main() <span class="cov8" title="1">{
         initTemplates() // Load all templates from the fs ready to serve to clients.
         m := martini.Classic()
         m.Get("/", func(res http.ResponseWriter, req *http.Request) </span><span class="cov8" title="1">{ // res and req are injected by Martini
-                checkAuth(res, req)
+                CheckAuthRedirect(res, req)
                 database := msql.GetDB()
                 defer database.Close()
                 var uid string
@@ -1336,33 +1336,33 @@ func main() <span class="cov8" title="1">{
                 renderTemplate("public/register.html", custom, res)
         }</span>)
         <span class="cov8" title="1">m.Get("/charts/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) </span><span class="cov8" title="1">{
-                checkAuth(res, req)
+                CheckAuthRedirect(res, req)
                 if IsUserLoggedIn(res, req) </span><span class="cov8" title="1">{
                         TrackVisited(prams["id"], string(GetUserID(res, req))) // Make sure the tracking module knows about their visit.
                 }</span>
                 <span class="cov8" title="1">renderTemplate("public/charts.html", nil, res)</span>
         })
         <span class="cov8" title="1">m.Get("/search/overlay", func(res http.ResponseWriter, req *http.Request) </span><span class="cov0" title="0">{
-                checkAuth(res, req)
+                CheckAuthRedirect(res, req)
                 renderTemplate("public/search.html", nil, res)
         }</span>)
         <span class="cov8" title="1">m.Get("/overlay/:id", func(res http.ResponseWriter, req *http.Request) </span><span class="cov0" title="0">{
-                checkAuth(res, req)
+                CheckAuthRedirect(res, req)
                 renderTemplate("public/overlay.html", nil, res)
         }</span>)
         <span class="cov8" title="1">m.Get("/overview/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) </span><span class="cov8" title="1">{
-                checkAuth(res, req)
+                CheckAuthRedirect(res, req)
                 if IsUserLoggedIn(res, req) </span><span class="cov8" title="1">{
                         TrackVisited(prams["id"], string(GetUserID(res, req)))
                 }</span>
                 <span class="cov8" title="1">renderTemplate("public/overview.html", nil, res)</span>
         })
         <span class="cov8" title="1">m.Get("/search", func(res http.ResponseWriter, req *http.Request) </span><span class="cov8" title="1">{
-                checkAuth(res, req)
+                CheckAuthRedirect(res, req)
                 renderTemplate("public/search.html", nil, res)
         }</span>)
         <span class="cov8" title="1">m.Get("/maptest/:id", func(res http.ResponseWriter, req *http.Request) </span><span class="cov8" title="1">{
-                checkAuth(res, req)
+                CheckAuthRedirect(res, req)
                 renderTemplate("public/maptest.html", nil, res)
         }</span>)
 
@@ -1399,7 +1399,7 @@ func main() <span class="cov8" title="1">{
 // to have a json doctype. Since it makes sence to
 func ProabblyAPI(res http.ResponseWriter, req *http.Request) <span class="cov8" title="1">{
         if strings.HasPrefix(req.RequestURI, "/api") </span><span class="cov8" title="1">{
-                checkAuth(res, req) // Make everything in the API auth'd
+                CheckAuthRedirect(res, req) // Make everything in the API auth'd
                 res.Header().Set("Content-Type", "application/json")
         }</span>
 }
@@ -1410,7 +1410,7 @@ func check(e error) <span class="cov8" title="1">{
         }</span>
 }
 </pre>
-		
+
 		<pre class="file" id="file6" style="display: none">package main
 
 import (
@@ -1461,7 +1461,7 @@ func GetPolyResults(xGiven []float64, yGiven []float64) []float64 <span class="c
         return c</span>
 }
 </pre>
-		
+
 		<pre class="file" id="file7" style="display: none">package main
 
 import (
@@ -1508,7 +1508,7 @@ func initTemplates() <span class="cov8" title="1">{
         f = template.HTML(ff)
 }</span>
 </pre>
-		
+
 		<pre class="file" id="file8" style="display: none">package main
 
 import (
@@ -1582,7 +1582,7 @@ func TrackVisited(guid string, user string) <span class="cov8" title="1">{
         <span class="cov8" title="1">Logger.Println("Tracking page hit to ", guid, "by", user)</span>
 }
 </pre>
-		
+
 		<pre class="file" id="file9" style="display: none">package main
 
 import (
@@ -1604,7 +1604,7 @@ func GetUserID(res http.ResponseWriter, req *http.Request) int <span class="cov8
 }</span>
 
 // Shortcut function that is used to redirect users to the login page if they are not logged in.
-func checkAuth(res http.ResponseWriter, req *http.Request) <span class="cov8" title="1">{
+func CheckAuthRedirect(res http.ResponseWriter, req *http.Request) <span class="cov8" title="1">{
         if !(dpsession.IsUserLoggedIn(res, req)) </span><span class="cov8" title="1">{
                 http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
                 return
@@ -1687,7 +1687,7 @@ func HandleRegister(res http.ResponseWriter, req *http.Request) string <span cla
         }</span>
 }
 </pre>
-		
+
 		</div>
 	</body>
 	<script>

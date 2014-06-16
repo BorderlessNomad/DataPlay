@@ -52,7 +52,7 @@ func main() {
 	m := martini.Classic()
 
 	m.Get("/", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
-		checkAuth(res, req)
+		CheckAuthRedirect(res, req)
 
 		user := User{}
 		err := DB.Where("uid = ?", GetUserID(res, req)).Find(&user).Error
@@ -108,7 +108,7 @@ func main() {
 	})
 
 	m.Get("/charts/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-		checkAuth(res, req)
+		CheckAuthRedirect(res, req)
 
 		if IsUserLoggedIn(res, req) {
 			TrackVisited(prams["id"], fmt.Sprint(GetUserID(res, req))) // Make sure the tracking module knows about their visit.
@@ -118,19 +118,19 @@ func main() {
 	})
 
 	m.Get("/search/overlay", func(res http.ResponseWriter, req *http.Request) {
-		checkAuth(res, req)
+		CheckAuthRedirect(res, req)
 
 		RenderTemplate("public/search.html", nil, res)
 	})
 
 	m.Get("/overlay/:id", func(res http.ResponseWriter, req *http.Request) {
-		checkAuth(res, req)
+		CheckAuthRedirect(res, req)
 
 		RenderTemplate("public/overlay.html", nil, res)
 	})
 
 	m.Get("/overview/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-		checkAuth(res, req)
+		CheckAuthRedirect(res, req)
 		if IsUserLoggedIn(res, req) {
 			TrackVisited(prams["id"], fmt.Sprint(GetUserID(res, req)))
 		}
@@ -139,13 +139,13 @@ func main() {
 	})
 
 	m.Get("/search", func(res http.ResponseWriter, req *http.Request) {
-		checkAuth(res, req)
+		CheckAuthRedirect(res, req)
 
 		RenderTemplate("public/search.html", nil, res)
 	})
 
 	m.Get("/maptest/:id", func(res http.ResponseWriter, req *http.Request) {
-		checkAuth(res, req)
+		CheckAuthRedirect(res, req)
 
 		RenderTemplate("public/maptest.html", nil, res)
 	})
@@ -191,7 +191,7 @@ func main() {
  */
 func JsonApiHandler(res http.ResponseWriter, req *http.Request) {
 	if strings.HasPrefix(req.RequestURI, "/api") {
-		checkAuth(res, req) // Make everything in the API auth'd
+		CheckAuthRedirect(res, req) // Make everything in the API auth'd
 		res.Header().Set("Content-Type", "application/json")
 	}
 }

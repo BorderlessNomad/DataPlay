@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"net/http"
 	"net/http/httptest"
@@ -14,7 +15,7 @@ func TestIsUserLoggedIn(t *testing.T) {
 	response := httptest.NewRecorder()
 
 	Convey("On HTTP Request", t, func() {
-		HandleLogin(response, request)
+		// HandleLogin(response, request)
 		handleLoggedIn(t)
 
 		HandleLogout(response, request)
@@ -43,5 +44,28 @@ func handleLoggedOut(t *testing.T) {
 	Convey("When User is Logged Out", func() {
 		So(status, ShouldEqual, false) //Since we don't have cookies in Simulation
 		So(response.Code, ShouldEqual, http.StatusOK)
+	})
+}
+
+func TestClearSession(t *testing.T) {
+	request, _ := http.NewRequest("GET", "/", nil)
+	response := httptest.NewRecorder()
+
+	e_return := ClearSession(response, request)
+
+	Convey("When there is no cookie to be found", t, func() {
+		So(fmt.Sprintf("%s", e_return), ShouldEqual, "No cookie found")
+	})
+
+}
+
+func TestRandString(t *testing.T) {
+	result := randString(5)
+
+	Convey("When Random String length is 5", t, func() {
+		So(len(result), ShouldEqual, 5)
+		So(len(result), ShouldNotEqual, 6)
+		So(result, ShouldNotContainSubstring, "!")
+
 	})
 }
