@@ -15,23 +15,23 @@ import (
 
 type AuthResponce struct {
 	Username string
-	UserID   int64
+	UserID   int
 }
 
 //This function is used to gather what is the username is
 // This used to be used on the front page but now it is mainly used as a "noop" call to check if the user is logged in or not.
 func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	var uid string
-	uid = fmt.Sprint(GetUserID(res, req))
-	intuid, _ := strconv.ParseInt(uid, 10, 32)
-	var username string
-	DB.SQL.QueryRow("SELECT email FROM priv_users WHERE uid = $1", uid).Scan(&username)
+	user := User{}
+	err := DB.Where("uid = ?", GetUserID(res, req)).Find(&user).Error
+	check(err)
 
-	returnobj := AuthResponce{
-		Username: username,
-		UserID:   intuid,
+	result := AuthResponce{
+		Username: user.Email,
+		UserID:   user.Uid,
 	}
-	b, _ := json.Marshal(returnobj)
+
+	b, _ := json.Marshal(result)
+
 	return string(b)
 }
 
@@ -43,36 +43,55 @@ type SearchResult struct {
 
 // This is the search function that is called though the API
 func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	var uid string
-	uid = fmt.Sprint(GetUserID(res, req))
-	intuid, _ := strconv.ParseInt(uid, 10, 32)
-
 	if prams["s"] == "" {
 		http.Error(res, "There was no search request", http.StatusBadRequest)
 		return ""
 	}
 
-	rows, e := DB.SQL.Query("SELECT GUID, Title FROM index WHERE LOWER(Title) LIKE LOWER($1) AND (index.Owner = 0 OR index.Owner = $2) LIMIT 10", prams["s"]+"%", intuid)
-
+	uid := GetUserID(res, req)
 	Results := make([]SearchResult, 0)
-	Results = ProcessSearchResults(rows, e, DB.SQL)
+
+	indices := []Index{}
+
+	term := prams["s"] + "%" // e.g. "nhs" => "nhs%" (What about "%nhs"?)
+
+	Logger.Println("Searching with Backward Wildcard", term)
+	err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("owner = ?", 0).Or("owner = ?", uid).Limit(10).Find(&indices).Error
+
+	Results = ProcessSearchResults(indices, err)
 
 	if len(Results) == 0 {
-		Logger.Println("falling back to overkill search")
-		rows, e := DB.SQL.Query("SELECT GUID, Title FROM index WHERE LOWER(Title) LIKE LOWER($1) AND (index.Owner = 0 OR index.Owner = $2) LIMIT 10", "%"+prams["s"]+"%", intuid)
-		Results = ProcessSearchResults(rows, e, DB.SQL)
+		term := "%" + prams["s"] + "%" // e.g. "nhs" => "%nhs%"
+
+		Logger.Println("Searching with Forward + Backward Wildcard", term)
+		err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("owner = ?", 0).Or("owner = ?", uid).Limit(10).Find(&indices).Error
+		Results = ProcessSearchResults(indices, err)
 
 		if len(Results) == 0 {
-			Logger.Println("Going 100 persent mad search")
-			query := strings.Replace(prams["s"], " ", "%", -1)
-			rows, e := DB.SQL.Query("SELECT GUID, Title FROM index WHERE LOWER(Title) LIKE LOWER($1) AND (index.Owner = 0 OR index.Owner = $2) LIMIT 10", "%"+query+"%", intuid)
-			Results = ProcessSearchResults(rows, e, DB.SQL)
+			term := "%" + strings.Replace(prams["s"], " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
 
-			if len(Results) == 0 && (len(prams["s"]) > 3 && len(prams["s"]) < 20) {
-				Logger.Println("Searching in string table")
-				rows, e := DB.SQL.Query("SELECT DISTINCT(priv_onlinedata.GUID), index.Title FROM priv_stringsearch, priv_onlinedata, index WHERE (LOWER(value) LIKE LOWER($1) OR LOWER(x) LIKE LOWER($1)) AND priv_stringsearch.tablename = priv_onlinedata.TableName AND priv_onlinedata.GUID = index.GUID AND (index.Owner = 0 OR index.Owner = $2) ORDER BY 1 DESC LIMIT 10", "%"+prams["s"]+"%", intuid)
+			Logger.Println("Searching with Forward + Backward + Trim Wildcard", term)
 
-				Results = ProcessSearchResults(rows, e, DB.SQL)
+			err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("owner = ?", 0).Or("owner = ?", uid).Limit(10).Find(&indices).Error
+			Results = ProcessSearchResults(indices, err)
+
+			if len(Results) == 0 && (len(prams["s"]) >= 3 && len(prams["s"]) < 20) {
+				term := "%" + prams["s"] + "%" // e.g. "nhs" => "%nhs%"
+
+				Logger.Println("Searching with Forward + Backward Wildcard in String Table", term)
+
+				query := DB.Table("priv_stringsearch, priv_onlinedata, index")
+				query = query.Select("DISTINCT ON (priv_onlinedata.guid) priv_onlinedata.guid, index.title")
+				query = query.Where("(LOWER(value) LIKE LOWER(?) OR LOWER(x) LIKE LOWER(?))", term, term)
+				query = query.Where("priv_stringsearch.tablename = priv_onlinedata.tablename")
+				query = query.Where("priv_onlinedata.guid = index.guid")
+				query = query.Where("(owner = ? OR owner = ?)", 0, uid)
+				query = query.Order("priv_onlinedata.guid")
+				query = query.Order("priv_stringsearch.count DESC")
+				query = query.Limit(10)
+				err := query.Find(&indices).Error
+
+				Results = ProcessSearchResults(indices, err)
 			}
 		}
 	}
@@ -82,29 +101,23 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 	return string(b)
 }
 
-func ProcessSearchResults(rows *sql.Rows, e error, database *sql.DB) []SearchResult {
-	Results := make([]SearchResult, 0)
-	if e != nil {
-		panic(e)
+func ProcessSearchResults(rows []Index, e error) []SearchResult {
+	if e != nil && e != gorm.RecordNotFound {
+		check(e)
 	}
 
-	for rows.Next() {
-		var id string
-		var name string
+	Results := make([]SearchResult, 0)
 
-		err := rows.Scan(&id, &name)
-		if err != nil {
-			panic(err)
-		}
+	for _, row := range rows {
+		Location := HasTableGotLocationData(row.Guid)
 
-		Location := HasTableGotLocationData(id, DB.SQL)
-		SR := SearchResult{
-			Title:        name,
-			GUID:         id,
+		result := SearchResult{
+			Title:        row.Title,
+			GUID:         row.Guid,
 			LocationData: Location,
 		}
 
-		Results = append(Results, SR)
+		Results = append(Results, result)
 	}
 
 	return Results
@@ -126,27 +139,26 @@ func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) 
 		return ""
 	}
 
-	var GUID, Name, Title, Notes, ckan_url string
-	var Owner int
-
-	e := DB.SQL.QueryRow("SELECT * FROM index WHERE LOWER(GUID) LIKE LOWER($1) LIMIT 10", prams["id"]+"%").Scan(&GUID, &Name, &Title, &Notes, &ckan_url, &Owner)
-	strings.Replace(ckan_url, "//", "/", -1)
-
-	returner := DataEntry{
-		GUID:     GUID,
-		Name:     Name,
-		Title:    Title,
-		Notes:    Notes,
-		Ckan_url: ckan_url,
-	}
-
-	if e != nil {
-		panic(e)
+	index := Index{}
+	err := DB.Where("LOWER(guid) LIKE LOWER(?)", prams["id"]+"%").Find(&index).Error
+	if err == gorm.RecordNotFound {
+		return "[]"
+	} else if err != nil {
+		panic(err)
 		http.Error(res, "Could not find that data.", http.StatusNotFound)
 		return ""
 	}
 
-	b, _ := json.Marshal(returner)
+	result := DataEntry{
+		GUID:     index.Guid,
+		Name:     index.Name,
+		Title:    index.Title,
+		Notes:    index.Notes,
+		Ckan_url: strings.Replace(index.CkanUrl, "//", "/", -1),
+	}
+
+	b, _ := json.Marshal(result)
+
 	return string(b)
 }
 
@@ -217,13 +229,14 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 	if e != nil {
 		return
 	}
+
 	var rows *sql.Rows
 	var err error
 
 	if UsingRanges {
-		rows, err = DB.SQL.Query(fmt.Sprintf("SELECT * FROM %s LIMIT %d, %d", tablename, top, bot))
+		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %s LIMIT %d, %d", tablename, top, bot)).Rows()
 	} else {
-		rows, err = DB.SQL.Query(fmt.Sprintf("SELECT * FROM %s", tablename))
+		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %s", tablename)).Rows()
 	}
 
 	if err != nil {
@@ -274,8 +287,8 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 	if e != nil {
 		return
 	}
-	// rows, err := DB.SQL.Query("SELECT * FROM " + tablename + "")
-	rows, err := DB.SQL.Query("SELECT * FROM " + tablename)
+
+	rows, err := DB.Raw("SELECT * FROM " + tablename).Rows()
 	if err != nil {
 		panic(err)
 	}
@@ -341,7 +354,7 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 		return
 	}
 
-	cls := FetchTableCols(prams["id"], DB.SQL)
+	cls := FetchTableCols(prams["id"])
 	// Now we need to check that the rows that the client is asking for, are in the table.
 	Valid := false
 	for _, clm := range cls {
@@ -367,7 +380,7 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 		return
 	}
 
-	rows, e1 := DB.SQL.Query(fmt.Sprintf("SELECT %[1]s, SUM(%[2]s) AS %[2]s FROM %[3]s GROUP BY %[1]s", prams["x"], prams["y"], tablename))
+	rows, e1 := DB.Raw(fmt.Sprintf("SELECT %[1]s, SUM(%[2]s) AS %[2]s FROM %[3]s GROUP BY %[1]s", prams["x"], prams["y"], tablename)).Rows()
 	// You may think the above might have some security downsides, It could but what you
 	// are proabs thinking is not true, if a user wants to SQL inject as any of the %s's
 	// then the table col name will also have to be the SQLi, and frankly, if a user
@@ -423,7 +436,7 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 		return
 	}
 
-	cls := FetchTableCols(prams["id"], DB.SQL)
+	cls := FetchTableCols(prams["id"])
 	// Now we need to check that the rows that the client is asking for, are in the table.
 	Valid := false
 	for _, clm := range cls {
@@ -445,7 +458,8 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 		http.Error(res, "Col Y is invalid.", http.StatusBadRequest)
 		return
 	}
-	rows, e1 := DB.SQL.Query("SELECT $1, $2 FROM $3", prams["x"], prams["y"], tablename)
+
+	rows, e1 := DB.Raw(fmt.Sprintf("SELECT %s, %s FROM %s", prams["x"], prams["y"], tablename)).Rows()
 
 	if e1 != nil {
 		http.Error(res, "Could not query the data FROM the datastore", http.StatusInternalServerError)
@@ -508,7 +522,7 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 		return
 	}
 
-	rows, e1 := DB.SQL.Query("SELECT * FROM " + tablename)
+	rows, e1 := DB.Raw("SELECT * FROM " + tablename).Rows()
 
 	if e1 != nil {
 		http.Error(res, "Could not read that table", http.StatusInternalServerError)
@@ -607,7 +621,7 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		return
 	}
 
-	rows, e1 := DB.SQL.Query("SELECT * FROM " + tablename)
+	rows, e1 := DB.Raw("SELECT * FROM " + tablename).Rows()
 
 	if e1 != nil {
 		http.Error(res, "Could not read that table", http.StatusInternalServerError)
