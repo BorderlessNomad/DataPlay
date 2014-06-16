@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/codegangsta/martini"
@@ -229,15 +230,13 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 		return
 	}
 
-	result := []string{}
+	var rows *sql.Rows
 	var err error
 
 	if UsingRanges {
-		err := DB.Table(tablename).Find(job.X, &data).Error
-		rows, err = DB.SQL.Query(fmt.Sprintf("SELECT * FROM %s LIMIT %d, %d", tablename, top, bot))
+		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %s LIMIT %d, %d", tablename, top, bot)).Rows()
 	} else {
-		err := DB.Table(tablename).Find(job.X, &data).Error
-		rows, err = DB.SQL.Query(fmt.Sprintf("SELECT * FROM %s", tablename))
+		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %s", tablename)).Rows()
 	}
 
 	if err != nil {
@@ -288,8 +287,8 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 	if e != nil {
 		return
 	}
-	// rows, err := DB.SQL.Query("SELECT * FROM " + tablename + "")
-	rows, err := DB.SQL.Query("SELECT * FROM " + tablename)
+
+	rows, err := DB.Raw("SELECT * FROM " + tablename).Rows()
 	if err != nil {
 		panic(err)
 	}
@@ -355,7 +354,7 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 		return
 	}
 
-	cls := FetchTableCols(prams["id"], DB.SQL)
+	cls := FetchTableCols(prams["id"])
 	// Now we need to check that the rows that the client is asking for, are in the table.
 	Valid := false
 	for _, clm := range cls {
@@ -381,7 +380,7 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 		return
 	}
 
-	rows, e1 := DB.SQL.Query(fmt.Sprintf("SELECT %[1]s, SUM(%[2]s) AS %[2]s FROM %[3]s GROUP BY %[1]s", prams["x"], prams["y"], tablename))
+	rows, e1 := DB.Raw(fmt.Sprintf("SELECT %[1]s, SUM(%[2]s) AS %[2]s FROM %[3]s GROUP BY %[1]s", prams["x"], prams["y"], tablename)).Rows()
 	// You may think the above might have some security downsides, It could but what you
 	// are proabs thinking is not true, if a user wants to SQL inject as any of the %s's
 	// then the table col name will also have to be the SQLi, and frankly, if a user
@@ -437,7 +436,7 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 		return
 	}
 
-	cls := FetchTableCols(prams["id"], DB.SQL)
+	cls := FetchTableCols(prams["id"])
 	// Now we need to check that the rows that the client is asking for, are in the table.
 	Valid := false
 	for _, clm := range cls {
@@ -459,7 +458,8 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 		http.Error(res, "Col Y is invalid.", http.StatusBadRequest)
 		return
 	}
-	rows, e1 := DB.SQL.Query("SELECT $1, $2 FROM $3", prams["x"], prams["y"], tablename)
+
+	rows, e1 := DB.Raw(fmt.Sprintf("SELECT %s, %s FROM %s", prams["x"], prams["y"], tablename)).Rows()
 
 	if e1 != nil {
 		http.Error(res, "Could not query the data FROM the datastore", http.StatusInternalServerError)
@@ -522,7 +522,7 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 		return
 	}
 
-	rows, e1 := DB.SQL.Query("SELECT * FROM " + tablename)
+	rows, e1 := DB.Raw("SELECT * FROM " + tablename).Rows()
 
 	if e1 != nil {
 		http.Error(res, "Could not read that table", http.StatusInternalServerError)
@@ -621,7 +621,7 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 		return
 	}
 
-	rows, e1 := DB.SQL.Query("SELECT * FROM " + tablename)
+	rows, e1 := DB.Raw("SELECT * FROM " + tablename).Rows()
 
 	if e1 != nil {
 		http.Error(res, "Could not read that table", http.StatusInternalServerError)

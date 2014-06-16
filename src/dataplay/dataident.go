@@ -5,15 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/codegangsta/martini"
+	"github.com/jinzhu/gorm"
 	"net/http"
-	"regexp"
 	"sort"
 	"strconv"
 )
 
 type CheckDict struct {
 	Key   string
-	value int
+	Value int
 }
 
 type IdentifyResponce struct {
@@ -51,7 +51,7 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Par
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
 		return ""
 	}
-	results := FetchTableCols(string(prams["id"]), DB.SQL)
+	results := FetchTableCols(string(prams["id"]))
 
 	returnobj := IdentifyResponce{
 		Cols:    results,
@@ -63,13 +63,13 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Par
 }
 
 // This fetches a array of all the col names and their types.
-func FetchTableCols(guid string, database *sql.DB) (output []ColType) {
+func FetchTableCols(guid string) (output []ColType) {
 	if guid == "" {
 		return output
 	}
 
 	var tablename string
-	tablename, e := getRealTableName(guid, DB.SQL, nil)
+	tablename, e := getRealTableName(guid)
 	if e != nil {
 		return output
 	}
@@ -178,7 +178,7 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 		http.Error(res, "You have requested a col that does not exist. Please avoid doing this in the future.", http.StatusBadRequest)
 		return "" // Shut up go
 	}
-	}
+}
 
 func CheckIfColExists(rows *sql.Rows, column string) bool {
 	for rows.Next() {
@@ -196,7 +196,7 @@ func CheckIfColExists(rows *sql.Rows, column string) bool {
 // Unfinished function
 func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
 	// m.Get("/api/findmatches/:id/:x/:y", api.AttemptToFindMatches)
-	RealTableName, e := getRealTableName(prams["id"], DB.SQL, res)
+	RealTableName, e := getRealTableName(prams["id"], res)
 	if e != nil {
 		http.Error(res, "Could not find that table", http.StatusInternalServerError)
 		return ""
@@ -244,16 +244,16 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini
 	if prams["x"] != "" {
 		rows, e := DB.SQL.Query("SELECT tablename, count FROM priv_stringsearch WHERE x = $1 AND value = $2", prams["x"], prams["word"])
 		if e != nil {
-		http.Error(res, "SQL error", http.StatusInternalServerError)
-		return ""
-	}
+			http.Error(res, "SQL error", http.StatusInternalServerError)
+			return ""
+		}
 
 		for rows.Next() {
 			rows.Scan(&name, &count)
 			temp := StringMatchResult{
 				Count: count,
 				Match: name,
-		}
+			}
 
 			Results = append(Results, temp)
 		}
@@ -283,7 +283,7 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini
 }
 
 func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	RealTableName, e := getRealTableName(prams["guid"], DB.SQL, res)
+	RealTableName, e := getRealTableName(prams["guid"], res)
 	if e != nil {
 		http.Error(res, "Could not find that table", http.StatusInternalServerError)
 		return ""
@@ -403,14 +403,14 @@ type ByVal []CheckDict
 
 func (a ByVal) Len() int           { return len(a) }
 func (a ByVal) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByVal) Less(i, j int) bool { return a[i].value < a[j].value }
+func (a ByVal) Less(i, j int) bool { return a[i].Value < a[j].Value }
 
 func ConvertIntoStructArrayAndSort(input map[string]int) (in []CheckDict) {
 	in = make([]CheckDict, 0)
 	for k, v := range input {
 		newd := CheckDict{
 			Key:   k,
-			value: v,
+			Value: v,
 		}
 		in = append(in, newd)
 	}
