@@ -28,18 +28,18 @@ func TestSetDefaults(t *testing.T) {
 	// 	})
 }
 
-// func TestGetDefaults(t *testing.T) {
-// 	request, _ := http.NewRequest("GET", "/", nil)
-// 	response := httptest.NewRecorder()
-// 	prams := map[string]string{
-// 		"id": "",
-// 	}
+func TestGetDefaults(t *testing.T) {
+	request, _ := http.NewRequest("GET", "/", nil)
+	response := httptest.NewRecorder()
+	prams := map[string]string{
+		"id": "",
+	}
 
-// 	result := GetDefaults(response,request,prams)
+	result := GetDefaults(response,request,prams)
 
-// 	Convey("When ID parameter is not provided", t, func() {
-// 		So(result, ShouldEqual, "")
-// 		})
+	Convey("When ID parameter is not provided", t, func() {
+		So(result, ShouldEqual, "")
+		})
 
 // 	prams["id"] = "0"
 // 	result = GetDefaults(response, request, prams)
@@ -47,4 +47,4 @@ func TestSetDefaults(t *testing.T) {
 // 	Convey("When ID parameter is provided", t, func() {
 // 		So(result, ShouldNotBeBlank)
 // 		})
-// }
+}

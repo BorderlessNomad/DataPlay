@@ -11,9 +11,7 @@ import (
 func TestIdentifyTable(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
-	prams := map[string]string{
-		"id": "",
-	}
+	prams := map[string]string{"id": ""}
 
 	result := IdentifyTable(response, request, prams)
 
@@ -27,6 +25,20 @@ func TestIdentifyTable(t *testing.T) {
 	// Convey("When ID parameter is provided", t, func() {
 	// 	So(result, ShouldNotBeBlank)
 	// })
+}
+
+func TestCheckColExists(t *testing.T){
+	Cols := []ColType{{"X", "0"}, {"Y", "0"}}
+
+	result := CheckColExists(Cols,"X")
+	Convey("When column exists", t, func() {
+		So(result, ShouldBeTrue)
+	})
+	result = CheckColExists(Cols,"Z")
+	Convey("When column does not exist", t, func() {
+		So(result, ShouldBeFalse)
+	})
+
 }
 
 func TestAttemptToFindMatches(t *testing.T) {

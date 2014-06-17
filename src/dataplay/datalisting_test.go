@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 // func TestCheckAuth(t *testing.T) {
@@ -70,6 +71,24 @@ func TestGetEntry(t *testing.T) {
 
 	Convey("When no ID parameter is provided", t, func() {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
+	})
+}
+
+func TestScanRow(t *testing.T) {
+	cols := []string{"cmxval", "bval", "ival", "i64val","fval","sval", "btval"}
+	var cmxval complex128 = -1 + 3i //triggers "unexpected type"
+	var bval bool = true
+	var ival int = 1
+	var i64val int64 = 1
+	var fval float64 = 1.0
+	var sval string = "a"
+	btval := []byte("a")
+	tval := time.Now()
+
+	vals := []interface{}{cmxval, bval, ival, i64val, fval, sval, btval, tval}
+	record := ScanRow(vals, cols)
+	Convey("Scanrow", t, func() {
+		So(record, ShouldNotEqual, 0)
 	})
 
 }
@@ -138,6 +157,17 @@ func TestDumpTablePrediction(t *testing.T) {
 
 	DumpTablePrediction(response,request,prams)
 	Convey("When no ID, x or y parameters are provided", t, func() {
+		So(response.Code, ShouldEqual, http.StatusBadRequest)
+	})
+}
+
+func TestDumpReducedTable(t *testing.T) {
+	request, _ := http.NewRequest("GET", "/", nil)
+	response := httptest.NewRecorder()
+	prams := map[string]string{"id": ""}
+
+	DumpReducedTable(response,request,prams)
+	Convey("When no ID parameter is provided", t, func() {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
 }
