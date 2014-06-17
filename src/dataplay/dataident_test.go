@@ -8,24 +8,38 @@ import (
 	"testing"
 )
 
-func TestIdentifyTable(t *testing.T) {
+func TestIdentifyTable (t *testing.T) {
+	Convey("With no parameter", t, func() {
+		IdentifyTableNoParam(t)
+	})
+	// Convey("With a parameter", t, func() {
+	// 	IdentifyTableWithParam(t)
+	// })
+}
+
+func IdentifyTableNoParam(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
 	prams := map[string]string{"id": ""}
 
 	result := IdentifyTable(response, request, prams)
 
-	Convey("When no ID parameter is provided", t, func() {
+	Convey("When no ID parameter is provided", func() {
 		So(result, ShouldEqual, "")
 	})
-
-	// prams["id"] = "gold"
-	// result = IdentifyTable(response, request, prams)
-
-	// Convey("When ID parameter is provided", t, func() {
-	// 	So(result, ShouldNotBeBlank)
-	// })
 }
+
+// func IdentifyTableWithParam(t *testing.T) {
+// 	request, _ := http.NewRequest("GET", "/", nil)
+// 	response := httptest.NewRecorder()
+// 	prams := map[string]string{"id": "gold"}
+
+// 	result := IdentifyTable(response, request, prams)
+
+// 	Convey("When ID parameter is provided", func() {
+// 		So(result, ShouldEqual, "")
+// 	})
+// }
 
 func TestCheckColExists(t *testing.T){
 	Cols := []ColType{{"X", "0"}, {"Y", "0"}}
@@ -48,8 +62,7 @@ func TestFindStringMatches(t *testing.T) {
 	request, _ := http.NewRequest("POST", "/", nil)
 	response := httptest.NewRecorder()
 	prams := map[string]string{
-		"x":    "",
-		"name": "",
+		"word":    "",
 	}
 
 	result := FindStringMatches(response, request, prams)
@@ -64,7 +77,7 @@ func TestFindStringMatches(t *testing.T) {
 	// result = FindStringMatches(response,request,prams)
 
 	// Convey("When ID parameter is provided", t, func() {
-	// 	So(response.Code, ShouldEqual, http.StatusInternalServerError)
+	// 	So(response.Code, ShouldEqual, http.StatusBadRequest)
 	// })
 }
 
@@ -83,24 +96,27 @@ func TestGetRelatedDatasetByStrings(t *testing.T) {
 }
 
 func TestSuggestColType(t *testing.T) {
-	request, _ := http.NewRequest("POST", "/", nil)
-	response := httptest.NewRecorder()
-	prams := map[string]string{
-		"id": "",
-	}
+	// request, _ := http.NewRequest("POST", "/", nil)
+	// response := httptest.NewRecorder()
+	// // prams := map[string]string{
+	// // 	"id": "",
+	// // }
 
-	result := SuggestColType(response, request, prams)
+	// // result := SuggestColType(response, request, prams)
 
-	Convey("When no ID parameter is provided", t, func() {
-		So(result, ShouldEqual, "")
-	})
+	// // Convey("When no ID parameter is provided", t, func() {
+	// // 	So(result, ShouldEqual, "")
+	// // })
 
-	// prams["id"] = "gold"
-	// result = SetDefaults(response, request, prams)
+	// prams := map[string]string{
+	// 	"table" : "gold",
+	// 	"col" : "price",
+	// }
+	// result := SuggestColType(response, request, prams)
 
 	// Convey("When ID parameter is provided", t, func() {
-	// 	So(result, ShouldNotBeBlank)
-	// 	})
+	// 	So(result, ShouldBeBlank)
+	// })
 
 }
 

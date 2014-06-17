@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	// "fmt"
 )
 
 type CheckDict struct {
@@ -141,6 +142,7 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 
 	onlineData := OnlineData{}
 	err := DB.Select("tablename").Where("guid = ?", prams["table"]).Find(&onlineData).Error
+
 	if err == gorm.RecordNotFound {
 		http.Error(res, "Could not find that Table", http.StatusNotFound)
 		return ""

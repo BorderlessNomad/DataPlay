@@ -34,7 +34,7 @@ func (i Index) TableName() string {
 }
 
 type OnlineData struct {
-	Guid        int `primaryKey:"yes"`
+	Guid        string
 	Datasetguid string
 	Tablename   string
 	Defaults    string

@@ -60,6 +60,12 @@ func TestSearchForData(t *testing.T) {
 	})
 }
 
+func TestProcessSearchResults(t *testing.T) {
+
+}
+
+
+
 func TestGetEntry(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
