@@ -10,7 +10,7 @@ import (
 )
 
 type Database struct {
-	*gorm.DB
+	gorm.DB
 	SQL    *sql.DB
 	User   string
 	Pass   string
@@ -41,23 +41,20 @@ func (self *Database) ParseEnvironment() {
 }
 
 func (self *Database) Connect() (err error) {
-	DB, err := gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", self.User, self.Pass, self.Host, self.Port, self.Schema))
+	self.DB, err = gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", self.User, self.Pass, self.Host, self.Port, self.Schema))
 	if err != nil {
 		panic(fmt.Sprintf("Error while connecting to Database: '%v'", err))
-		return
+		return err
 	}
 
-	DB.DB().Exec("SET NAMES UTF8")
-	DB.DB().SetMaxIdleConns(10)
-	DB.DB().SetMaxOpenConns(100)
-	DB.DB().Ping()
+	self.DB.DB().Exec("SET NAMES UTF8")
+	self.DB.DB().SetMaxIdleConns(10)
+	self.DB.DB().SetMaxOpenConns(100)
+	self.DB.DB().Ping()
 
 	/* Debug */
-	DB.LogMode(true)
+	// self.DB.LogMode(true)
 	// DB.SetLogger(gorm.Logger{revel.TRACE})
-
-	self.DB = &DB      // GORM *gorm.DB
-	self.SQL = DB.DB() // Backward compatible *sql.DB
 
 	return
 }

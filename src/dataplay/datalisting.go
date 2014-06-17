@@ -354,47 +354,42 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 	}
 
 	cls := FetchTableCols(prams["id"])
-	// Now we need to check that the rows that the client is asking for, are in the table.
-	Valid := false
+	ValidX := false
+	ValidY := false
+
+	/* Check for existence of X & Y in Table */
 	for _, clm := range cls {
 		if clm.Name == prams["x"] {
-			Valid = true
+			ValidX = true
+		} else if clm.Name == prams["y"] {
+			ValidY = true
+		}
+
+		if ValidX && ValidY {
+			break
 		}
 	}
 
-	if !Valid {
+	if !ValidX {
 		http.Error(res, "Col X is invalid.", http.StatusBadRequest)
 		return
 	}
 
-	Valid = false
-	for _, clm := range cls {
-		if clm.Name == prams["y"] {
-			Valid = true
-		}
-	}
-
-	if !Valid {
+	if !ValidY {
 		http.Error(res, "Col Y is invalid.", http.StatusBadRequest)
 		return
 	}
 
 	rows, e1 := DB.Raw(fmt.Sprintf("SELECT %[1]s, SUM(%[2]s) AS %[2]s FROM %[3]s GROUP BY %[1]s", prams["x"], prams["y"], tablename)).Rows()
-	// You may think the above might have some security downsides, It could but what you
-	// are proabs thinking is not true, if a user wants to SQL inject as any of the %s's
-	// then the table col name will also have to be the SQLi, and frankly, if a user
-	// does that then I have no idea what that user should expect, apart FROM broken queries
-	// =
-	// This could also be filtered at the import level as a form as "moron detection"
 	if e1 != nil {
-		panic(e1)
+		check(e1)
 		http.Error(res, "Could not query the data FROM the datastore E1", http.StatusInternalServerError)
 		return
 	}
 
 	columns, e2 := rows.Columns()
 	if e1 != nil || e2 != nil {
-		panic(e2)
+		check(e2)
 		http.Error(res, "Could not query the data FROM the datastore E2", http.StatusInternalServerError)
 		return
 	}

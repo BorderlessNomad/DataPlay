@@ -10,6 +10,7 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/martini" // Worked at 890a2a52d2e59b007758538f9b845fa0ed7daccb
+	"github.com/jinzhu/gorm"
 	"log"
 	"net/http"
 	"net/url"
@@ -47,6 +48,8 @@ func main() {
 		return
 	}
 
+	// MigrateColumns()
+
 	initTemplates() // Load all templates from the fs ready to serve to clients.
 
 	m := martini.Classic()
@@ -56,8 +59,8 @@ func main() {
 
 		user := User{}
 		err := DB.Where("uid = ?", GetUserID(res, req)).Find(&user).Error
-		if err != nil {
-			panic(err)
+		if err != nil && err != gorm.RecordNotFound {
+			check(err)
 		}
 
 		custom := map[string]string{
