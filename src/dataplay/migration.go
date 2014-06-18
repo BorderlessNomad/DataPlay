@@ -19,7 +19,7 @@ func MigrateColumns() {
 
 	check(err1)
 
-	r, _ := regexp.Compile(`(amount|price)+`)
+	r, _ := regexp.Compile(`(cost|amount|price)+`)
 	float, _ := regexp.Compile(`^[0-9]*\.[0-9]+$`)
 	integer, _ := regexp.Compile(`^\d+$`)
 	alphabet, _ := regexp.Compile(`.*[a-zA-Z]+.*`)
@@ -48,13 +48,16 @@ func MigrateColumns() {
 
 		info.TableName = strings.ToLower(info.TableName)
 		info.ColumnName = strings.ToLower(info.ColumnName)
+		columnName := "\"" + info.ColumnName + "\""
+		dateFormat := ""
+		hasDateFailed := false
 
 		if excludeColumns[info.ColumnName] { // :P
 			continue
 		}
 
 		values := make([]string, 0)
-		err3 := DB.Table(info.TableName).Pluck(info.ColumnName, &values).Error
+		err3 := DB.Table(info.TableName).Pluck(columnName, &values).Error
 
 		check(err3)
 
@@ -75,36 +78,49 @@ func MigrateColumns() {
 				hasInteger = true
 			}
 
-			if !hasDate {
+			if !hasDate && !hasDateFailed {
 				_, errd := time.Parse("2006-01-02", data)
 				if errd == nil {
+					dateFormat = "YYYY-MM-DD"
 					hasDate = true
 				}
 				_, errd = time.Parse("2006/01/02", data)
 				if errd == nil {
+					dateFormat = "YYYY/MM/DD"
 					hasDate = true
 				}
 				_, errd = time.Parse("02-01-2006", data)
 				if errd == nil {
+					dateFormat = "DD-MM-YYYY"
 					hasDate = true
 				}
 				_, errd = time.Parse("02/01/2006", data)
 				if errd == nil {
+					dateFormat = "DD/MM/YYYY"
 					hasDate = true
 				}
-			}
+				_, errd = time.Parse("02-Nov-06", data)
+				if errd == nil {
+					dateFormat = "DD-Mon-YY"
+					hasDate = true
+				}
 
+				hasDateFailed = true
+			}
 		}
 
-		if isMoney && !hasFloat && !hasInteger && !hasDate && !isString {
+		if isMoney && !hasDate && !isString {
 			fmt.Println("Money:", info.TableName, info.ColumnName)
-			AlterTableToMoney(info.TableName, info.ColumnName)
+			AlterColumnToMoney(info.TableName, columnName)
 		} else if !isMoney && hasFloat && !hasInteger && !hasDate && !isString {
-			// fmt.Println("Float:", info.TableName, info.ColumnName)
-		} else if !isMoney && !hasFloat && hasInteger && !hasDate && !isString {
-			// fmt.Println("Integer:", info.TableName, info.ColumnName)
-		} else if !isMoney && !hasFloat && !hasInteger && hasDate && !isString {
-			// fmt.Println("Date:", info.TableName, info.ColumnName)
+			fmt.Println("Float:", info.TableName, info.ColumnName)
+			AlterColumnToFloat(info.TableName, columnName)
+		} else if !isMoney && !hasFloat && hasInteger && !hasDate && !isString && !hasDateFailed {
+			fmt.Println("Integer:", info.TableName, info.ColumnName)
+			AlterColumnToInteger(info.TableName, columnName)
+		} else if !isMoney && !hasFloat && !hasInteger && hasDate && !hasDateFailed {
+			fmt.Println("Date:", info.TableName, info.ColumnName, dateFormat)
+			AlterColumnToDate(info.TableName, columnName, dateFormat)
 		} else if !isMoney && !hasFloat && !hasInteger && !hasDate {
 			// DO NOTHING
 		} else {
@@ -113,7 +129,18 @@ func MigrateColumns() {
 	}
 }
 
-func AlterTableToMoney(table string, column string) {
-	// DB.Exec(fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s TYPE numeric(100, 2) USING ((replace(replace(replace(replace(replace(trim(%s), ',', ''), '?', ''), ' ', ''), '<', ''), '>', ''))::numeric(100, 4));", table, column, column))
-	DB.Exec(fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s TYPE numeric(100, 2) USING ((regexp_replace(%s, '[^\\d-]+'))::numeric(100, 4));", table, column, column))
+func AlterColumnToMoney(table string, column string) {
+	DB.Exec(fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s TYPE numeric(100, 2) USING ((REGEXP_REPLACE(%s, '[^\\d\\-.]+', '', 'g'))::numeric(100, 4));", table, column, column))
+}
+
+func AlterColumnToFloat(table string, column string) {
+	DB.Exec(fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s TYPE numeric(100, 10) USING ((REGEXP_REPLACE(%s, '[^\\d\\-.]+', '', 'g'))::numeric(100, 100));", table, column, column))
+}
+
+func AlterColumnToInteger(table string, column string) {
+	DB.Exec(fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s TYPE bigint USING ((REGEXP_REPLACE(%s, '[^\\d\\-.]+', '', 'g'))::bigint);", table, column, column))
+}
+
+func AlterColumnToDate(table string, column string, format string) {
+	DB.Exec(fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s TYPE date USING to_date(%s, '%v');", table, column, column, format))
 }
