@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
+	//"strings"
 )
 
 // func TestCheckAuth(t *testing.T) {
@@ -58,13 +59,23 @@ func TestSearchForData(t *testing.T) {
 	Convey("When no search parameter is provided", t, func() {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
+
+	prams["s"] = "nhs"
+	result := SearchForData(response,request,prams)
+	Convey("When search parameter is provided", t, func() {
+		So(result, ShouldNotBeBlank)
+	})
+
+	prams["s"] = "¬"
+	result = SearchForData(response,request,prams)
+	Convey("When search parameter is provided but deep search required", t, func() {
+		So(result, ShouldNotBeBlank)
+	})
 }
 
 func TestProcessSearchResults(t *testing.T) {
 
 }
-
-
 
 func TestGetEntry(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
@@ -77,6 +88,13 @@ func TestGetEntry(t *testing.T) {
 
 	Convey("When no ID parameter is provided", t, func() {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	prams["id"] = "gold"
+	result := GetEntry(response,request,prams)
+
+	Convey("When no ID parameter is provided", t, func() {
+		So(result, ShouldNotBeBlank)
 	})
 }
 
@@ -103,13 +121,22 @@ func TestDumpTable(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
 	prams := map[string]string{
-		"id": "",
+		"top": "",
+		"bot": "",
 	}
 
 	DumpTable(response,request,prams)
 
 	Convey("When no ID parameter is provided", t, func() {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	prams["top"] = "5"
+	prams["bot"] = "10"
+	DumpTable(response,request,prams)
+
+	Convey("When no ID parameter is provided", t, func() {
+		So(response.Code, ShouldNotBeNil)
 	})
 }
 

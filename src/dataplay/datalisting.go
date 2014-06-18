@@ -59,14 +59,12 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 	err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("owner = ?", 0).Or("owner = ?", uid).Limit(10).Find(&indices).Error
 
 	Results = ProcessSearchResults(indices, err)
-
 	if len(Results) == 0 {
 		term := "%" + prams["s"] + "%" // e.g. "nhs" => "%nhs%"
 
 		Logger.Println("Searching with Forward + Backward Wildcard", term)
 		err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("owner = ?", 0).Or("owner = ?", uid).Limit(10).Find(&indices).Error
 		Results = ProcessSearchResults(indices, err)
-
 		if len(Results) == 0 {
 			term := "%" + strings.Replace(prams["s"], " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
 
