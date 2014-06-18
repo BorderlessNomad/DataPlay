@@ -688,8 +688,8 @@ func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
  * @return string output, error
  */
 func getRealTableName(guid string, res ...http.ResponseWriter) (out string, e error) {
-	data := OnlineData{}
-	err := DB.Select("tablename").Where("guid = ?", guid).Find(&data).Error
+	Data := OnlineData{}
+	err := DB.Select("tablename").Where("guid = ?", guid).Find(&Data).Error
 	if err == gorm.RecordNotFound {
 		if res != nil {
 			http.Error(res[0], "Could not find that table", http.StatusNotFound)
@@ -698,5 +698,6 @@ func getRealTableName(guid string, res ...http.ResponseWriter) (out string, e er
 		return "", fmt.Errorf("Could not find table")
 	}
 
-	return data.Tablename, err
+	return Data.Tablename, err
 }
+

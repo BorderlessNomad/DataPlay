@@ -26,6 +26,14 @@ type AuthHandler struct {
 }
 
 var DB database.Database
+var isDBSetup bool
+func DBSetup() error {
+	if isDBSetup { return nil }
+	isDBSetup = true
+	DB.Setup()
+	DB.ParseEnvironment()
+	return DB.Connect()
+}
 
 /**
  * @details Application bootstrap
@@ -35,9 +43,7 @@ var DB database.Database
  *   Init Martini API
  */
 func main() {
-	DB.Setup()
-	DB.ParseEnvironment()
-	e := DB.Connect()
+	e := DBSetup()
 	if e == nil {
 		/* Database connection will be closed only when Server closes */
 		defer DB.Close()

@@ -5,26 +5,31 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestGetLastVisited(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
 
-	c := &http.Cookie{
-		Name:  "DPSession",
-		Value: "1",
+	NewSessionID := randString(64)
+	c, _ := GetRedisConnection()
+	defer c.Close()
+	c.Cmd("SET", NewSessionID, 1)
+
+	NewCookie := &http.Cookie{
+		Name:    "DPSession",
+		Value:   NewSessionID,
+		Path:    "/",
+		Expires: time.Now().AddDate(1, 0, 0),
 	}
+	http.SetCookie(response, NewCookie)
 
-	Convey("On HTTP Request", t, func() {
-		request.Header.Set("Cookie", c.String())
-		result := GetLastVisited(response, request)
-
-		Convey("Should Logout", func() {
-			So(result, ShouldEqual, "[]")
-		})
+	request.Header.Set("Cookie", NewCookie.String())
+	result := GetLastVisited(response, request)
+	Convey("Should get last visited", t, func() {
+		So(result, ShouldNotBeBlank)
 	})
-
 }
 
 func TestHasTableGotLocatonData(t *testing.T) {

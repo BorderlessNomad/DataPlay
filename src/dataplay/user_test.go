@@ -29,7 +29,6 @@ func TestCheckAuthRedirect(t *testing.T) {
 	})
 }
 
-
 func TestHandleLogin(t *testing.T) {
 	Convey("On HTTP Request 1", t, func() {
 		handleLoginNoData(t)
@@ -43,18 +42,6 @@ func TestHandleLogin(t *testing.T) {
 	Convey("On HTTP Request 4", t, func() {
 		handleLoginValidDataMD5(t)
 	})
-}
-
-func handleLoginNoData(t *testing.T) {
-	// request, _ := http.NewRequest("POST", "/", strings.NewReader("username=&password="))
-	// request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
-	// response := httptest.NewRecorder()
-
-	// HandleLogin(response, request)
-
-	// Convey("When No data is provided", func() {
-	// 	So(response.Code, ShouldEqual, http.StatusNotFound)
-	// })
 }
 
 func handleLoginInvalidData(t *testing.T) {
@@ -142,4 +129,16 @@ func handleRegisterExisitingData(t *testing.T) {
 	Convey("When User already exists", func() {
 		So(response.Code, ShouldEqual, http.StatusConflict)
 	})
+}
+
+func handleLoginNoData(t *testing.T) {
+	// request, _ := http.NewRequest("POST", "/", strings.NewReader("username=&password="))
+	// request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
+	// response := httptest.NewRecorder()
+
+	// HandleLogin(response, request)
+
+	// Convey("When No data is provided", func() {
+	// 	So(response.Code, ShouldEqual, http.StatusNotFound)
+	// })
 }
