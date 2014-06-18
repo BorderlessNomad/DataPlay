@@ -113,6 +113,8 @@ func GetSQLTableSchema(table string, databaseName ...string) []ColType {
 
 		if NewCol.Sqltype == "character varying" {
 			NewCol.Sqltype = "varchar"
+		} else if NewCol.Sqltype == "numeric" {
+			NewCol.Sqltype = "float"
 		}
 
 		schema = append(schema, NewCol)
