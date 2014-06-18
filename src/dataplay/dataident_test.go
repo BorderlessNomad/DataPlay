@@ -8,13 +8,17 @@ import (
 	"testing"
 )
 
+func TestDBSetUp (t *testing.T) {
+	DBSetup() // database needs to be set up as the first test or it will not be initialised until main
+}
+
 func TestIdentifyTable (t *testing.T) {
 	Convey("With no parameter", t, func() {
 		IdentifyTableNoParam(t)
 	})
-	// Convey("With a parameter", t, func() {
-	// 	IdentifyTableWithParam(t)
-	// })
+	Convey("With a parameter", t, func() {
+		IdentifyTableWithParam(t)
+	})
 }
 
 func IdentifyTableNoParam(t *testing.T) {
@@ -29,17 +33,17 @@ func IdentifyTableNoParam(t *testing.T) {
 	})
 }
 
-// func IdentifyTableWithParam(t *testing.T) {
-// 	request, _ := http.NewRequest("GET", "/", nil)
-// 	response := httptest.NewRecorder()
-// 	prams := map[string]string{"id": "gold"}
+func IdentifyTableWithParam(t *testing.T) {
+	request, _ := http.NewRequest("GET", "/", nil)
+	response := httptest.NewRecorder()
+	prams := map[string]string{"id": "gold"}
 
-// 	result := IdentifyTable(response, request, prams)
+	result := IdentifyTable(response, request, prams)
 
-// 	Convey("When ID parameter is provided", func() {
-// 		So(result, ShouldEqual, "")
-// 	})
-// }
+	Convey("When ID parameter is provided", func() {
+		So(result, ShouldEqual, "{\"Cols\":[{\"Name\":\"date\",\"Sqltype\":\"varchar\"},{\"Name\":\"price\",\"Sqltype\":\"float\"}],\"Request\":\"gold\"}")
+	})
+}
 
 func TestCheckColExists(t *testing.T){
 	Cols := []ColType{{"X", "0"}, {"Y", "0"}}
@@ -52,7 +56,6 @@ func TestCheckColExists(t *testing.T){
 	Convey("When column does not exist", t, func() {
 		So(result, ShouldBeFalse)
 	})
-
 }
 
 func TestAttemptToFindMatches(t *testing.T) {
@@ -62,6 +65,7 @@ func TestFindStringMatches(t *testing.T) {
 	request, _ := http.NewRequest("POST", "/", nil)
 	response := httptest.NewRecorder()
 	prams := map[string]string{
+		"x": "",
 		"word":    "",
 	}
 
@@ -71,14 +75,14 @@ func TestFindStringMatches(t *testing.T) {
 		So(result, ShouldEqual, "")
 	})
 
-	// prams["x"] = "test"
-	// prams["word"] = "test"
+	prams["x"] = "postal_code"
+	prams["word"] = "B37 7YE"
 
-	// result = FindStringMatches(response,request,prams)
+	result = FindStringMatches(response,request,prams)
 
-	// Convey("When ID parameter is provided", t, func() {
-	// 	So(response.Code, ShouldEqual, http.StatusBadRequest)
-	// })
+	Convey("When ID parameter is provided", t, func() {
+		So(result, ShouldNotBeBlank)
+	})
 }
 
 func TestGetRelatedDatasetByStrings(t *testing.T) {
@@ -88,35 +92,41 @@ func TestGetRelatedDatasetByStrings(t *testing.T) {
 		"guid": "",
 	}
 
-	result := FindStringMatches(response, request, prams)
-
+	result := GetRelatedDatasetByStrings(response, request, prams)
 	Convey("When no guid parameter is provided", t, func() {
 		So(result, ShouldEqual, "")
+	})
+
+	prams["guid"] = "gold"
+	result = GetRelatedDatasetByStrings(response,request,prams)
+
+	Convey("When no guid parameter is provided", t, func() {
+		So(result, ShouldNotBeBlank)
 	})
 }
 
 func TestSuggestColType(t *testing.T) {
-	// request, _ := http.NewRequest("POST", "/", nil)
-	// response := httptest.NewRecorder()
-	// // prams := map[string]string{
-	// // 	"id": "",
-	// // }
+	request, _ := http.NewRequest("POST", "/", nil)
+	response := httptest.NewRecorder()
+	prams := map[string]string{
+		"table" :"",
+		"col" : "",
+	}
 
-	// // result := SuggestColType(response, request, prams)
+	result := SuggestColType(response, request, prams)
 
-	// // Convey("When no ID parameter is provided", t, func() {
-	// // 	So(result, ShouldEqual, "")
-	// // })
+	Convey("When no ID parameter is provided", t, func() {
+		So(result, ShouldEqual, "")
+	})
 
-	// prams := map[string]string{
-	// 	"table" : "gold",
-	// 	"col" : "price",
-	// }
-	// result := SuggestColType(response, request, prams)
+	prams["table"] = "gold"
+	prams["col"] = "price"
 
-	// Convey("When ID parameter is provided", t, func() {
-	// 	So(result, ShouldBeBlank)
-	// })
+	result = SuggestColType(response, request, prams)
+
+	Convey("When ID parameter is provided", t, func() {
+		So(result, ShouldEqual, "true")
+	})
 
 }
 
@@ -138,7 +148,6 @@ func TestConvertIntoStructArrayAndSort(t *testing.T) {
 
 func TestStringInSlice(t *testing.T) {
 	test := []string{"a", "b", "c"}
-
 	result := StringInSlice("a", test)
 
 	Convey("Should find string \"a\" in slice \"a\",\"b\",\"c\" ", t, func() {

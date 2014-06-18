@@ -34,7 +34,7 @@ func GetDefaults(res http.ResponseWriter, req *http.Request, prams martini.Param
 	var d string
 
 	onlinedata := OnlineData{}
-	err := DB.Select("defaults").Where("guid = ?", prams["id"]).First(&onlinedata).Error
+	err := DB.Select("defaults").Where("guid = ?", prams["id"]).Find(&onlinedata).Error
 	if err == gorm.RecordNotFound {
 		d = "{}"
 	} else if err == nil {

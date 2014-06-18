@@ -12,7 +12,6 @@ import (
 	"github.com/codegangsta/martini" // Worked at 890a2a52d2e59b007758538f9b845fa0ed7daccb
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"playgen/database"
 	"strings"
@@ -57,105 +56,16 @@ func main() {
 
 	m := martini.Classic()
 
-	m.Get("/", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
-		CheckAuthRedirect(res, req)
-
-		user := User{}
-		err := DB.Where("uid = ?", GetUserID(res, req)).Find(&user).Error
-		if err != nil {
-			panic(err)
-		}
-
-		custom := map[string]string{
-			"username": user.Email,
-		}
-
-		RenderTemplate("public/home.html", custom, res)
-	})
-
-	m.Get("/login", func(res http.ResponseWriter, req *http.Request) {
-		failedstr := ""
-		queryprams, _ := url.ParseQuery(req.URL.String())
-
-		if queryprams.Get("/login?failed") != "" {
-			failedstr = "Incorrect User Name or Password" // They are wrong
-			if queryprams.Get("/login?failed") == "2" {
-				failedstr = "You're password has been upgraded, please login again." // This should not show anymore, we auto redirect
-			} else if queryprams.Get("/login?failed") == "3" {
-				failedstr = "Failed to login you in, Sorry!" // somehting went wrong in password upgrade.
-			}
-		}
-
-		custom := map[string]string{
-			"fail": failedstr,
-		}
-
-		RenderTemplate("public/signin.html", custom, res)
-	})
-
-	m.Get("/logout", func(res http.ResponseWriter, req *http.Request) {
-		HandleLogout(res, req)
-
-		failedstr := ""
-		custom := map[string]string{
-			"fail": failedstr,
-		}
-
-		RenderTemplate("public/signin.html", custom, res)
-	})
-
-	m.Get("/register", func(res http.ResponseWriter, req *http.Request) {
-		failedstr := ""
-		custom := map[string]string{
-			"fail": failedstr,
-		}
-
-		RenderTemplate("public/register.html", custom, res)
-	})
-
-	m.Get("/charts/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-		CheckAuthRedirect(res, req)
-
-		if IsUserLoggedIn(res, req) {
-			TrackVisited(prams["id"], fmt.Sprint(GetUserID(res, req))) // Make sure the tracking module knows about their visit.
-		}
-
-		RenderTemplate("public/charts.html", nil, res)
-	})
-
-	m.Get("/search/overlay", func(res http.ResponseWriter, req *http.Request) {
-		CheckAuthRedirect(res, req)
-
-		RenderTemplate("public/search.html", nil, res)
-	})
-
-	m.Get("/overlay/:id", func(res http.ResponseWriter, req *http.Request) {
-		CheckAuthRedirect(res, req)
-
-		RenderTemplate("public/overlay.html", nil, res)
-	})
-
-	m.Get("/overview/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-		CheckAuthRedirect(res, req)
-		if IsUserLoggedIn(res, req) {
-			TrackVisited(prams["id"], fmt.Sprint(GetUserID(res, req)))
-		}
-
-		RenderTemplate("public/overview.html", nil, res)
-	})
-
-	m.Get("/search", func(res http.ResponseWriter, req *http.Request) {
-		CheckAuthRedirect(res, req)
-
-		RenderTemplate("public/search.html", nil, res)
-	})
-
-	m.Get("/maptest/:id", func(res http.ResponseWriter, req *http.Request) {
-		CheckAuthRedirect(res, req)
-
-		RenderTemplate("public/maptest.html", nil, res)
-	})
-
+	m.Get("/", Authorisation)
+	m.Get("/login", Login)
+	m.Get("/logout", Logout)
+	m.Get("/register", Register)
+	m.Get("/charts/:id", Charts)
+	m.Get("/search/overlay", SearchOverlay )
+	m.Get("/overlay/:id", Overlay)
+	m.Get("/overview/:id", Overview)
+	m.Get("/search", Search )
+	m.Get("/maptest/:id", MapTest)
 	m.Post("/noauth/login.json", HandleLogin)
 	m.Post("/noauth/logout.json", HandleLogout)
 	m.Post("/noauth/register.json", HandleRegister)

@@ -289,11 +289,6 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, pram
 	Amt := 0
 	SizeLimit := 5
 	for _, dict := range Dictionary {
-		/* Why follwing thing is there? */
-		if dict.Value < SizeLimit || dict.Key == "" {
-			// Lets be sensible here ???Why @mayur/@glyn
-			continue
-		}
 
 		Amt++
 
@@ -377,7 +372,7 @@ func ConvertIntoStructArrayAndSort(input map[string]int) (in []CheckDict) {
 		in = append(in, newd)
 	}
 
-	sort.Sort(ByVal(in)) //What does this do?
+	sort.Sort(ByVal(in))
 
 	return in
 }

@@ -18,14 +18,14 @@ func TestSetDefaults(t *testing.T) {
 
 	Convey("When ID parameter is not provided", t, func() {
 		So(result, ShouldEqual, "")
-		})
+	})
 
-	// prams["id"] = "0"
-	// result = SetDefaults(response, request, prams)
+	prams["id"] = "test"
+	result = SetDefaults(response, request, prams)
 
-	// Convey("When ID parameter is provided", t, func() {
-	// 	So(result, ShouldNotBeBlank)
-	// 	})
+	Convey("When ID parameter is provided", t, func() {
+		So(result, ShouldNotBeBlank)
+	})
 }
 
 func TestGetDefaults(t *testing.T) {
@@ -41,10 +41,10 @@ func TestGetDefaults(t *testing.T) {
 		So(result, ShouldEqual, "")
 		})
 
-// 	prams["id"] = "0"
-// 	result = GetDefaults(response, request, prams)
+	prams["id"] = "hips"
+	result = GetDefaults(response, request, prams)
 
-// 	Convey("When ID parameter is provided", t, func() {
-// 		So(result, ShouldNotBeBlank)
-// 		})
+	Convey("When ID parameter is provided", t, func() {
+		So(result, ShouldEqual, "{\"x\":\"Hospital\",\"y\":\"70t79\"}")
+	})
 }
