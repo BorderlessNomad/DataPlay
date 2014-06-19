@@ -82,7 +82,6 @@ func main() {
 	m.Get("/api/getdata/:id/:x/:startx/:endx", DumpTableRange)
 	m.Get("/api/getdatagrouped/:id/:x/:y", DumpTableGrouped)
 	m.Get("/api/getdatapred/:id/:x/:y", DumpTablePrediction)
-	m.Get("/api/getcsvdata/:id/:x/:y", GetCSV)
 	m.Get("/api/getreduceddata/:id", DumpReducedTable)
 	m.Get("/api/getreduceddata/:id/:persent", DumpReducedTable)
 	m.Get("/api/getreduceddata/:id/:persent/:min", DumpReducedTable)

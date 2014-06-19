@@ -56,21 +56,21 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 	term := prams["s"] + "%" // e.g. "nhs" => "nhs%" (What about "%nhs"?)
 
 	Logger.Println("Searching with Backward Wildcard", term)
-	err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("owner = ?", 0).Or("owner = ?", uid).Limit(10).Find(&indices).Error
+	err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&indices).Error
 
 	Results = ProcessSearchResults(indices, err)
 	if len(Results) == 0 {
 		term := "%" + prams["s"] + "%" // e.g. "nhs" => "%nhs%"
 
 		Logger.Println("Searching with Forward + Backward Wildcard", term)
-		err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("owner = ?", 0).Or("owner = ?", uid).Limit(10).Find(&indices).Error
+		err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&indices).Error
 		Results = ProcessSearchResults(indices, err)
 		if len(Results) == 0 {
 			term := "%" + strings.Replace(prams["s"], " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
 
 			Logger.Println("Searching with Forward + Backward + Trim Wildcard", term)
 
-			err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("owner = ?", 0).Or("owner = ?", uid).Limit(10).Find(&indices).Error
+			err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&indices).Error
 			Results = ProcessSearchResults(indices, err)
 
 			if len(Results) == 0 && (len(prams["s"]) >= 3 && len(prams["s"]) < 20) {
@@ -605,78 +605,6 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 	io.WriteString(res, "\n")
 }
 
-// This function will empty a whole table out into CSV
-// This can proabbly be removed now as it was only there to support
-// one type of graph that has now been rewritten.
-func GetCSV(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-	if prams["id"] == "" {
-		http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
-		return
-	}
-
-	if prams["x"] == "" || prams["y"] == "" {
-		http.Error(res, "I don't have a x and y to make the CSV for.", http.StatusBadRequest)
-		return
-	}
-
-	tablename, e := getRealTableName(prams["id"], res)
-	if e != nil {
-		return
-	}
-
-	rows, e1 := DB.Raw("SELECT * FROM " + tablename).Rows()
-
-	if e1 != nil {
-		http.Error(res, "Could not read that table", http.StatusInternalServerError)
-		return
-	}
-	columns, e2 := rows.Columns()
-	if e2 != nil {
-		http.Error(res, "Could not read that table", http.StatusInternalServerError)
-		return
-	}
-	// We need to find the Columns to relay back.
-
-	var xcol int
-	var ycol int
-	xcol = -1
-	ycol = -1
-	for number, colname := range columns {
-		if colname == prams["x"] {
-			xcol = number
-		} else if colname == prams["y"] {
-			ycol = number
-		}
-	}
-
-	if xcol == -1 || ycol == -1 {
-		http.Error(res, "Could not find some of the columns that you asked for.", http.StatusNotFound)
-		return
-	}
-
-	var output string
-	output = "\"name\",\"word\",\"count\"\n"
-	scanArgs := make([]interface{}, len(columns))
-	values := make([]interface{}, len(columns))
-	for i := range values {
-		scanArgs[i] = &values[i]
-	}
-
-	array := make([]map[string]interface{}, 0)
-	for rows.Next() {
-		err := rows.Scan(scanArgs...)
-		if err != nil {
-			panic(err)
-		}
-
-		output = output + fmt.Sprintf("\"%s\",\"%s\",%s\n", values[xcol], values[xcol], values[ycol])
-		record := ScanRow(values, columns)
-		array = append(array, record)
-	}
-
-	res.Write([]byte(output))
-}
-
 /**
  * @brief Converts GUID ('friendly' name) into actual table inside database
  *
@@ -698,4 +626,3 @@ func getRealTableName(guid string, res ...http.ResponseWriter) (out string, e er
 
 	return Data.Tablename, err
 }
-

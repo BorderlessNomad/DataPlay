@@ -4,9 +4,9 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
-	"strings"
 )
 
 func TestCheckAuth(t *testing.T) {
@@ -33,13 +33,12 @@ func TestCheckAuth(t *testing.T) {
 		"id": "181",
 	}
 
-	CheckAuth(response,request,prams)
+	CheckAuth(response, request, prams)
 
 	Convey("When user is/isn't logged in", t, func() {
 		So(response.Code, ShouldNotBeNil)
 	})
 }
-
 
 func TestSearchForData(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
@@ -48,21 +47,33 @@ func TestSearchForData(t *testing.T) {
 		"s": "",
 	}
 
-	SearchForData(response,request,prams)
+	SearchForData(response, request, prams)
 
 	Convey("When no search parameter is provided", t, func() {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	prams["s"] = "nhs"
-	result := SearchForData(response,request,prams)
-	Convey("When search parameter is provided", t, func() {
+	result := SearchForData(response, request, prams)
+	Convey("When search parameter is 'nhs'", t, func() {
 		So(result, ShouldNotBeBlank)
 	})
 
-	prams["s"] = "¬"
-	result = SearchForData(response,request,prams)
-	Convey("When search parameter is provided but deep search required", t, func() {
+	prams["s"] = "hs"
+	result = SearchForData(response, request, prams)
+	Convey("When search parameter is 'hs'", t, func() {
+		So(result, ShouldNotBeBlank)
+	})
+
+	prams["s"] = "n h s"
+	result = SearchForData(response, request, prams)
+	Convey("When search parameter is 'n h s'", t, func() {
+		So(result, ShouldNotBeBlank)
+	})
+
+	prams["s"] = "freakshine"
+	result = SearchForData(response, request, prams)
+	Convey("When search parameter is 'freakshine'", t, func() {
 		So(result, ShouldNotBeBlank)
 	})
 }
@@ -78,14 +89,14 @@ func TestGetEntry(t *testing.T) {
 		"id": "",
 	}
 
-	GetEntry(response,request,prams)
+	GetEntry(response, request, prams)
 
 	Convey("When no ID parameter is provided", t, func() {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	prams["id"] = "gold"
-	result := GetEntry(response,request,prams)
+	result := GetEntry(response, request, prams)
 
 	Convey("When no ID parameter is provided", t, func() {
 		So(result, ShouldNotBeBlank)
@@ -93,7 +104,7 @@ func TestGetEntry(t *testing.T) {
 }
 
 func TestScanRow(t *testing.T) {
-	cols := []string{"cmxval", "bval", "ival", "i64val","fval","sval", "btval"}
+	cols := []string{"cmxval", "bval", "ival", "i64val", "fval", "sval", "btval"}
 	var cmxval complex128 = -1 + 3i //triggers "unexpected type"
 	var bval bool = true
 	var ival int = 1
@@ -119,7 +130,7 @@ func TestDumpTable(t *testing.T) {
 		"bot": "",
 	}
 
-	DumpTable(response,request,prams)
+	DumpTable(response, request, prams)
 
 	Convey("When no ID parameter is provided", t, func() {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
@@ -127,7 +138,7 @@ func TestDumpTable(t *testing.T) {
 
 	prams["top"] = "5"
 	prams["bot"] = "10"
-	DumpTable(response,request,prams)
+	DumpTable(response, request, prams)
 
 	Convey("When no ID parameter is provided", t, func() {
 		So(response.Code, ShouldNotBeNil)
@@ -138,20 +149,20 @@ func TestDumpTableRange(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
 	prams := map[string]string{
-		"id": "x",
-		"x": "",
+		"id":     "x",
+		"x":      "",
 		"startx": "",
-		"endx": "",
+		"endx":   "",
 	}
 
-	DumpTableRange(response,request,prams)
+	DumpTableRange(response, request, prams)
 	Convey("When no x, startx or endx parameters are provided", t, func() {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
-	prams["id"]= ""
+	prams["id"] = ""
 
-	DumpTableRange(response,request,prams)
+	DumpTableRange(response, request, prams)
 	Convey("When no x, startx or endx parameters are provided", t, func() {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -162,11 +173,11 @@ func TestDumpTableGrouped(t *testing.T) {
 	response := httptest.NewRecorder()
 	prams := map[string]string{
 		"id": "x",
-		"x": "",
-		"y": "",
+		"x":  "",
+		"y":  "",
 	}
 
-	DumpTableGrouped(response,request,prams)
+	DumpTableGrouped(response, request, prams)
 	Convey("When no ID, x or y parameters are provided", t, func() {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -178,11 +189,11 @@ func TestDumpTablePrediction(t *testing.T) {
 	response := httptest.NewRecorder()
 	prams := map[string]string{
 		"id": "x",
-		"x": "",
-		"y": "",
+		"x":  "",
+		"y":  "",
 	}
 
-	DumpTablePrediction(response,request,prams)
+	DumpTablePrediction(response, request, prams)
 	Convey("When no ID, x or y parameters are provided", t, func() {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -193,29 +204,7 @@ func TestDumpReducedTable(t *testing.T) {
 	response := httptest.NewRecorder()
 	prams := map[string]string{"id": ""}
 
-	DumpReducedTable(response,request,prams)
-	Convey("When no ID parameter is provided", t, func() {
-		So(response.Code, ShouldEqual, http.StatusBadRequest)
-	})
-}
-
-func TestGetCSV(t *testing.T) {
-	request, _ := http.NewRequest("GET", "/", nil)
-	response := httptest.NewRecorder()
-	prams := map[string]string{
-		"id": "x",
-		"x": "",
-		"y": "",
-	}
-
-	GetCSV(response,request,prams)
-	Convey("When no x or y parameters are provided", t, func() {
-		So(response.Code, ShouldEqual, http.StatusBadRequest)
-	})
-
-	prams["id"]= ""
-
-	GetCSV(response,request,prams)
+	DumpReducedTable(response, request, prams)
 	Convey("When no ID parameter is provided", t, func() {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
