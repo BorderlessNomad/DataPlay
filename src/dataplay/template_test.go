@@ -16,11 +16,14 @@ func TestApplyTemplate(t *testing.T) {
 
 func TestRenderTemplate(t *testing.T) {
 	response := httptest.NewRecorder()
-	custom := map[string]string{"test" : "test"}
+	custom := map[string]string{"": ""}
 
+	Convey("On non existant page template render", t, func() {
+		RenderTemplate("test", custom, response)
+	})
 
 	Convey("On page template render", t, func() {
-		RenderTemplate("test", custom, response)
+		RenderTemplate("public/charts.html", custom, response)
 	})
 
 }

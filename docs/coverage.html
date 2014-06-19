@@ -543,7 +543,7 @@ import (
         "time"
 )
 
-type AuthResponce struct {
+type AuthResponse struct {
         Username string
         UserID   int64
 }
@@ -561,7 +561,7 @@ func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params)
         var username string
         database.QueryRow("select email from priv_users where uid = ?", uid).Scan(&amp;username)
 
-        returnobj := AuthResponce{
+        returnobj := AuthResponse{
                 Username: username,
                 UserID:   intuid,
         }

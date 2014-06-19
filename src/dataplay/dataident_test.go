@@ -8,11 +8,11 @@ import (
 	"testing"
 )
 
-func TestDBSetUp (t *testing.T) {
+func TestDBSetUp(t *testing.T) {
 	DBSetup() // database needs to be set up as the first test or it will not be initialised until main
 }
 
-func TestIdentifyTable (t *testing.T) {
+func TestIdentifyTable(t *testing.T) {
 	Convey("With no parameter", t, func() {
 		IdentifyTableNoParam(t)
 	})
@@ -24,7 +24,7 @@ func TestIdentifyTable (t *testing.T) {
 func IdentifyTableNoParam(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
-	prams := map[string]string{"id": ""}
+	prams := map[string]string{"": ""}
 
 	result := IdentifyTable(response, request, prams)
 
@@ -45,14 +45,27 @@ func IdentifyTableWithParam(t *testing.T) {
 	})
 }
 
-func TestCheckColExists(t *testing.T){
+func TestFetchTableCols(t *testing.T) {
+	result := FetchTableCols("")
+	Convey("When no guid passed no column names are returned", t, func() {
+		So(result, ShouldBeNil)
+	})
+}
+
+func TestGetSQLTableSchema(t *testing.T) {
+	result := GetSQLTableSchema("test_table", "test_db")
+	Convey("When dbname > 0", t, func() {
+		So(result, ShouldNotBeNil)
+	})
+}
+func TestCheckColExists(t *testing.T) {
 	Cols := []ColType{{"X", "0"}, {"Y", "0"}}
 
-	result := CheckColExists(Cols,"X")
+	result := CheckColExists(Cols, "X")
 	Convey("When column exists", t, func() {
 		So(result, ShouldBeTrue)
 	})
-	result = CheckColExists(Cols,"Z")
+	result = CheckColExists(Cols, "Z")
 	Convey("When column does not exist", t, func() {
 		So(result, ShouldBeFalse)
 	})
@@ -65,8 +78,8 @@ func TestFindStringMatches(t *testing.T) {
 	request, _ := http.NewRequest("POST", "/", nil)
 	response := httptest.NewRecorder()
 	prams := map[string]string{
-		"x": "",
-		"word":    "",
+		"x":    "",
+		"word": "",
 	}
 
 	result := FindStringMatches(response, request, prams)
@@ -78,7 +91,7 @@ func TestFindStringMatches(t *testing.T) {
 	prams["x"] = "postal_code"
 	prams["word"] = "B37 7YE"
 
-	result = FindStringMatches(response,request,prams)
+	result = FindStringMatches(response, request, prams)
 
 	Convey("When ID parameter is provided", t, func() {
 		So(result, ShouldNotBeBlank)
@@ -98,7 +111,7 @@ func TestGetRelatedDatasetByStrings(t *testing.T) {
 	})
 
 	prams["guid"] = "hips"
-	result2 := GetRelatedDatasetByStrings(response,request,prams)
+	result2 := GetRelatedDatasetByStrings(response, request, prams)
 
 	Convey("When guid parameter is provided", t, func() {
 		So(result2, ShouldNotBeBlank)
@@ -109,8 +122,8 @@ func TestSuggestColType(t *testing.T) {
 	request, _ := http.NewRequest("POST", "/", nil)
 	response := httptest.NewRecorder()
 	prams := map[string]string{
-		"table" :"",
-		"col" : "",
+		"table": "",
+		"col":   "",
 	}
 
 	result := SuggestColType(response, request, prams)

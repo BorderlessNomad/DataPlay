@@ -26,8 +26,11 @@ type AuthHandler struct {
 
 var DB database.Database
 var isDBSetup bool
+
 func DBSetup() error {
-	if isDBSetup { return nil }
+	if isDBSetup {
+		return nil
+	}
 	isDBSetup = true
 	DB.Setup()
 	DB.ParseEnvironment()
@@ -61,10 +64,10 @@ func main() {
 	m.Get("/logout", Logout)
 	m.Get("/register", Register)
 	m.Get("/charts/:id", Charts)
-	m.Get("/search/overlay", SearchOverlay )
+	m.Get("/search/overlay", SearchOverlay)
 	m.Get("/overlay/:id", Overlay)
 	m.Get("/overview/:id", Overview)
-	m.Get("/search", Search )
+	m.Get("/search", Search)
 	m.Get("/maptest/:id", MapTest)
 	m.Post("/noauth/login.json", HandleLogin)
 	m.Post("/noauth/logout.json", HandleLogout)
@@ -106,7 +109,7 @@ func main() {
  * @param *http.Request
  */
 func JsonApiHandler(res http.ResponseWriter, req *http.Request) {
-	if strings.HasPrefix(req.RequestURI, "/api") {
+	if strings.HasPrefix(req.URL.Path, "/api") {
 		CheckAuthRedirect(res, req) // Make everything in the API auth'd
 		res.Header().Set("Content-Type", "application/json")
 	}

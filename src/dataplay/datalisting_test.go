@@ -6,45 +6,39 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
-	//"strings"
+	"strings"
 )
 
-// func TestCheckAuth(t *testing.T) {
-// 	request, _ := http.NewRequest("POST", "/", strings.NewReader("username=mayur@dataplay.com&password=whoru007"))
-// 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
-// 	response := httptest.NewRecorder()
+func TestCheckAuth(t *testing.T) {
+	request, _ := http.NewRequest("POST", "/", strings.NewReader("username=glyn@dataplay.com&password=123456"))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
+	response := httptest.NewRecorder()
+	NewSessionID := randString(64)
+	c, _ := GetRedisConnection()
+	defer c.Close()
+	c.Cmd("SET", NewSessionID, 1)
 
-// 	HandleLogin(response, request)
-// 	prams := map[string]string{
-// 		"s": "",
-// 	}
+	NewCookie := &http.Cookie{
+		Name:    "DPSession",
+		Value:   NewSessionID,
+		Path:    "/",
+		Expires: time.Now().AddDate(1, 0, 0),
+	}
+	http.SetCookie(response, NewCookie)
 
-// 	CheckAuth(response,request,prams)
+	request.Header.Set("Cookie", NewCookie.String())
 
-// 	Convey("When no search parameter is provided", t, func() {
-// 		So(response.Code, ShouldEqual, http.StatusBadRequest)
-// 	})
+	HandleLogin(response, request)
+	prams := map[string]string{
+		"id": "181",
+	}
 
-// }
+	CheckAuth(response,request,prams)
 
-// func TestCheckAuth(t *testing.T) {
-// 	request, _ := http.NewRequest("GET", "/", nil)
-// 	response := httptest.NewRecorder()
-
-// 	Convey("On HTTP Request", t, func() {
-// 		CheckAuthRedirect(response, request)
-
-// 		Convey("When authentication is successful", func() {
-// 			// So(response.Code, ShouldBeIn, []int{200, 201, 301, 302, 303, 307})
-// 			So(response.Code, ShouldEqual, http.StatusTemporaryRedirect)
-// 		})
-
-// 		Convey("When authentication is unsuccessful", func() {
-// 			So(response.Code, ShouldNotBeIn, []int{200, 201})
-// 			// So(response.Code, ShouldNotEqual, http.StatusTemporaryRedirect)
-// 		})
-// 	})
-// }
+	Convey("When user is/isn't logged in", t, func() {
+		So(response.Code, ShouldNotBeNil)
+	})
+}
 
 
 func TestSearchForData(t *testing.T) {
