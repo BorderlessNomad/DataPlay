@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-type AuthResponce struct {
+type Authresponse struct {
 	Username string
 	UserID   int
 }
@@ -25,7 +25,7 @@ func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params)
 	err := DB.Where("uid = ?", GetUserID(res, req)).Find(&user).Error
 	check(err)
 
-	result := AuthResponce{
+	result := Authresponse{
 		Username: user.Email,
 		UserID:   user.Uid,
 	}
@@ -192,7 +192,7 @@ func ScanRow(values []interface{}, columns []string) map[string]interface{} {
 	return record
 }
 
-type DataResponce struct {
+type Dataresponse struct {
 	Results []interface{}
 	Name    string
 }
@@ -201,23 +201,23 @@ type DataResponce struct {
 // Due to what seems to be a golang bug, everything is outputted as a string.
 func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params) {
 	if prams["id"] == "" {
-		http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
+		http.Error(res, "Sorry! Could not complete this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
 		return
 	}
 
-	var top int64 = 0
-	var bot int64 = 0
+	var offset int64 = 0
+	var count int64 = 0
 
 	UsingRanges := true
-	if prams["top"] == "" || prams["bot"] == "" {
+	if prams["offset"] == "" || prams["count"] == "" {
 		UsingRanges = false
 	} else {
-		var te, be error
-		top, te = strconv.ParseInt(prams["top"], 10, 64)
-		bot, be = strconv.ParseInt(prams["bot"], 10, 64)
+		var oE, cE error
+		offset, oE = strconv.ParseInt(prams["offset"], 10, 64)
+		count, cE = strconv.ParseInt(prams["count"], 10, 64)
 
-		if te != nil || be != nil {
-			http.Error(res, "Please give valid numbers for top and bot", http.StatusBadRequest)
+		if oE != nil || cE != nil {
+			http.Error(res, "Please give valid numbers for offset and count", http.StatusBadRequest)
 			return
 		}
 	}
@@ -231,7 +231,7 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 	var err error
 
 	if UsingRanges {
-		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %s LIMIT %d, %d", tablename, top, bot)).Rows()
+		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %s OFFSET %d LIMIT %d", tablename, offset, count)).Rows()
 	} else {
 		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %s", tablename)).Rows()
 	}
@@ -540,13 +540,13 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 	}
 
 	RealDL := DataLength
-	if prams["persent"] == "" {
+	if prams["percent"] == "" {
 		DataLength = DataLength / 25
 	} else {
-		Persent := prams["persent"]
-		Divider, e := strconv.ParseInt(Persent, 10, 64)
+		percent := prams["percent"]
+		Divider, e := strconv.ParseInt(percent, 10, 64)
 		if e != nil {
-			http.Error(res, "Invalid Persentage", http.StatusBadRequest)
+			http.Error(res, "Invalid percentage", http.StatusBadRequest)
 			return // Halt!
 		}
 
@@ -572,7 +572,7 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 	}
 
 	if DataLength < 1 {
-		DataLength = 1 // In the case that the persentage returnes a super small amount, then
+		DataLength = 1 // In the case that the percentage returnes a super small amount, then
 		// force it to be 1, and return it all
 	}
 
