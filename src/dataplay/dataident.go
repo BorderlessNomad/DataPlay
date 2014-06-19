@@ -170,7 +170,6 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 	return "true"
 }
 
-// Unfinished function
 func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
 	// m.Get("/api/findmatches/:id/:x/:y", api.AttemptToFindMatches)
 	RealTableName, e := getRealTableName(prams["id"], res)
@@ -197,9 +196,13 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 		return ""
 	}
 
-	Logger.Println(&stats)
+	b, e := json.Marshal(stats)
+	if e != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return ""
+	}
 
-	return "wat"
+	return string(b)
 }
 
 func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
