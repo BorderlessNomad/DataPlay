@@ -146,7 +146,7 @@ func ParseCreateTableSQL(input string) []ColType {
 	return returnerr
 }
 
-type SuggestionResponce struct {
+type Suggestionresponse struct {
 	Request string
 }
 

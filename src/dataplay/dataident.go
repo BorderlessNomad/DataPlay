@@ -26,7 +26,7 @@ type ColType struct {
 	Sqltype string
 }
 
-type SuggestionResponce struct {
+type Suggestionresponse struct {
 	Request string
 }
 
