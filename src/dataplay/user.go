@@ -44,25 +44,27 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 		err := DB.Model(&user).Where("password = ?", GetMD5Hash(password)).Count(&count).Error
 		check(err)
 
-		if count != 0 {
-			// Ooooh, We need to upgrade this password!
-			hashedPassword, e := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-			if e == nil {
-				err := DB.Model(&user).Update("password", string(hashedPassword)).Error
-				check(err)
+		if count == 0 {
+			http.Error(res, "Could not find a user.", http.StatusNotFound)
+			// http.Redirect(res, req, "/login?failed=1", http.StatusNotFound)
+			return
+		}
 
-				if SetSession(res, req, user.Uid) != nil {
-					http.Error(res, "Could not setup session.", http.StatusInternalServerError)
-					return
-				}
+		// Ooooh, We need to upgrade this password!
+		hashedPassword, e := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if e == nil {
+			err := DB.Model(&user).Update("password", string(hashedPassword)).Error
+			check(err)
 
-				http.Redirect(res, req, "/", http.StatusFound)
+			if SetSession(res, req, user.Uid) != nil {
+				http.Error(res, "Could not setup session.", http.StatusInternalServerError)
+				return
 			}
 
-			http.Redirect(res, req, fmt.Sprintf("/login?failed=3&r=%s", e), http.StatusFound)
-		} else {
-			http.Redirect(res, req, "/login?failed=1", http.StatusNotFound) // The user has failed this test as well :sad tuba:
+			http.Redirect(res, req, "/", http.StatusFound)
 		}
+
+		http.Redirect(res, req, fmt.Sprintf("/login?failed=3&r=%s", e), http.StatusFound)
 	}
 }
 
