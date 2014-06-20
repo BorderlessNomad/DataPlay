@@ -1,7 +1,7 @@
 package main
 
 import (
-	//. "github.com/smartystreets/goconvey/convey"
+	. "github.com/smartystreets/goconvey/convey"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -30,10 +30,17 @@ func TestAuthorisation(t *testing.T) {
 }
 
 func TestLogin(t *testing.T) {
-	request, _ := http.NewRequest("GET", "/login?failed = 1", nil)
+	request, _ := http.NewRequest("POST", "/login?failed=2", strings.NewReader(""))
 	response := httptest.NewRecorder()
 
-	Login(response, request)
+	Convey("fail with login fail code 2", t, func() {
+		Login(response, request)
+	})
+	Convey("fail with login fail code 3", t, func() {
+		request, _ = http.NewRequest("POST", "/login?failed=3", strings.NewReader(""))
+		Login(response, request)
+	})
+
 }
 
 func TestLogout(t *testing.T) {

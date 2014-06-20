@@ -321,12 +321,8 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 			panic(err)
 		}
 
-		xvalue, e := strconv.ParseInt(string(values[xcol].([]byte)), 10, 0) // TODO: Fix this so it can take ints too.
+		xvalue := values[xcol].(int64)
 
-		if e != nil {
-			http.Error(res, "Read loop error D: Looks like I tried to read somthing that was not a int.", http.StatusInternalServerError)
-			return
-		}
 		if xvalue >= startx && xvalue <= endx {
 			record := ScanRow(values, columns)
 			array = append(array, record)

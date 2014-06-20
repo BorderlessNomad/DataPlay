@@ -14,17 +14,15 @@ func TestCheckImportStatus(t *testing.T) {
 		"id": "",
 	}
 
-	CheckImportStatus(response,request,prams)
+	CheckImportStatus(response, request, prams)
 
 	Convey("When no ID parameter is provided", t, func() {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
-		})
-
-	prams["id"] = "gold"
-
-	result := CheckImportStatus(response,request,prams)
+	})
 
 	Convey("When ID parameter is provided", t, func() {
+		prams["id"] = "gold"
+		result := CheckImportStatus(response, request, prams)
 		So(result, ShouldEqual, "{\"State\":\"online\",\"Request\":\"gold\"}")
 	})
 }

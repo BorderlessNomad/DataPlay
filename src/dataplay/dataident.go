@@ -172,9 +172,7 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 	return "true"
 }
 
-// Unfinished function
 func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	// m.Get("/api/findmatches/:id/:x/:y", api.AttemptToFindMatches)
 	RealTableName, e := getRealTableName(prams["id"], res)
 	if e != nil {
 		http.Error(res, "Could not find that Table", http.StatusInternalServerError)

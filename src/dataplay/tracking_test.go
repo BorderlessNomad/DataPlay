@@ -24,8 +24,8 @@ func TestGetLastVisited(t *testing.T) {
 		Expires: time.Now().AddDate(1, 0, 0),
 	}
 	http.SetCookie(response, NewCookie)
-
 	request.Header.Set("Cookie", NewCookie.String())
+
 	result := GetLastVisited(response, request)
 	Convey("Should get last visited", t, func() {
 		So(result, ShouldNotBeBlank)
@@ -39,25 +39,22 @@ func TestHasTableGotLocatonData(t *testing.T) {
 		So(result, ShouldEqual, "true")
 	})
 
-	result = HasTableGotLocationData("houseprices")
-
 	Convey("Should not find Lattitude and Longitude columns in dataset", t, func() {
+		result = HasTableGotLocationData("houseprices")
 		So(result, ShouldEqual, "false")
 	})
 }
 
 func TestContainsTableCol(t *testing.T) {
 	Cols := []ColType{{"X", "0"}, {"Y", "0"}}
-
 	result := ContainsTableCol(Cols, "y")
 
 	Convey("Should find Column name", t, func() {
 		So(result, ShouldBeTrue)
 	})
 
-	result = ContainsTableCol(Cols, "z")
-
 	Convey("Should not find Column name", t, func() {
+		result = ContainsTableCol(Cols, "z")
 		So(result, ShouldBeFalse)
 	})
 }

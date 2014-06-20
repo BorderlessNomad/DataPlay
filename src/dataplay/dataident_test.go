@@ -16,6 +16,7 @@ func TestIdentifyTable(t *testing.T) {
 	Convey("With no parameter", t, func() {
 		IdentifyTableNoParam(t)
 	})
+
 	Convey("With a parameter", t, func() {
 		IdentifyTableWithParam(t)
 	})
@@ -26,9 +27,8 @@ func IdentifyTableNoParam(t *testing.T) {
 	response := httptest.NewRecorder()
 	prams := map[string]string{"": ""}
 
-	result := IdentifyTable(response, request, prams)
-
 	Convey("When no ID parameter is provided", func() {
+		result := IdentifyTable(response, request, prams)
 		So(result, ShouldEqual, "")
 	})
 }
@@ -38,40 +38,54 @@ func IdentifyTableWithParam(t *testing.T) {
 	response := httptest.NewRecorder()
 	prams := map[string]string{"id": "gold"}
 
-	result := IdentifyTable(response, request, prams)
-
 	Convey("When ID parameter is provided", func() {
+		result := IdentifyTable(response, request, prams)
 		So(result, ShouldNotBeBlank)
 	})
 }
 
 func TestFetchTableCols(t *testing.T) {
 	result := FetchTableCols("")
+
 	Convey("When no guid passed no column names are returned", t, func() {
 		So(result, ShouldBeNil)
 	})
 }
 
 func TestGetSQLTableSchema(t *testing.T) {
-	result := GetSQLTableSchema("test_table", "test_db")
 	Convey("When dbname > 0", t, func() {
+		result := GetSQLTableSchema("test_table", "test_db")
 		So(result, ShouldNotBeNil)
 	})
 }
 func TestCheckColExists(t *testing.T) {
 	Cols := []ColType{{"X", "0"}, {"Y", "0"}}
-
 	result := CheckColExists(Cols, "X")
+
 	Convey("When column exists", t, func() {
 		So(result, ShouldBeTrue)
 	})
-	result = CheckColExists(Cols, "Z")
+
 	Convey("When column does not exist", t, func() {
+		result = CheckColExists(Cols, "Z")
 		So(result, ShouldBeFalse)
 	})
 }
 
 func TestAttemptToFindMatches(t *testing.T) {
+	request, _ := http.NewRequest("POST", "/", nil)
+	response := httptest.NewRecorder()
+	prams := map[string]string{
+		"id": "gdp",
+		"x":  "year",
+		"y":  "gdp",
+	}
+
+	Convey("When attempting to find matches", t, func() {
+		result := AttemptToFindMatches(response, request, prams)
+		So(result, ShouldEqual, "wat")
+	})
+
 }
 
 func TestFindStringMatches(t *testing.T) {
@@ -88,12 +102,10 @@ func TestFindStringMatches(t *testing.T) {
 		So(result, ShouldEqual, "")
 	})
 
-	prams["x"] = "postal_code"
-	prams["word"] = "B37 7YE"
-
-	result = FindStringMatches(response, request, prams)
-
 	Convey("When ID parameter is provided", t, func() {
+		prams["x"] = "postal_code"
+		prams["word"] = "B37 7YE"
+		result = FindStringMatches(response, request, prams)
 		So(result, ShouldNotBeBlank)
 	})
 }
@@ -110,11 +122,10 @@ func TestGetRelatedDatasetByStrings(t *testing.T) {
 		So(result, ShouldEqual, "")
 	})
 
-	prams["guid"] = "hips"
-	result2 := GetRelatedDatasetByStrings(response, request, prams)
-
 	Convey("When guid parameter is provided", t, func() {
-		So(result2, ShouldNotBeBlank)
+		prams["guid"] = "hips"
+		result := GetRelatedDatasetByStrings(response, request, prams)
+		So(result, ShouldNotBeBlank)
 	})
 }
 
@@ -132,12 +143,10 @@ func TestSuggestColType(t *testing.T) {
 		So(result, ShouldEqual, "")
 	})
 
-	prams["table"] = "gold"
-	prams["col"] = "price"
-
-	result = SuggestColType(response, request, prams)
-
 	Convey("When ID parameter is provided", t, func() {
+		prams["table"] = "gold"
+		prams["col"] = "price"
+		result = SuggestColType(response, request, prams)
 		So(result, ShouldEqual, "true")
 	})
 
@@ -150,10 +159,9 @@ func TestConvertIntoStructArrayAndSort(t *testing.T) {
 		"a": 1,
 	}
 
-	result := ConvertIntoStructArrayAndSort(unsorted)
-	resultStr, _ := json.Marshal(result)
-
 	Convey("Unsorted map bca should return sorted map abc", t, func() {
+		result := ConvertIntoStructArrayAndSort(unsorted)
+		resultStr, _ := json.Marshal(result)
 		So(string(resultStr), ShouldEqual, `[{"Key":"a","Value":1},{"Key":"b","Value":2},{"Key":"c","Value":3}]`)
 	})
 
@@ -167,9 +175,8 @@ func TestStringInSlice(t *testing.T) {
 		So(result, ShouldBeTrue)
 	})
 
-	result = StringInSlice("x", test)
-
 	Convey("Should not find string \"x\" in slice \"a\",\"b\",\"c\" ", t, func() {
+		result = StringInSlice("x", test)
 		So(result, ShouldBeFalse)
 	})
 }

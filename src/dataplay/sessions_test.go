@@ -4,9 +4,9 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
-	 "strings"
-	 "time"
+	"time"
 )
 
 func TestIsUserLoggedIn(t *testing.T) {
@@ -91,5 +91,3 @@ func handleClearSession(t *testing.T) {
 		So(e_return, ShouldBeNil)
 	})
 }
-
-

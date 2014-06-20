@@ -74,10 +74,6 @@ func TestSearchForData(t *testing.T) {
 	})
 }
 
-func TestProcessSearchResults(t *testing.T) {
-
-}
-
 func TestGetEntry(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
@@ -90,7 +86,13 @@ func TestGetEntry(t *testing.T) {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
-	Convey("When no ID parameter is provided", t, func() {
+	Convey("When ID parameter with incorrect value is provided", t, func() {
+		prams["id"] = "derp"
+		result := GetEntry(response, request, prams)
+		So(result, ShouldNotBeBlank)
+	})
+
+	Convey("When ID parameter with correct value is provided", t, func() {
 		prams["id"] = "gold"
 		result := GetEntry(response, request, prams)
 		So(result, ShouldNotBeBlank)
@@ -155,12 +157,12 @@ func TestDumpTableRange(t *testing.T) {
 		DumpTableRange(response, request, prams)
 	})
 
-	// Convey("When no x, startx or endx parameters are provided", t, func() {
-	// 	prams["x"] = "1"
-	// 	prams["startx"] = "2"
-	// 	prams["endx"] = "3"
-	// 	DumpTableRange(response, request, prams)
-	// })
+	Convey("When all parameters are provided", t, func() {
+		prams["x"] = "year"
+		prams["startx"] = "1970"
+		prams["endx"] = "2000"
+		DumpTableRange(response, request, prams)
+	})
 }
 
 func TestDumpTableGrouped(t *testing.T) {
@@ -209,8 +211,15 @@ func TestDumpReducedTable(t *testing.T) {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
-	Convey("When valid parameters are provided", t, func() {
+	Convey("When valid table is provided", t, func() {
 		prams["id"] = "gdp"
+		DumpReducedTable(response, request, prams)
+	})
+
+	Convey("When valid table and parameters are provided", t, func() {
+		prams["id"] = "gdp"
+		prams["percent"] = "10"
+		prams["min"] = "1"
 		DumpReducedTable(response, request, prams)
 	})
 }
