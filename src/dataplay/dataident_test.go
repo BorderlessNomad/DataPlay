@@ -96,7 +96,7 @@ func TestAttemptToFindMatches(t *testing.T) {
 		params["x"] = "year"
 		params["y"] = "gdp"
 		result := AttemptToFindMatches(response, request, params)
-		So(result, ShouldEqual, "wat")
+		So(result, ShouldNotBeBlank)
 	})
 }
 

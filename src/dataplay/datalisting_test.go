@@ -100,7 +100,7 @@ func TestGetEntry(t *testing.T) {
 }
 
 func TestScanRow(t *testing.T) {
-	cols := []string{"cmxval", "bval", "ival", "i64val", "fval", "sval", "btval"}
+	cols := []string{"cmxval", "bval", "ival", "i64val", "fval", "sval", "btval", "tval"}
 	var cmxval complex128 = -1 + 3i //triggers "unexpected type"
 	var bval bool = true
 	var ival int = 1
