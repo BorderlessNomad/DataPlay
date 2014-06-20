@@ -1,15 +1,16 @@
 package main
 
-// Hi there. You can find the SQL layout in "layout.sql"
-// You can get the data from http://data.gov.uk/data/dumps
-// Not actually sure they want you to do that. But it works for now.
-// For those who want to build this in the future (Hi future!)
-// This was written in Go 1.1.1 or 1.2
-// You will also need to run "go get" and hope to god the packages
-// still exist.
+/**
+ * Hi there. You can find the SQL layout in "layout.sql"
+ * You can get the data from http://data.gov.uk/data/dumps
+ *
+ * For those who want to build this in the future (Hi future!)
+ * This was written in Go 1.2.2/1.3
+ */
+
 import (
 	"fmt"
-	"github.com/codegangsta/martini" // Worked at 890a2a52d2e59b007758538f9b845fa0ed7daccb
+	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"log"
 	"net/http"
