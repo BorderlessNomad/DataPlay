@@ -484,12 +484,12 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 		/*Going to if both things are float's else I can't predict them*/
 		f1, e := strconv.ParseFloat(record[columns[0]].(string), 64)
 		if e != nil {
-			http.Error(res, "Could not parse one of the values into a float, there for cannot run Poly Prediction over it", http.StatusBadRequest)
+			http.Error(res, "Could not parse one of the values into a float, therefore cannot run Poly Prediction over it", http.StatusBadRequest)
 			return
 		}
 		f2, e := strconv.ParseFloat(record[columns[1]].(string), 64)
 		if e != nil {
-			http.Error(res, "Could not parse one of the values into a float, there for cannot run Poly Prediction over it", http.StatusBadRequest)
+			http.Error(res, "Could not parse one of the values into a float, therefore cannot run Poly Prediction over it", http.StatusBadRequest)
 			return
 		}
 		xarray = append(xarray, f1)

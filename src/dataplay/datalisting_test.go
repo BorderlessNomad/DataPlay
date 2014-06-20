@@ -128,13 +128,26 @@ func TestDumpTable(t *testing.T) {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
+	Convey("When table name is incorrect ", t, func() {
+		prams["id"] = "qwerty1"
+		DumpTable(response, request, prams)
+		So(response.Code, ShouldNotBeNil)
+	})
+
 	Convey("When limits are not provided", t, func() {
 		prams["id"] = "gdp"
 		DumpTable(response, request, prams)
 		So(response.Code, ShouldNotBeNil)
 	})
 
-	Convey("When limits are provided", t, func() {
+	Convey("When incorrect limits are provided", t, func() {
+		prams["offset"] = "-3000"
+		prams["count"] = "10.5"
+		DumpTable(response, request, prams)
+		So(response.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("When correct limits are provided", t, func() {
 		prams["offset"] = "5"
 		prams["count"] = "10"
 		DumpTable(response, request, prams)
@@ -157,7 +170,15 @@ func TestDumpTableRange(t *testing.T) {
 		DumpTableRange(response, request, prams)
 	})
 
-	Convey("When all parameters are provided", t, func() {
+	Convey("When bad range parameters are provided", t, func() {
+		prams["x"] = "year"
+		prams["startx"] = "-400"
+		prams["endx"] = "700000000.23"
+		DumpTableRange(response, request, prams)
+		So(response.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("When good parameters are provided", t, func() {
 		prams["x"] = "year"
 		prams["startx"] = "1970"
 		prams["endx"] = "2000"
@@ -175,6 +196,20 @@ func TestDumpTableGrouped(t *testing.T) {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
+	Convey("When invalid X Col parameter is provided", t, func() {
+		prams["id"] = "gdp"
+		prams["x"] = "qwerty1"
+		prams["y"] = "gdpindex"
+		DumpTableGrouped(response, request, prams)
+	})
+
+	Convey("When invalid Y Col parameter is provided", t, func() {
+		prams["id"] = "gdp"
+		prams["x"] = "change"
+		prams["y"] = "qwerty1"
+		DumpTableGrouped(response, request, prams)
+	})
+
 	Convey("When valid parameters are provided", t, func() {
 		prams["id"] = "gdp"
 		prams["x"] = "change"
@@ -189,6 +224,28 @@ func TestDumpTablePrediction(t *testing.T) {
 	prams := map[string]string{"id": ""}
 
 	Convey("When no ID, x or y parameters are provided", t, func() {
+		DumpTablePrediction(response, request, prams)
+		So(response.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("When invalid X Col parameter is provided", t, func() {
+		prams["id"] = "gdp"
+		prams["x"] = "qwerty1"
+		prams["y"] = "gdpindex"
+		DumpTablePrediction(response, request, prams)
+	})
+
+	Convey("When invalid Y Col parameter is provided", t, func() {
+		prams["id"] = "gdp"
+		prams["x"] = "change"
+		prams["y"] = "qwerty1"
+		DumpTablePrediction(response, request, prams)
+	})
+
+	Convey("When valid parameters are provided which point to incompatible values", t, func() {
+		prams["id"] = "hips"
+		prams["x"] = "hospital"
+		prams["y"] = "90p"
 		DumpTablePrediction(response, request, prams)
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -211,8 +268,26 @@ func TestDumpReducedTable(t *testing.T) {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
-	Convey("When valid table is provided", t, func() {
+	Convey("When invalid table is provided", t, func() {
+		prams["id"] = "qwerty1"
+		DumpReducedTable(response, request, prams)
+	})
+
+	Convey("When valid table is provided without parameters", t, func() {
 		prams["id"] = "gdp"
+		DumpReducedTable(response, request, prams)
+	})
+
+	Convey("When invalid percent parameter is provided", t, func() {
+		prams["id"] = "gdp"
+		prams["percent"] = "-101.1"
+		DumpReducedTable(response, request, prams)
+	})
+
+	Convey("When invalid min parameter is provided", t, func() {
+		prams["id"] = "gdp"
+		prams["percent"] = "-10"
+		prams["min"] = "a"
 		DumpReducedTable(response, request, prams)
 	})
 

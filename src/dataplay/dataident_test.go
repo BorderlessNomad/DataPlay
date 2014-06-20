@@ -75,17 +75,29 @@ func TestCheckColExists(t *testing.T) {
 func TestAttemptToFindMatches(t *testing.T) {
 	request, _ := http.NewRequest("POST", "/", nil)
 	response := httptest.NewRecorder()
-	prams := map[string]string{
-		"id": "gdp",
-		"x":  "year",
-		"y":  "gdp",
-	}
+	prams := map[string]string{"id": ""}
 
-	Convey("When attempting to find matches", t, func() {
+	Convey("When id parameter is incorrect", t, func() {
+		prams["id"] = "qwerty1"
+		result := AttemptToFindMatches(response, request, prams)
+		So(result, ShouldEqual, "")
+	})
+
+	Convey("When col parameters are incorrect", t, func() {
+		prams["id"] = "gdp"
+		prams["x"] = "qwerty1"
+		prams["y"] = "qwerty1"
+		result := AttemptToFindMatches(response, request, prams)
+		So(result, ShouldEqual, "")
+	})
+
+	Convey("When parameters are correct", t, func() {
+		prams["id"] = "gdp"
+		prams["x"] = "year"
+		prams["y"] = "gdp"
 		result := AttemptToFindMatches(response, request, prams)
 		So(result, ShouldEqual, "wat")
 	})
-
 }
 
 func TestFindStringMatches(t *testing.T) {
@@ -102,7 +114,14 @@ func TestFindStringMatches(t *testing.T) {
 		So(result, ShouldEqual, "")
 	})
 
-	Convey("When ID parameter is provided", t, func() {
+	Convey("When invalid ID parameter is provided with invalid string to match", t, func() {
+		prams["x"] = "qwerty1"
+		prams["word"] = ""
+		result = FindStringMatches(response, request, prams)
+		So(response.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("When valid ID parameter is provided with valid string to match", t, func() {
 		prams["x"] = "postal_code"
 		prams["word"] = "B37 7YE"
 		result = FindStringMatches(response, request, prams)
@@ -139,11 +158,32 @@ func TestSuggestColType(t *testing.T) {
 
 	result := SuggestColType(response, request, prams)
 
-	Convey("When no ID parameter is provided", t, func() {
+	Convey("When no parameters are provided", t, func() {
 		So(result, ShouldEqual, "")
 	})
 
-	Convey("When ID parameter is provided", t, func() {
+	Convey("When wrong table parameter is provided", t, func() {
+		prams["table"] = "qwerty1"
+		prams["col"] = "qwerty1"
+		result = SuggestColType(response, request, prams)
+		So(result, ShouldEqual, "")
+	})
+
+	Convey("When wrong table parameter is provided", t, func() {
+		prams["table"] = "gold"
+		prams["col"] = "qwerty1"
+		result = SuggestColType(response, request, prams)
+		So(result, ShouldEqual, "")
+	})
+
+	Convey("When wrong Col parameter is provided", t, func() {
+		prams["table"] = "gold"
+		prams["col"] = "qwerty1"
+		result = SuggestColType(response, request, prams)
+		So(result, ShouldEqual, "")
+	})
+
+	Convey("When correct ID parameter is provided with col", t, func() {
 		prams["table"] = "gold"
 		prams["col"] = "price"
 		result = SuggestColType(response, request, prams)
