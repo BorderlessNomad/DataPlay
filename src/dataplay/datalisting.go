@@ -349,15 +349,15 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, params martini
 		return
 	}
 
-	cls := FetchTableCols(prams["id"])
+	cls := FetchTableCols(params["id"])
 	ValidX := false
 	ValidY := false
 
 	/* Check for existence of X & Y in Table */
 	for _, clm := range cls {
-		if clm.Name == prams["x"] {
+		if clm.Name == params["x"] {
 			ValidX = true
-		} else if clm.Name == prams["y"] && clm.Sqltype != "varchar" && clm.Sqltype != "date" {
+		} else if clm.Name == params["y"] && clm.Sqltype != "varchar" && clm.Sqltype != "date" {
 			ValidY = true
 		}
 
@@ -376,7 +376,7 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, params martini
 		return
 	}
 
-	q := fmt.Sprintf("SELECT %[1]s, SUM(%[2]s) AS %[2]s FROM %[3]s GROUP BY %[1]s", prams["x"], prams["y"], tablename)
+	q := fmt.Sprintf("SELECT %[1]s, SUM(%[2]s) AS %[2]s FROM %[3]s GROUP BY %[1]s", params["x"], params["y"], tablename)
 	rows, e1 := DB.Raw(q).Rows()
 	if e1 != nil {
 		check(e1)

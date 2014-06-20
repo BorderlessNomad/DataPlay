@@ -11,7 +11,6 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/martini"
-	"github.com/jinzhu/gorm"
 	"log"
 	"net/http"
 	"os"
