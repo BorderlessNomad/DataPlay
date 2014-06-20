@@ -2,13 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"net/http"
 	"sort"
 	"strconv"
 	"strings"
-	// "fmt"
 )
 
 type CheckDict struct {
@@ -46,16 +46,16 @@ type PossibleCombo struct {
 }
 
 // This function checks to see if the data has been imported yet or still is in need of importing
-func IdentifyTable(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	if prams["id"] == "" {
+func IdentifyTable(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	if params["id"] == "" {
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
 		return ""
 	}
-	results := FetchTableCols(string(prams["id"]))
+	results := FetchTableCols(string(params["id"]))
 
 	returnobj := IdentifyResponse{
 		Cols:    results,
-		Request: prams["id"],
+		Request: params["id"],
 	}
 	b, _ := json.Marshal(returnobj)
 
@@ -134,14 +134,14 @@ func CheckColExists(schema []ColType, column string) bool {
 	return false
 }
 
-func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	if prams["table"] == "" || prams["col"] == "" {
+func SuggestColType(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	if params["table"] == "" || params["col"] == "" {
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
 		return ""
 	}
-
+	fmt.Println("xxxxxxxxxxx", params["table"])
 	onlineData := OnlineData{}
-	err := DB.Select("tablename").Where("guid = ?", prams["table"]).Find(&onlineData).Error
+	err := DB.Select("tablename").Where("guid = ?", params["table"]).Find(&onlineData).Error
 
 	if err == gorm.RecordNotFound {
 		http.Error(res, "Could not find that Table", http.StatusNotFound)
@@ -153,13 +153,13 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 
 	schema := GetSQLTableSchema(onlineData.Tablename)
 
-	if !CheckColExists(schema, prams["col"]) {
+	if !CheckColExists(schema, params["col"]) {
 		http.Error(res, "You have requested a Columns that does not exist.", http.StatusBadRequest)
 		return ""
 	}
 
 	var data []string
-	err = DB.Table(onlineData.Tablename).Pluck(prams["col"], &data).Error
+	err = DB.Table(onlineData.Tablename).Pluck(params["col"], &data).Error
 	check(err)
 
 	for _, val := range data {
@@ -172,8 +172,8 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, prams martini.Pa
 	return "true"
 }
 
-func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	RealTableName, e := getRealTableName(prams["id"], res)
+func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	RealTableName, e := getRealTableName(params["id"], res)
 	if e != nil {
 		http.Error(res, "Could not find that Table", http.StatusInternalServerError)
 		return ""
@@ -181,7 +181,7 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 
 	schema := GetSQLTableSchema(RealTableName)
 
-	if !CheckColExists(schema, prams["x"]) || !CheckColExists(schema, prams["y"]) {
+	if !CheckColExists(schema, params["x"]) || !CheckColExists(schema, params["y"]) {
 		http.Error(res, "Could not find the X or Y", http.StatusInternalServerError)
 		return ""
 	}
@@ -189,7 +189,7 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 	/* Check if data exists in the stats table. so we can compare its poly to other Polynomial */
 	stats := StatsCheck{}
 	count := 0
-	err := DB.Model(&stats).Where("LOWER(\"table\") = ?", strings.ToLower(RealTableName)).Where("LOWER(x) = ?", strings.ToLower(prams["x"])).Where("LOWER(y) = ?", strings.ToLower(prams["y"])).Count(&count).Find(&stats).Error
+	err := DB.Model(&stats).Where("LOWER(\"table\") = ?", strings.ToLower(RealTableName)).Where("LOWER(x) = ?", strings.ToLower(params["x"])).Where("LOWER(y) = ?", strings.ToLower(params["y"])).Count(&count).Find(&stats).Error
 	check(err)
 
 	if count == 0 {
@@ -202,8 +202,8 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, prams mart
 	return "wat"
 }
 
-func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	if prams["word"] == "" {
+func FindStringMatches(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	if params["word"] == "" {
 		http.Error(res, "Please add a word", http.StatusBadRequest)
 		return ""
 	}
@@ -212,9 +212,9 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini
 
 	search := []StringSearch{}
 
-	query := DB.Select("tablename, count").Where("LOWER(value) = ?", strings.ToLower(prams["word"]))
-	if prams["x"] != "" {
-		query = query.Where("x = ?", prams["x"])
+	query := DB.Select("tablename, count").Where("LOWER(value) = ?", strings.ToLower(params["word"]))
+	if params["x"] != "" {
+		query = query.Where("x = ?", params["x"])
 	}
 	err := query.Find(&search).Error
 	if err != nil && err != gorm.RecordNotFound {
@@ -240,8 +240,8 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, prams martini
 	return string(b)
 }
 
-func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	RealTableName, e := getRealTableName(prams["guid"], res)
+func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	RealTableName, e := getRealTableName(params["guid"], res)
 	if e != nil {
 		http.Error(res, "Could not find that table", http.StatusInternalServerError)
 		return ""

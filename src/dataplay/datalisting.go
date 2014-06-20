@@ -20,7 +20,7 @@ type Authresponse struct {
 
 //This function is used to gather what is the username is
 // This used to be used on the front page but now it is mainly used as a "noop" call to check if the user is logged in or not.
-func CheckAuth(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
+func CheckAuth(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 	user := User{}
 	err := DB.Where("uid = ?", GetUserID(res, req)).Find(&user).Error
 	check(err)
@@ -42,8 +42,8 @@ type SearchResult struct {
 }
 
 // This is the search function that is called though the API
-func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	if prams["s"] == "" {
+func SearchForData(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	if params["s"] == "" {
 		http.Error(res, "There was no search request", http.StatusBadRequest)
 		return ""
 	}
@@ -53,28 +53,28 @@ func SearchForData(res http.ResponseWriter, req *http.Request, prams martini.Par
 
 	indices := []Index{}
 
-	term := prams["s"] + "%" // e.g. "nhs" => "nhs%" (What about "%nhs"?)
+	term := params["s"] + "%" // e.g. "nhs" => "nhs%" (What about "%nhs"?)
 
 	Logger.Println("Searching with Backward Wildcard", term)
 	err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&indices).Error
 
 	Results = ProcessSearchResults(indices, err)
 	if len(Results) == 0 {
-		term := "%" + prams["s"] + "%" // e.g. "nhs" => "%nhs%"
+		term := "%" + params["s"] + "%" // e.g. "nhs" => "%nhs%"
 
 		Logger.Println("Searching with Forward + Backward Wildcard", term)
 		err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&indices).Error
 		Results = ProcessSearchResults(indices, err)
 		if len(Results) == 0 {
-			term := "%" + strings.Replace(prams["s"], " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
+			term := "%" + strings.Replace(params["s"], " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
 
 			Logger.Println("Searching with Forward + Backward + Trim Wildcard", term)
 
 			err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&indices).Error
 			Results = ProcessSearchResults(indices, err)
 
-			if len(Results) == 0 && (len(prams["s"]) >= 3 && len(prams["s"]) < 20) {
-				term := "%" + prams["s"] + "%" // e.g. "nhs" => "%nhs%"
+			if len(Results) == 0 && (len(params["s"]) >= 3 && len(params["s"]) < 20) {
+				term := "%" + params["s"] + "%" // e.g. "nhs" => "%nhs%"
 
 				Logger.Println("Searching with Forward + Backward Wildcard in String Table", term)
 
@@ -131,14 +131,14 @@ type DataEntry struct {
 
 // This function gets the extended infomation FROM the index, things like the notes are used
 // in the "wiki" section of the page.
-func GetEntry(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	if prams["id"] == "" {
+func GetEntry(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	if params["id"] == "" {
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
 		return ""
 	}
 
 	index := Index{}
-	err := DB.Where("LOWER(guid) LIKE LOWER(?)", prams["id"]+"%").Find(&index).Error
+	err := DB.Where("LOWER(guid) LIKE LOWER(?)", params["id"]+"%").Find(&index).Error
 	if err == gorm.RecordNotFound {
 		return "[]"
 	} else if err != nil {
@@ -199,8 +199,8 @@ type Dataresponse struct {
 
 // This function will empty a whole table out into JSON
 // Due to what seems to be a golang bug, everything is outputted as a string.
-func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-	if prams["id"] == "" {
+func DumpTable(res http.ResponseWriter, req *http.Request, params martini.Params) {
+	if params["id"] == "" {
 		http.Error(res, "Sorry! Could not complete this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
 		return
 	}
@@ -209,12 +209,12 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 	var count int64 = 0
 
 	UsingRanges := true
-	if prams["offset"] == "" || prams["count"] == "" {
+	if params["offset"] == "" || params["count"] == "" {
 		UsingRanges = false
 	} else {
 		var oE, cE error
-		offset, oE = strconv.ParseInt(prams["offset"], 10, 64)
-		count, cE = strconv.ParseInt(prams["count"], 10, 64)
+		offset, oE = strconv.ParseInt(params["offset"], 10, 64)
+		count, cE = strconv.ParseInt(params["count"], 10, 64)
 
 		if oE != nil || cE != nil {
 			http.Error(res, "Please give valid numbers for offset and count", http.StatusBadRequest)
@@ -222,7 +222,7 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 		}
 	}
 
-	tablename, e := getRealTableName(prams["id"], res)
+	tablename, e := getRealTableName(params["id"], res)
 	if e != nil {
 		return
 	}
@@ -266,21 +266,21 @@ func DumpTable(res http.ResponseWriter, req *http.Request, prams martini.Params)
 
 // This function will empty a whole table out into JSON
 // Due to what seems to be a golang bug, everything is outputted as a string.
-func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Params) {
+func DumpTableRange(res http.ResponseWriter, req *http.Request, params martini.Params) {
 
 	// :id/:x/:startx/:endx
 
-	if prams["id"] == "" {
+	if params["id"] == "" {
 		http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
 		return
 	}
 
-	if prams["x"] == "" || prams["startx"] == "" || prams["endx"] == "" {
+	if params["x"] == "" || params["startx"] == "" || params["endx"] == "" {
 		http.Error(res, "You did not provide enough infomation to make this kind of request :id/:x/:startx/:endx", http.StatusBadRequest)
 		return
 	}
 
-	tablename, e := getRealTableName(prams["id"], res)
+	tablename, e := getRealTableName(params["id"], res)
 	if e != nil {
 		return
 	}
@@ -296,15 +296,15 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 
 	var xcol int
 	xcol = 999
-	startx, starte := strconv.ParseInt(prams["startx"], 10, 64)
-	endx, ende := strconv.ParseInt(prams["endx"], 10, 64)
+	startx, starte := strconv.ParseInt(params["startx"], 10, 64)
+	endx, ende := strconv.ParseInt(params["endx"], 10, 64)
 	if starte != nil || ende != nil {
 		http.Error(res, "You didnt pass me proper numbers to start with.", http.StatusBadRequest)
 		return
 	}
 
 	for number, colname := range columns {
-		if colname == prams["x"] {
+		if colname == params["x"] {
 			xcol = number
 		}
 	}
@@ -336,22 +336,22 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, prams martini.Pa
 // This call with use the GROUP BY function in mysql to query and get the sum of things
 // This is very useful for things like picharts
 // /api/getdatagrouped/:id/:x/:y
-func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-	if prams["id"] == "" || prams["x"] == "" || prams["y"] == "" {
+func DumpTableGrouped(res http.ResponseWriter, req *http.Request, params martini.Params) {
+	if params["id"] == "" || params["x"] == "" || params["y"] == "" {
 		http.Error(res, "You did not provide enough infomation to make this kind of request :id/:x/:y", http.StatusBadRequest)
 		return
 	}
 
-	tablename, e := getRealTableName(prams["id"], res)
+	tablename, e := getRealTableName(params["id"], res)
 	if e != nil {
 		return
 	}
 
-	cls := FetchTableCols(prams["id"])
+	cls := FetchTableCols(params["id"])
 	// Now we need to check that the rows that the client is asking for, are in the table.
 	Valid := false
 	for _, clm := range cls {
-		if clm.Name == prams["x"] {
+		if clm.Name == params["x"] {
 			Valid = true
 		}
 	}
@@ -363,7 +363,7 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 
 	Valid = false
 	for _, clm := range cls {
-		if clm.Name == prams["y"] {
+		if clm.Name == params["y"] {
 			Valid = true
 		}
 	}
@@ -373,7 +373,7 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 		return
 	}
 
-	rows, e1 := DB.Raw(fmt.Sprintf("SELECT %[1]s, SUM(%[2]s) AS %[2]s FROM %[3]s GROUP BY %[1]s", prams["x"], prams["y"], tablename)).Rows()
+	rows, e1 := DB.Raw(fmt.Sprintf("SELECT %[1]s, SUM(%[2]s) AS %[2]s FROM %[3]s GROUP BY %[1]s", params["x"], params["y"], tablename)).Rows()
 	// You may think the above might have some security downsides, It could but what you
 	// are proabs thinking is not true, if a user wants to SQL inject as any of the %s's
 	// then the table col name will also have to be the SQLi, and frankly, if a user
@@ -416,24 +416,24 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, prams martini.
 }
 
 // This call will get a X,Y and a prediction of a value. that is asked for
-func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams martini.Params) {
+func DumpTablePrediction(res http.ResponseWriter, req *http.Request, params martini.Params) {
 	// /api/getdatapred/:id/:x/:y
 
-	if prams["id"] == "" || prams["x"] == "" || prams["y"] == "" {
+	if params["id"] == "" || params["x"] == "" || params["y"] == "" {
 		http.Error(res, "You did not provide enough infomation to make this kind of request :id/:x/:y", http.StatusBadRequest)
 		return
 	}
 
-	tablename, e := getRealTableName(prams["id"], res)
+	tablename, e := getRealTableName(params["id"], res)
 	if e != nil {
 		return
 	}
 
-	cls := FetchTableCols(prams["id"])
+	cls := FetchTableCols(params["id"])
 	// Now we need to check that the rows that the client is asking for, are in the table.
 	Valid := false
 	for _, clm := range cls {
-		if clm.Name == prams["x"] {
+		if clm.Name == params["x"] {
 			Valid = true
 		}
 	}
@@ -443,7 +443,7 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 	}
 	Valid = false
 	for _, clm := range cls {
-		if clm.Name == prams["y"] {
+		if clm.Name == params["y"] {
 			Valid = true
 		}
 	}
@@ -452,7 +452,7 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 		return
 	}
 
-	rows, e1 := DB.Raw(fmt.Sprintf("SELECT %s, %s FROM %s", prams["x"], prams["y"], tablename)).Rows()
+	rows, e1 := DB.Raw(fmt.Sprintf("SELECT %s, %s FROM %s", params["x"], params["y"], tablename)).Rows()
 
 	if e1 != nil {
 		http.Error(res, "Could not query the data FROM the datastore", http.StatusInternalServerError)
@@ -504,13 +504,13 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, prams marti
 
 // This function will take a share of a table and return it as JSON
 // Due to what seems to be a golang bug, everything is outputted as a string.
-func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-	if prams["id"] == "" {
+func DumpReducedTable(res http.ResponseWriter, req *http.Request, params martini.Params) {
+	if params["id"] == "" {
 		http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
 		return
 	}
 
-	tablename, e := getRealTableName(prams["id"], res)
+	tablename, e := getRealTableName(params["id"], res)
 	if e != nil {
 		return
 	}
@@ -536,10 +536,10 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 	}
 
 	RealDL := DataLength
-	if prams["percent"] == "" {
+	if params["percent"] == "" {
 		DataLength = DataLength / 25
 	} else {
-		percent := prams["percent"]
+		percent := params["percent"]
 		Divider, e := strconv.ParseInt(percent, 10, 64)
 		if e != nil {
 			http.Error(res, "Invalid percentage", http.StatusBadRequest)
@@ -554,8 +554,8 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, prams martini.
 
 		DataLength = DataLength / int(Temp)
 
-		if prams["min"] != "" {
-			MinSpend, e := strconv.ParseInt(prams["min"], 10, 64)
+		if params["min"] != "" {
+			MinSpend, e := strconv.ParseInt(params["min"], 10, 64)
 			if e != nil {
 				http.Error(res, "Invalid Min", http.StatusBadRequest)
 				return // Halt!

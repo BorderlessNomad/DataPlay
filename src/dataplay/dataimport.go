@@ -12,15 +12,15 @@ type ImportResponse struct {
 }
 
 // This function checks to see if the data has been imported yet or still is in need of importing
-func CheckImportStatus(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	if prams["id"] == "" {
+func CheckImportStatus(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	if params["id"] == "" {
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
 		return ""
 	}
 
 	onlinedata := OnlineData{}
 	count := 0
-	err := DB.Model(&onlinedata).Where("guid = ?", prams["id"]).Count(&count).Error
+	err := DB.Model(&onlinedata).Where("guid = ?", params["id"]).Count(&count).Error
 	check(err)
 
 	state := "offline"
@@ -30,7 +30,7 @@ func CheckImportStatus(res http.ResponseWriter, req *http.Request, prams martini
 
 	result := ImportResponse{
 		State:   state,
-		Request: prams["id"],
+		Request: params["id"],
 	}
 
 	b, _ := json.Marshal(result)

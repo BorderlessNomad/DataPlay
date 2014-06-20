@@ -78,10 +78,10 @@ func TestCharts(t *testing.T) {
 
 	http.SetCookie(response, NewCookie)
 	request.Header.Set("Cookie", NewCookie.String())
-	prams := map[string]string{
+	params := map[string]string{
 		"id": "181",
 	}
-	Charts(response, request, prams)
+	Charts(response, request, params)
 }
 
 func TestSearchOverlay(t *testing.T) {
@@ -119,11 +119,11 @@ func TestOverview(t *testing.T) {
 
 	http.SetCookie(response, NewCookie)
 	request.Header.Set("Cookie", NewCookie.String())
-	prams := map[string]string{
+	params := map[string]string{
 		"id": "181",
 	}
 
-	Overview(response, request, prams)
+	Overview(response, request, params)
 }
 
 func TestSearch(t *testing.T) {

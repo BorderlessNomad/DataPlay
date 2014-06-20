@@ -25,10 +25,10 @@ func TestIdentifyTable(t *testing.T) {
 func IdentifyTableNoParam(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
-	prams := map[string]string{"": ""}
+	params := map[string]string{"": ""}
 
 	Convey("When no ID parameter is provided", func() {
-		result := IdentifyTable(response, request, prams)
+		result := IdentifyTable(response, request, params)
 		So(result, ShouldEqual, "")
 	})
 }
@@ -36,10 +36,10 @@ func IdentifyTableNoParam(t *testing.T) {
 func IdentifyTableWithParam(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
-	prams := map[string]string{"id": "gold"}
+	params := map[string]string{"id": "gold"}
 
 	Convey("When ID parameter is provided", func() {
-		result := IdentifyTable(response, request, prams)
+		result := IdentifyTable(response, request, params)
 		So(result, ShouldNotBeBlank)
 	})
 }
@@ -75,27 +75,27 @@ func TestCheckColExists(t *testing.T) {
 func TestAttemptToFindMatches(t *testing.T) {
 	request, _ := http.NewRequest("POST", "/", nil)
 	response := httptest.NewRecorder()
-	prams := map[string]string{"id": ""}
+	params := map[string]string{"id": ""}
 
 	Convey("When id parameter is incorrect", t, func() {
-		prams["id"] = "qwerty1"
-		result := AttemptToFindMatches(response, request, prams)
+		params["id"] = "qwerty1"
+		result := AttemptToFindMatches(response, request, params)
 		So(result, ShouldEqual, "")
 	})
 
 	Convey("When col parameters are incorrect", t, func() {
-		prams["id"] = "gdp"
-		prams["x"] = "qwerty1"
-		prams["y"] = "qwerty1"
-		result := AttemptToFindMatches(response, request, prams)
+		params["id"] = "gdp"
+		params["x"] = "qwerty1"
+		params["y"] = "qwerty1"
+		result := AttemptToFindMatches(response, request, params)
 		So(result, ShouldEqual, "")
 	})
 
 	Convey("When parameters are correct", t, func() {
-		prams["id"] = "gdp"
-		prams["x"] = "year"
-		prams["y"] = "gdp"
-		result := AttemptToFindMatches(response, request, prams)
+		params["id"] = "gdp"
+		params["x"] = "year"
+		params["y"] = "gdp"
+		result := AttemptToFindMatches(response, request, params)
 		So(result, ShouldEqual, "wat")
 	})
 }
@@ -103,28 +103,28 @@ func TestAttemptToFindMatches(t *testing.T) {
 func TestFindStringMatches(t *testing.T) {
 	request, _ := http.NewRequest("POST", "/", nil)
 	response := httptest.NewRecorder()
-	prams := map[string]string{
+	params := map[string]string{
 		"x":    "",
 		"word": "",
 	}
 
-	result := FindStringMatches(response, request, prams)
+	result := FindStringMatches(response, request, params)
 
 	Convey("When no ID parameter is provided", t, func() {
 		So(result, ShouldEqual, "")
 	})
 
 	Convey("When invalid ID parameter is provided with invalid string to match", t, func() {
-		prams["x"] = "qwerty1"
-		prams["word"] = ""
-		result = FindStringMatches(response, request, prams)
+		params["x"] = "qwerty1"
+		params["word"] = ""
+		result = FindStringMatches(response, request, params)
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	Convey("When valid ID parameter is provided with valid string to match", t, func() {
-		prams["x"] = "postal_code"
-		prams["word"] = "B37 7YE"
-		result = FindStringMatches(response, request, prams)
+		params["x"] = "postal_code"
+		params["word"] = "B37 7YE"
+		result = FindStringMatches(response, request, params)
 		So(result, ShouldNotBeBlank)
 	})
 }
@@ -132,18 +132,18 @@ func TestFindStringMatches(t *testing.T) {
 func TestGetRelatedDatasetByStrings(t *testing.T) {
 	request, _ := http.NewRequest("POST", "/", nil)
 	response := httptest.NewRecorder()
-	prams := map[string]string{
+	params := map[string]string{
 		"guid": "",
 	}
 
-	result := GetRelatedDatasetByStrings(response, request, prams)
+	result := GetRelatedDatasetByStrings(response, request, params)
 	Convey("When no guid parameter is provided", t, func() {
 		So(result, ShouldEqual, "")
 	})
 
 	Convey("When guid parameter is provided", t, func() {
-		prams["guid"] = "hips"
-		result := GetRelatedDatasetByStrings(response, request, prams)
+		params["guid"] = "hips"
+		result := GetRelatedDatasetByStrings(response, request, params)
 		So(result, ShouldNotBeBlank)
 	})
 }
@@ -151,42 +151,42 @@ func TestGetRelatedDatasetByStrings(t *testing.T) {
 func TestSuggestColType(t *testing.T) {
 	request, _ := http.NewRequest("POST", "/", nil)
 	response := httptest.NewRecorder()
-	prams := map[string]string{
+	params := map[string]string{
 		"table": "",
 		"col":   "",
 	}
 
-	result := SuggestColType(response, request, prams)
+	result := SuggestColType(response, request, params)
 
 	Convey("When no parameters are provided", t, func() {
 		So(result, ShouldEqual, "")
 	})
 
 	Convey("When wrong table parameter is provided", t, func() {
-		prams["table"] = "qwerty1"
-		prams["col"] = "qwerty1"
-		result = SuggestColType(response, request, prams)
+		params["table"] = "qwerty1"
+		params["col"] = "qwerty1"
+		result = SuggestColType(response, request, params)
 		So(result, ShouldEqual, "")
 	})
 
 	Convey("When wrong table parameter is provided", t, func() {
-		prams["table"] = "gold"
-		prams["col"] = "qwerty1"
-		result = SuggestColType(response, request, prams)
+		params["table"] = "gold"
+		params["col"] = "qwerty1"
+		result = SuggestColType(response, request, params)
 		So(result, ShouldEqual, "")
 	})
 
 	Convey("When wrong Col parameter is provided", t, func() {
-		prams["table"] = "gold"
-		prams["col"] = "qwerty1"
-		result = SuggestColType(response, request, prams)
+		params["table"] = "gold"
+		params["col"] = "qwerty1"
+		result = SuggestColType(response, request, params)
 		So(result, ShouldEqual, "")
 	})
 
 	Convey("When correct ID parameter is provided with col", t, func() {
-		prams["table"] = "gold"
-		prams["col"] = "price"
-		result = SuggestColType(response, request, prams)
+		params["table"] = "gold"
+		params["col"] = "price"
+		result = SuggestColType(response, request, params)
 		So(result, ShouldEqual, "true")
 	})
 

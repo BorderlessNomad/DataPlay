@@ -9,8 +9,8 @@ import (
 // The set Defaults function is there to save small bits of data that the client might set.
 // things like "the key 'date' is a int" really does need to be stored. Thus these pair of calls
 // allow the browser to put data next to the row and get it back with ease.
-func SetDefaults(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	if prams["id"] == "" {
+func SetDefaults(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	if params["id"] == "" {
 		http.Error(res, "You didnt give me a id to store for", http.StatusBadRequest)
 		return ""
 	}
@@ -18,15 +18,15 @@ func SetDefaults(res http.ResponseWriter, req *http.Request, prams martini.Param
 	jsondata := req.FormValue("data")
 
 	onlinedata := OnlineData{}
-	err := DB.Model(&onlinedata).Where("guid = ?", prams["id"]).UpdateColumn("defaults", jsondata).Error
+	err := DB.Model(&onlinedata).Where("guid = ?", params["id"]).UpdateColumn("defaults", jsondata).Error
 	check(err)
 
 	return "{\"result\":\"OK\"}"
 }
 
 // The GetDefaults function is the retrival function for SetDefaults
-func GetDefaults(res http.ResponseWriter, req *http.Request, prams martini.Params) string {
-	if prams["id"] == "" {
+func GetDefaults(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	if params["id"] == "" {
 		http.Error(res, "You didnt give me a id to lookup", http.StatusBadRequest)
 		return ""
 	}
@@ -34,7 +34,7 @@ func GetDefaults(res http.ResponseWriter, req *http.Request, prams martini.Param
 	var d string
 
 	onlinedata := OnlineData{}
-	err := DB.Select("defaults").Where("guid = ?", prams["id"]).Find(&onlinedata).Error
+	err := DB.Select("defaults").Where("guid = ?", params["id"]).Find(&onlinedata).Error
 	if err == gorm.RecordNotFound {
 		d = "{}"
 	} else if err == nil {

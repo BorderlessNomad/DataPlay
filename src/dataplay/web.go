@@ -26,13 +26,13 @@ func Authorisation(res http.ResponseWriter, req *http.Request) { // res and req 
 
 func Login(res http.ResponseWriter, req *http.Request) {
 	failedstr := ""
-	queryprams, _ := url.ParseQuery(req.URL.String())
+	queryparams, _ := url.ParseQuery(req.URL.String())
 
-	if queryprams.Get("/login?failed") != "" {
+	if queryparams.Get("/login?failed") != "" {
 		failedstr = "Incorrect User Name or Password" // They are wrong
-		if queryprams.Get("/login?failed") == "2" {
+		if queryparams.Get("/login?failed") == "2" {
 			failedstr = "Your password has been upgraded, please login again." // This should not show anymore, we auto redirect
-		} else if queryprams.Get("/login?failed") == "3" {
+		} else if queryparams.Get("/login?failed") == "3" {
 			failedstr = "Failed to login you in, Sorry!" // somehting went wrong in password upgrade.
 		}
 	}
@@ -67,11 +67,11 @@ func Register(res http.ResponseWriter, req *http.Request) {
 	return
 }
 
-func Charts(res http.ResponseWriter, req *http.Request, prams martini.Params) {
+func Charts(res http.ResponseWriter, req *http.Request, params martini.Params) {
 	CheckAuthRedirect(res, req)
 
 	if IsUserLoggedIn(res, req) {
-		TrackVisited(prams["id"], fmt.Sprint(GetUserID(res, req))) // Make sure the tracking module knows about their visit.
+		TrackVisited(params["id"], fmt.Sprint(GetUserID(res, req))) // Make sure the tracking module knows about their visit.
 	}
 
 	RenderTemplate("public/charts.html", nil, res)
@@ -92,10 +92,10 @@ func Overlay(res http.ResponseWriter, req *http.Request) {
 	return
 }
 
-func Overview(res http.ResponseWriter, req *http.Request, prams martini.Params) {
+func Overview(res http.ResponseWriter, req *http.Request, params martini.Params) {
 	CheckAuthRedirect(res, req)
 	if IsUserLoggedIn(res, req) {
-		TrackVisited(prams["id"], fmt.Sprint(GetUserID(res, req)))
+		TrackVisited(params["id"], fmt.Sprint(GetUserID(res, req)))
 	}
 
 	RenderTemplate("public/overview.html", nil, res)
