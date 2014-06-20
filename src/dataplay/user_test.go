@@ -29,7 +29,7 @@ func TestCheckAuthRedirect(t *testing.T) {
 
 func TestHandleLogin(t *testing.T) {
 	Convey("On HTTP Request 1", t, func() {
-		handleLoginNoData(t)
+		handleLoginWithoutData(t)
 	})
 	Convey("On HTTP Request 2", t, func() {
 		handleLoginInvalidData(t)
@@ -43,7 +43,7 @@ func TestHandleLogin(t *testing.T) {
 }
 
 func handleLoginInvalidData(t *testing.T) {
-	request, _ := http.NewRequest("POST", "/", strings.NewReader("username=test&password=123456"))
+	request, _ := http.NewRequest("POST", "/", strings.NewReader("username=random&password=123456"))
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
 	response := httptest.NewRecorder()
 
@@ -124,14 +124,14 @@ func handleRegisterExisitingData(t *testing.T) {
 	})
 }
 
-func handleLoginNoData(t *testing.T) {
-	// request, _ := http.NewRequest("POST", "/", strings.NewReader("username=&password="))
-	// request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
-	// response := httptest.NewRecorder()
+func handleLoginWithoutData(t *testing.T) {
+	request, _ := http.NewRequest("POST", "/", strings.NewReader("username=&password="))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
+	response := httptest.NewRecorder()
 
-	// HandleLogin(response, request)
+	HandleLogin(response, request)
 
-	// Convey("When No data is provided", func() {
-	// 	So(response.Code, ShouldEqual, http.StatusNotFound)
-	// })
+	Convey("When No data is provided", func() {
+		So(response.Code, ShouldEqual, http.StatusNotFound)
+	})
 }
