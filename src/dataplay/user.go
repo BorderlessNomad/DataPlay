@@ -27,9 +27,17 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 
+	if username == "" || password == "" {
+		http.Redirect(res, req, fmt.Sprintf("/login?failed=1"), http.StatusNotFound)
+	}
+
 	user := User{}
 	err := DB.Where("email = ?", username).Find(&user).Error
-	check(err)
+	if err != nil && err == gorm.RecordNotFound {
+		http.Redirect(res, req, fmt.Sprintf("/login?failed=1"), http.StatusNotFound)
+	} else if err != nil {
+		check(err)
+	}
 
 	if user.Password != "" && bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) == nil { // Check the password with bcrypt
 		if SetSession(res, req, user.Uid) != nil {

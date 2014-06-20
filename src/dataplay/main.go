@@ -14,7 +14,6 @@ import (
 	"github.com/jinzhu/gorm"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"playgen/database"
 	"strings"
@@ -28,6 +27,19 @@ type AuthHandler struct {
 }
 
 var DB database.Database
+var isDBSetup bool
+
+func DBSetup() error {
+	if isDBSetup {
+		return nil
+	}
+	isDBSetup = true
+
+	DB.Setup()
+	DB.ParseEnvironment()
+
+	return DB.Connect()
+}
 
 /**
  * @details Application bootstrap
@@ -37,9 +49,7 @@ var DB database.Database
  *   Init Martini API
  */
 func main() {
-	DB.Setup()
-	DB.ParseEnvironment()
-	e := DB.Connect()
+	e := DBSetup()
 	if e == nil {
 		/* Database connection will be closed only when Server closes */
 		defer DB.Close()
@@ -55,105 +65,16 @@ func main() {
 
 	m := martini.Classic()
 
-	m.Get("/", func(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
-		CheckAuthRedirect(res, req)
-
-		user := User{}
-		err := DB.Where("uid = ?", GetUserID(res, req)).Find(&user).Error
-		if err != nil && err != gorm.RecordNotFound {
-			check(err)
-		}
-
-		custom := map[string]string{
-			"username": user.Email,
-		}
-
-		RenderTemplate("public/home.html", custom, res)
-	})
-
-	m.Get("/login", func(res http.ResponseWriter, req *http.Request) {
-		failedstr := ""
-		queryprams, _ := url.ParseQuery(req.URL.String())
-
-		if queryprams.Get("/login?failed") != "" {
-			failedstr = "Incorrect User Name or Password" // They are wrong
-			if queryprams.Get("/login?failed") == "2" {
-				failedstr = "You're password has been upgraded, please login again." // This should not show anymore, we auto redirect
-			} else if queryprams.Get("/login?failed") == "3" {
-				failedstr = "Failed to login you in, Sorry!" // somehting went wrong in password upgrade.
-			}
-		}
-
-		custom := map[string]string{
-			"fail": failedstr,
-		}
-
-		RenderTemplate("public/signin.html", custom, res)
-	})
-
-	m.Get("/logout", func(res http.ResponseWriter, req *http.Request) {
-		HandleLogout(res, req)
-
-		failedstr := ""
-		custom := map[string]string{
-			"fail": failedstr,
-		}
-
-		RenderTemplate("public/signin.html", custom, res)
-	})
-
-	m.Get("/register", func(res http.ResponseWriter, req *http.Request) {
-		failedstr := ""
-		custom := map[string]string{
-			"fail": failedstr,
-		}
-
-		RenderTemplate("public/register.html", custom, res)
-	})
-
-	m.Get("/charts/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-		CheckAuthRedirect(res, req)
-
-		if IsUserLoggedIn(res, req) {
-			TrackVisited(prams["id"], fmt.Sprint(GetUserID(res, req))) // Make sure the tracking module knows about their visit.
-		}
-
-		RenderTemplate("public/charts.html", nil, res)
-	})
-
-	m.Get("/search/overlay", func(res http.ResponseWriter, req *http.Request) {
-		CheckAuthRedirect(res, req)
-
-		RenderTemplate("public/search.html", nil, res)
-	})
-
-	m.Get("/overlay/:id", func(res http.ResponseWriter, req *http.Request) {
-		CheckAuthRedirect(res, req)
-
-		RenderTemplate("public/overlay.html", nil, res)
-	})
-
-	m.Get("/overview/:id", func(res http.ResponseWriter, req *http.Request, prams martini.Params) {
-		CheckAuthRedirect(res, req)
-		if IsUserLoggedIn(res, req) {
-			TrackVisited(prams["id"], fmt.Sprint(GetUserID(res, req)))
-		}
-
-		RenderTemplate("public/overview.html", nil, res)
-	})
-
-	m.Get("/search", func(res http.ResponseWriter, req *http.Request) {
-		CheckAuthRedirect(res, req)
-
-		RenderTemplate("public/search.html", nil, res)
-	})
-
-	m.Get("/maptest/:id", func(res http.ResponseWriter, req *http.Request) {
-		CheckAuthRedirect(res, req)
-
-		RenderTemplate("public/maptest.html", nil, res)
-	})
-
+	m.Get("/", Authorisation)
+	m.Get("/login", Login)
+	m.Get("/logout", Logout)
+	m.Get("/register", Register)
+	m.Get("/charts/:id", Charts)
+	m.Get("/search/overlay", SearchOverlay)
+	m.Get("/overlay/:id", Overlay)
+	m.Get("/overview/:id", Overview)
+	m.Get("/search", Search)
+	m.Get("/maptest/:id", MapTest)
 	m.Post("/noauth/login.json", HandleLogin)
 	m.Post("/noauth/logout.json", HandleLogout)
 	m.Post("/noauth/register.json", HandleRegister)
@@ -163,14 +84,13 @@ func main() {
 	m.Get("/api/getinfo/:id", GetEntry)
 	m.Get("/api/getimportstatus/:id", CheckImportStatus)
 	m.Get("/api/getdata/:id", DumpTable)
-	m.Get("/api/getdata/:id/:top/:bot", DumpTable)
+	m.Get("/api/getdata/:id/:offset/:count", DumpTable)
 	m.Get("/api/getdata/:id/:x/:startx/:endx", DumpTableRange)
 	m.Get("/api/getdatagrouped/:id/:x/:y", DumpTableGrouped)
 	m.Get("/api/getdatapred/:id/:x/:y", DumpTablePrediction)
-	m.Get("/api/getcsvdata/:id/:x/:y", GetCSV)
 	m.Get("/api/getreduceddata/:id", DumpReducedTable)
-	m.Get("/api/getreduceddata/:id/:persent", DumpReducedTable)
-	m.Get("/api/getreduceddata/:id/:persent/:min", DumpReducedTable)
+	m.Get("/api/getreduceddata/:id/:percent", DumpReducedTable)
+	m.Get("/api/getreduceddata/:id/:percent/:min", DumpReducedTable)
 	m.Post("/api/setdefaults/:id", SetDefaults)
 	m.Get("/api/getdefaults/:id", GetDefaults)
 	m.Get("/api/identifydata/:id", IdentifyTable)
@@ -194,7 +114,7 @@ func main() {
  * @param *http.Request
  */
 func JsonApiHandler(res http.ResponseWriter, req *http.Request) {
-	if strings.HasPrefix(req.RequestURI, "/api") {
+	if strings.HasPrefix(req.URL.Path, "/api") {
 		CheckAuthRedirect(res, req) // Make everything in the API auth'd
 		res.Header().Set("Content-Type", "application/json")
 	}

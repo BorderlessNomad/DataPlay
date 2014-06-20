@@ -49,7 +49,7 @@ eles it will 302 redirect to the homepage with the new user logged in, ready to 
 
 This is used to get the user infomation, it can also be used as a way to check if the user is still logged into the server.
 
-The responce is a json encoded payload that follows:
+The response is a json encoded payload that follows:
 
 ```json
 
@@ -349,19 +349,19 @@ At the time of writing it still works:
 
 This call works like "getdata" but will return a limited set of it to ensure that the client requesting isnt overwelmed by a massive dataset.
 
-### /api/getreduceddata/:id/:persent
+### /api/getreduceddata/:id/:percent
 **GET - Auth Cookie Checked**
 
 **Handled in api:DumpReducedTable:api/datalisting.go**
 
-This extends the functionallity of `/api/getreduceddata/:id` but offers you to select what persentage of the dataset you want.
+This extends the functionallity of `/api/getreduceddata/:id` but offers you to select what percentage of the dataset you want.
 
-### /api/getreduceddata/:id/:persent/:min
+### /api/getreduceddata/:id/:percent/:min
 **GET - Auth Cookie Checked**
 
 **Handled in api:DumpReducedTable:api/datalisting.go**
 
-This extends the functionallity of `/api/getreduceddata/:id/:persent` but offers you to select what the min amount of data you want.
+This extends the functionallity of `/api/getreduceddata/:id/:percent` but offers you to select what the min amount of data you want.
 
 ### /api/setdefaults/:id
 **POST - Auth Cookie Checked**
@@ -422,7 +422,7 @@ This returns `true` or `false` for if the `:col` in dataset `:table` is numeric.
 Example: `/api/classifydata/tweets/id`
 
 ```json
-	
+
 	true
 
 ```

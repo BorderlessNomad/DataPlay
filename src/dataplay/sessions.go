@@ -9,7 +9,6 @@ import (
 	"time"
 )
 
-// session.res.Header().Set("Set-Cookie", fmt.Sprintf("SessionId=; path=%s;", session.manager.path))
 func IsUserLoggedIn(res http.ResponseWriter, req *http.Request) bool {
 	cookie, _ := req.Cookie("DPSession")
 	c, err := GetRedisConnection()
