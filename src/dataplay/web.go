@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/martini"
+	"github.com/jinzhu/gorm"
 	"net/http"
 	"net/url"
 )
@@ -12,7 +13,7 @@ func Authorisation(res http.ResponseWriter, req *http.Request) { // res and req 
 
 	user := User{}
 	err := DB.Where("uid = ?", GetUserID(res, req)).Find(&user).Error
-	if err != nil {
+	if err != nil && err != gorm.RecordNotFound {
 		panic(err)
 	}
 
