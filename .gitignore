@@ -18,3 +18,15 @@ public/*.html
 public/templates
 public/lib/dependencies/js/
 coverage.out
+src/dataplay/public/bookmarked.html
+src/dataplay/public/charts.html
+src/dataplay/public/dc-network.html
+src/dataplay/public/home.html
+src/dataplay/public/maps.html
+src/dataplay/public/maptest.html
+src/dataplay/public/overlay.html
+src/dataplay/public/overview.html
+src/dataplay/public/processing.html
+src/dataplay/public/register.html
+src/dataplay/public/search.html
+src/dataplay/public/signin.html
