@@ -13,8 +13,11 @@ type Ordinal struct {
 
 // calculates Pearson product-moment correlation coefficient for two interval/ratio data sets of equal size
 func Pearson(x []float64, y []float64) float64 {
-	n := float64(len(x))
 	sumx, sumy, sumxSq, sumySq, pSum := 0.0, 0.0, 0.0, 0.0, 0.0
+	n := float64(len(x))
+	if n == 0 || n != float64(len(y)) {
+		return 0
+	}
 
 	for i, _ := range x {
 		sumx += x[i]
@@ -46,6 +49,54 @@ func Spurious(x []float64, y []float64, z []float64) float64 {
 		return 0
 	}
 	return r
+}
+
+// calculates Spearman's rank correlation coefficient for ranked, ordinal data
+func Spearman(x []float64, y []float64) float64 {
+	n := len(x)
+	rx := make([]Ordinal, n)
+	ry := make([]Ordinal, n)
+
+	// copy data values and original place value of ordered data into array
+	for i, _ := range x {
+		rx[i].DataVal = x[i]
+		rx[i].Original = i
+		ry[i].DataVal = y[i]
+		ry[i].Original = i
+	}
+
+	// now we have original place values of data stored, we can temporarily reorder data in order to be ranked easily
+	sort.Sort(sort.Reverse(ByData(rx)))
+	sort.Sort(sort.Reverse(ByData(ry)))
+	tiedx := Rank(rx)
+	tiedy := Rank(ry)
+
+	// put data back in original order
+	sort.Sort(ByOrig(rx))
+	sort.Sort(ByOrig(ry))
+
+	p := 0.0
+
+	if tiedx == false && tiedy == false { // this is the Pearson formula for use on distinct data values
+
+		sumSqDiff, num, den := 0.0, 0.0, 0.0
+		for i := 0; i < n; i++ {
+			sumSqDiff += math.Pow(rx[i].RankVal-ry[i].RankVal, 2)
+		}
+		num = 6 * sumSqDiff
+		den = float64(n) * (math.Pow(float64(n), 2) - 1)
+		p = 1 - num/den
+
+	} else { // with tied data values pass ranking values to Pearson
+		px := make([]float64, n, n)
+		py := make([]float64, n, n)
+		for i, _ := range rx {
+			px[i] = rx[i].RankVal
+			py[i] = ry[i].RankVal
+		}
+		p = Pearson(px, py)
+	}
+	return p
 }
 
 // calculates the coeficient of variation or relative variability (the ratio of the standard deviation to the mean)
@@ -90,54 +141,6 @@ func Sgn(a float64) float64 {
 		return 1
 	}
 	return 0
-}
-
-// calculates Spearman's rank correlation coefficient for ranked, ordinal data
-func Spearman(x []float64, y []float64) float64 {
-	n := len(x)
-	rx := make([]Ordinal, n)
-	ry := make([]Ordinal, n)
-
-	// copy data values and original place value of ordered data into array
-	for i, _ := range x {
-		rx[i].DataVal = x[i]
-		rx[i].Original = i
-		ry[i].DataVal = y[i]
-		ry[i].Original = i
-	}
-
-	// now we have original place values of data stored, we can temporarily reorder data to be ranked easily
-	sort.Sort(sort.Reverse(ByData(rx)))
-	sort.Sort(sort.Reverse(ByData(ry)))
-	tiedx := Rank(rx)
-	tiedy := Rank(ry)
-
-	// put data back in original order
-	sort.Sort(ByOrig(rx))
-	sort.Sort(ByOrig(ry))
-
-	p := 0.0
-
-	if tiedx == false && tiedy == false {
-
-		sumSqDiff, num, den := 0.0, 0.0, 0.0
-		for i := 0; i < n; i++ {
-			sumSqDiff += math.Pow(rx[i].RankVal-ry[i].RankVal, 2)
-		}
-		num = 6 * sumSqDiff
-		den = float64(n) * (math.Pow(float64(n), 2) - 1)
-		p = 1 - num/den
-
-	} else { // pass ranking values to Pearson
-		px := make([]float64, n, n)
-		py := make([]float64, n, n)
-		for i, _ := range rx {
-			px[i] = rx[i].RankVal
-			py[i] = ry[i].RankVal
-		}
-		p = Pearson(px, py)
-	}
-	return p
 }
 
 // Determines the value of the rank and wherever data values are tied gives them all the same average rank value

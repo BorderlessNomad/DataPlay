@@ -6,10 +6,16 @@ import (
 )
 
 func TestPearson(t *testing.T) {
+	var empty = []float64{}
 	var data1 = []float64{29.8, 30.1, 30.5, 30.6, 31.3, 31.7, 32.6, 33.1, 32.7, 32.8}
 	var data2 = []float64{327, 456, 509, 497, 596, 573, 661, 741, 809, 717}
 
-	Convey("Should return correlation coefficient of 0.9470910552716333 for sets of equal size", t, func() {
+	Convey("Should return 0 for empty data set", t, func() {
+		result := Pearson(data1, empty)
+		So(result, ShouldEqual, 0)
+	})
+
+	Convey("Should return valid correlation coefficient for sets of equal size", t, func() {
 		result := Pearson(data1, data2)
 		So(result, ShouldEqual, 0.9470910552716333)
 	})
@@ -20,10 +26,10 @@ func TestPearson(t *testing.T) {
 		So(result, ShouldEqual, 0.0)
 	})
 
-	Convey("Should return correlation coefficient of 0.9470910552716333 when set 1 has 10 values and set 2 has more than 10 values", t, func() {
+	Convey("Should return correlation coefficient of 0 when set 1 has 10 values and set 2 has more than 10 values", t, func() {
 		data2 = append(data2, 300)
 		result := Pearson(data1, data2)
-		So(result, ShouldEqual, 0.9470910552716333)
+		So(result, ShouldEqual, 0)
 	})
 }
 
@@ -32,7 +38,7 @@ func TestSpurious(t *testing.T) {
 	var data2 = []float64{314, 196, 195, 244, 184, 249, 182, 232, 127, 141, 85, 189, 121, 338, 112, 225, 110, 168, 195, 262}
 	var data3 = []float64{40036, 87900, 41390, 85953, 59604, 22848, 78542, 51792, 8811, 13540, 67289, 43760, 87331, 45984, 37737, 62219, 54737, 8169, 12550, 87735}
 
-	Convey("Should return spurious correlation coefficient of 0.7672911757618174 for sets of equal size", t, func() {
+	Convey("Should return valid correlation coefficient for sets of equal size", t, func() {
 		result := Spurious(data1, data2, data3)
 		So(result, ShouldEqual, 0.7672911757618174)
 	})
@@ -48,14 +54,14 @@ func TestSpearman(t *testing.T) {
 	var data1 = []float64{56, 75, 45, 71, 62, 64, 58, 80, 76, 61}
 	var data2 = []float64{66, 70, 40, 60, 65, 56, 59, 77, 67, 63}
 
-	Convey("Spearman correlation coefficient should equal 0.6727272727272727", t, func() {
+	Convey("Should return valid correlation coefficient for sets of equal size with unique data", t, func() {
 		result := Spearman(data1, data2)
 		So(result, ShouldEqual, 0.6727272727272727)
 	})
 
 	var tiedData1 = []float64{43, 75, 45, 71, 61, 64, 58, 80, 76, 61}
 	var tiedData2 = []float64{66, 70, 40, 60, 12, 56, 59, 77, 67, 63}
-	Convey("Spearman correlation coefficient should equal 0.5957474328064633", t, func() {
+	Convey("Should return valid correlation coefficient for sets of equal size with tied data", t, func() {
 		result := Spearman(tiedData1, tiedData2)
 		So(result, ShouldEqual, 0.5957474328064633)
 	})
