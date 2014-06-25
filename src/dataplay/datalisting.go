@@ -352,12 +352,16 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, params martini
 	cls := FetchTableCols(params["id"])
 	ValidX := false
 	ValidY := false
+	sumY := false
 
 	/* Check for existence of X & Y in Table */
 	for _, clm := range cls {
 		if clm.Name == params["x"] {
 			ValidX = true
-		} else if clm.Name == params["y"] && clm.Sqltype != "varchar" && clm.Sqltype != "date" {
+		} else if clm.Name == params["y"] {
+			if clm.Sqltype != "varchar" && clm.Sqltype != "date" {
+				sumY = true
+			}
 			ValidY = true
 		}
 
@@ -376,7 +380,13 @@ func DumpTableGrouped(res http.ResponseWriter, req *http.Request, params martini
 		return
 	}
 
-	q := fmt.Sprintf("SELECT %[1]s, SUM(%[2]s) AS %[2]s FROM %[3]s GROUP BY %[1]s", params["x"], params["y"], tablename)
+	q := ""
+	if sumY {
+		q = fmt.Sprintf("SELECT %[1]s, SUM(%[2]s) AS %[2]s FROM %[3]s GROUP BY %[1]s", params["x"], params["y"], tablename)
+	} else {
+		q = fmt.Sprintf("SELECT DISTINCT %[1]s, COUNT(%[1]s) AS %[2]s FROM %[3]s GROUP BY %[1]s ORDER BY %[1]s", params["x"], params["y"], tablename)
+	}
+
 	rows, e1 := DB.Raw(q).Rows()
 	if e1 != nil {
 		check(e1)
@@ -500,8 +510,9 @@ func DumpTablePrediction(res http.ResponseWriter, req *http.Request, params mart
 	io.WriteString(res, "\n")
 }
 
-// This function will take a share of a table and return it as JSON
-// Due to what seems to be a golang bug, everything is outputted as a string.
+/**
+ * @brief This function will take a share of a table and return it as JSON
+ */
 func DumpReducedTable(res http.ResponseWriter, req *http.Request, params martini.Params) {
 	if params["id"] == "" {
 		http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
@@ -513,8 +524,33 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, params martini
 		return
 	}
 
-	rows, e1 := DB.Raw("SELECT * FROM " + tablename).Rows()
+	var rows *sql.Rows
+	var e1 error
+	if params["x"] == "" || params["y"] == "" {
+		rows, e1 = DB.Table(tablename).Rows()
+	} else {
+		x := params["x"]
+		y := params["y"]
+
+		cls := FetchTableCols(params["id"])
+		sumY := false
+
+		/* Check for existence of X & Y in Table */
+		for _, clm := range cls {
+			if clm.Name == y && clm.Sqltype != "varchar" && clm.Sqltype != "date" {
+				sumY = true
+			}
+		}
+
+		if sumY {
+			rows, e1 = DB.Table(tablename).Select("DISTINCT \"" + x + "\", SUM(\"" + y + "\") AS \"" + y + "\"").Group(x).Order(x).Rows()
+		} else {
+			rows, e1 = DB.Table(tablename).Select("DISTINCT \"" + x + "\", COUNT(\"" + x + "\") AS \"" + y + "\"").Group(x).Order(x).Rows()
+		}
+	}
+
 	if e1 != nil {
+		panic(e1)
 		http.Error(res, "Could not read that table", http.StatusInternalServerError)
 		return
 	}
@@ -525,13 +561,26 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, params martini
 		return
 	}
 
-	DataLength := 0
-	err := DB.Table(tablename).Count(&DataLength).Error
-
-	if err != nil && err != gorm.RecordNotFound {
-		check(err)
+	values := make([]interface{}, len(columns))
+	scanArgs := make([]interface{}, len(columns))
+	for i := range values {
+		scanArgs[i] = &values[i]
 	}
 
+	results := make([]map[string]interface{}, 0)
+	results_calc := make([]map[string]interface{}, 0)
+	for rows.Next() {
+		err := rows.Scan(scanArgs...)
+
+		if err != nil {
+			panic(err)
+		}
+
+		record := ScanRow(values, columns)
+		results = append(results, record)
+	}
+
+	DataLength := len(results)
 	RealDL := DataLength
 	if params["percent"] == "" {
 		DataLength = DataLength / 25
@@ -564,36 +613,21 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, params martini
 		}
 	}
 
+	/**
+	 * In the case that the percentage returns a super small amount,
+	 * then force it to be 1, and return it all
+	 */
 	if DataLength < 1 {
-		DataLength = 1 // In the case that the percentage returnes a super small amount, then
-		// force it to be 1, and return it all
+		DataLength = 1
 	}
 
-	var RowsScanned int
-	RowsScanned = 0
-	scanArgs := make([]interface{}, len(columns))
-	values := make([]interface{}, len(columns))
-	for i := range values {
-		scanArgs[i] = &values[i]
-	}
-
-	array := make([]map[string]interface{}, 0)
-	for rows.Next() {
-		err := rows.Scan(scanArgs...)
-
-		if err != nil {
-			panic(err)
+	for i, result := range results {
+		if i%DataLength == 0 {
+			results_calc = append(results_calc, result)
 		}
-
-		if RowsScanned%DataLength == 0 {
-			record := ScanRow(values, columns)
-			array = append(array, record)
-		}
-
-		RowsScanned++
 	}
 
-	s, _ := json.Marshal(array)
+	s, _ := json.Marshal(results_calc)
 	res.Write(s)
 	io.WriteString(res, "\n")
 }

@@ -90,6 +90,7 @@ func main() {
 	m.Get("/api/getreduceddata/:id", DumpReducedTable)
 	m.Get("/api/getreduceddata/:id/:percent", DumpReducedTable)
 	m.Get("/api/getreduceddata/:id/:percent/:min", DumpReducedTable)
+	m.Get("/api/getreduceddata/:id/:x/:y/:percent/:min", DumpReducedTable)
 	m.Post("/api/setdefaults/:id", SetDefaults)
 	m.Get("/api/getdefaults/:id", GetDefaults)
 	m.Get("/api/identifydata/:id", IdentifyTable)

@@ -21,7 +21,7 @@ define ['jquery', 'app/PGPatternMatcher'], ($, PGPatternMatcher) ->
           datapool.push(PGPatternMatcher.parse item[axis.key], valuePattern)
       datapool
 
-    @parseChartData: (data, x, y, guid, chartType, callback) ->      
+    @parseChartData: (data, x, y, guid, chartType, callback) ->
       if ['bars', 'pie', 'bubbles'].indexOf(chartType) >= 0
         $.get "/api/getdatagrouped/#{guid}/#{x.key}/#{y.key}", (dataset) =>
           @parseDataResults dataset, x, y, callback
@@ -64,3 +64,9 @@ define ['jquery', 'app/PGPatternMatcher'], ($, PGPatternMatcher) ->
         $(x).val data.x
         $(y).val data.y
         cb() if cb
+
+    @getParameterByName: (name) ->
+      name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]")
+      regex = new RegExp("[\\?&]" + name + "=([^&#]*)")
+      results = regex.exec(location.search)
+      (if not results? then "" else decodeURIComponent(results[1].replace(/\+/g, " ")))

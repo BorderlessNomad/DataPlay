@@ -36,16 +36,18 @@ define [
   aGuid = last.split('?')
   guid = aGuid[0]
   qs = if aGuid.length>1 then decodeURI(aGuid[1]) else null
+  x = Common.getParameterByName("x")
+  y = Common.getParameterByName("y")
 
   go2HierarchyChart = ->
     count = _.keys(DataCon.dataset[0]).length
     selectorTemplate = _.template($('#selectorTemplate').html(), null, variable: 'data')
     selectorButton = $('<a class="btn btn-lg btn-success" href="javascript:void(0)" role="button">Draw Chart</a>')
     data = type: 'Key', keys: []
-    dataset = key: '', values: null             
+    dataset = key: '', values: null
     data.keys.push(node) for node of DataCon.dataset[0]
     $('#selectors').html ''
-    $('#selectors').append(selectorTemplate data) for i in [0..count-2] 
+    $('#selectors').append(selectorTemplate data) for i in [0..count-2]
     data.type = 'Value'
     $('#selectors').append(selectorTemplate data)
     $('#controls').html('').append(selectorButton)
@@ -72,7 +74,7 @@ define [
           DataCon.chart = new PGTreemapChart("#chart", {top: 0, right: 0, bottom: 0, left: 0}, dataset, null, DataCon.patterns, null, valueSelector.val(), 1)
         when 'forcedirected'
           DataCon.chart = new PGForceDirectedChart("#chart", {top: 0, right: 0, bottom: 0, left: 0}, dataset, null, DataCon.patterns, null, valueSelector.val(), 1)
-    
+
     if DataCon.autokeys and DataCon.autokeys.length
       selects = $('#selectors select')
       $(selects.get(i)).val(DataCon.autokeys[i]) for i in [0..DataCon.autokeys.length-2]
@@ -88,14 +90,14 @@ define [
       $('#controls').html ''
       $('#selectors').html(defaultSelectorTemplate {})
       $('#SetupOverlay').click ->
-        #Okay so we need to put into local storage the current GUID so when 
+        #Okay so we need to put into local storage the current GUID so when
         #the overlay panal is called we can use it later on the overlay page.
         localStorage['overlay1'] = guid
         window.location.href = '/search/overlay'
       populateKeys()
 
   updateChart = ->
-    chartAxes = x: $("#pickxaxis").val(), y: $("#pickyaxis").val()    
+    chartAxes = x: $("#pickxaxis").val(), y: $("#pickyaxis").val()
     if not DataCon.chart
       $("#chart").html('');
       if qs
@@ -113,7 +115,7 @@ define [
             DataCon.autokeys = []
             DataCon.autokeys.push(entries["key#{i}"]) for i in [0..size-3]
             DataCon.autokeys.push(entries['value']);
-          else 
+          else
             if entries['x']
               $("#pickxaxis").val entries['x']
               chartAxes.x = entries['x']
@@ -137,9 +139,9 @@ define [
       guid
       DataCon.currChartType
       callback
-    ) 
+    )
 
-  createCharts = (chartData, chartAxes) ->      
+  createCharts = (chartData, chartAxes) ->
     switch DataCon.currChartType
       when 'bars'
         DataCon.chart = new PGBarsChart("#chart", null, chartData, chartAxes, DataCon.patterns, null)
@@ -152,7 +154,7 @@ define [
       when 'enclosure', 'tree', 'treemap', 'forcedirected'
         go2HierarchyChart();
       else
-        DataCon.chart = new PGLinesChart("#chart", null, chartData, chartAxes, DataCon.patterns, null);        
+        DataCon.chart = new PGLinesChart("#chart", null, chartData, chartAxes, DataCon.patterns, null);
 
   populateKeys = ->
     $("#pickxaxis").empty()
@@ -198,8 +200,8 @@ define [
     $.getJSON "/api/getinfo/#{guid}", (data) ->
       $('#FillInDataSet').html data.Title
       $("#wikidata").html data.Notes
-    
-    $.getJSON "/api/getreduceddata/#{guid}/10/100", (data) ->
+
+    $.getJSON "/api/getreduceddata/#{guid}/#{x}/#{y}/10/100", (data) ->
       console.log(data);
       #so data is an array of shit.
       DataCon.dataset = data
@@ -225,9 +227,11 @@ define [
               do (col) ->
                 switch col.Sqltype
                   when "int", "bigint"
-                    DataCon.patterns[col.Name].valuePattern = 'intNumber'
+                    DataCon.patterns[col.Name].valuePattern = 'intNumber' if DataCon.patterns?[col.Name]?.valuePattern?
+                    return
                   when "float"
-                    DataCon.patterns[col.Name].valuePattern = 'floatNumber'
+                    DataCon.patterns[col.Name].valuePattern = 'floatNumber' if DataCon.patterns?[col.Name]?.valuePattern?
+                    return
                   else
                     #leave pattern as it was recognised by frontend
             go2Chart 'lines'

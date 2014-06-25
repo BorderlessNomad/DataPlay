@@ -205,7 +205,7 @@ define [], () ->
             # Matches yyyy/mm/dd, yy/m/d, mm/dd .... with Month name and separators: - / . and space
             pattern: /^[^A-Z0-9]*(((19|20)?\d\d)[- \/]?)?([A-Z]{3,9})[- \/]?((0)?([1-9])|[12][0-9]|3[01])[^0-9]*$/i
             # Groups: 1->yearEntry, 2->fullYear, 3->century, 4->monthName, 5->dayEntry, 6->day0, 7->dayN
-            parse: (m) => 
+            parse: (m) =>
               mm = @parseMonthName m[4]
               return "error: month name" unless mm
               @parseDate m[1], m[2], m[3], mm, null, null, m[7], m[8], m[9]
@@ -214,7 +214,7 @@ define [], () ->
             # Matches yyyy/dd/mm, yy/d/m, dd/mm .... with Month name and separators: - / . and space
             pattern: /^[^0-9]*(((19|20)?\d\d)[- \/])?((0)?([1-9])|[12][0-9]|3[01])[- \/]?([A-Z]{3,9})[^A-Z0-9]*$/i
             # Groups: 1->yearEntry, 2->fullYear, 3->century, 4->dayEntry, 5->day0, 6->dayN, 7->monthName
-            parse: (m) => 
+            parse: (m) =>
               mm = @parseMonthName m[7]
               return "error: month name" unless mm
               @parseDate m[1], m[2], m[3], mm, null, null, m[4], m[5], m[6]
@@ -223,7 +223,7 @@ define [], () ->
             # Matches dd/mm/yyyy, d/m/yy, dd/mm .... with Month name and separators: - / . and space
             pattern: /^[^0-9]*((0)?([1-9])|[12][0-9]|3[01])[- \/]?([A-Z]{3,9})([- \/]?((19|20)?\d\d))?[^A-Z0-9]*$/i
             # Groups: 1->dayEntry, 2->day0, 3->dayN, 4->monthName, 5->yearEntry, 6->fullYear, 7->century
-            parse: (m) => 
+            parse: (m) =>
               mm = @parseMonthName m[4]
               return "error: month name" unless mm
               @parseDate m[7], m[8], m[9], mm, null, null, m[1], m[2], m[3]
@@ -232,14 +232,14 @@ define [], () ->
             # Matches mm/dd/yyyy, m/d/yy, mm/dd .... with Month name and separators: - / . and space
             pattern: /^[^A-Z0-9]*([A-Z]{3,9})[- \/]?((0)?([1-9])|[12][0-9]|3[01])([- \/]((19|20)?\d\d))?[^0-9]*$/i
             # Groups: 1->monthName, 2->dayEntry, 3->day0, 4->dayN, 5->yearEntry, 6->fullYear, 7->century
-            parse: (m) => 
+            parse: (m) =>
               mm = @parseMonthName m[1]
               return "error: month name" unless mm
               @parseDate m[7], m[8], m[9], mm, null, null, m[4], m[5], m[6]
           }
         ]
       }
-      
+
       # ------------------------------------ Integer Number Entity ----------------------------------
       {
         name: 'intNumber'
@@ -305,7 +305,7 @@ define [], () ->
       }
       {
         name: 'coefficient'
-        pattern: /^coef|ind|ratio|percent$/i
+        pattern: /^coef|ind|ratio|percent|count$/i
       }
       {
         name: 'mapLongitude'
@@ -329,7 +329,7 @@ define [], () ->
                   match = handler.pattern.exec src
                   if match
                     pattern = entity.name
-                    console.log "Value --> #{pattern}: #{src}"
+                    console.log "Value Pattern --> #{pattern}: #{src}"
                     #console.log match
       pattern
 
@@ -341,7 +341,7 @@ define [], () ->
             match = key.pattern.exec src
             if match
               pattern = key.name
-              console.log "Key --> #{pattern}: #{src}"
+              console.log "Key Pattern --> #{pattern}: #{src}"
               #console.log match
       pattern
 
@@ -353,9 +353,9 @@ define [], () ->
             do (handler) ->
               if not parsed
                 match = handler.pattern.exec src
-                if match 
+                if match
                   parsed = if handler.parse then handler.parse match else src
-                #console.log match 
+                #console.log match
                 #console.log parsed
       parsed
 
@@ -394,5 +394,5 @@ define [], () ->
       # Put '0' digit in day if it isn't already
       dd = "0#{dd}" if dn and not d0
       # This will be our standard date format
-      #"#{yyyy}-#{mm}-#{dd}" 
+      #"#{yyyy}-#{mm}-#{dd}"
       new Date(yyyy, mm-1, dd)

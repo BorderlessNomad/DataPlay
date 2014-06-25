@@ -23,4 +23,6 @@ define [
             # Now parse ALL the data
             # TODO get into account key pattern before parsing everything???
             entry[key] = PGPatternMatcher.parse(entry[key], patterns[key].valuePattern) for entry in data
+
+        console.log "Patterns: ", patterns
         new PGOverviewCharts guid, {dataset: data, patterns: patterns}, '#charts'
