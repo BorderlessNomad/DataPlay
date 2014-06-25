@@ -280,7 +280,7 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, para
 
 	for _, job := range jobs {
 		var data []string
-		err := DB.Table(job.TableName).Pluck(job.X, &data).Error
+		err := DB.Table(job.TableName).Pluck("\""+job.X+"\"", &data).Error
 
 		if err != nil {
 			http.Error(res, "Could not read from target table", http.StatusInternalServerError)
@@ -298,23 +298,22 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, para
 	/* Build a dictionary of all 'strings' to be searched */
 	Dictionary := ConvertIntoStructArrayAndSort(checkingdict)
 	Amt := 0
-	SizeLimit := 5
+	SizeLimit := 100 // was 5
 	for _, dict := range Dictionary {
-		/* Why follwing thing is there? */
-		if dict.Value < SizeLimit || dict.Key == "" {
-			// Lets be sensible here ???Why @mayur/@glyn
+		/* Some sanity is always good */
+		if len(dict.Key) < 3 {
 			continue
 		}
 
 		Amt++
 
-		if Amt > SizeLimit { // this acts as a "LIMIT 5" in the whole thing else this thing can literally takes mins to run.
-			continue
+		/* To prevent HEAVY load on SQL server we only search for Finite number of 'keywords' */
+		if Amt > SizeLimit {
+			break
 		}
 
 		search := StringSearch{}
 		count := 0
-		/* Why? */
 		err := DB.Model(&search).Where("value = ?", dict.Value).Count(&count).Error
 
 		check(err)
@@ -325,7 +324,7 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, para
 			var data = []string{}
 			query := DB.Table("priv_onlinedata, priv_stringsearch, index")
 			query = query.Where("priv_stringsearch.value = ?", dict.Value)
-			query = query.Where("priv_stringsearch.count > ?", SizeLimit) //Why?
+			query = query.Where("priv_stringsearch.count > ?", 5) //Why?
 			query = query.Where("priv_stringsearch.tablename = priv_onlinedata.tablename")
 			query = query.Where("priv_onlinedata.guid = index.guid")
 			err := query.Pluck("priv_onlinedata.guid", &data).Error
