@@ -149,15 +149,19 @@ func GetEntry(res http.ResponseWriter, req *http.Request, params martini.Params)
 
 	result := DataEntry{
 		GUID:     index.Guid,
-		Name:     index.Name,
-		Title:    index.Title,
-		Notes:    index.Notes,
+		Name:     SanitizeString(index.Name),
+		Title:    SanitizeString(index.Title),
+		Notes:    SanitizeString(index.Notes),
 		Ckan_url: strings.Replace(index.CkanUrl, "//", "/", -1),
 	}
 
 	b, _ := json.Marshal(result)
 
 	return string(b)
+}
+
+func SanitizeString(str string) string {
+	return strings.Replace(str, "Ã‚Â£", "£", -1)
 }
 
 // This function casts everything into what it /Should/ Be
