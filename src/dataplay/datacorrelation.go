@@ -152,14 +152,14 @@ func Rank(o []Ordinal) bool {
 	for i := 0; i < n; {
 		rank := 1.0 + float64(i)
 		j := i
-		for j < n-1 && o[j].DataVal == o[j+1].DataVal {
-			tied = true // values are repeated
+		for j < n-1 && o[j].DataVal == o[j+1].DataVal { // discover if current examined value is duplicated in next value
+			tied = true // flag when values are repeated
 			j++
 			rank += float64(j) + 1
 		}
 		rank /= float64(j-i) + 1
 		o[i].RankVal = rank
-		for i < n-1 && o[i].DataVal == o[i+1].DataVal {
+		for i < n-1 && o[i].DataVal == o[i+1].DataVal { // give all duplicate values the same average rank
 			i++
 			o[i].RankVal = rank
 		}
