@@ -210,6 +210,13 @@ func TestDumpTableGrouped(t *testing.T) {
 		DumpTableGrouped(response, request, params)
 	})
 
+	Convey("When Y Col parameter is a date", t, func() {
+		params["id"] = "gold"
+		params["x"] = "price"
+		params["y"] = "date"
+		DumpTableGrouped(response, request, params)
+	})
+
 	Convey("When valid parameters are provided", t, func() {
 		params["id"] = "gdp"
 		params["x"] = "change"
@@ -291,8 +298,19 @@ func TestDumpReducedTable(t *testing.T) {
 		DumpReducedTable(response, request, params)
 	})
 
+	Convey("When parameter Y is a varchar or date", t, func() {
+		params["id"] = "gold"
+		params["x"] = "price"
+		params["y"] = "date"
+		params["percent"] = "10"
+		params["min"] = "1"
+		DumpReducedTable(response, request, params)
+	})
+
 	Convey("When valid table and parameters are provided", t, func() {
 		params["id"] = "gdp"
+		params["x"] = "change"
+		params["y"] = "gdpindex"
 		params["percent"] = "10"
 		params["min"] = "1"
 		DumpReducedTable(response, request, params)
