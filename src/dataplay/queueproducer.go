@@ -16,14 +16,11 @@ var (
 	routingKey   = flag.String("key", "api", "AMQP routing key")
 	body         = flag.String("body", "foobar", "Body of message")
 	reliable     = flag.Bool("reliable", true, "Wait for the publisher confirmation before exiting")
-	queueName    = flag.String("queue", "dataplay", "Ephemeral AMQP queue name")
-	consumerTag  = flag.String("consumer-tag", "simple-consumer", "AMQP consumer tag (should not be blank)")
-	lifetime     = flag.Duration("lifetime", 0*time.Second, "lifetime of process before shutdown (0s=infinite, 60s=1minute, 60m=1hour ..)")
 )
 
-// func init() {
-// 	flag.Parse()
-// }
+func init() {
+	flag.Parse()
+}
 
 type QueueProducer struct {
 }
