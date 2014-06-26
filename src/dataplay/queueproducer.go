@@ -33,7 +33,7 @@ func (prod *QueueProducer) initProducer() {
 	i := 0
 	for {
 		i++
-		send(fmt.Sprintf("Hello #%d", i))
+		prod.send(fmt.Sprintf("Hello #%d", i))
 		rand := randomDuration(100, 200)
 		fmt.Println("After ", rand, " secs")
 		time.Sleep(rand * time.Millisecond)

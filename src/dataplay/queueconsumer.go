@@ -10,13 +10,9 @@ import (
 )
 
 var (
-	uri          = flag.String("uri", "amqp://playgen:aDam3ntiUm@109.231.121.13:5672/", "AMQP URI")
-	exchangeName = flag.String("exchange", "playgen", "Durable (non-auto-deleted) AMQP exchange name")
-	exchangeType = flag.String("exchange-type", "direct", "Exchange type - direct|fanout|topic|x-custom")
-	routingKey   = flag.String("key", "api", "AMQP routing key")
-	queueName    = flag.String("queue", "dataplay", "Ephemeral AMQP queue name")
-	consumerTag  = flag.String("consumer-tag", "simple-consumer", "AMQP consumer tag (should not be blank)")
-	lifetime     = flag.Duration("lifetime", 0*time.Second, "lifetime of process before shutdown (0s=infinite, 60s=1minute, 60m=1hour ..)")
+	queueName   = flag.String("queue", "dataplay", "Ephemeral AMQP queue name")
+	consumerTag = flag.String("consumer-tag", "simple-consumer", "AMQP consumer tag (should not be blank)")
+	lifetime    = flag.Duration("lifetime", 0*time.Second, "lifetime of process before shutdown (0s=infinite, 60s=1minute, 60m=1hour ..)")
 )
 
 func init() {
