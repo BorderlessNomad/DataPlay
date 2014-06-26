@@ -1,12 +1,23 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/streadway/amqp"
 	"log"
 	"math/rand"
 	"time"
 )
+
+var (
+	queueName   = flag.String("queue", "dataplay", "Ephemeral AMQP queue name")
+	consumerTag = flag.String("consumer-tag", "simple-consumer", "AMQP consumer tag (should not be blank)")
+	lifetime    = flag.Duration("lifetime", 0*time.Second, "lifetime of process before shutdown (0s=infinite, 60s=1minute, 60m=1hour ..)")
+)
+
+func init() {
+	flag.Parse()
+}
 
 type QueueConsumer struct {
 	conn    *amqp.Connection
