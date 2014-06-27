@@ -9,6 +9,7 @@ package main
  */
 
 import (
+	"flag"
 	"fmt"
 	"github.com/codegangsta/martini"
 	"log"
@@ -16,6 +17,10 @@ import (
 	"os"
 	"playgen/database"
 	"strings"
+)
+
+var (
+	mode = flag.Int("mode", 1, "1=Node (default), 2=Master, 3=Standalone")
 )
 
 var Logger *log.Logger = log.New(os.Stdout, "[API] ", log.Lshortfile)
@@ -40,25 +45,59 @@ func DBSetup() error {
 	return DB.Connect()
 }
 
+func init() {
+	flag.Parse()
+}
+
 /**
  * @details Application bootstrap
  *
  *   Checks database connection,
- *   Init templates,
- *   Init Martini API
+ *   init templates,
+ *   init Martini API
  */
 func main() {
-	e := DBSetup()
-	if e == nil {
-		/* Database connection will be closed only when Server closes */
-		defer DB.Close()
-		fmt.Println("[Init] ---[ Welcome to DataCon Server ]---")
+	/**
+	 * This application run in 3 types of mode
+	 *
+	 * 1 = Node (default): Acts as a simple compute instance i.e. no API,
+	 * template handling also not exposed to Public. It continuously listens for
+	 * incoming requests by means of QueueConsumer. Multiple instances of this mode
+	 * can be spawned and killed depending on overall Queue lenght and load, latency etc on system
+	 * as whole.
+	 *
+	 * 2 = Master: APIs are exposed to public and so does everything else.
+	 * However only minor calculations are performed by the machine itself (federated system)
+	 * major computations are passed to Queue Manager (QueueProducer). Ideally only single instance
+	 * of Master should be running unless we configure application to handle load balancing and distributed
+	 * Queue (Channels).
+	 *
+	 * 3 = Single: This is for development purpose where we don't utilize Queue management and instead
+	 * evething runs in a single Box (VM).
+	 */
+
+	if *mode == 3 {
+		initClassicMode()
+	} else if *mode == 2 {
+		initMasterMode()
 	} else {
+		initNodeMode()
+	}
+}
+
+func initClassicMode() {
+	fmt.Println("[init] starting in Classic mode")
+
+	e := DBSetup()
+	if e != nil {
 		panic(fmt.Sprintf("[database] Unable to connect to the Database: %s\n", e))
 		return
 	}
 
-	// MigrateColumns()
+	/* Database connection will be closed only when Server closes */
+	defer DB.Close()
+
+	// // MigrateColumns() // @FUTURE DO NOT UNCOMMENT THIS LINE
 
 	initTemplates() // Load all templates from the fs ready to serve to clients.
 
@@ -105,6 +144,16 @@ func main() {
 	m.Use(martini.Static("../node_modules")) //Why?
 
 	m.Run()
+}
+
+func initMasterMode() {
+	fmt.Println("[init] starting in Master mode")
+	// Logic for Master (QueueProducer)
+}
+
+func initNodeMode() {
+	fmt.Println("[init] starting in Node mode")
+	// Logic for Node (QueueConsumer)
 }
 
 /**
