@@ -149,11 +149,20 @@ func initClassicMode() {
 func initMasterMode() {
 	fmt.Println("[init] starting in Master mode")
 	// Logic for Master (QueueProducer)
+	producer := QueueProducer{}
+	producer.Produce() //Test method DO NOT USE IN PRODUCTION
+
+	/**
+	 * @todo integrate required Martini methods to be passed to handler function which
+	 * will encode it and send to Queue
+	 */
 }
 
 func initNodeMode() {
 	fmt.Println("[init] starting in Node mode")
 	// Logic for Node (QueueConsumer)
+	consumer := QueueConsumer{}
+	consumer.Consume()
 }
 
 /**
