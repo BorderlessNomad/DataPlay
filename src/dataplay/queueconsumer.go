@@ -26,7 +26,7 @@ type QueueConsumer struct {
 	done    chan error
 }
 
-func (cons *QueueConsumer) InitConsumer() {
+func (cons *QueueConsumer) Consume() {
 	consumer, err := cons.NewConsumer(*uri, *exchangeName, *exchangeType, *queueName, *routingKey, *consumerTag)
 	if err != nil {
 		log.Fatalf("%s", err)
@@ -153,6 +153,9 @@ func (cons *QueueConsumer) Shutdown() error {
 func (cons *QueueConsumer) handle(deliveries <-chan amqp.Delivery, done chan error) {
 	rand.Seed(time.Now().Unix())
 	for d := range deliveries {
+		/**
+		 * @todo Call a deocder and metod name + argument parser
+		 */
 		log.Printf(
 			"got %dB delivery: [%v] %q",
 			len(d.Body),

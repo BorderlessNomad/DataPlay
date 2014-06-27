@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+/* Custom config (only use if you want to change defaults) */
 var (
 	uri          = flag.String("uri", "amqp://playgen:aDam3ntiUm@109.231.121.13:5672/", "AMQP URI")
 	exchangeName = flag.String("exchange", "playgen", "Durable (non-auto-deleted) AMQP exchange name")
@@ -28,19 +29,23 @@ type QueueProducer struct {
 /**
  * @todo Add functionality in main.go to handle 0=Master, 1=Node (default), 2=Normal invocation
  */
-func (prod *QueueProducer) initProducer() {
+func (prod *QueueProducer) Produce() {
 	rand.Seed(time.Now().Unix())
+	// Infinite loop running at random interval and sending dummy message to Queue
 	i := 0
 	for {
 		i++
 		prod.send(fmt.Sprintf("Hello #%d", i))
-		rand := randomDuration(100, 200)
+		rand := randomDuration(100, 1000)
 		fmt.Println("After ", rand, " secs")
 		time.Sleep(rand * time.Millisecond)
 	}
 }
 
 func (prod *QueueProducer) send(message string) {
+	/**
+	 * @todo call method name + arguments encoder (GOB or JSON)
+	 */
 	if err := prod.publish(*uri, *exchangeName, *exchangeType, *routingKey, message, *reliable); err != nil {
 		log.Fatalf("%s", err)
 	}
