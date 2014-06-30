@@ -59,14 +59,16 @@ func SearchForDataHttp(res http.ResponseWriter, req *http.Request, params martin
 	return string(r)
 }
 
-func (q *Queue) SearchForDataQ(term, user string) string {
-	if user == "" {
+func SearchForDataQ(params map[string]string) string {
+	if params["user"] == "" {
 		return ""
 	}
 
-	u, _ := strconv.Atoi(user)
+	u, _ := strconv.Atoi(params["user"])
 
-	result, error := SearchForData(term, u)
+	fmt.Println(u)
+
+	result, error := SearchForData(params["s"], u)
 	if error != nil {
 		return ""
 	}
@@ -94,40 +96,40 @@ func SearchForData(str string, uid int) ([]SearchResult, *appError) {
 		return Results, &appError{nil, "There was no search request", http.StatusBadRequest}
 	}
 
-	indices := []Index{}
+	Indices := []Index{}
 
 	term := str + "%" // e.g. "nhs" => "nhs%" (What about "%nhs"?)
 
 	Logger.Println("Searching with Postfix Wildcard", term)
 
-	err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&indices).Error
+	err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&Indices).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return Results, &appError{err, "Database query failed", http.StatusServiceUnavailable}
 	}
 
-	Results = ProcessSearchResults(indices, err)
+	Results = ProcessSearchResults(Indices, err)
 	if len(Results) == 0 {
 		term := "%" + str + "%" // e.g. "nhs" => "%nhs%"
 
 		Logger.Println("Searching with Prefix + Postfix Wildcard", term)
 
-		err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&indices).Error
+		err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&Indices).Error
 		if err != nil && err != gorm.RecordNotFound {
 			return Results, &appError{err, "Database query failed", http.StatusServiceUnavailable}
 		}
 
-		Results = ProcessSearchResults(indices, err)
+		Results = ProcessSearchResults(Indices, err)
 		if len(Results) == 0 {
 			term := "%" + strings.Replace(str, " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
 
 			Logger.Println("Searching with Prefix + Postfix + Trim Wildcard", term)
 
-			err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&indices).Error
+			err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&Indices).Error
 			if err != nil && err != gorm.RecordNotFound {
 				return Results, &appError{err, "Database query failed", http.StatusServiceUnavailable}
 			}
 
-			Results = ProcessSearchResults(indices, err)
+			Results = ProcessSearchResults(Indices, err)
 			if len(Results) == 0 && (len(str) >= 3 && len(str) < 20) {
 				term := "%" + str + "%" // e.g. "nhs" => "%nhs%"
 
@@ -142,13 +144,13 @@ func SearchForData(str string, uid int) ([]SearchResult, *appError) {
 				query = query.Order("priv_onlinedata.guid")
 				query = query.Order("priv_stringsearch.count DESC")
 				query = query.Limit(10)
-				err := query.Find(&indices).Error
+				err := query.Find(&Indices).Error
 
 				if err != nil && err != gorm.RecordNotFound {
 					return Results, &appError{err, "Database query failed", http.StatusInternalServerError}
 				}
 
-				Results = ProcessSearchResults(indices, err)
+				Results = ProcessSearchResults(Indices, err)
 			}
 		}
 	}

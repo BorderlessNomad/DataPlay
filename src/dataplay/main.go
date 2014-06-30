@@ -221,9 +221,27 @@ func initMasterMode() {
 	m.Run()
 }
 
+var myfuncs funcs
+
 func initNodeMode() {
 	fmt.Println("[init] starting in Node mode")
+
+	e := DBSetup()
+	if e != nil {
+		panic(fmt.Sprintf("[database] Unable to connect to the Database: %s\n", e))
+		return
+	}
+
+	/* Database connection will be closed only when Server closes */
+	defer DB.Close()
+
 	// Logic for Node (QueueConsumer)
+	myfuncs = make(funcs)
+	myfuncs.registerCallback("SearchForDataQ", SearchForDataQ)
+	// myfuncs.registerCallback("DumpTable", DumpTable)
+	// myfuncs.registerCallback("DumpTableRange", DumpTableRange)
+	// myfuncs.registerCallback("DumpTableGrouped", DumpTableGrouped)
+	// myfuncs.registerCallback("DumpTablePrediction", DumpTablePrediction)
 	consumer := QueueConsumer{}
 	consumer.Consume()
 }

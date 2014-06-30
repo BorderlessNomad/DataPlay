@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 )
 
 type Queue struct {
@@ -15,6 +14,8 @@ type Message struct {
 	MethodName string
 	MethodArgs map[string]string
 }
+
+type funcs map[string]func(map[string]string) (ret string)
 
 func (q *Queue) Encode(name string, params map[string]string) string {
 	m := Message{
@@ -28,28 +29,34 @@ func (q *Queue) Encode(name string, params map[string]string) string {
 
 func (q *Queue) Decode(msg []byte) string {
 	var message Message
-
 	err := json.Unmarshal(msg, &message)
-
 	if err != nil {
 	}
-
-	fmt.Println("Running ", message.MethodName, message.MethodArgs)
 
 	r := RunMethodByName(message.MethodName, message.MethodArgs)
 	return r
 }
 
-func RunMethodByName(name string, params map[string]string) string {
-	var q Queue
-	args := []reflect.Value{}
+func (self *funcs) registerCallback(name string, function func(map[string]string) (ret string)) {
+	(*self)[name] = function
+}
 
-	for _, v := range params {
-		args = append(args, reflect.ValueOf(v))
+func (self *funcs) callFunction(name string, args map[string]string) (ret string, err error) {
+	fmt.Println(*self)
+	function := (*self)[name]
+
+	if function != nil {
+		return function(args), nil
 	}
 
-	fmt.Println(args)
+	return "", fmt.Errorf("function does not exist")
+}
 
-	r := reflect.ValueOf(&q).MethodByName(name).Call(args)
-	return r[0].String()
+func RunMethodByName(name string, params map[string]string) string {
+	result, err := myfuncs.callFunction(name, params)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return result
 }

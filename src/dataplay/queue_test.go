@@ -1,25 +1,32 @@
 package main
 
 import (
+	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"strconv"
 	"testing"
 )
 
 func TestQueueDecode(t *testing.T) {
-	str := QueueEncode("TestFunction", map[string]string{"ValueX": "2", "ValueY": "3", "ValueZ": "4"})
+	//register test function in function map first
+	myfuncs = make(funcs)
+	myfuncs.registerCallback("QueueTestFunction", QueueTestFunction)
+	fmt.Println("myfuncs", myfuncs)
+
+	q := Queue{}
+	str := q.Encode("QueueTestFunction", map[string]string{"X": "2", "Y": "3", "Z": "4"})
+	bstr := []byte(str)
 
 	Convey("Should decode json string back into Message object and run method by name with passed params", t, func() {
-		msg := QueueDecode(str)
+		msg := q.Decode(bstr)
 		So(msg, ShouldEqual, "24")
 	})
-
 }
 
-func (q *Queue) TestFunction(x string, y string, z string) string {
-	ix, _ := strconv.Atoi(x)
-	iy, _ := strconv.Atoi(y)
-	iz, _ := strconv.Atoi(z)
-
+func QueueTestFunction(params map[string]string) string {
+	ix, _ := strconv.Atoi(params["X"])
+	iy, _ := strconv.Atoi(params["Y"])
+	iz, _ := strconv.Atoi(params["Z"])
 	a := ix * iy * iz
+	return strconv.Itoa(a)
 }

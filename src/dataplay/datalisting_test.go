@@ -38,40 +38,40 @@ func TestCheckAuth(t *testing.T) {
 }
 
 func TestSearchForData(t *testing.T) {
-	request, _ := http.NewRequest("GET", "/", nil)
-	response := httptest.NewRecorder()
-	params := map[string]string{
-		"s": "",
-	}
-	result := SearchForData(response, request, params)
+	// request, _ := http.NewRequest("GET", "/", nil)
+	// response := httptest.NewRecorder()
+	// params := map[string]string{
+	// 	"s": "",
+	// }
+	// result := SearchForData(response, request, params)
 
-	Convey("When no search parameter is provided", t, func() {
-		So(response.Code, ShouldEqual, http.StatusBadRequest)
-	})
+	// Convey("When no search parameter is provided", t, func() {
+	// 	So(response.Code, ShouldEqual, http.StatusBadRequest)
+	// })
 
-	Convey("When search parameter is 'nhs'", t, func() {
-		params["s"] = "nhs"
-		result = SearchForData(response, request, params)
-		So(result, ShouldNotBeBlank)
-	})
+	// Convey("When search parameter is 'nhs'", t, func() {
+	// 	params["s"] = "nhs"
+	// 	result = SearchForData(response, request, params)
+	// 	So(result, ShouldNotBeBlank)
+	// })
 
-	Convey("When search parameter is 'hs'", t, func() {
-		params["s"] = "hs"
-		result = SearchForData(response, request, params)
-		So(result, ShouldNotBeBlank)
-	})
+	// Convey("When search parameter is 'hs'", t, func() {
+	// 	params["s"] = "hs"
+	// 	result = SearchForData(response, request, params)
+	// 	So(result, ShouldNotBeBlank)
+	// })
 
-	Convey("When search parameter is 'n h s'", t, func() {
-		params["s"] = "n h s"
-		result = SearchForData(response, request, params)
-		So(result, ShouldNotBeBlank)
-	})
+	// Convey("When search parameter is 'n h s'", t, func() {
+	// 	params["s"] = "n h s"
+	// 	result = SearchForData(response, request, params)
+	// 	So(result, ShouldNotBeBlank)
+	// })
 
-	Convey("When search parameter is 'freakshine'", t, func() {
-		params["s"] = "freakshine"
-		result = SearchForData(response, request, params)
-		So(result, ShouldNotBeBlank)
-	})
+	// Convey("When search parameter is 'freakshine'", t, func() {
+	// 	params["s"] = "freakshine"
+	// 	result = SearchForData(response, request, params)
+	// 	So(result, ShouldNotBeBlank)
+	// })
 }
 
 func TestGetEntry(t *testing.T) {
