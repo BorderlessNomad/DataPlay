@@ -4,7 +4,10 @@ import (
 	"reflect"
 )
 
-type Queue struct{}
+type Queue struct {
+	QueueProducer
+	QueueConsumer
+}
 
 func RunMethod(name string, params ...interface{}) []reflect.Value {
 	var q Queue
