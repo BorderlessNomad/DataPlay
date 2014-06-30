@@ -118,7 +118,7 @@ func initClassicMode() {
 	m.Post("/noauth/register.json", HandleRegister)
 	m.Get("/api/user", CheckAuth)
 	m.Get("/api/visited", GetLastVisited)
-	m.Get("/api/search/:s", SearchForData)
+	m.Get("/api/search/:s", SearchForDataHttp)
 	m.Get("/api/getinfo/:id", GetEntry)
 	m.Get("/api/getimportstatus/:id", CheckImportStatus)
 	m.Get("/api/getdata/:id", DumpTable)
@@ -148,14 +148,76 @@ func initClassicMode() {
 
 func initMasterMode() {
 	fmt.Println("[init] starting in Master mode")
-	// Logic for Master (QueueProducer)
-	producer := QueueProducer{}
-	producer.Produce() //Test method DO NOT USE IN PRODUCTION
 
-	/**
-	 * @todo integrate required Martini methods to be passed to handler function which
-	 * will encode it and send to Queue
-	 */
+	e := DBSetup()
+	if e != nil {
+		panic(fmt.Sprintf("[database] Unable to connect to the Database: %s\n", e))
+		return
+	}
+
+	/* Database connection will be closed only when Server closes */
+	defer DB.Close()
+
+	initTemplates() // Load all templates from the fs ready to serve to clients.
+
+	m := martini.Classic()
+
+	m.Get("/", Authorisation)
+	m.Get("/login", Login)
+	m.Get("/logout", Logout)
+	m.Get("/register", Register)
+	m.Get("/charts/:id", Charts)
+	m.Get("/search/overlay", SearchOverlay)
+	m.Get("/overlay/:id", Overlay)
+	m.Get("/overview/:id", Overview)
+	m.Get("/search", Search)
+	m.Get("/maptest/:id", MapTest)
+	m.Post("/noauth/login.json", HandleLogin)
+	m.Post("/noauth/logout.json", HandleLogout)
+	m.Post("/noauth/register.json", HandleRegister)
+	m.Get("/api/user", CheckAuth)
+	m.Get("/api/visited", GetLastVisited)
+	m.Get("/api/getinfo/:id", GetEntry)
+	m.Get("/api/getimportstatus/:id", CheckImportStatus)
+	m.Post("/api/setdefaults/:id", SetDefaults)
+	m.Get("/api/identifydata/:id", IdentifyTable)
+
+	m.Get("/api/search/:s", func(params martini.Params) {
+		sendToQueue("/api/search/:s", "SearchForDataHttp", params)
+	})
+	m.Get("/api/getdata/:id", func(params martini.Params) {
+		sendToQueue("/api/getdata/:id", "DumpTable", params)
+	})
+	m.Get("/api/getdata/:id/:offset/:count", func(params martini.Params) {
+		sendToQueue("/api/getdata/:id/:offset/:count", "DumpTable", params)
+	})
+	m.Get("/api/getdata/:id/:x/:startx/:endx", func(params martini.Params) {
+		sendToQueue("/api/getdata/:id/:x/:startx/:endx", "DumpTableRange", params)
+	})
+	m.Get("/api/getdatagrouped/:id/:x/:y", func(params martini.Params) {
+		sendToQueue("/api/getdatagrouped/:id/:x/:y", "DumpTableGrouped", params)
+	})
+	m.Get("/api/getdatapred/:id/:x/:y", func(params martini.Params) {
+		sendToQueue("/api/getdatapred/:id/:x/:y", "DumpTablePrediction", params)
+	})
+
+	m.Get("/api/getreduceddata/:id", DumpReducedTable)          // Q
+	m.Get("/api/getreduceddata/:id/:percent", DumpReducedTable) // Q// Q
+	m.Get("/api/getreduceddata/:id/:percent/:min", DumpReducedTable)
+	m.Get("/api/getreduceddata/:id/:x/:y/:percent/:min", DumpReducedTable) // Q
+
+	m.Get("/api/getdefaults/:id", GetDefaults)                     // Q
+	m.Get("/api/findmatches/:id/:x/:y", AttemptToFindMatches)      // Q
+	m.Get("/api/classifydata/:table/:col", SuggestColType)         // Q
+	m.Get("/api/stringmatch/:word", FindStringMatches)             // Q
+	m.Get("/api/stringmatch/:word/:x", FindStringMatches)          // Q
+	m.Get("/api/relatedstrings/:guid", GetRelatedDatasetByStrings) // Q
+
+	m.Use(JsonApiHandler)
+
+	m.Use(martini.Static("../node_modules")) //Why?
+
+	m.Run()
 }
 
 func initNodeMode() {
@@ -163,6 +225,14 @@ func initNodeMode() {
 	// Logic for Node (QueueConsumer)
 	consumer := QueueConsumer{}
 	consumer.Consume()
+}
+
+func sendToQueue(request string, method string, params martini.Params) string {
+	// q := Queue{}
+	// message, err := q.Encode(method, params)
+	fmt.Println("Sending request to Queue", request, params)
+	// q.send(message)
+	return ""
 }
 
 /**

@@ -41,42 +41,77 @@ type SearchResult struct {
 	LocationData string
 }
 
-// This is the search function that is called though the API
-func SearchForData(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	if params["s"] == "" {
-		http.Error(res, "There was no search request", http.StatusBadRequest)
+func SearchForDataHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	uid := GetUserID(res, req)
+
+	result, error := SearchForData(params["s"], uid)
+	if error != nil {
+		http.Error(res, error.Message, error.Code)
 		return ""
 	}
 
-	uid := GetUserID(res, req)
+	r, err := json.Marshal(result)
+	if err != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return ""
+	}
+
+	return string(r)
+}
+
+/**
+ * @brief Search a given term in database
+ * @details This method searches for a matching title with following conditions,
+ * 		Postfix wildcard
+ * 		Prefix & postfix wildcard
+ * 		Prefix, postfix & trimmed spaces with wildcard
+ * 		Prefix & postfix on previously searched terms
+ */
+func SearchForData(str string, uid int) ([]SearchResult, *appError) {
 	Results := make([]SearchResult, 0)
+
+	if str == "" {
+		return Results, &appError{nil, "There was no search request", http.StatusBadRequest}
+	}
 
 	indices := []Index{}
 
-	term := params["s"] + "%" // e.g. "nhs" => "nhs%" (What about "%nhs"?)
+	term := str + "%" // e.g. "nhs" => "nhs%" (What about "%nhs"?)
 
-	Logger.Println("Searching with Backward Wildcard", term)
+	Logger.Println("Searching with Postfix Wildcard", term)
+
 	err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&indices).Error
+	if err != nil && err != gorm.RecordNotFound {
+		return Results, &appError{err, "Database query failed", http.StatusServiceUnavailable}
+	}
 
 	Results = ProcessSearchResults(indices, err)
 	if len(Results) == 0 {
-		term := "%" + params["s"] + "%" // e.g. "nhs" => "%nhs%"
+		term := "%" + str + "%" // e.g. "nhs" => "%nhs%"
 
-		Logger.Println("Searching with Forward + Backward Wildcard", term)
+		Logger.Println("Searching with Prefix + Postfix Wildcard", term)
+
 		err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&indices).Error
+		if err != nil && err != gorm.RecordNotFound {
+			return Results, &appError{err, "Database query failed", http.StatusServiceUnavailable}
+		}
+
 		Results = ProcessSearchResults(indices, err)
 		if len(Results) == 0 {
-			term := "%" + strings.Replace(params["s"], " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
+			term := "%" + strings.Replace(str, " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
 
-			Logger.Println("Searching with Forward + Backward + Trim Wildcard", term)
+			Logger.Println("Searching with Prefix + Postfix + Trim Wildcard", term)
 
 			err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&indices).Error
+			if err != nil && err != gorm.RecordNotFound {
+				return Results, &appError{err, "Database query failed", http.StatusServiceUnavailable}
+			}
+
 			Results = ProcessSearchResults(indices, err)
+			if len(Results) == 0 && (len(str) >= 3 && len(str) < 20) {
+				term := "%" + str + "%" // e.g. "nhs" => "%nhs%"
 
-			if len(Results) == 0 && (len(params["s"]) >= 3 && len(params["s"]) < 20) {
-				term := "%" + params["s"] + "%" // e.g. "nhs" => "%nhs%"
-
-				Logger.Println("Searching with Forward + Backward Wildcard in String Table", term)
+				Logger.Println("Searching with Prefix + Postfix Wildcard in String Table", term)
 
 				query := DB.Table("priv_stringsearch, priv_onlinedata, index")
 				query = query.Select("DISTINCT ON (priv_onlinedata.guid) priv_onlinedata.guid, index.title")
@@ -89,14 +124,16 @@ func SearchForData(res http.ResponseWriter, req *http.Request, params martini.Pa
 				query = query.Limit(10)
 				err := query.Find(&indices).Error
 
+				if err != nil && err != gorm.RecordNotFound {
+					return Results, &appError{err, "Database query failed", http.StatusInternalServerError}
+				}
+
 				Results = ProcessSearchResults(indices, err)
 			}
 		}
 	}
 
-	b, _ := json.Marshal(Results)
-
-	return string(b)
+	return Results, nil
 }
 
 func ProcessSearchResults(rows []Index, e error) []SearchResult {
@@ -110,8 +147,8 @@ func ProcessSearchResults(rows []Index, e error) []SearchResult {
 		Location := HasTableGotLocationData(row.Guid)
 
 		result := SearchResult{
-			Title:        row.Title,
-			GUID:         row.Guid,
+			Title:        SanitizeString(row.Title),
+			GUID:         SanitizeString(row.Guid),
 			LocationData: Location,
 		}
 
