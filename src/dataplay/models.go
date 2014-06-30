@@ -1,5 +1,11 @@
 package main
 
+type appError struct {
+	Error   error
+	Message string
+	Code    int
+}
+
 type User struct {
 	Uid      int `primaryKey:"yes"`
 	Email    string

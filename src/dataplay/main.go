@@ -118,7 +118,7 @@ func initClassicMode() {
 	m.Post("/noauth/register.json", HandleRegister)
 	m.Get("/api/user", CheckAuth)
 	m.Get("/api/visited", GetLastVisited)
-	m.Get("/api/search/:s", SearchForData)
+	m.Get("/api/search/:s", SearchForDataHttp)
 	m.Get("/api/getinfo/:id", GetEntry)
 	m.Get("/api/getimportstatus/:id", CheckImportStatus)
 	m.Get("/api/getdata/:id", DumpTable)
@@ -149,13 +149,20 @@ func initClassicMode() {
 func initMasterMode() {
 	fmt.Println("[init] starting in Master mode")
 	// Logic for Master (QueueProducer)
-	producer := QueueProducer{}
-	producer.Produce() //Test method DO NOT USE IN PRODUCTION
+	// producer := QueueProducer{}
+	// producer.Produce() //Test method for generating artificial load DO NOT USE IN PRODUCTION
 
 	/**
 	 * @todo integrate required Martini methods to be passed to handler function which
 	 * will encode it and send to Queue
 	 */
+	// m := martini.Classic()
+	// q := Queue{}
+
+	// m.Get("/api/search/:s", func(params martini.Params) {
+	// 	message, err := q.Encode("SearchForData", params)
+	// 	producer.send(message)
+	// })
 }
 
 func initNodeMode() {
