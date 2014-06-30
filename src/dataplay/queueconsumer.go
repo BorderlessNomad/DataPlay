@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"log"
-	"math/rand"
 	"time"
 )
 
@@ -151,7 +150,6 @@ func (cons *QueueConsumer) Shutdown() error {
 }
 
 func (cons *QueueConsumer) handle(deliveries <-chan amqp.Delivery, done chan error) {
-	rand.Seed(time.Now().Unix())
 	for d := range deliveries {
 		/**
 		 * @todo Call a deocder and metod name + argument parser
@@ -163,10 +161,13 @@ func (cons *QueueConsumer) handle(deliveries <-chan amqp.Delivery, done chan err
 			d.Body,
 		)
 
+		q := Queue{}
+		q.Decode(d.Body)
+
 		/* Artificial load */
-		rand := randomDuration(1, 1000)
-		time.Sleep(rand * time.Millisecond)
-		fmt.Println("After ", rand, " secs")
+		// rand := randomDuration(1, 1000)
+		// time.Sleep(rand * time.Millisecond)
+		// fmt.Println("After ", rand, " secs")
 
 		d.Ack(false)
 	}

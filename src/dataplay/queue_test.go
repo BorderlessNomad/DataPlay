@@ -22,5 +22,4 @@ func (q *Queue) TestFunction(x string, y string, z string) string {
 	iz, _ := strconv.Atoi(z)
 
 	a := ix * iy * iz
-	return strconv.Itoa(a)
 }

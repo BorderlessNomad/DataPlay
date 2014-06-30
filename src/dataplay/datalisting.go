@@ -59,6 +59,26 @@ func SearchForDataHttp(res http.ResponseWriter, req *http.Request, params martin
 	return string(r)
 }
 
+func (q *Queue) SearchForDataQ(term, user string) string {
+	if user == "" {
+		return ""
+	}
+
+	u, _ := strconv.Atoi(user)
+
+	result, error := SearchForData(term, u)
+	if error != nil {
+		return ""
+	}
+
+	r, err := json.Marshal(result)
+	if err != nil {
+		return ""
+	}
+
+	return string(r)
+}
+
 /**
  * @brief Search a given term in database
  * @details This method searches for a matching title with following conditions,

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 )
 
@@ -15,7 +16,7 @@ type Message struct {
 	MethodArgs map[string]string
 }
 
-func QueueEncode(name string, params map[string]string) string {
+func (q *Queue) Encode(name string, params map[string]string) string {
 	m := Message{
 		MethodName: name,
 		MethodArgs: params,
@@ -25,13 +26,15 @@ func QueueEncode(name string, params map[string]string) string {
 	return string(b)
 }
 
-func QueueDecode(msg string) string {
+func (q *Queue) Decode(msg []byte) string {
 	var message Message
-	bmsg := []byte(msg)
 
-	err := json.Unmarshal(bmsg, &message)
+	err := json.Unmarshal(msg, &message)
+
 	if err != nil {
 	}
+
+	fmt.Println("Running ", message.MethodName, message.MethodArgs)
 
 	r := RunMethodByName(message.MethodName, message.MethodArgs)
 	return r
@@ -41,9 +44,11 @@ func RunMethodByName(name string, params map[string]string) string {
 	var q Queue
 	args := []reflect.Value{}
 
-	for i, _ := range params {
-		args = append(args, reflect.ValueOf(params[i]))
+	for _, v := range params {
+		args = append(args, reflect.ValueOf(v))
 	}
+
+	fmt.Println(args)
 
 	r := reflect.ValueOf(&q).MethodByName(name).Call(args)
 	return r[0].String()

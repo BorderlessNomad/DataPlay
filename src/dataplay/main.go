@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"playgen/database"
+	"strconv"
 	"strings"
 )
 
@@ -182,24 +183,24 @@ func initMasterMode() {
 	m.Post("/api/setdefaults/:id", SetDefaults)
 	m.Get("/api/identifydata/:id", IdentifyTable)
 
-	m.Get("/api/search/:s", func(params martini.Params) {
-		sendToQueue("/api/search/:s", "SearchForDataHttp", params)
+	m.Get("/api/search/:s", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+		sendToQueue("/api/search/:s", "SearchForDataQ", res, req, params)
 	})
-	m.Get("/api/getdata/:id", func(params martini.Params) {
-		sendToQueue("/api/getdata/:id", "DumpTable", params)
-	})
-	m.Get("/api/getdata/:id/:offset/:count", func(params martini.Params) {
-		sendToQueue("/api/getdata/:id/:offset/:count", "DumpTable", params)
-	})
-	m.Get("/api/getdata/:id/:x/:startx/:endx", func(params martini.Params) {
-		sendToQueue("/api/getdata/:id/:x/:startx/:endx", "DumpTableRange", params)
-	})
-	m.Get("/api/getdatagrouped/:id/:x/:y", func(params martini.Params) {
-		sendToQueue("/api/getdatagrouped/:id/:x/:y", "DumpTableGrouped", params)
-	})
-	m.Get("/api/getdatapred/:id/:x/:y", func(params martini.Params) {
-		sendToQueue("/api/getdatapred/:id/:x/:y", "DumpTablePrediction", params)
-	})
+	// m.Get("/api/getdata/:id", func(params martini.Params) {
+	// 	sendToQueue("/api/getdata/:id", "DumpTable", params)
+	// })
+	// m.Get("/api/getdata/:id/:offset/:count", func(params martini.Params) {
+	// 	sendToQueue("/api/getdata/:id/:offset/:count", "DumpTable", params)
+	// })
+	// m.Get("/api/getdata/:id/:x/:startx/:endx", func(params martini.Params) {
+	// 	sendToQueue("/api/getdata/:id/:x/:startx/:endx", "DumpTableRange", params)
+	// })
+	// m.Get("/api/getdatagrouped/:id/:x/:y", func(params martini.Params) {
+	// 	sendToQueue("/api/getdatagrouped/:id/:x/:y", "DumpTableGrouped", params)
+	// })
+	// m.Get("/api/getdatapred/:id/:x/:y", func(params martini.Params) {
+	// 	sendToQueue("/api/getdatapred/:id/:x/:y", "DumpTablePrediction", params)
+	// })
 
 	m.Get("/api/getreduceddata/:id", DumpReducedTable)          // Q
 	m.Get("/api/getreduceddata/:id/:percent", DumpReducedTable) // Q// Q
@@ -227,12 +228,12 @@ func initNodeMode() {
 	consumer.Consume()
 }
 
-func sendToQueue(request string, method string, params martini.Params) string {
-	// q := Queue{}
-	// message, err := q.Encode(method, params)
-	fmt.Println("Sending request to Queue", request, params)
-	// q.send(message)
-	return ""
+func sendToQueue(request string, method string, res http.ResponseWriter, req *http.Request, params martini.Params) {
+	q := Queue{}
+	params["user"] = strconv.Itoa(GetUserID(res, req))
+	message := q.Encode(method, params)
+	fmt.Println("Sending request to Queue", request, params, message)
+	q.send(message)
 }
 
 /**
