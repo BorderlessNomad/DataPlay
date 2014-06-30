@@ -14,6 +14,6 @@ func TestRunMethod(t *testing.T) {
 	})
 }
 
-func (q *Q) RunMethodTestFunction(x int, y int, z int) int {
+func (q *Queue) RunMethodTestFunction(x int, y int, z int) int {
 	return x * y * z
 }
