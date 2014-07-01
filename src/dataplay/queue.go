@@ -34,6 +34,7 @@ func (q *Queue) Decode(msg []byte) string {
 	}
 
 	r := RunMethodByName(message.MethodName, message.MethodArgs)
+
 	return r
 }
 

@@ -162,15 +162,22 @@ func (cons *QueueConsumer) handle(deliveries <-chan amqp.Delivery, done chan err
 		)
 
 		q := Queue{}
-		q.Decode(d.Body)
+		res := q.Decode(d.Body)
 
 		/* Artificial load */
 		// rand := randomDuration(1, 1000)
 		// time.Sleep(rand * time.Millisecond)
 		// fmt.Println("After ", rand, " secs")
 
+		log.Printf(
+			"send %dB response: %q",
+			len(res),
+			res,
+		)
+
 		d.Ack(false)
 	}
+
 	log.Printf("handle: deliveries channel closed")
 	done <- nil
 }

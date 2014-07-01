@@ -63,11 +63,7 @@ func SearchForDataQ(params map[string]string) string {
 	if params["user"] == "" {
 		return ""
 	}
-
 	u, _ := strconv.Atoi(params["user"])
-
-	fmt.Println(u)
-
 	result, error := SearchForData(params["s"], u)
 	if error != nil {
 		return ""
@@ -335,7 +331,7 @@ func DumpTableRange(res http.ResponseWriter, req *http.Request, params martini.P
 	// :id/:x/:startx/:endx
 
 	if params["id"] == "" {
-		http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
+		http.Error(res, "Sorry! Could not complete this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
 		return
 	}
 

@@ -186,20 +186,20 @@ func initMasterMode() {
 	m.Get("/api/search/:s", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		sendToQueue("/api/search/:s", "SearchForDataQ", res, req, params)
 	})
-	// m.Get("/api/getdata/:id", func(params martini.Params) {
-	// 	sendToQueue("/api/getdata/:id", "DumpTable", params)
+	// m.Get("/api/getdata/:id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+	// 	sendToQueue("/api/getdata/:id", "DumpTable", res, req, params)
 	// })
-	// m.Get("/api/getdata/:id/:offset/:count", func(params martini.Params) {
-	// 	sendToQueue("/api/getdata/:id/:offset/:count", "DumpTable", params)
+	// m.Get("/api/getdata/:id/:offset/:count", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+	// 	sendToQueue("/api/getdata/:id/:offset/:count", "DumpTable", res, req, params)
 	// })
-	// m.Get("/api/getdata/:id/:x/:startx/:endx", func(params martini.Params) {
-	// 	sendToQueue("/api/getdata/:id/:x/:startx/:endx", "DumpTableRange", params)
+	// m.Get("/api/getdata/:id/:x/:startx/:endx", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+	// 	sendToQueue("/api/getdata/:id/:x/:startx/:endx", "DumpTableRange", res, req, params)
 	// })
-	// m.Get("/api/getdatagrouped/:id/:x/:y", func(params martini.Params) {
-	// 	sendToQueue("/api/getdatagrouped/:id/:x/:y", "DumpTableGrouped", params)
+	// m.Get("/api/getdatagrouped/:id/:x/:y", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+	// 	sendToQueue("/api/getdatagrouped/:id/:x/:y", "DumpTableGrouped", res, req, params)
 	// })
-	// m.Get("/api/getdatapred/:id/:x/:y", func(params martini.Params) {
-	// 	sendToQueue("/api/getdatapred/:id/:x/:y", "DumpTablePrediction", params)
+	// m.Get("/api/getdatapred/:id/:x/:y", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+	// 	sendToQueue("/api/getdatapred/:id/:x/:y", "DumpTablePrediction", res, req, params)
 	// })
 
 	m.Get("/api/getreduceddata/:id", DumpReducedTable)          // Q
@@ -250,7 +250,7 @@ func sendToQueue(request string, method string, res http.ResponseWriter, req *ht
 	q := Queue{}
 	params["user"] = strconv.Itoa(GetUserID(res, req))
 	message := q.Encode(method, params)
-	fmt.Println("Sending request to Queue", request, params, message)
+	//fmt.Println("Sending request to Queue", request, params, message)
 	q.send(message)
 }
 
