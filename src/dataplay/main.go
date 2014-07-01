@@ -186,21 +186,21 @@ func initMasterMode() {
 	m.Get("/api/search/:s", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		sendToQueue("/api/search/:s", "SearchForDataQ", res, req, params)
 	})
-	// m.Get("/api/getdata/:id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
-	// 	sendToQueue("/api/getdata/:id", "DumpTable", res, req, params)
-	// })
-	// m.Get("/api/getdata/:id/:offset/:count", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
-	// 	sendToQueue("/api/getdata/:id/:offset/:count", "DumpTable", res, req, params)
-	// })
-	// m.Get("/api/getdata/:id/:x/:startx/:endx", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
-	// 	sendToQueue("/api/getdata/:id/:x/:startx/:endx", "DumpTableRange", res, req, params)
-	// })
-	// m.Get("/api/getdatagrouped/:id/:x/:y", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
-	// 	sendToQueue("/api/getdatagrouped/:id/:x/:y", "DumpTableGrouped", res, req, params)
-	// })
-	// m.Get("/api/getdatapred/:id/:x/:y", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
-	// 	sendToQueue("/api/getdatapred/:id/:x/:y", "DumpTablePrediction", res, req, params)
-	// })
+	m.Get("/api/getdata/:id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+		sendToQueue("/api/getdata/:id", "DumpTableQ", res, req, params)
+	})
+	m.Get("/api/getdata/:id/:offset/:count", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+		sendToQueue("/api/getdata/:id/:offset/:count", "DumpTableQ", res, req, params)
+	})
+	m.Get("/api/getdata/:id/:x/:startx/:endx", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+		sendToQueue("/api/getdata/:id/:x/:startx/:endx", "DumpTableRangeQ", res, req, params)
+	})
+	m.Get("/api/getdatagrouped/:id/:x/:y", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+		sendToQueue("/api/getdatagrouped/:id/:x/:y", "DumpTableGroupedQ", res, req, params)
+	})
+	m.Get("/api/getdatapred/:id/:x/:y", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+		sendToQueue("/api/getdatapred/:id/:x/:y", "DumpTablePredictionQ", res, req, params)
+	})
 
 	m.Get("/api/getreduceddata/:id", DumpReducedTable)          // Q
 	m.Get("/api/getreduceddata/:id/:percent", DumpReducedTable) // Q// Q
@@ -238,10 +238,10 @@ func initNodeMode() {
 	// Logic for Node (QueueConsumer)
 	myfuncs = make(funcs)
 	myfuncs.registerCallback("SearchForDataQ", SearchForDataQ)
-	// myfuncs.registerCallback("DumpTable", DumpTable)
-	// myfuncs.registerCallback("DumpTableRange", DumpTableRange)
-	// myfuncs.registerCallback("DumpTableGrouped", DumpTableGrouped)
-	// myfuncs.registerCallback("DumpTablePrediction", DumpTablePrediction)
+	myfuncs.registerCallback("DumpTableQ", DumpTableQ)
+	myfuncs.registerCallback("DumpTableRangeQ", DumpTableRangeQ)
+	myfuncs.registerCallback("DumpTableGroupedQ", DumpTableGroupedQ)
+	myfuncs.registerCallback("DumpTablePredictionQ", DumpTablePredictionQ)
 	consumer := QueueConsumer{}
 	consumer.Consume()
 }
