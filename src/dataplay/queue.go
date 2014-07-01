@@ -8,6 +8,7 @@ import (
 type Queue struct {
 	QueueProducer
 	QueueConsumer
+	QueueResponder
 }
 
 type Message struct {
@@ -43,7 +44,6 @@ func (self *funcs) registerCallback(name string, function func(map[string]string
 }
 
 func (self *funcs) callFunction(name string, args map[string]string) (ret string, err error) {
-	fmt.Println(*self)
 	function := (*self)[name]
 
 	if function != nil {

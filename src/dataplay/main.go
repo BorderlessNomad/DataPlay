@@ -183,8 +183,8 @@ func initMasterMode() {
 	m.Post("/api/setdefaults/:id", SetDefaults)
 	m.Get("/api/identifydata/:id", IdentifyTable)
 
-	m.Get("/api/search/:s", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
-		sendToQueue("/api/search/:s", "SearchForDataQ", res, req, params)
+	m.Get("/api/search/:s", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/search/:s", "SearchForDataQ")
 	})
 	m.Get("/api/getdata/:id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		sendToQueue("/api/getdata/:id", "DumpTableQ", res, req, params)
@@ -246,12 +246,21 @@ func initNodeMode() {
 	consumer.Consume()
 }
 
-func sendToQueue(request string, method string, res http.ResponseWriter, req *http.Request, params martini.Params) {
+var responseChannel chan string
+
+func sendToQueue(res http.ResponseWriter, req *http.Request, params martini.Params, request string, method string) string {
 	q := Queue{}
 	params["user"] = strconv.Itoa(GetUserID(res, req))
 	message := q.Encode(method, params)
-	//fmt.Println("Sending request to Queue", request, params, message)
-	q.send(message)
+
+	fmt.Println("Sending request to Queue", request, params, message)
+
+	responseChannel = make(chan string, 1)
+
+	go q.send(message)
+	go q.Response()
+
+	return <-responseChannel
 }
 
 /**
