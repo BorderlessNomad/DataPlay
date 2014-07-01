@@ -1,6 +1,8 @@
 package main
 
 import (
+	crand "crypto/rand"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"github.com/streadway/amqp"
@@ -14,9 +16,15 @@ var (
 	uri          = flag.String("uri", "amqp://playgen:aDam3ntiUm@109.231.121.13:5672/", "AMQP URI")
 	exchangeName = flag.String("exchange", "playgen", "Durable (non-auto-deleted) AMQP exchange name")
 	exchangeType = flag.String("exchange-type", "direct", "Exchange type - direct|fanout|topic|x-custom")
-	routingKey   = flag.String("key", "api", "AMQP routing key")
-	body         = flag.String("body", "foobar", "Body of message")
-	reliable     = flag.Bool("reliable", true, "Wait for the publisher confirmation before exiting")
+
+	requestQueue  = flag.String("requestqueue", "dataplay-request", "Ephemeral AMQP Request queue name")
+	responseQueue = flag.String("responsequeue", "dataplay-response", "Ephemeral AMQP Response queue name")
+
+	requestKey  = flag.String("requestkey", "api-request", "AMQP Request routing key")
+	responseKey = flag.String("responsekey", "api-response", "AMQP Response routing key")
+
+	body     = flag.String("body", "foobar", "Body of message")
+	reliable = flag.Bool("reliable", true, "Wait for the publisher confirmation before exiting")
 )
 
 func init() {
@@ -43,14 +51,21 @@ func (prod *QueueProducer) Produce() {
 }
 
 func (prod *QueueProducer) send(message string) {
-	/**
-	 * @todo call method name + arguments encoder (GOB or JSON)
-	 */
-	if err := prod.publish(*uri, *exchangeName, *exchangeType, *routingKey, message, *reliable); err != nil {
+	log.Printf("Producer::sending %dB OK [%s]", len(message), *requestQueue)
+	if err := prod.publish(*uri, *exchangeName, *exchangeType, *requestQueue, *requestKey, message, *reliable); err != nil {
 		log.Fatalf("%s", err)
 	}
 
-	log.Printf("published %dB OK", len(message))
+	log.Printf("Producer::sent %dB OK", len(message))
+}
+
+func (prod *QueueProducer) respond(message string) {
+	log.Printf("Producer::responding %dB OK [%s]", len(message), *responseQueue)
+	if err := prod.publish(*uri, *exchangeName, *exchangeType, *responseQueue, *responseKey, message, *reliable); err != nil {
+		log.Fatalf("%s", err)
+	}
+
+	log.Printf("Producer::responded %dB OK", len(message))
 }
 
 /**
@@ -59,21 +74,21 @@ func (prod *QueueProducer) send(message string) {
  * all in one go. In a real service, you probably want to maintain a
  * long-lived connection as state, and publish against that.
  */
-func (prod *QueueProducer) publish(amqpURI, exchange, exchangeType, routingKey, body string, reliable bool) error {
-	log.Printf("dialing %q", amqpURI)
+func (prod *QueueProducer) publish(amqpURI, exchange, exchangeType, queue, key, body string, reliable bool) error {
+	log.Printf("Producer::dialing %q", amqpURI)
 	connection, err := amqp.Dial(amqpURI)
 	if err != nil {
 		return fmt.Errorf("Dial: %s", err)
 	}
 	defer connection.Close()
 
-	log.Printf("got Connection, getting Channel")
+	log.Printf("Producer::got Connection, getting Channel")
 	channel, err := connection.Channel()
 	if err != nil {
 		return fmt.Errorf("Channel: %s", err)
 	}
 
-	log.Printf("got Channel, declaring %q Exchange (%q)", exchangeType, exchange)
+	log.Printf("Producer::got Channel, declaring %q Exchange (%q)", exchangeType, exchange)
 	if err := channel.ExchangeDeclare(
 		exchange,     // name
 		exchangeType, // type
@@ -88,7 +103,7 @@ func (prod *QueueProducer) publish(amqpURI, exchange, exchangeType, routingKey, 
 
 	// Reliable publisher confirms require confirm. Select support from the onnection.
 	if reliable {
-		log.Printf("enabling publishing confirms.")
+		log.Printf("Producer::enabling publishing confirms.")
 		if err := channel.Confirm(false); err != nil {
 			return fmt.Errorf("Channel could not be put into confirm mode: %s", err)
 		}
@@ -98,20 +113,23 @@ func (prod *QueueProducer) publish(amqpURI, exchange, exchangeType, routingKey, 
 		defer prod.confirmOne(ack, nack)
 	}
 
-	log.Printf("declared Exchange, publishing %dB body (%q)", len(body), body)
+	log.Printf("Producer::declared Exchange, publishing %dB body (%q)", len(body), body)
+	uuid, _ := GenUUID()
 	if err = channel.Publish(
-		exchange,   // publish to an exchange
-		routingKey, // routing to 0 or more queues
-		false,      // mandatory
-		false,      // immediate
+		exchange, // publish to an exchange
+		key,      // routing to 0 or more queues
+		false,    // mandatory
+		false,    // immediate
 		amqp.Publishing{
 			Headers:         amqp.Table{},
 			ContentType:     "text/plain",
 			ContentEncoding: "",
 			Body:            []byte(body),
-			DeliveryMode:    amqp.Transient, // 1=non-persistent, 2=persistent
-			Priority:        0,              // 0-9
-			// a bunch of application/implementation-specific fields
+			// ReplyTo:         queue,
+			DeliveryMode:  amqp.Persistent,
+			Timestamp:     time.Now(),
+			Priority:      0,
+			CorrelationId: uuid,
 		},
 	); err != nil {
 		return fmt.Errorf("Exchange Publish: %s", err)
@@ -127,17 +145,33 @@ func (prod *QueueProducer) publish(amqpURI, exchange, exchangeType, routingKey, 
  * is closed.
  */
 func (prod *QueueProducer) confirmOne(ack, nack chan uint64) {
-	log.Printf("waiting for confirmation of one publishing")
+	log.Printf("Producer::waiting for confirmation of one publishing")
 
 	select {
 	case tag := <-ack:
-		log.Printf("confirmed delivery with delivery tag: %d", tag)
+		log.Printf("Producer::confirmed delivery with delivery tag: %d", tag)
 	case tag := <-nack:
-		log.Printf("failed delivery of delivery tag: %d", tag)
+		log.Printf("Producer::failed delivery of delivery tag: %d", tag)
 	}
 }
 
 func randomDuration(min, max int) time.Duration {
 	rand.Seed(time.Now().Unix())
 	return time.Duration(rand.Intn(max-min) + min)
+}
+
+/**
+ * RFC 4122 UUID
+ */
+func GenUUID() (string, error) {
+	uuid := make([]byte, 16)
+	n, err := crand.Read(uuid)
+	if n != len(uuid) || err != nil {
+		return "", err
+	}
+
+	uuid[8] = 0x80
+	uuid[4] = 0x40
+
+	return hex.EncodeToString(uuid), nil
 }
