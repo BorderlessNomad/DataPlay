@@ -186,20 +186,20 @@ func initMasterMode() {
 	m.Get("/api/search/:s", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 		return sendToQueue(res, req, params, "/api/search/:s", "SearchForDataQ")
 	})
-	m.Get("/api/getdata/:id", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
-		sendToQueue("/api/getdata/:id", "DumpTableQ", res, req, params)
+	m.Get("/api/getdata/:id", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/getdata/:id", "DumpTableQ")
 	})
-	m.Get("/api/getdata/:id/:offset/:count", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
-		sendToQueue("/api/getdata/:id/:offset/:count", "DumpTableQ", res, req, params)
+	m.Get("/api/getdata/:id/:offset/:count", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/getdata/:id/:offset/:count", "DumpTableQ")
 	})
-	m.Get("/api/getdata/:id/:x/:startx/:endx", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
-		sendToQueue("/api/getdata/:id/:x/:startx/:endx", "DumpTableRangeQ", res, req, params)
+	m.Get("/api/getdata/:id/:x/:startx/:endx", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/getdata/:id/:x/:startx/:endx", "DumpTableRangeQ")
 	})
-	m.Get("/api/getdatagrouped/:id/:x/:y", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
-		sendToQueue("/api/getdatagrouped/:id/:x/:y", "DumpTableGroupedQ", res, req, params)
+	m.Get("/api/getdatagrouped/:id/:x/:y", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/getdatagrouped/:id/:x/:y", "DumpTableGroupedQ")
 	})
-	m.Get("/api/getdatapred/:id/:x/:y", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
-		sendToQueue("/api/getdatapred/:id/:x/:y", "DumpTablePredictionQ", res, req, params)
+	m.Get("/api/getdatapred/:id/:x/:y", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/getdatapred/:id/:x/:y", "DumpTablePredictionQ")
 	})
 
 	m.Get("/api/getreduceddata/:id", DumpReducedTable)          // Q

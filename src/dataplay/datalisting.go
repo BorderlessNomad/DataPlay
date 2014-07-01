@@ -262,8 +262,8 @@ func DumpTableHttp(res http.ResponseWriter, req *http.Request, params martini.Pa
 		http.Error(res, "Sorry! Could not complete this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
 		return ""
 	}
-	result := DumpTable(params)
-	if result == "" {
+	result, _ := DumpTable(params)
+	if result == nil {
 		http.Error(res, "No data", http.StatusBadRequest)
 		return ""
 	}
@@ -281,8 +281,8 @@ func DumpTableQ(params map[string]string) string {
 	if params["id"] == "" {
 		return ""
 	}
-	result := DumpTable(params)
-	if result == "" {
+	result, _ := DumpTable(params)
+	if result == nil {
 		return ""
 	}
 
@@ -296,7 +296,8 @@ func DumpTableQ(params map[string]string) string {
 
 // This function will empty a whole table out into JSON
 // Due to what seems to be a golang bug, everything is outputted as a string.
-func DumpTable(params martini.Params) string {
+func DumpTable(params martini.Params) ([]map[string]interface{}, *appError) {
+	array := make([]map[string]interface{}, 0)
 	var offset int64 = 0
 	var count int64 = 0
 
@@ -310,13 +311,13 @@ func DumpTable(params martini.Params) string {
 
 		if oE != nil || cE != nil {
 			http.Error(nil, "Please give valid numbers for offset and count", http.StatusBadRequest)
-			return ""
+			return nil, nil
 		}
 	}
 
 	tablename, _ := getRealTableName(params["id"], nil)
 	if tablename == "" {
-		return ""
+		return nil, nil
 	}
 
 	var rows *sql.Rows
@@ -342,7 +343,6 @@ func DumpTable(params martini.Params) string {
 		scanArgs[i] = &values[i]
 	}
 
-	array := make([]map[string]interface{}, 0)
 	for rows.Next() {
 		err = rows.Scan(scanArgs...) // This may look like a typo, But it is infact not. This is what you use for interfaces.
 		if err != nil {
@@ -351,9 +351,8 @@ func DumpTable(params martini.Params) string {
 		record := ScanRow(values, columns)
 		array = append(array, record)
 	}
-	s, _ := json.Marshal(array)
-	//result := append(s, byte("\n"))
-	return string(s)
+
+	return array, nil
 }
 
 func DumpTableRangeHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
@@ -392,7 +391,7 @@ func DumpTableRangeQ(params map[string]string) string {
 	}
 
 	result, _ := DumpTableRange(params)
-	if result == "" {
+	if result == nil {
 		return ""
 	}
 
@@ -406,10 +405,11 @@ func DumpTableRangeQ(params map[string]string) string {
 
 // This function will empty a whole table out into JSON
 // Due to what seems to be a golang bug, everything is outputted as a string.
-func DumpTableRange(params martini.Params) (string, *appError) {
+func DumpTableRange(params martini.Params) ([]map[string]interface{}, *appError) {
+	array := make([]map[string]interface{}, 0)
 	tablename, e := getRealTableName(params["id"], nil)
 	if e != nil {
-		return "", nil
+		return nil, nil
 	}
 
 	rows, err := DB.Raw("SELECT * FROM " + tablename).Rows()
@@ -426,7 +426,7 @@ func DumpTableRange(params martini.Params) (string, *appError) {
 	startx, starte := strconv.ParseInt(params["startx"], 10, 64)
 	endx, ende := strconv.ParseInt(params["endx"], 10, 64)
 	if starte != nil || ende != nil {
-		return "", &appError{nil, "Database query failed", http.StatusServiceUnavailable}
+		return nil, &appError{nil, "Database query failed", http.StatusServiceUnavailable}
 	}
 
 	for number, colname := range columns {
@@ -440,7 +440,6 @@ func DumpTableRange(params martini.Params) (string, *appError) {
 		scanArgs[i] = &values[i]
 	}
 
-	array := make([]map[string]interface{}, 0)
 	for rows.Next() {
 		err = rows.Scan(scanArgs...)
 		if err != nil {
@@ -455,9 +454,7 @@ func DumpTableRange(params martini.Params) (string, *appError) {
 		}
 	}
 
-	s, _ := json.Marshal(array)
-	//result := append(s, byte("\n"))
-	return string(s), nil
+	return array, nil
 }
 
 func DumpTableGroupedHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
@@ -467,7 +464,7 @@ func DumpTableGroupedHttp(res http.ResponseWriter, req *http.Request, params mar
 	}
 
 	result, error := DumpTableGrouped(params)
-	if result == "" {
+	if result == nil {
 		http.Error(res, error.Message, error.Code)
 		return ""
 	}
@@ -487,7 +484,7 @@ func DumpTableGroupedQ(params map[string]string) string {
 	}
 
 	result, _ := DumpTableGrouped(params)
-	if result == "" {
+	if result == nil {
 		return ""
 	}
 
@@ -502,10 +499,11 @@ func DumpTableGroupedQ(params map[string]string) string {
 // This call with use the GROUP BY function in mysql to query and get the sum of things
 // This is very useful for things like picharts
 // /api/getdatagrouped/:id/:x/:y
-func DumpTableGrouped(params martini.Params) (string, *appError) {
+func DumpTableGrouped(params martini.Params) ([]map[string]interface{}, *appError) {
+	array := make([]map[string]interface{}, 0)
 	tablename, e := getRealTableName(params["id"], nil)
 	if e != nil {
-		return "", nil
+		return nil, nil
 	}
 
 	cls := FetchTableCols(params["id"])
@@ -530,11 +528,11 @@ func DumpTableGrouped(params martini.Params) (string, *appError) {
 	}
 
 	if !ValidX {
-		return "", &appError{nil, "Col X is invalid.", http.StatusBadRequest}
+		return nil, &appError{nil, "Col X is invalid.", http.StatusBadRequest}
 	}
 
 	if !ValidY {
-		return "", &appError{nil, "Col Y is invalid.", http.StatusBadRequest}
+		return nil, &appError{nil, "Col Y is invalid.", http.StatusBadRequest}
 	}
 
 	q := ""
@@ -547,13 +545,13 @@ func DumpTableGrouped(params martini.Params) (string, *appError) {
 	rows, e1 := DB.Raw(q).Rows()
 	if e1 != nil {
 		check(e1)
-		return "", &appError{nil, "Could not query the data FROM the datastore E1", http.StatusInternalServerError}
+		return nil, &appError{nil, "Could not query the data FROM the datastore E1", http.StatusInternalServerError}
 	}
 
 	columns, e2 := rows.Columns()
 	if e1 != nil || e2 != nil {
 		check(e2)
-		return "", &appError{nil, "Could not query the data FROM the datastore E2", http.StatusInternalServerError}
+		return nil, &appError{nil, "Could not query the data FROM the datastore E2", http.StatusInternalServerError}
 	}
 
 	scanArgs := make([]interface{}, len(columns))
@@ -562,7 +560,6 @@ func DumpTableGrouped(params martini.Params) (string, *appError) {
 		scanArgs[i] = &values[i]
 	}
 
-	array := make([]map[string]interface{}, 0)
 	for rows.Next() {
 		err := rows.Scan(scanArgs...)
 		if err != nil {
@@ -572,9 +569,7 @@ func DumpTableGrouped(params martini.Params) (string, *appError) {
 		array = append(array, record)
 	}
 
-	s, _ := json.Marshal(array)
-	//result := append(s, byte("\n"))
-	return string(s), nil
+	return array, nil
 }
 
 func DumpTablePredictionHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
@@ -584,7 +579,7 @@ func DumpTablePredictionHttp(res http.ResponseWriter, req *http.Request, params 
 	}
 
 	result, error := DumpTablePrediction(params)
-	if result == "" {
+	if result == nil {
 		http.Error(res, error.Message, error.Code)
 		return ""
 	}
@@ -605,7 +600,7 @@ func DumpTablePredictionQ(params map[string]string) string {
 	}
 
 	result, _ := DumpTablePrediction(params)
-	if result == "" {
+	if result == nil {
 		return ""
 	}
 
@@ -618,10 +613,11 @@ func DumpTablePredictionQ(params map[string]string) string {
 }
 
 // This call will get a X,Y and a prediction of a value. that is asked for
-func DumpTablePrediction(params martini.Params) (string, *appError) {
+func DumpTablePrediction(params martini.Params) ([]float64, *appError) {
+	array := make([]map[string]interface{}, 0)
 	tablename, e := getRealTableName(params["id"], nil)
 	if e != nil {
-		return "", nil
+		return nil, nil
 	}
 
 	cls := FetchTableCols(params["id"])
@@ -633,7 +629,7 @@ func DumpTablePrediction(params martini.Params) (string, *appError) {
 		}
 	}
 	if !ValidX {
-		return "", &appError{nil, "Col X is invalid.", http.StatusBadRequest}
+		return nil, &appError{nil, "Col X is invalid.", http.StatusBadRequest}
 	}
 
 	ValidY := false
@@ -644,19 +640,19 @@ func DumpTablePrediction(params martini.Params) (string, *appError) {
 	}
 
 	if !ValidY {
-		return "", &appError{nil, "Col Y is invalid.", http.StatusBadRequest}
+		return nil, &appError{nil, "Col Y is invalid.", http.StatusBadRequest}
 	}
 
 	rows, e1 := DB.Raw(fmt.Sprintf("SELECT %s, %s FROM %s", params["x"], params["y"], tablename)).Rows()
 
 	if e1 != nil {
-		return "", &appError{nil, "Could not query the data FROM the datastore", http.StatusInternalServerError}
+		return nil, &appError{nil, "Could not query the data FROM the datastore", http.StatusInternalServerError}
 
 	}
 
 	columns, e2 := rows.Columns()
 	if e2 != nil {
-		return "", &appError{nil, "Could not query the data FROM the datastore", http.StatusInternalServerError}
+		return nil, &appError{nil, "Could not query the data FROM the datastore", http.StatusInternalServerError}
 	}
 	scanArgs := make([]interface{}, len(columns))
 	values := make([]interface{}, len(columns))
@@ -664,7 +660,6 @@ func DumpTablePrediction(params martini.Params) (string, *appError) {
 		scanArgs[i] = &values[i]
 	}
 
-	array := make([]map[string]interface{}, 0)
 	xarray := make([]float64, 0)
 	yarray := make([]float64, 0)
 
@@ -678,20 +673,18 @@ func DumpTablePrediction(params martini.Params) (string, *appError) {
 		/*Going to if both things are float's else I can't predict them*/
 		f1, e := strconv.ParseFloat(record[columns[0]].(string), 64)
 		if e != nil {
-			return "", &appError{nil, "Could not parse one of the values into a float, therefore cannot run Poly Prediction over it", http.StatusBadRequest}
+			return nil, &appError{nil, "Could not parse one of the values into a float, therefore cannot run Poly Prediction over it", http.StatusBadRequest}
 		}
 		f2, e := strconv.ParseFloat(record[columns[1]].(string), 64)
 		if e != nil {
-			return "", &appError{nil, "Could not parse one of the values into a float, therefore cannot run Poly Prediction over it", http.StatusBadRequest}
+			return nil, &appError{nil, "Could not parse one of the values into a float, therefore cannot run Poly Prediction over it", http.StatusBadRequest}
 		}
 		xarray = append(xarray, f1)
 		yarray = append(yarray, f2)
 		array = append(array, record)
 	}
 	results := GetPolyResults(xarray, yarray)
-	s, _ := json.Marshal(results)
-	//result := append(s, byte("\n"))
-	return string(s), nil
+	return results, nil
 }
 
 /**
