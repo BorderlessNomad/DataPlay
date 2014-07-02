@@ -2,21 +2,23 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/jinzhu/gorm"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
 func GetLastVisitedHttp(res http.ResponseWriter, req *http.Request) string {
 	uid := GetUserID(res, req)
 
-	result, error := GetLastVisited(uid)
-	if error != nil {
-		http.Error(res, error.Message, error.Code)
+	result, err := GetLastVisited(uid)
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
 		return ""
 	}
 
-	r, err := json.Marshal(result)
-	if err != nil {
+	r, e := json.Marshal(result)
+	if e != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
 		return ""
 	}
@@ -30,18 +32,18 @@ func GetLastVisitedQ(params map[string]string) string {
 		return ""
 	}
 
-	uid, error := strconv.Atoi(params["user"])
-	if error != nil {
+	uid, e := strconv.Atoi(params["user"])
+	if e != nil {
 		return ""
 	}
 
-	result, error := GetLastVisited(uid)
-	if error != nil {
+	result, err := GetLastVisited(uid)
+	if err != nil {
 		return ""
 	}
 
-	r, error := json.Marshal(result)
-	if error != nil {
+	r, e := json.Marshal(result)
+	if e != nil {
 		return ""
 	}
 
