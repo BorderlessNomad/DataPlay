@@ -70,8 +70,8 @@ func GetLastVisited(uid int) ([][]string, *appError) {
 			r := HasTableGotLocationData(result.Guid)
 
 			data = append(data, []string{
-				result.Guid,
-				result.Title,
+				SanitizeString(result.Guid),
+				SanitizeString(result.Title),
 				r,
 			})
 		}
