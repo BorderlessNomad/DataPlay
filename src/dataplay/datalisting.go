@@ -3,10 +3,12 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"io"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -86,10 +88,8 @@ func SearchForDataQ(params map[string]string) string {
  * 		Prefix & postfix on previously searched terms
  */
 func SearchForData(str string, uid int) ([]SearchResult, *appError) {
-	Results := make([]SearchResult, 0)
-
 	if str == "" {
-		return Results, &appError{nil, "There was no search request", http.StatusBadRequest}
+		return nil, &appError{nil, "There was no search request", http.StatusBadRequest}
 	}
 
 	Indices := []Index{}
@@ -100,10 +100,10 @@ func SearchForData(str string, uid int) ([]SearchResult, *appError) {
 
 	err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&Indices).Error
 	if err != nil && err != gorm.RecordNotFound {
-		return Results, &appError{err, "Database query failed", http.StatusServiceUnavailable}
+		return nil, &appError{err, "Database query failed", http.StatusServiceUnavailable}
 	}
 
-	Results = ProcessSearchResults(Indices, err)
+	Results := ProcessSearchResults(Indices, err)
 	if len(Results) == 0 {
 		term := "%" + str + "%" // e.g. "nhs" => "%nhs%"
 
@@ -111,7 +111,7 @@ func SearchForData(str string, uid int) ([]SearchResult, *appError) {
 
 		err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&Indices).Error
 		if err != nil && err != gorm.RecordNotFound {
-			return Results, &appError{err, "Database query failed", http.StatusServiceUnavailable}
+			return nil, &appError{err, "Database query failed", http.StatusServiceUnavailable}
 		}
 
 		Results = ProcessSearchResults(Indices, err)
@@ -122,7 +122,7 @@ func SearchForData(str string, uid int) ([]SearchResult, *appError) {
 
 			err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&Indices).Error
 			if err != nil && err != gorm.RecordNotFound {
-				return Results, &appError{err, "Database query failed", http.StatusServiceUnavailable}
+				return nil, &appError{err, "Database query failed", http.StatusServiceUnavailable}
 			}
 
 			Results = ProcessSearchResults(Indices, err)
@@ -143,7 +143,7 @@ func SearchForData(str string, uid int) ([]SearchResult, *appError) {
 				err := query.Find(&Indices).Error
 
 				if err != nil && err != gorm.RecordNotFound {
-					return Results, &appError{err, "Database query failed", http.StatusInternalServerError}
+					return nil, &appError{err, "Database query failed", http.StatusInternalServerError}
 				}
 
 				Results = ProcessSearchResults(Indices, err)
@@ -281,8 +281,9 @@ func DumpTableQ(params map[string]string) string {
 	if params["id"] == "" {
 		return ""
 	}
-	result, _ := DumpTable(params)
-	if result == nil {
+
+	result, error := DumpTable(params)
+	if error != nil {
 		return ""
 	}
 
@@ -296,8 +297,7 @@ func DumpTableQ(params map[string]string) string {
 
 // This function will empty a whole table out into JSON
 // Due to what seems to be a golang bug, everything is outputted as a string.
-func DumpTable(params martini.Params) ([]map[string]interface{}, *appError) {
-	array := make([]map[string]interface{}, 0)
+func DumpTable(params map[string]string) ([]map[string]interface{}, *appError) {
 	var offset int64 = 0
 	var count int64 = 0
 
@@ -310,14 +310,13 @@ func DumpTable(params martini.Params) ([]map[string]interface{}, *appError) {
 		count, cE = strconv.ParseInt(params["count"], 10, 64)
 
 		if oE != nil || cE != nil {
-			http.Error(nil, "Please give valid numbers for offset and count", http.StatusBadRequest)
-			return nil, nil
+			return nil, &appError{nil, "Please give valid numbers for offset and count", http.StatusBadRequest}
 		}
 	}
 
 	tablename, _ := getRealTableName(params["id"], nil)
 	if tablename == "" {
-		return nil, nil
+		return nil, &appError{nil, "Unable to find that table", http.StatusBadRequest}
 	}
 
 	var rows *sql.Rows
@@ -330,11 +329,12 @@ func DumpTable(params martini.Params) ([]map[string]interface{}, *appError) {
 	}
 
 	if err != nil {
-		panic(err)
+		return nil, &appError{err, "Database query failed (SELECT)", http.StatusInternalServerError}
 	}
+
 	columns, err := rows.Columns()
 	if err != nil {
-		panic(err)
+		return nil, &appError{err, "Database query failed (COLUMNS)", http.StatusInternalServerError}
 	}
 
 	scanArgs := make([]interface{}, len(columns))
@@ -343,11 +343,13 @@ func DumpTable(params martini.Params) ([]map[string]interface{}, *appError) {
 		scanArgs[i] = &values[i]
 	}
 
+	array := make([]map[string]interface{}, 0)
 	for rows.Next() {
 		err = rows.Scan(scanArgs...) // This may look like a typo, But it is infact not. This is what you use for interfaces.
 		if err != nil {
-			panic(err)
+			return nil, &appError{err, "Database query failed (ROWS)", http.StatusInternalServerError}
 		}
+
 		record := ScanRow(values, columns)
 		array = append(array, record)
 	}
@@ -390,8 +392,8 @@ func DumpTableRangeQ(params map[string]string) string {
 		return ""
 	}
 
-	result, _ := DumpTableRange(params)
-	if result == nil {
+	result, error := DumpTableRange(params)
+	if error != nil {
 		return ""
 	}
 
@@ -405,20 +407,20 @@ func DumpTableRangeQ(params map[string]string) string {
 
 // This function will empty a whole table out into JSON
 // Due to what seems to be a golang bug, everything is outputted as a string.
-func DumpTableRange(params martini.Params) ([]map[string]interface{}, *appError) {
-	array := make([]map[string]interface{}, 0)
+func DumpTableRange(params map[string]string) ([]map[string]interface{}, *appError) {
 	tablename, e := getRealTableName(params["id"], nil)
 	if e != nil {
-		return nil, nil
+		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
 
 	rows, err := DB.Raw("SELECT * FROM " + tablename).Rows()
 	if err != nil {
-		panic(err)
+		return nil, &appError{err, "Database query failed (SELECT)", http.StatusInternalServerError}
 	}
+
 	columns, err := rows.Columns()
 	if err != nil {
-		panic(err)
+		return nil, &appError{err, "Database query failed (COLUMNS)", http.StatusInternalServerError}
 	}
 
 	var xcol int
@@ -426,24 +428,27 @@ func DumpTableRange(params martini.Params) ([]map[string]interface{}, *appError)
 	startx, starte := strconv.ParseInt(params["startx"], 10, 64)
 	endx, ende := strconv.ParseInt(params["endx"], 10, 64)
 	if starte != nil || ende != nil {
-		return nil, &appError{nil, "Database query failed", http.StatusServiceUnavailable}
+		return nil, &appError{nil, "Please give valid numbers for start and end", http.StatusBadRequest}
 	}
 
 	for number, colname := range columns {
 		if colname == params["x"] {
 			xcol = number
+			break
 		}
 	}
+
 	scanArgs := make([]interface{}, len(columns))
 	values := make([]interface{}, len(columns))
 	for i := range values {
 		scanArgs[i] = &values[i]
 	}
 
+	array := make([]map[string]interface{}, 0)
 	for rows.Next() {
 		err = rows.Scan(scanArgs...)
 		if err != nil {
-			panic(err)
+			return nil, &appError{err, "Database query failed (ROWS)", http.StatusInternalServerError}
 		}
 
 		xvalue := values[xcol].(int64)
@@ -464,7 +469,7 @@ func DumpTableGroupedHttp(res http.ResponseWriter, req *http.Request, params mar
 	}
 
 	result, error := DumpTableGrouped(params)
-	if result == nil {
+	if error != nil {
 		http.Error(res, error.Message, error.Code)
 		return ""
 	}
@@ -483,8 +488,8 @@ func DumpTableGroupedQ(params map[string]string) string {
 		return ""
 	}
 
-	result, _ := DumpTableGrouped(params)
-	if result == nil {
+	result, error := DumpTableGrouped(params)
+	if error != nil {
 		return ""
 	}
 
@@ -499,11 +504,10 @@ func DumpTableGroupedQ(params map[string]string) string {
 // This call with use the GROUP BY function in mysql to query and get the sum of things
 // This is very useful for things like picharts
 // /api/getdatagrouped/:id/:x/:y
-func DumpTableGrouped(params martini.Params) ([]map[string]interface{}, *appError) {
-	array := make([]map[string]interface{}, 0)
+func DumpTableGrouped(params map[string]string) ([]map[string]interface{}, *appError) {
 	tablename, e := getRealTableName(params["id"], nil)
 	if e != nil {
-		return nil, nil
+		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
 
 	cls := FetchTableCols(params["id"])
@@ -544,14 +548,12 @@ func DumpTableGrouped(params martini.Params) ([]map[string]interface{}, *appErro
 
 	rows, e1 := DB.Raw(q).Rows()
 	if e1 != nil {
-		check(e1)
-		return nil, &appError{nil, "Could not query the data FROM the datastore E1", http.StatusInternalServerError}
+		return nil, &appError{e1, "Database query failed (SELECT)", http.StatusInternalServerError}
 	}
 
 	columns, e2 := rows.Columns()
 	if e1 != nil || e2 != nil {
-		check(e2)
-		return nil, &appError{nil, "Could not query the data FROM the datastore E2", http.StatusInternalServerError}
+		return nil, &appError{e2, "Database query failed (COLUMNS)", http.StatusInternalServerError}
 	}
 
 	scanArgs := make([]interface{}, len(columns))
@@ -560,11 +562,13 @@ func DumpTableGrouped(params martini.Params) ([]map[string]interface{}, *appErro
 		scanArgs[i] = &values[i]
 	}
 
+	array := make([]map[string]interface{}, 0)
 	for rows.Next() {
 		err := rows.Scan(scanArgs...)
 		if err != nil {
-			panic(err)
+			return nil, &appError{err, "Database query failed (ROWS)", http.StatusInternalServerError}
 		}
+
 		record := ScanRow(values, columns)
 		array = append(array, record)
 	}
@@ -599,8 +603,8 @@ func DumpTablePredictionQ(params map[string]string) string {
 		return ""
 	}
 
-	result, _ := DumpTablePrediction(params)
-	if result == nil {
+	result, error := DumpTablePrediction(params)
+	if error != nil {
 		return ""
 	}
 
@@ -613,11 +617,10 @@ func DumpTablePredictionQ(params map[string]string) string {
 }
 
 // This call will get a X,Y and a prediction of a value. that is asked for
-func DumpTablePrediction(params martini.Params) ([]float64, *appError) {
-	array := make([]map[string]interface{}, 0)
+func DumpTablePrediction(params map[string]string) ([]float64, *appError) {
 	tablename, e := getRealTableName(params["id"], nil)
 	if e != nil {
-		return nil, nil
+		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
 
 	cls := FetchTableCols(params["id"])
@@ -644,16 +647,16 @@ func DumpTablePrediction(params martini.Params) ([]float64, *appError) {
 	}
 
 	rows, e1 := DB.Raw(fmt.Sprintf("SELECT %s, %s FROM %s", params["x"], params["y"], tablename)).Rows()
-
 	if e1 != nil {
-		return nil, &appError{nil, "Could not query the data FROM the datastore", http.StatusInternalServerError}
+		return nil, &appError{e1, "Database query failed (SELECT)", http.StatusInternalServerError}
 
 	}
 
 	columns, e2 := rows.Columns()
 	if e2 != nil {
-		return nil, &appError{nil, "Could not query the data FROM the datastore", http.StatusInternalServerError}
+		return nil, &appError{e2, "Database query failed (COLUMNS)", http.StatusInternalServerError}
 	}
+
 	scanArgs := make([]interface{}, len(columns))
 	values := make([]interface{}, len(columns))
 	for i := range values {
@@ -662,29 +665,70 @@ func DumpTablePrediction(params martini.Params) ([]float64, *appError) {
 
 	xarray := make([]float64, 0)
 	yarray := make([]float64, 0)
+	array := make([]map[string]interface{}, 0)
 
 	for rows.Next() {
 		err := rows.Scan(scanArgs...)
 		if err != nil {
-			panic(err)
+			return nil, &appError{err, "Database query failed (ROWS)", http.StatusInternalServerError}
 		}
 
 		record := ScanRow(values, columns)
-		/*Going to if both things are float's else I can't predict them*/
-		f1, e := strconv.ParseFloat(record[columns[0]].(string), 64)
+		f1, e := ConvertToFloat(record[columns[0]])
 		if e != nil {
-			return nil, &appError{nil, "Could not parse one of the values into a float, therefore cannot run Poly Prediction over it", http.StatusBadRequest}
+			return nil, &appError{e, "Could not parse the value into a float (" + columns[0] + ")", http.StatusBadRequest}
 		}
-		f2, e := strconv.ParseFloat(record[columns[1]].(string), 64)
+
+		f2, e := ConvertToFloat(record[columns[1]])
 		if e != nil {
-			return nil, &appError{nil, "Could not parse one of the values into a float, therefore cannot run Poly Prediction over it", http.StatusBadRequest}
+			return nil, &appError{e, "Could not parse the value into a float (" + columns[1] + ")", http.StatusBadRequest}
 		}
+
 		xarray = append(xarray, f1)
 		yarray = append(yarray, f2)
 		array = append(array, record)
 	}
+
 	results := GetPolyResults(xarray, yarray)
+
 	return results, nil
+}
+
+func ConvertToFloat(val interface{}) (float64, error) {
+	switch i := val.(type) {
+	case float64:
+		return float64(i), nil
+	case float32:
+		return float64(i), nil
+	case int64:
+		return float64(i), nil
+	case int32:
+		return float64(i), nil
+	case int16:
+		return float64(i), nil
+	case int8:
+		return float64(i), nil
+	case uint64:
+		return float64(i), nil
+	case uint32:
+		return float64(i), nil
+	case uint16:
+		return float64(i), nil
+	case uint8:
+		return float64(i), nil
+	case int:
+		return float64(i), nil
+	case uint:
+		return float64(i), nil
+	case string:
+		f, err := strconv.ParseFloat(i, 64)
+		if err != nil {
+			return math.NaN(), err
+		}
+		return f, err
+	default:
+		return math.NaN(), errors.New("getFloat: unknown value is of incompatible type")
+	}
 }
 
 /**
