@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
-	"io"
 	"math"
 	"net/http"
 	"strconv"
@@ -736,18 +735,47 @@ func ConvertToFloat(val interface{}) (float64, error) {
 	}
 }
 
+func DumpReducedTableHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	result, error := DumpReducedTable(params)
+	if error != nil {
+		http.Error(res, error.Message, error.Code)
+		return ""
+	}
+
+	r, err := json.Marshal(result)
+	if err != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return ""
+	}
+
+	return string(r)
+}
+
+func DumpReducedTableQ(params map[string]string) string {
+	result, error := DumpReducedTable(params)
+	if error != nil {
+		return ""
+	}
+
+	r, e := json.Marshal(result)
+	if e != nil {
+		return ""
+	}
+
+	return string(r)
+}
+
 /**
  * @brief This function will take a share of a table and return it as JSON
  */
-func DumpReducedTable(res http.ResponseWriter, req *http.Request, params martini.Params) {
+func DumpReducedTable(params map[string]string) ([]map[string]interface{}, *appError) {
 	if params["id"] == "" {
-		http.Error(res, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
-		return
+		return nil, &appError{nil, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest}
 	}
 
-	tablename, e := getRealTableName(params["id"], res)
+	tablename, e := getRealTableName(params["id"], nil)
 	if e != nil {
-		return
+		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
 
 	var rows *sql.Rows
@@ -759,32 +787,49 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, params martini
 		y := params["y"]
 
 		cls := FetchTableCols(params["id"])
-		sumY := false
 
-		/* Check for existence of X & Y in Table */
+		ValidX := false
+		ValidY := false
+		sumY := false
 		for _, clm := range cls {
-			if clm.Name == y && clm.Sqltype != "varchar" && clm.Sqltype != "date" {
-				sumY = true
+			/* Check for existence of X & Y in Table */
+			if !ValidX && clm.Name == x {
+				ValidX = true
+			} else if !ValidY && clm.Name == y {
+				ValidY = true
+				if !sumY && clm.Sqltype != "varchar" && clm.Sqltype != "date" {
+					sumY = true
+				}
+			}
+
+			if ValidX && ValidY {
+				break
 			}
 		}
 
+		if !ValidX {
+			return nil, &appError{nil, "Col X is invalid.", http.StatusBadRequest}
+		}
+		if !ValidY {
+			return nil, &appError{nil, "Col Y is invalid.", http.StatusBadRequest}
+		}
+
 		if sumY {
+			// If Y is Int/Float we can SUM
 			rows, e1 = DB.Table(tablename).Select("DISTINCT \"" + x + "\", SUM(\"" + y + "\") AS \"" + y + "\"").Group(x).Order(x).Rows()
 		} else {
+			// Just count X aginst Y
 			rows, e1 = DB.Table(tablename).Select("DISTINCT \"" + x + "\", COUNT(\"" + x + "\") AS \"" + y + "\"").Group(x).Order(x).Rows()
 		}
 	}
 
 	if e1 != nil {
-		panic(e1)
-		http.Error(res, "Could not read that table", http.StatusInternalServerError)
-		return
+		return nil, &appError{e1, "Database query failed (SELECT)", http.StatusInternalServerError}
 	}
 
 	columns, e2 := rows.Columns()
 	if e2 != nil {
-		http.Error(res, "Could not read that table", http.StatusInternalServerError)
-		return
+		return nil, &appError{e2, "Database query failed (COLUMNS)", http.StatusInternalServerError}
 	}
 
 	values := make([]interface{}, len(columns))
@@ -794,12 +839,11 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, params martini
 	}
 
 	results := make([]map[string]interface{}, 0)
-	results_calc := make([]map[string]interface{}, 0)
 	for rows.Next() {
 		err := rows.Scan(scanArgs...)
 
 		if err != nil {
-			panic(err)
+			return nil, &appError{err, "Database query failed (ROWS)", http.StatusInternalServerError}
 		}
 
 		record := ScanRow(values, columns)
@@ -814,8 +858,7 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, params martini
 		percent := params["percent"]
 		Divider, e := strconv.ParseInt(percent, 10, 64)
 		if e != nil {
-			http.Error(res, "Invalid percentage", http.StatusBadRequest)
-			return // Halt!
+			return nil, &appError{e, "Invalid percentage", http.StatusBadRequest}
 		}
 
 		Temp := (float64(Divider) / 100) * float64(DataLength)
@@ -829,8 +872,7 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, params martini
 		if params["min"] != "" {
 			MinSpend, e := strconv.ParseInt(params["min"], 10, 64)
 			if e != nil {
-				http.Error(res, "Invalid Min", http.StatusBadRequest)
-				return // Halt!
+				return nil, &appError{e, "Invalid min", http.StatusBadRequest}
 			}
 
 			if int(RealDL/DataLength) < int(MinSpend) {
@@ -847,15 +889,14 @@ func DumpReducedTable(res http.ResponseWriter, req *http.Request, params martini
 		DataLength = 1
 	}
 
+	results_calc := make([]map[string]interface{}, 0)
 	for i, result := range results {
 		if i%DataLength == 0 {
 			results_calc = append(results_calc, result)
 		}
 	}
 
-	s, _ := json.Marshal(results_calc)
-	res.Write(s)
-	io.WriteString(res, "\n")
+	return results_calc, nil
 }
 
 /**

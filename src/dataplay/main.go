@@ -105,6 +105,7 @@ func initClassicMode() {
 	m := martini.Classic()
 
 	m.Get("/", Authorisation)
+	/* @todo convert to APIs */
 	m.Get("/login", Login)
 	m.Get("/logout", Logout)
 	m.Get("/register", Register)
@@ -117,6 +118,7 @@ func initClassicMode() {
 	m.Post("/noauth/login.json", HandleLogin)
 	m.Post("/noauth/logout.json", HandleLogout)
 	m.Post("/noauth/register.json", HandleRegister)
+	/* APIs */
 	m.Get("/api/user", CheckAuth)
 	m.Get("/api/visited", GetLastVisitedHttp)
 	m.Get("/api/search/:s", SearchForDataHttp)
@@ -127,10 +129,10 @@ func initClassicMode() {
 	m.Get("/api/getdata/:id/:x/:startx/:endx", DumpTableRangeHttp)
 	m.Get("/api/getdatagrouped/:id/:x/:y", DumpTableGroupedHttp)
 	m.Get("/api/getdatapred/:id/:x/:y", DumpTablePredictionHttp)
-	m.Get("/api/getreduceddata/:id", DumpReducedTable)
-	m.Get("/api/getreduceddata/:id/:percent", DumpReducedTable)
-	m.Get("/api/getreduceddata/:id/:percent/:min", DumpReducedTable)
-	m.Get("/api/getreduceddata/:id/:x/:y/:percent/:min", DumpReducedTable)
+	m.Get("/api/getreduceddata/:id", DumpReducedTableHttp)
+	m.Get("/api/getreduceddata/:id/:percent", DumpReducedTableHttp)
+	m.Get("/api/getreduceddata/:id/:percent/:min", DumpReducedTableHttp)
+	m.Get("/api/getreduceddata/:id/:x/:y/:percent/:min", DumpReducedTableHttp)
 	m.Post("/api/setdefaults/:id", SetDefaults)
 	m.Get("/api/getdefaults/:id", GetDefaults)
 	m.Get("/api/identifydata/:id", IdentifyTable)
@@ -203,11 +205,18 @@ func initMasterMode() {
 	m.Get("/api/getdatapred/:id/:x/:y", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 		return sendToQueue(res, req, params, "/api/getdatapred/:id/:x/:y", "DumpTablePredictionQ")
 	})
-
-	m.Get("/api/getreduceddata/:id", DumpReducedTable)          // Q
-	m.Get("/api/getreduceddata/:id/:percent", DumpReducedTable) // Q// Q
-	m.Get("/api/getreduceddata/:id/:percent/:min", DumpReducedTable)
-	m.Get("/api/getreduceddata/:id/:x/:y/:percent/:min", DumpReducedTable) // Q
+	m.Get("/api/getreduceddata/:id", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/getreduceddata/:id", "DumpReducedTableQ")
+	})
+	m.Get("/api/getreduceddata/:id/:percent", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/getreduceddata/:id/:percent", "DumpReducedTableQ")
+	})
+	m.Get("/api/getreduceddata/:id/:percent/:min", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/getreduceddata/:id/:percent/:min", "DumpReducedTableQ")
+	})
+	m.Get("/api/getreduceddata/:id/:x/:y/:percent/:min", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/getreduceddata/:id/:x/:y/:percent/:min", "DumpReducedTableQ")
+	})
 
 	m.Get("/api/getdefaults/:id", GetDefaults)                     // Q
 	m.Get("/api/findmatches/:id/:x/:y", AttemptToFindMatches)      // Q
@@ -234,10 +243,8 @@ func initNodeMode() {
 		return
 	}
 
-	/* Database connection will be closed only when Server closes */
 	defer DB.Close()
 
-	// Logic for Node (QueueConsumer)
 	myfuncs = make(funcs)
 	myfuncs.registerCallback("GetLastVisitedQ", GetLastVisitedQ)
 	myfuncs.registerCallback("SearchForDataQ", SearchForDataQ)
@@ -245,6 +252,9 @@ func initNodeMode() {
 	myfuncs.registerCallback("DumpTableRangeQ", DumpTableRangeQ)
 	myfuncs.registerCallback("DumpTableGroupedQ", DumpTableGroupedQ)
 	myfuncs.registerCallback("DumpTablePredictionQ", DumpTablePredictionQ)
+	myfuncs.registerCallback("DumpReducedTableQ", DumpReducedTableQ)
+
+	/* Start request consumer in Listen mode */
 	consumer := QueueConsumer{}
 	consumer.Consume()
 }
