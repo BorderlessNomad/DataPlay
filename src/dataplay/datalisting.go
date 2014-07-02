@@ -65,14 +65,19 @@ func SearchForDataQ(params map[string]string) string {
 	if params["user"] == "" {
 		return ""
 	}
-	u, _ := strconv.Atoi(params["user"])
-	result, error := SearchForData(params["s"], u)
+
+	uid, error := strconv.Atoi(params["user"])
 	if error != nil {
 		return ""
 	}
 
-	r, err := json.Marshal(result)
-	if err != nil {
+	result, error := SearchForData(params["s"], uid)
+	if error != nil {
+		return ""
+	}
+
+	r, error := json.Marshal(result)
+	if error != nil {
 		return ""
 	}
 
