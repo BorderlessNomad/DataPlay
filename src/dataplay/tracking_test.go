@@ -61,6 +61,6 @@ func TestContainsTableCol(t *testing.T) {
 
 func TestTrackVisited(t *testing.T) {
 	Convey("Track visited", t, func() {
-		TrackVisited("", "")
+		TrackVisited("gold", 11)
 	})
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func GetLastVisitedHttp(res http.ResponseWriter, req *http.Request) string {
@@ -60,7 +61,7 @@ func GetLastVisited(uid int) ([][]string, *appError) {
 			Title string
 		}{}
 
-		err := DB.Select("DISTINCT ON (priv_tracking.guid) guid, priv_tracking.id, (SELECT index.title FROM index WHERE index.guid = priv_tracking.guid LIMIT 1) as title").Where("priv_tracking.user = ?", uid).Order("guid desc").Order("priv_tracking.id desc").Limit(5).Find(&results).Error
+		err := DB.Select("MAX (priv_tracking.id) id, priv_tracking.guid, (SELECT index.title FROM index WHERE index.guid = priv_tracking.guid LIMIT 1) as title, MAX (priv_tracking.created) created").Where("priv_tracking.user = ?", uid).Group("guid").Order("created desc").Order("guid desc").Limit(5).Find(&results).Error
 
 		if err != nil && err != gorm.RecordNotFound {
 			return nil, &appError{err, "Database query failed", http.StatusServiceUnavailable}
@@ -100,10 +101,11 @@ func ContainsTableCol(cols []ColType, target string) bool {
 	return false
 }
 
-func TrackVisited(guid string, user string) {
+func TrackVisited(guid string, user int) {
 	tracking := Tracking{
-		User: user,
-		Guid: guid,
+		User:    user,
+		Guid:    guid,
+		Created: time.Now(),
 	}
 
 	err := DB.Save(&tracking).Error

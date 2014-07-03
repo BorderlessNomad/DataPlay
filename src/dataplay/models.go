@@ -1,5 +1,9 @@
 package main
 
+import (
+	"time"
+)
+
 type appError struct {
 	Error   error
 	Message string
@@ -17,9 +21,10 @@ func (u User) TableName() string {
 }
 
 type Tracking struct {
-	Id   int `primaryKey:"yes"`
-	User string
-	Guid string
+	Id      int `primaryKey:"yes"`
+	User    int
+	Guid    string
+	Created time.Time
 }
 
 func (t Tracking) TableName() string {
