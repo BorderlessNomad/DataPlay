@@ -43,7 +43,7 @@ func (resp *QueueResponder) Response() {
 	log.Printf("Responder::shutting down")
 
 	if err := responder.Shutdown(); err != nil {
-		log.Fatalf("error during shutdown: %s", err)
+		log.Fatalf("Responder::error during shutdown: %s", err)
 	}
 }
 
@@ -60,11 +60,11 @@ func (resp *QueueResponder) Responder(amqpURI, exchangeName, exchangeType, queue
 	log.Printf("Responder::dialing %q", amqpURI)
 	c.conn, err = amqp.Dial(amqpURI)
 	if err != nil {
-		return nil, fmt.Errorf("Dial: %s", err)
+		return nil, fmt.Errorf("Responder::Dial: %s", err)
 	}
 
 	go func() {
-		fmt.Printf("closing: %s", <-c.conn.NotifyClose(make(chan *amqp.Error)))
+		fmt.Printf("Responder::closing: %s", <-c.conn.NotifyClose(make(chan *amqp.Error)))
 	}()
 
 	log.Printf("Responder::got Connection, getting Channel")
@@ -83,7 +83,7 @@ func (resp *QueueResponder) Responder(amqpURI, exchangeName, exchangeType, queue
 		false,        // noWait
 		nil,          // arguments
 	); err != nil {
-		return nil, fmt.Errorf("Exchange Declare: %s", err)
+		return nil, fmt.Errorf("Responder::Exchange Declare: %s", err)
 	}
 
 	log.Printf("Responder::declared Exchange, declaring Queue %q", queueName)
@@ -96,7 +96,7 @@ func (resp *QueueResponder) Responder(amqpURI, exchangeName, exchangeType, queue
 		nil,       // arguments
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Queue Declare: %s", err)
+		return nil, fmt.Errorf("Responder::Queue Declare: %s", err)
 	}
 
 	log.Printf("Responder::setting QoS prefetch")
@@ -112,7 +112,7 @@ func (resp *QueueResponder) Responder(amqpURI, exchangeName, exchangeType, queue
 		false,        // noWait
 		nil,          // arguments
 	); err != nil {
-		return nil, fmt.Errorf("Queue Bind: %s", err)
+		return nil, fmt.Errorf("Responder::Queue Bind: %s", err)
 	}
 
 	log.Printf("Responder::Queue bound to Exchange, starting Consume (consumers tag %q)", c.tag)
@@ -126,7 +126,7 @@ func (resp *QueueResponder) Responder(amqpURI, exchangeName, exchangeType, queue
 		nil,        // arguments
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Queue Consume: %s", err)
+		return nil, fmt.Errorf("Responder::Queue Consume: %s", err)
 	}
 
 	go resp.handle(deliveries, c.done)
@@ -137,11 +137,11 @@ func (resp *QueueResponder) Responder(amqpURI, exchangeName, exchangeType, queue
 func (resp *QueueResponder) Shutdown() error {
 	// will close() the deliveries channel
 	if err := resp.channel.Cancel(resp.tag, true); err != nil {
-		return fmt.Errorf("Consumer cancel failed: %s", err)
+		return fmt.Errorf("Responder::Consumer cancel failed: %s", err)
 	}
 
 	if err := resp.conn.Close(); err != nil {
-		return fmt.Errorf("AMQP connection close error: %s", err)
+		return fmt.Errorf("Responder::AMQP connection close error: %s", err)
 	}
 
 	defer log.Printf("Responder::AMQP shutdown OK")

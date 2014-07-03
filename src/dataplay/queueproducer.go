@@ -34,10 +34,7 @@ func init() {
 type QueueProducer struct {
 }
 
-/**
- * @todo Add functionality in main.go to handle 0=Master, 1=Node (default), 2=Normal invocation
- */
-func (prod *QueueProducer) Produce() {
+func (prod *QueueProducer) Test() {
 	rand.Seed(time.Now().Unix())
 	// Infinite loop running at random interval and sending dummy message to Queue
 	i := 0
@@ -78,14 +75,14 @@ func (prod *QueueProducer) publish(amqpURI, exchange, exchangeType, queue, key, 
 	log.Printf("Producer::dialing %q", amqpURI)
 	connection, err := amqp.Dial(amqpURI)
 	if err != nil {
-		return fmt.Errorf("Dial: %s", err)
+		return fmt.Errorf("Producer::Dial: %s", err)
 	}
 	defer connection.Close()
 
 	log.Printf("Producer::got Connection, getting Channel")
 	channel, err := connection.Channel()
 	if err != nil {
-		return fmt.Errorf("Channel: %s", err)
+		return fmt.Errorf("Producer::Channel: %s", err)
 	}
 
 	log.Printf("Producer::got Channel, declaring %q Exchange (%q)", exchangeType, exchange)
@@ -98,14 +95,14 @@ func (prod *QueueProducer) publish(amqpURI, exchange, exchangeType, queue, key, 
 		false,        // noWait
 		nil,          // arguments
 	); err != nil {
-		return fmt.Errorf("Exchange Declare: %s", err)
+		return fmt.Errorf("Producer::Exchange Declare: %s", err)
 	}
 
 	// Reliable publisher confirms require confirm. Select support from the onnection.
 	if reliable {
 		log.Printf("Producer::enabling publishing confirms.")
 		if err := channel.Confirm(false); err != nil {
-			return fmt.Errorf("Channel could not be put into confirm mode: %s", err)
+			return fmt.Errorf("Producer::Channel could not be put into confirm mode: %s", err)
 		}
 
 		ack, nack := channel.NotifyConfirm(make(chan uint64, 1), make(chan uint64, 1))
@@ -132,7 +129,7 @@ func (prod *QueueProducer) publish(amqpURI, exchange, exchangeType, queue, key, 
 			CorrelationId: uuid,
 		},
 	); err != nil {
-		return fmt.Errorf("Exchange Publish: %s", err)
+		return fmt.Errorf("Producer::Exchange Publish: %s", err)
 	}
 
 	return nil
