@@ -23,8 +23,11 @@ type QueueResponder struct {
 	done    chan error
 }
 
+var responder *QueueResponder
+var err error
+
 func (resp *QueueResponder) Response() {
-	respumer, err := resp.Responder(*uri, *exchangeName, *exchangeType, *responseQueue, *responseKey, *responseTag)
+	responder, err = resp.Responder(*uri, *exchangeName, *exchangeType, *responseQueue, *responseKey, *responseTag)
 	if err != nil {
 		log.Fatalf("%s", err)
 	}
@@ -39,7 +42,7 @@ func (resp *QueueResponder) Response() {
 
 	log.Printf("Responder::shutting down")
 
-	if err := respumer.Shutdown(); err != nil {
+	if err := responder.Shutdown(); err != nil {
 		log.Fatalf("error during shutdown: %s", err)
 	}
 }
@@ -160,6 +163,8 @@ func (resp *QueueResponder) handle(deliveries <-chan amqp.Delivery, done chan er
 		responseChannel <- string(d.Body)
 
 		d.Ack(false)
+
+		responder.Shutdown()
 	}
 
 	log.Printf("Responder::handle: deliveries channel closed")
