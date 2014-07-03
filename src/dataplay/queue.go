@@ -13,14 +13,14 @@ var (
 	exchangeName = flag.String("exchange", "playgen-dev", "Durable (non-auto-deleted) AMQP exchange name")
 	exchangeType = flag.String("exchange-type", "direct", "Exchange type - direct|fanout|topic|x-custom")
 
-	requestQueue  = flag.String("requestqueue", "dataplay-request", "Ephemeral AMQP Request queue name")
-	responseQueue = flag.String("responsequeue", "dataplay-response", "Ephemeral AMQP Response queue name")
+	requestQueue  = flag.String("requestqueue", "dataplay-request-dev", "Ephemeral AMQP Request queue name")
+	responseQueue = flag.String("responsequeue", "dataplay-response-dev", "Ephemeral AMQP Response queue name")
 
-	requestKey  = flag.String("requestkey", "api-request", "AMQP Request routing key")
-	responseKey = flag.String("responsekey", "api-response", "AMQP Response routing key")
+	requestKey  = flag.String("requestkey", "api-request-dev", "AMQP Request routing key")
+	responseKey = flag.String("responsekey", "api-response-dev", "AMQP Response routing key")
 
-	requestTag  = flag.String("reqtag", "consumer-request", "AMQP consumer request tag (should not be blank)")
-	responseTag = flag.String("restag", "consumer-response", "AMQP consumer response tag (should not be blank)")
+	requestTag  = flag.String("reqtag", "consumer-request-dev", "AMQP consumer request tag (should not be blank)")
+	responseTag = flag.String("restag", "consumer-response-dev", "AMQP consumer response tag (should not be blank)")
 
 	body     = flag.String("body", "foobar", "Body of message")
 	reliable = flag.Bool("reliable", true, "Wait for the publisher confirmation before exiting")

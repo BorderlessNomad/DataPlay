@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"log"
-	"time"
 )
 
 type QueueResponder struct {
@@ -23,13 +22,8 @@ func (resp *QueueResponder) Response() {
 		log.Fatalf("%s", err)
 	}
 
-	if *lifetime > 0 {
-		log.Printf("Responder::running for %s", *lifetime)
-		time.Sleep(*lifetime)
-	} else {
-		log.Printf("Responder::running forever")
-		select {}
-	}
+	log.Printf("Responder::running")
+	select {}
 
 	log.Printf("Responder::shutting down")
 
@@ -155,6 +149,10 @@ func (resp *QueueResponder) handle(deliveries <-chan amqp.Delivery, done chan er
 
 		d.Ack(false)
 
+		/**
+		 * As soon as Response is received close the connection to allow efficient
+		 * queue management & run in fast sync mode
+		 */
 		responder.Shutdown()
 	}
 
