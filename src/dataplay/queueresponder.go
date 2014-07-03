@@ -1,20 +1,11 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/streadway/amqp"
 	"log"
 	"time"
 )
-
-var (
-	responseTag = flag.String("restag", "consumer-response", "AMQP consumer response tag (should not be blank)")
-)
-
-func init() {
-	flag.Parse()
-}
 
 type QueueResponder struct {
 	conn    *amqp.Connection
