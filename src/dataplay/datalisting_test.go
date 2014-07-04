@@ -82,7 +82,7 @@ func TestSearchForData(t *testing.T) {
 		So(result, ShouldBeBlank)
 	})
 	Convey("When bad data parameter is provided", t, func() {
-		params["user"] = "1"
+		params["user"] = "-98"
 		params["s"] = "derpaderp"
 		result = SearchForDataQ(params)
 		So(result, ShouldEqual, "[]")
@@ -203,6 +203,11 @@ func TestDumpTableRange(t *testing.T) {
 		DumpTableRangeHttp(response, request, params)
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
+	Convey("When table name is incorrect ", t, func() {
+		params["id"] = "derpaderp"
+		DumpTableRangeHttp(response, request, params)
+		So(response.Code, ShouldEqual, http.StatusBadRequest)
+	})
 	Convey("When no x, startx or endx parameters are provided", t, func() {
 		params["id"] = "gdp"
 		DumpTableRangeHttp(response, request, params)
@@ -212,6 +217,11 @@ func TestDumpTableRange(t *testing.T) {
 		params["x"] = "year"
 		params["startx"] = "-400"
 		params["endx"] = "700000000.23"
+		DumpTableRangeHttp(response, request, params)
+		So(response.Code, ShouldEqual, http.StatusBadRequest)
+	})
+	Convey("When invalid column parameters are provided", t, func() {
+		params["x"] = "derp"
 		DumpTableRangeHttp(response, request, params)
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -415,6 +425,24 @@ func TestDumpReducedTable(t *testing.T) {
 		params["percent"] = "10"
 		params["min"] = "1"
 		DumpReducedTableHttp(response, request, params)
+	})
+	Convey("When parameter X is invalid", t, func() {
+		params["id"] = "gold"
+		params["x"] = "badcolX"
+		params["y"] = "badcolY"
+		params["percent"] = "10"
+		params["min"] = "1"
+		DumpReducedTableHttp(response, request, params)
+		So(response.Code, ShouldEqual, http.StatusBadRequest)
+	})
+	Convey("When parameter Y is invalid", t, func() {
+		params["id"] = "gold"
+		params["x"] = "price"
+		params["y"] = "bacdcolY"
+		params["percent"] = "10"
+		params["min"] = "1"
+		DumpReducedTableHttp(response, request, params)
+		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
 	Convey("When valid table and parameters are provided", t, func() {
 		params["id"] = "gdp"

@@ -32,6 +32,6 @@ func TestSendToQueue(t *testing.T) {
 	params := map[string]string{"": ""}
 	result := sendToQueue(response, request, params, reqstr, methstr)
 	Convey("Should return response channel", t, func() {
-		So(result, ShouldEqual, "[]")
+		So(result, ShouldNotBeNil)
 	})
 }
