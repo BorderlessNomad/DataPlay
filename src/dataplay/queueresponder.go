@@ -1,20 +1,10 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/streadway/amqp"
 	"log"
-	"time"
 )
-
-var (
-	responseTag = flag.String("restag", "consumer-response", "AMQP consumer response tag (should not be blank)")
-)
-
-func init() {
-	flag.Parse()
-}
 
 type QueueResponder struct {
 	conn    *amqp.Connection
@@ -23,24 +13,22 @@ type QueueResponder struct {
 	done    chan error
 }
 
+var responder *QueueResponder
+var err error
+
 func (resp *QueueResponder) Response() {
-	respumer, err := resp.Responder(*uri, *exchangeName, *exchangeType, *responseQueue, *responseKey, *responseTag)
+	responder, err = resp.Responder(*uri, *exchangeName, *exchangeType, *responseQueue, *responseKey, *responseTag)
 	if err != nil {
 		log.Fatalf("%s", err)
 	}
 
-	if *lifetime > 0 {
-		log.Printf("Responder::running for %s", *lifetime)
-		time.Sleep(*lifetime)
-	} else {
-		log.Printf("Responder::running forever")
-		select {}
-	}
+	log.Printf("Responder::running")
+	select {}
 
 	log.Printf("Responder::shutting down")
 
-	if err := respumer.Shutdown(); err != nil {
-		log.Fatalf("error during shutdown: %s", err)
+	if err := responder.Shutdown(); err != nil {
+		log.Fatalf("Responder::error during shutdown: %s", err)
 	}
 }
 
@@ -57,11 +45,11 @@ func (resp *QueueResponder) Responder(amqpURI, exchangeName, exchangeType, queue
 	log.Printf("Responder::dialing %q", amqpURI)
 	c.conn, err = amqp.Dial(amqpURI)
 	if err != nil {
-		return nil, fmt.Errorf("Dial: %s", err)
+		return nil, fmt.Errorf("Responder::Dial: %s", err)
 	}
 
 	go func() {
-		fmt.Printf("closing: %s", <-c.conn.NotifyClose(make(chan *amqp.Error)))
+		fmt.Printf("Responder::closing: %s", <-c.conn.NotifyClose(make(chan *amqp.Error)))
 	}()
 
 	log.Printf("Responder::got Connection, getting Channel")
@@ -80,7 +68,7 @@ func (resp *QueueResponder) Responder(amqpURI, exchangeName, exchangeType, queue
 		false,        // noWait
 		nil,          // arguments
 	); err != nil {
-		return nil, fmt.Errorf("Exchange Declare: %s", err)
+		return nil, fmt.Errorf("Responder::Exchange Declare: %s", err)
 	}
 
 	log.Printf("Responder::declared Exchange, declaring Queue %q", queueName)
@@ -93,7 +81,7 @@ func (resp *QueueResponder) Responder(amqpURI, exchangeName, exchangeType, queue
 		nil,       // arguments
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Queue Declare: %s", err)
+		return nil, fmt.Errorf("Responder::Queue Declare: %s", err)
 	}
 
 	log.Printf("Responder::setting QoS prefetch")
@@ -109,7 +97,7 @@ func (resp *QueueResponder) Responder(amqpURI, exchangeName, exchangeType, queue
 		false,        // noWait
 		nil,          // arguments
 	); err != nil {
-		return nil, fmt.Errorf("Queue Bind: %s", err)
+		return nil, fmt.Errorf("Responder::Queue Bind: %s", err)
 	}
 
 	log.Printf("Responder::Queue bound to Exchange, starting Consume (consumers tag %q)", c.tag)
@@ -123,7 +111,7 @@ func (resp *QueueResponder) Responder(amqpURI, exchangeName, exchangeType, queue
 		nil,        // arguments
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Queue Consume: %s", err)
+		return nil, fmt.Errorf("Responder::Queue Consume: %s", err)
 	}
 
 	go resp.handle(deliveries, c.done)
@@ -134,11 +122,11 @@ func (resp *QueueResponder) Responder(amqpURI, exchangeName, exchangeType, queue
 func (resp *QueueResponder) Shutdown() error {
 	// will close() the deliveries channel
 	if err := resp.channel.Cancel(resp.tag, true); err != nil {
-		return fmt.Errorf("Consumer cancel failed: %s", err)
+		return fmt.Errorf("Responder::Consumer cancel failed: %s", err)
 	}
 
 	if err := resp.conn.Close(); err != nil {
-		return fmt.Errorf("AMQP connection close error: %s", err)
+		return fmt.Errorf("Responder::AMQP connection close error: %s", err)
 	}
 
 	defer log.Printf("Responder::AMQP shutdown OK")
@@ -160,6 +148,12 @@ func (resp *QueueResponder) handle(deliveries <-chan amqp.Delivery, done chan er
 		responseChannel <- string(d.Body)
 
 		d.Ack(false)
+
+		/**
+		 * As soon as Response is received close the connection to allow efficient
+		 * queue management & run in fast sync mode
+		 */
+		responder.Shutdown()
 	}
 
 	log.Printf("Responder::handle: deliveries channel closed")

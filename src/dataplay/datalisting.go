@@ -699,44 +699,6 @@ func DumpTablePrediction(params map[string]string) ([]float64, *appError) {
 	return results, nil
 }
 
-func ConvertToFloat(val interface{}) (float64, error) {
-	switch i := val.(type) {
-	case float64:
-		return float64(i), nil
-	case float32:
-		return float64(i), nil
-	case int64:
-		return float64(i), nil
-	case int32:
-		return float64(i), nil
-	case int16:
-		return float64(i), nil
-	case int8:
-		return float64(i), nil
-	case uint64:
-		return float64(i), nil
-	case uint32:
-		return float64(i), nil
-	case uint16:
-		return float64(i), nil
-	case uint8:
-		return float64(i), nil
-	case int:
-		return float64(i), nil
-	case uint:
-		return float64(i), nil
-	case string:
-		f, err := strconv.ParseFloat(i, 64)
-		if err != nil {
-			return math.NaN(), err
-		}
-		return f, err
-	default:
-		return math.NaN(), errors.New("getFloat: unknown value is of incompatible type")
-	}
-
-}
-
 func DumpReducedTableHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 	result, error := DumpReducedTable(params)
 	if error != nil {
@@ -918,4 +880,50 @@ func getRealTableName(guid string) (out string, e error) {
 	}
 
 	return data.Tablename, err
+}
+
+/**
+ * @brief Convert given interface's value to Float
+ * @details Try and convert a given value to Float. Value can be in the form of Float,
+ * Int, Un-signed Int, String etc.
+ *
+ * @param  val interface{}
+ * @return float64, error
+ */
+func ConvertToFloat(val interface{}) (float64, error) {
+	switch i := val.(type) {
+	case float64:
+		return float64(i), nil
+	case float32:
+		return float64(i), nil
+	case int64:
+		return float64(i), nil
+	case int32:
+		return float64(i), nil
+	case int16:
+		return float64(i), nil
+	case int8:
+		return float64(i), nil
+	case uint64:
+		return float64(i), nil
+	case uint32:
+		return float64(i), nil
+	case uint16:
+		return float64(i), nil
+	case uint8:
+		return float64(i), nil
+	case int:
+		return float64(i), nil
+	case uint:
+		return float64(i), nil
+	case string:
+		f, err := strconv.ParseFloat(i, 64)
+		if err != nil {
+			return math.NaN(), err
+		}
+
+		return f, err
+	default:
+		return math.NaN(), errors.New("ConvertToFloat: Unknown value is of incompatible type")
+	}
 }

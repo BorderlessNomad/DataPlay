@@ -1,21 +1,11 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/streadway/amqp"
 	"log"
 	"time"
 )
-
-var (
-	requestTag = flag.String("reqtag", "consumer-request", "AMQP consumer request tag (should not be blank)")
-	lifetime   = flag.Duration("lifetime", 0*time.Second, "lifetime of process before shutdown (0s=infinite, 60s=1minute, 60m=1hour ..)")
-)
-
-func init() {
-	flag.Parse()
-}
 
 type QueueConsumer struct {
 	conn    *amqp.Connection
@@ -41,7 +31,7 @@ func (cons *QueueConsumer) Consume() {
 	log.Printf("Consumer::shutting down")
 
 	if err := consumer.Shutdown(); err != nil {
-		log.Fatalf("error during shutdown: %s", err)
+		log.Fatalf("Consumer::error during shutdown: %s", err)
 	}
 }
 
@@ -62,7 +52,7 @@ func (cons *QueueConsumer) Consumer(amqpURI, exchangeName, exchangeType, queueNa
 	}
 
 	go func() {
-		fmt.Printf("closing: %s", <-c.conn.NotifyClose(make(chan *amqp.Error)))
+		fmt.Printf("Consumer::closing: %s", <-c.conn.NotifyClose(make(chan *amqp.Error)))
 	}()
 
 	log.Printf("Consumer::got Connection, getting Channel")
@@ -81,7 +71,7 @@ func (cons *QueueConsumer) Consumer(amqpURI, exchangeName, exchangeType, queueNa
 		false,        // noWait
 		nil,          // arguments
 	); err != nil {
-		return nil, fmt.Errorf("Exchange Declare: %s", err)
+		return nil, fmt.Errorf("Consumer::Exchange Declare: %s", err)
 	}
 
 	log.Printf("Consumer::declared Exchange, declaring Queue %q", queueName)
@@ -94,7 +84,7 @@ func (cons *QueueConsumer) Consumer(amqpURI, exchangeName, exchangeType, queueNa
 		nil,       // arguments
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Queue Declare: %s", err)
+		return nil, fmt.Errorf("Consumer::Queue Declare: %s", err)
 	}
 
 	log.Printf("Consumer::setting QoS prefetch")
@@ -110,7 +100,7 @@ func (cons *QueueConsumer) Consumer(amqpURI, exchangeName, exchangeType, queueNa
 		false,        // noWait
 		nil,          // arguments
 	); err != nil {
-		return nil, fmt.Errorf("Queue Bind: %s", err)
+		return nil, fmt.Errorf("Consumer::Queue Bind: %s", err)
 	}
 
 	log.Printf("Consumer::Queue bound to Exchange, starting Consume (consumer tag %q)", c.tag)
@@ -124,7 +114,7 @@ func (cons *QueueConsumer) Consumer(amqpURI, exchangeName, exchangeType, queueNa
 		nil,        // arguments
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Queue Consume: %s", err)
+		return nil, fmt.Errorf("Consumer::Queue Consume: %s", err)
 	}
 
 	go cons.handle(deliveries, c.done)
@@ -135,11 +125,11 @@ func (cons *QueueConsumer) Consumer(amqpURI, exchangeName, exchangeType, queueNa
 func (cons *QueueConsumer) Shutdown() error {
 	// will close() the deliveries channel
 	if err := cons.channel.Cancel(cons.tag, true); err != nil {
-		return fmt.Errorf("Consumer cancel failed: %s", err)
+		return fmt.Errorf("Consumer::Consumer cancel failed: %s", err)
 	}
 
 	if err := cons.conn.Close(); err != nil {
-		return fmt.Errorf("AMQP connection close error: %s", err)
+		return fmt.Errorf("Consumer::AMQP connection close error: %s", err)
 	}
 
 	defer log.Printf("Consumer::AMQP shutdown OK")

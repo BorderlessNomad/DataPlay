@@ -2,8 +2,35 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
+	"time"
 )
+
+/* Custom config (only use if you want to change defaults) */
+var (
+	uri          = flag.String("uri", "amqp://playgen:aDam3ntiUm@109.231.121.13:5672/", "AMQP URI")
+	exchangeName = flag.String("exchange", "playgen-dev", "Durable (non-auto-deleted) AMQP exchange name")
+	exchangeType = flag.String("exchange-type", "direct", "Exchange type - direct|fanout|topic|x-custom")
+
+	requestQueue  = flag.String("requestqueue", "dataplay-request-dev", "Ephemeral AMQP Request queue name")
+	responseQueue = flag.String("responsequeue", "dataplay-response-dev", "Ephemeral AMQP Response queue name")
+
+	requestKey  = flag.String("requestkey", "api-request-dev", "AMQP Request routing key")
+	responseKey = flag.String("responsekey", "api-response-dev", "AMQP Response routing key")
+
+	requestTag  = flag.String("reqtag", "consumer-request-dev", "AMQP consumer request tag (should not be blank)")
+	responseTag = flag.String("restag", "consumer-response-dev", "AMQP consumer response tag (should not be blank)")
+
+	body     = flag.String("body", "foobar", "Body of message")
+	reliable = flag.Bool("reliable", true, "Wait for the publisher confirmation before exiting")
+
+	lifetime = flag.Duration("lifetime", 0*time.Second, "lifetime of process before shutdown (0s=infinite, 60s=1minute, 60m=1hour ..)")
+)
+
+func init() {
+	flag.Parse()
+}
 
 type Queue struct {
 	QueueProducer

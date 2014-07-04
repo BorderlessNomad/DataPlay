@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"net/http"
@@ -72,7 +71,7 @@ func Charts(res http.ResponseWriter, req *http.Request, params martini.Params) {
 	CheckAuthRedirect(res, req)
 
 	if IsUserLoggedIn(res, req) {
-		TrackVisited(params["id"], fmt.Sprint(GetUserID(res, req))) // Make sure the tracking module knows about their visit.
+		TrackVisited(params["id"], GetUserID(res, req)) // Make sure the tracking module knows about their visit.
 	}
 
 	RenderTemplate("public/charts.html", nil, res)
@@ -96,7 +95,7 @@ func Overlay(res http.ResponseWriter, req *http.Request) {
 func Overview(res http.ResponseWriter, req *http.Request, params martini.Params) {
 	CheckAuthRedirect(res, req)
 	if IsUserLoggedIn(res, req) {
-		TrackVisited(params["id"], fmt.Sprint(GetUserID(res, req)))
+		TrackVisited(params["id"], GetUserID(res, req))
 	}
 
 	RenderTemplate("public/overview.html", nil, res)
