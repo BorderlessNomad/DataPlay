@@ -53,6 +53,8 @@ func (cons *QueueConsumer) Consumer(amqpURI, exchangeName, exchangeType, queueNa
 
 	go func() {
 		fmt.Printf("Consumer::closing: %s", <-c.conn.NotifyClose(make(chan *amqp.Error)))
+		// Connection is closed so start again
+		c.Consume()
 	}()
 
 	log.Printf("Consumer::got Connection, getting Channel")
@@ -152,14 +154,14 @@ func (cons *QueueConsumer) handle(deliveries <-chan amqp.Delivery, done chan err
 			res = q.Decode(d.Body)
 		}
 
-		d.Ack(false)
-
 		log.Printf(
-			"Consumer::send %dB response: %q",
+			"Consumer::send %dB response",
 			len(res),
-			res,
 		)
+
 		q.respond(res)
+
+		d.Ack(false)
 	}
 
 	log.Printf("Consumer::handle: deliveries channel closed")
