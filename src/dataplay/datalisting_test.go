@@ -342,6 +342,6 @@ func TestConvertToFloat(t *testing.T) {
 			So(res, ShouldHaveSameTypeAs, chk)
 		}
 		_, err := ConvertToFloat(boolean)
-		So(err.Error(), ShouldEqual, "getFloat: unknown value is of incompatible type")
+		So(err.Error(), ShouldEqual, "ConvertToFloat: Unknown value is of incompatible type")
 	})
 }
