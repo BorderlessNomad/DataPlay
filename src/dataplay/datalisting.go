@@ -318,10 +318,11 @@ func DumpTable(params map[string]string) ([]map[string]interface{}, *appError) {
 		}
 	}
 
+	var tablename string
 	var err error
 
-	tablename, err := getRealTableName(params["id"])
-	if err != nil {
+	tablename, err = getRealTableName(params["id"])
+	if err != nil || len(tablename) == 0 {
 		return nil, &appError{err, "Unable to find that table", http.StatusBadRequest}
 	}
 
