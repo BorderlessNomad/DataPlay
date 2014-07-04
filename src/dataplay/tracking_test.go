@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func TestGetLastVisitedHttp(t *testing.T) {
+func TestGetLastVisited(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
 
@@ -30,6 +30,7 @@ func TestGetLastVisitedHttp(t *testing.T) {
 	Convey("Should get last visited", t, func() {
 		So(result, ShouldNotBeBlank)
 	})
+
 }
 
 func TestHasTableGotLocatonData(t *testing.T) {
