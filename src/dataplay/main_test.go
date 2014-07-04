@@ -7,6 +7,14 @@ import (
 )
 
 func TestMain(t *testing.T) {
+	*mode = 1
+	go func() {
+		main()
+	}()
+}
+
+func TestMain2(t *testing.T) {
+	*mode = 2
 	go func() {
 		main()
 	}()

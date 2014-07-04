@@ -182,7 +182,7 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, params martini.P
  * @return JSON containing Matched data
  */
 func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	RealTableName, e := getRealTableName(params["id"], res)
+	RealTableName, e := getRealTableName(params["id"])
 	if e != nil {
 		http.Error(res, "Could not find that Table", http.StatusInternalServerError)
 		return ""
@@ -254,7 +254,7 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, params martin
 }
 
 func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	RealTableName, e := getRealTableName(params["guid"], res)
+	RealTableName, e := getRealTableName(params["guid"])
 	if e != nil {
 		http.Error(res, "Could not find that table", http.StatusInternalServerError)
 		return ""

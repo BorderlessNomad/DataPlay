@@ -30,3 +30,11 @@ func QueueTestFunction(params map[string]string) string {
 	a := ix * iy * iz
 	return strconv.Itoa(a)
 }
+
+func TestQueueTestFunction(t *testing.T) {
+	params := make(map[string]string)
+	result := RunMethodByName("nosuchfunction", params)
+	Convey("Should fail to find function", t, func() {
+		So(result, ShouldEqual, "[]")
+	})
+}

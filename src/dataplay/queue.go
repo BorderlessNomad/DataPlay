@@ -50,7 +50,7 @@ func (self *funcs) callFunction(name string, args map[string]string) (ret string
 		return function(args), nil
 	}
 
-	return "", fmt.Errorf("function does not exist")
+	return "[]", fmt.Errorf("function does not exist")
 }
 
 func RunMethodByName(name string, params map[string]string) string {

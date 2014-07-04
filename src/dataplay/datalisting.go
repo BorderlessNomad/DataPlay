@@ -266,8 +266,8 @@ func DumpTableHttp(res http.ResponseWriter, req *http.Request, params martini.Pa
 		http.Error(res, "Sorry! Could not complete this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest)
 		return ""
 	}
-	result, _ := DumpTable(params)
-	if result == nil {
+	result, error := DumpTable(params)
+	if error != nil {
 		http.Error(res, "No data", http.StatusBadRequest)
 		return ""
 	}
@@ -314,17 +314,18 @@ func DumpTable(params map[string]string) ([]map[string]interface{}, *appError) {
 		count, cE = strconv.ParseInt(params["count"], 10, 64)
 
 		if oE != nil || cE != nil {
-			return nil, &appError{nil, "Please give valid numbers for offset and count", http.StatusBadRequest}
+			return nil, &appError{cE, "Please give valid numbers for offset and count", http.StatusBadRequest}
 		}
 	}
 
-	tablename, _ := getRealTableName(params["id"], nil)
-	if tablename == "" {
-		return nil, &appError{nil, "Unable to find that table", http.StatusBadRequest}
+	var err error
+
+	tablename, err := getRealTableName(params["id"])
+	if err != nil {
+		return nil, &appError{err, "Unable to find that table", http.StatusBadRequest}
 	}
 
 	var rows *sql.Rows
-	var err error
 
 	if UsingRanges {
 		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %s OFFSET %d LIMIT %d", tablename, offset, count)).Rows()
@@ -412,7 +413,7 @@ func DumpTableRangeQ(params map[string]string) string {
 // This function will empty a whole table out into JSON
 // Due to what seems to be a golang bug, everything is outputted as a string.
 func DumpTableRange(params map[string]string) ([]map[string]interface{}, *appError) {
-	tablename, e := getRealTableName(params["id"], nil)
+	tablename, e := getRealTableName(params["id"])
 	if e != nil {
 		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
@@ -509,7 +510,7 @@ func DumpTableGroupedQ(params map[string]string) string {
 // This is very useful for things like picharts
 // /api/getdatagrouped/:id/:x/:y
 func DumpTableGrouped(params map[string]string) ([]map[string]interface{}, *appError) {
-	tablename, e := getRealTableName(params["id"], nil)
+	tablename, e := getRealTableName(params["id"])
 	if e != nil {
 		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
@@ -622,7 +623,7 @@ func DumpTablePredictionQ(params map[string]string) string {
 
 // This call will get a X,Y and a prediction of a value. that is asked for
 func DumpTablePrediction(params map[string]string) ([]float64, *appError) {
-	tablename, e := getRealTableName(params["id"], nil)
+	tablename, e := getRealTableName(params["id"])
 	if e != nil {
 		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
@@ -733,6 +734,7 @@ func ConvertToFloat(val interface{}) (float64, error) {
 	default:
 		return math.NaN(), errors.New("getFloat: unknown value is of incompatible type")
 	}
+
 }
 
 func DumpReducedTableHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
@@ -773,7 +775,7 @@ func DumpReducedTable(params map[string]string) ([]map[string]interface{}, *appE
 		return nil, &appError{nil, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest}
 	}
 
-	tablename, e := getRealTableName(params["id"], nil)
+	tablename, e := getRealTableName(params["id"])
 	if e != nil {
 		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
@@ -907,13 +909,10 @@ func DumpReducedTable(params map[string]string) ([]map[string]interface{}, *appE
  *
  * @return string output, error
  */
-func getRealTableName(guid string, res ...http.ResponseWriter) (out string, e error) {
+func getRealTableName(guid string) (out string, e error) {
 	data := OnlineData{}
 	err := DB.Select("tablename").Where("guid = ?", guid).Find(&data).Error
 	if err == gorm.RecordNotFound {
-		if res != nil {
-			http.Error(res[0], "Could not find that table", http.StatusNotFound)
-		}
 
 		return "", fmt.Errorf("Could not find table")
 	}

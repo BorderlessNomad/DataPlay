@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func TestGetLastVisited(t *testing.T) {
+func TestGetLastVisitedHttp(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
 
@@ -26,7 +26,7 @@ func TestGetLastVisited(t *testing.T) {
 	http.SetCookie(response, NewCookie)
 	request.Header.Set("Cookie", NewCookie.String())
 
-	result := GetLastVisited(response, request)
+	result := GetLastVisitedHttp(response, request)
 	Convey("Should get last visited", t, func() {
 		So(result, ShouldNotBeBlank)
 	})
@@ -62,5 +62,20 @@ func TestContainsTableCol(t *testing.T) {
 func TestTrackVisited(t *testing.T) {
 	Convey("Track visited", t, func() {
 		TrackVisited("", "")
+	})
+}
+
+func TestGetLastVisitedQ(t *testing.T) {
+	m := make(map[string]string)
+
+	Convey("Should return empty when no user", t, func() {
+		result := GetLastVisitedQ(m)
+		So(result, ShouldBeEmpty)
+	})
+
+	Convey("Should not return empty when there is a user", t, func() {
+		m["user"] = "11"
+		result := GetLastVisitedQ(m)
+		So(result, ShouldNotBeEmpty)
 	})
 }

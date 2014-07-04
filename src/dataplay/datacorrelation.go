@@ -135,12 +135,11 @@ func Sgn(a float64) float64 {
 	switch {
 	case a < 0:
 		return -1
-	case a == 0:
-		return 0
 	case a > 0:
 		return 1
+	default:
+		return 0
 	}
-	return 0
 }
 
 // Determines the value of the rank and wherever data values are tied gives them all the same average rank value
