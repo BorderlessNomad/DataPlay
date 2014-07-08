@@ -37,7 +37,7 @@ func TestCheckAuth(t *testing.T) {
 	})
 }
 
-func TestSearchForDataHttp(t *testing.T) {
+func TestSearchForData(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
 	params := map[string]string{
@@ -48,28 +48,49 @@ func TestSearchForDataHttp(t *testing.T) {
 	Convey("When no search parameter is provided", t, func() {
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
-
 	Convey("When search parameter is 'nhs'", t, func() {
 		params["s"] = "nhs"
 		result = SearchForDataHttp(response, request, params)
 		So(result, ShouldNotBeBlank)
 	})
-
 	Convey("When search parameter is 'hs'", t, func() {
 		params["s"] = "hs"
 		result = SearchForDataHttp(response, request, params)
 		So(result, ShouldNotBeBlank)
 	})
-
 	Convey("When search parameter is 'n h s'", t, func() {
 		params["s"] = "n h s"
 		result = SearchForDataHttp(response, request, params)
 		So(result, ShouldNotBeBlank)
 	})
-
 	Convey("When search parameter is 'freakshine'", t, func() {
 		params["s"] = "freakshine"
 		result = SearchForDataHttp(response, request, params)
+		So(result, ShouldNotBeBlank)
+	})
+
+	//////////////////Q TESTS///////////////////
+
+	Convey("When no search parameter is provided", t, func() {
+		params["user"] = ""
+		result = SearchForDataQ(params)
+		So(result, ShouldBeBlank)
+	})
+	Convey("When bad user parameter is provided", t, func() {
+		params["user"] = "q23x467bdf82123ff2344"
+		result = SearchForDataQ(params)
+		So(result, ShouldBeBlank)
+	})
+	Convey("When bad data parameter is provided", t, func() {
+		params["user"] = "-98"
+		params["s"] = "derpaderp"
+		result = SearchForDataQ(params)
+		So(result, ShouldEqual, "[]")
+	})
+	Convey("When search parameter is 'nhs'", t, func() {
+		params["user"] = "1"
+		params["s"] = "nhs"
+		result = SearchForDataQ(params)
 		So(result, ShouldNotBeBlank)
 	})
 }
@@ -118,7 +139,7 @@ func TestScanRow(t *testing.T) {
 
 }
 
-func TestDumpTableHttp(t *testing.T) {
+func TestDumpTable(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
 	params := map[string]string{"id": ""}
@@ -127,35 +148,53 @@ func TestDumpTableHttp(t *testing.T) {
 		DumpTableHttp(response, request, params)
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
-
 	Convey("When table name is incorrect ", t, func() {
 		params["id"] = "qwerty1"
 		DumpTableHttp(response, request, params)
 		So(response.Code, ShouldNotBeNil)
 	})
-
 	Convey("When limits are not provided", t, func() {
 		params["id"] = "gdp"
 		DumpTableHttp(response, request, params)
 		So(response.Code, ShouldNotBeNil)
 	})
-
 	Convey("When incorrect limits are provided", t, func() {
 		params["offset"] = "-3000"
 		params["count"] = "10.5"
 		DumpTableHttp(response, request, params)
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
-
 	Convey("When correct limits are provided", t, func() {
 		params["offset"] = "5"
 		params["count"] = "10"
 		DumpTableHttp(response, request, params)
 		So(response.Code, ShouldNotBeNil)
 	})
+
+	//////////////////////Q TESTS////////////////////////
+	result := ""
+	Convey("When no ID parameter is provided", t, func() {
+		params["id"] = ""
+		DumpTableQ(params)
+		So(result, ShouldEqual, "")
+	})
+	Convey("When bad paramaters provided", t, func() {
+		params["id"] = "qwerty1"
+		params["offset"] = "-3000"
+		params["count"] = "10.5"
+		DumpTableQ(params)
+		So(result, ShouldEqual, "")
+	})
+	Convey("When correct parameters are provided", t, func() {
+		params["id"] = "gdp"
+		params["offset"] = "5"
+		params["count"] = "10"
+		DumpTableQ(params)
+		So(result, ShouldNotBeNil)
+	})
 }
 
-func TestDumpTableRangeHttp(t *testing.T) {
+func TestDumpTableRange(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
 	params := map[string]string{"id": ""}
@@ -164,12 +203,16 @@ func TestDumpTableRangeHttp(t *testing.T) {
 		DumpTableRangeHttp(response, request, params)
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
-
+	Convey("When table name is incorrect ", t, func() {
+		params["id"] = "derpaderp"
+		DumpTableRangeHttp(response, request, params)
+		So(response.Code, ShouldEqual, http.StatusBadRequest)
+	})
 	Convey("When no x, startx or endx parameters are provided", t, func() {
 		params["id"] = "gdp"
 		DumpTableRangeHttp(response, request, params)
+		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
-
 	Convey("When bad range parameters are provided", t, func() {
 		params["x"] = "year"
 		params["startx"] = "-400"
@@ -177,16 +220,50 @@ func TestDumpTableRangeHttp(t *testing.T) {
 		DumpTableRangeHttp(response, request, params)
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
-
+	Convey("When invalid column parameters are provided", t, func() {
+		params["x"] = "derp"
+		DumpTableRangeHttp(response, request, params)
+		So(response.Code, ShouldEqual, http.StatusBadRequest)
+	})
 	Convey("When good parameters are provided", t, func() {
 		params["x"] = "year"
 		params["startx"] = "1970"
 		params["endx"] = "2000"
 		DumpTableRangeHttp(response, request, params)
+		So(response.Code, ShouldNotBeNil)
+	})
+
+	//////////////////////Q TESTS////////////////////////
+
+	result := ""
+	Convey("When no id parameter is provided", t, func() {
+		params["id"] = ""
+		result = DumpTableRangeQ(params)
+		So(result, ShouldEqual, "")
+	})
+	Convey("When empty parameters are provided", t, func() {
+		params["id"] = "gdp"
+		params["x"] = ""
+		result = DumpTableRangeQ(params)
+		So(result, ShouldEqual, "")
+	})
+	Convey("When bad parameters are provided", t, func() {
+		params["x"] = "year"
+		params["startx"] = "-400"
+		params["endx"] = "700000000.23"
+		result = DumpTableRangeQ(params)
+		So(result, ShouldEqual, "")
+	})
+	Convey("When good parameters are provided", t, func() {
+		params["x"] = "year"
+		params["startx"] = "1970"
+		params["endx"] = "2000"
+		result = DumpTableRangeQ(params)
+		So(result, ShouldNotBeNil)
 	})
 }
 
-func TestDumpTableGroupedHttp(t *testing.T) {
+func TestDumpTableGrouped(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
 	params := map[string]string{"id": ""}
@@ -195,37 +272,58 @@ func TestDumpTableGroupedHttp(t *testing.T) {
 		DumpTableGroupedHttp(response, request, params)
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
-
 	Convey("When invalid X Col parameter is provided", t, func() {
 		params["id"] = "gdp"
 		params["x"] = "qwerty1"
 		params["y"] = "gdpindex"
 		DumpTableGroupedHttp(response, request, params)
 	})
-
 	Convey("When invalid Y Col parameter is provided", t, func() {
 		params["id"] = "gdp"
 		params["x"] = "change"
 		params["y"] = "qwerty1"
 		DumpTableGroupedHttp(response, request, params)
 	})
-
 	Convey("When Y Col parameter is a date", t, func() {
 		params["id"] = "gold"
 		params["x"] = "price"
 		params["y"] = "date"
 		DumpTableGroupedHttp(response, request, params)
 	})
-
 	Convey("When valid parameters are provided", t, func() {
 		params["id"] = "gdp"
 		params["x"] = "change"
 		params["y"] = "gdpindex"
 		DumpTableGroupedHttp(response, request, params)
 	})
+
+	////////////////////Q TESTS/////////////////
+
+	result := ""
+	Convey("When no ID, x or y parameters are provided", t, func() {
+		params["id"] = ""
+		params["x"] = ""
+		params["y"] = ""
+		result = DumpTableGroupedQ(params)
+		So(result, ShouldEqual, "")
+	})
+	Convey("When invalid parameters is provided", t, func() {
+		params["id"] = "derp"
+		params["x"] = "change"
+		params["y"] = "qwerty1"
+		result = DumpTableGroupedQ(params)
+		So(result, ShouldEqual, "")
+	})
+	Convey("When valid parameters are provided", t, func() {
+		params["id"] = "gdp"
+		params["x"] = "change"
+		params["y"] = "gdpindex"
+		result = DumpTableGroupedQ(params)
+		So(result, ShouldNotBeNil)
+	})
 }
 
-func TestDumpTablePredictionHttp(t *testing.T) {
+func TestDumpTablePrediction(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
 	params := map[string]string{"id": ""}
@@ -263,9 +361,36 @@ func TestDumpTablePredictionHttp(t *testing.T) {
 		params["y"] = "gdpindex"
 		DumpTablePredictionHttp(response, request, params)
 	})
+
+	////////////////////Q TESTS/////////////////
+
+	result := ""
+
+	Convey("When no ID, x or y parameters are provided", t, func() {
+		params["id"] = ""
+		params["x"] = ""
+		params["y"] = ""
+		result = DumpTablePredictionQ(params)
+		So(result, ShouldEqual, "")
+	})
+
+	Convey("When invalid parameters are provided", t, func() {
+		params["id"] = "derp"
+		params["x"] = "qwerty1"
+		params["y"] = "derp"
+		result = DumpTablePredictionQ(params)
+		So(result, ShouldEqual, "")
+	})
+	Convey("When valid parameters are provided", t, func() {
+		params["id"] = "gdp"
+		params["x"] = "change"
+		params["y"] = "gdpindex"
+		result = DumpTablePredictionQ(params)
+		So(result, ShouldNotBeEmpty)
+	})
 }
 
-func TestDumpReducedTableHttp(t *testing.T) {
+func TestDumpReducedTable(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
 	params := map[string]string{"id": ""}
@@ -274,30 +399,25 @@ func TestDumpReducedTableHttp(t *testing.T) {
 		DumpReducedTableHttp(response, request, params)
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
-
 	Convey("When invalid table is provided", t, func() {
 		params["id"] = "qwerty1"
 		DumpReducedTableHttp(response, request, params)
 	})
-
 	Convey("When valid table is provided without parameters", t, func() {
 		params["id"] = "gdp"
 		DumpReducedTableHttp(response, request, params)
 	})
-
 	Convey("When invalid percent parameter is provided", t, func() {
 		params["id"] = "gdp"
 		params["percent"] = "-101.1"
 		DumpReducedTableHttp(response, request, params)
 	})
-
 	Convey("When invalid min parameter is provided", t, func() {
 		params["id"] = "gdp"
 		params["percent"] = "-10"
 		params["min"] = "a"
 		DumpReducedTableHttp(response, request, params)
 	})
-
 	Convey("When parameter Y is a varchar or date", t, func() {
 		params["id"] = "gold"
 		params["x"] = "price"
@@ -306,7 +426,24 @@ func TestDumpReducedTableHttp(t *testing.T) {
 		params["min"] = "1"
 		DumpReducedTableHttp(response, request, params)
 	})
-
+	Convey("When parameter X is invalid", t, func() {
+		params["id"] = "gold"
+		params["x"] = "badcolX"
+		params["y"] = "badcolY"
+		params["percent"] = "10"
+		params["min"] = "1"
+		DumpReducedTableHttp(response, request, params)
+		So(response.Code, ShouldEqual, http.StatusBadRequest)
+	})
+	Convey("When parameter Y is invalid", t, func() {
+		params["id"] = "gold"
+		params["x"] = "price"
+		params["y"] = "bacdcolY"
+		params["percent"] = "10"
+		params["min"] = "1"
+		DumpReducedTableHttp(response, request, params)
+		So(response.Code, ShouldEqual, http.StatusBadRequest)
+	})
 	Convey("When valid table and parameters are provided", t, func() {
 		params["id"] = "gdp"
 		params["x"] = "change"
@@ -314,6 +451,28 @@ func TestDumpReducedTableHttp(t *testing.T) {
 		params["percent"] = "10"
 		params["min"] = "1"
 		DumpReducedTableHttp(response, request, params)
+	})
+
+	//////////////////Q TESTS//////////////////
+
+	result := ""
+	Convey("When invalid parameters are passed", t, func() {
+		params["id"] = ""
+		params["x"] = "derp"
+		params["y"] = "derp"
+		params["percent"] = "-10"
+		params["min"] = "1"
+		result = DumpReducedTableQ(params)
+		So(result, ShouldEqual, "")
+	})
+	Convey("When valid table and parameters are provided", t, func() {
+		params["id"] = "gdp"
+		params["x"] = "change"
+		params["y"] = "gdpindex"
+		params["percent"] = "10"
+		params["min"] = "1"
+		result = DumpReducedTableQ(params)
+		So(result, ShouldNotBeEmpty)
 	})
 }
 

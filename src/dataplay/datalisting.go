@@ -605,7 +605,6 @@ func DumpTablePredictionHttp(res http.ResponseWriter, req *http.Request, params 
 
 func DumpTablePredictionQ(params map[string]string) string {
 	if params["id"] == "" || params["x"] == "" || params["y"] == "" {
-		http.Error(nil, "You did not provide enough infomation to make this kind of request :id/:x/:y", http.StatusBadRequest)
 		return ""
 	}
 

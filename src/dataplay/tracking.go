@@ -5,7 +5,6 @@ import (
 	"github.com/jinzhu/gorm"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -79,26 +78,6 @@ func GetLastVisited(uid int) ([][]string, *appError) {
 	}
 
 	return data, nil
-}
-
-func HasTableGotLocationData(datasetGUID string) string {
-	cols := FetchTableCols(datasetGUID)
-
-	if ContainsTableCol(cols, "lat") && (ContainsTableCol(cols, "lon") || ContainsTableCol(cols, "long")) {
-		return "true"
-	}
-
-	return "false"
-}
-
-func ContainsTableCol(cols []ColType, target string) bool {
-	for _, v := range cols {
-		if strings.ToLower(v.Name) == target {
-			return true
-		}
-	}
-
-	return false
 }
 
 func TrackVisited(guid string, user int) {

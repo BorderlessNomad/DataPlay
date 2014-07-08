@@ -78,6 +78,26 @@ func FetchTableCols(guid string) (output []ColType) {
 	return results
 }
 
+func HasTableGotLocationData(datasetGUID string) string {
+	cols := FetchTableCols(datasetGUID)
+
+	if ContainsTableCol(cols, "lat") && (ContainsTableCol(cols, "lon") || ContainsTableCol(cols, "long")) {
+		return "true"
+	}
+
+	return "false"
+}
+
+func ContainsTableCol(cols []ColType, target string) bool {
+	for _, v := range cols {
+		if strings.ToLower(v.Name) == target {
+			return true
+		}
+	}
+
+	return false
+}
+
 /**
  * @brief Get the SQL Scheme for a Table
  * @details Almost all of the SQLs support 'information_schema' database which stores metadata about

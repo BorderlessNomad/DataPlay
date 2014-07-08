@@ -1,29 +1,15 @@
 package main
 
 import (
-	crand "crypto/rand"
+	"crypto/rand"
 	"encoding/hex"
 	"fmt"
 	"github.com/streadway/amqp"
 	"log"
-	"math/rand"
 	"time"
 )
 
 type QueueProducer struct {
-}
-
-func (prod *QueueProducer) Test() {
-	rand.Seed(time.Now().Unix())
-	// Infinite loop running at random interval and sending dummy message to Queue
-	i := 0
-	for {
-		i++
-		prod.send(fmt.Sprintf("Hello #%d", i))
-		rand := randomDuration(100, 1000)
-		fmt.Println("After ", rand, " secs")
-		time.Sleep(rand * time.Millisecond)
-	}
 }
 
 func (prod *QueueProducer) send(message string) {
@@ -137,17 +123,12 @@ func (prod *QueueProducer) confirmOne(ack, nack chan uint64) {
 	}
 }
 
-func randomDuration(min, max int) time.Duration {
-	rand.Seed(time.Now().Unix())
-	return time.Duration(rand.Intn(max-min) + min)
-}
-
 /**
  * RFC 4122 UUID
  */
 func GenUUID() (string, error) {
 	uuid := make([]byte, 16)
-	n, err := crand.Read(uuid)
+	n, err := rand.Read(uuid)
 	if n != len(uuid) || err != nil {
 		return "", err
 	}
