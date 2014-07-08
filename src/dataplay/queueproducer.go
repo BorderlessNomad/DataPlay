@@ -75,8 +75,14 @@ func (prod *QueueProducer) publish(amqpURI, exchange, exchangeType, queue, key, 
 		defer prod.confirmOne(ack, nack)
 	}
 
+	return prod.broadcast(channel, exchange, key, body)
+}
+
+func (prod *QueueProducer) broadcast(channel *amqp.Channel, exchange, key, body string) error {
 	log.Printf("Producer::declared Exchange, publishing %dB body (%q)", len(body), body)
+
 	uuid, _ := GenUUID()
+
 	if err = channel.Publish(
 		exchange, // publish to an exchange
 		key,      // routing to 0 or more queues

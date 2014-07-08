@@ -839,7 +839,7 @@ func DumpReducedTable(params map[string]string) ([]map[string]interface{}, *appE
 				return nil, &appError{e, "Invalid min", http.StatusBadRequest}
 			}
 
-			if int(RealDL/DataLength) < int(MinSpend) {
+			if DataLength > 0 && int(RealDL/DataLength) < int(MinSpend) {
 				DataLength = RealDL / int(MinSpend)
 			}
 		}

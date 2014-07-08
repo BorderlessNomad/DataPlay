@@ -262,16 +262,17 @@ func initNodeMode() {
 var responseChannel chan string
 
 func sendToQueue(res http.ResponseWriter, req *http.Request, params martini.Params, request string, method string) string {
+	responseChannel = make(chan string, 1)
+
 	q := Queue{}
+	go q.Response()
+
 	params["user"] = strconv.Itoa(GetUserID(res, req))
 	message := q.Encode(method, params)
 
 	fmt.Println("Sending request to Queue", request, params, message)
 
-	responseChannel = make(chan string, 1)
-
 	go q.send(message)
-	go q.Response()
 
 	return <-responseChannel
 }
