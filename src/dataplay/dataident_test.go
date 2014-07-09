@@ -57,14 +57,14 @@ func TestFetchTableCols(t *testing.T) {
 	})
 }
 
-func TestExtractDataColumn(t *testing.T) {
-	result := ExtractDataColumn("gdp", "gdpindex")
+func TestExtractData(t *testing.T) {
+	result := ExtractData("gdp", "gdpindex")
 	Convey("When no guid passed no column names are returned", t, func() {
 		So(result, ShouldNotBeNil)
 	})
 
 	Convey("When no guid passed no values are returned", t, func() {
-		result = ExtractDataColumn("", "")
+		result = ExtractData("", "")
 		So(result, ShouldBeNil)
 	})
 }

@@ -11,7 +11,13 @@ type Ordinal struct {
 	RankVal  float64 // calculated rank value
 }
 
-// calculates Pearson product-moment correlation coefficient for two interval/ratio data sets of equal size
+/**
+ * @brief calculates Pearson coefficient
+ * @details calculates Pearson product-moment correlation coefficient for two interval/ratio data sets of equal size
+ *
+ * @param float64 arrays of x & y values
+ * @return correlation value
+ */
 func Pearson(x []float64, y []float64) float64 {
 	sumx, sumy, sumxSq, sumySq, pSum := 0.0, 0.0, 0.0, 0.0, 0.0
 	n := float64(len(x))
@@ -36,7 +42,13 @@ func Pearson(x []float64, y []float64) float64 {
 	return num / den
 }
 
-//calculates the correlation between two data sets with a common divisor
+/**
+ * @brief calculates the correlation between two data sets with a common divisor
+ * @details
+ *
+ * @param float64 arrays of x, y & z values
+ * @return correlation value
+ */
 func Spurious(x []float64, y []float64, z []float64) float64 {
 	vx := math.Pow(Variation(x), 2)
 	vy := math.Pow(Variation(y), 2)
@@ -51,7 +63,13 @@ func Spurious(x []float64, y []float64, z []float64) float64 {
 	return r
 }
 
-// calculates Spearman's rank correlation coefficient for ranked, ordinal data
+/**
+ * @brief calculates Spearman's rank correlation coefficient for ranked, ordinal data]
+ * @details
+ *
+ * @param float64 arrays of x & y values
+ * @return correlation value
+ */
 func Spearman(x []float64, y []float64) float64 {
 	n := len(x)
 	rx := make([]Ordinal, n)
@@ -99,16 +117,26 @@ func Spearman(x []float64, y []float64) float64 {
 	return p
 }
 
-// calculates the coeficient of variation or relative variability (the ratio of the standard deviation to the mean)
-// may return 1/result for use in spurious correlation formula
+/**
+ * @brief calculates the coeficient of variation
+ * @details calculates the relative variability (the ratio of the standard deviation to the mean)
+ *
+ * @param array of float values
+ * @return variation value
+ */
 func Variation(x []float64) float64 {
 	standDev := StandDev(x)
 	mean := Mean(x)
 	return standDev / mean
-
 }
 
-// calculates the population standard deviation (not the sample standard deviation as we are not interested in extrapolating)
+/**
+ * @brief calculates the population standard deviation
+ * @details (not the sample standard deviation as we are not interested in extrapolating)
+ *
+ * @param array of float values
+ * @return standard deviation value
+ */
 func StandDev(x []float64) float64 {
 	sumx := 0.0
 	n := float64(len(x))
@@ -119,7 +147,13 @@ func StandDev(x []float64) float64 {
 	return math.Sqrt(sumx / n)
 }
 
-//calculates the mean average
+/**
+ * @brief calculates the mean average
+ * @details
+ *
+ * @param float64 array of values
+ * @return mean of values
+ */
 func Mean(x []float64) float64 {
 	n := float64(len(x))
 	sumx := 0.0
@@ -129,7 +163,13 @@ func Mean(x []float64) float64 {
 	return sumx / n
 }
 
-// returns sign of value
+/**
+ * @brief returns sign of value
+ * @details
+ *
+ * @param float64 value
+ * @return sign multiplier
+ */
 func Sgn(a float64) float64 {
 
 	switch {
@@ -142,7 +182,13 @@ func Sgn(a float64) float64 {
 	}
 }
 
-// Determines the value of the rank and wherever data values are tied gives them all the same average rank value
+/**
+ * @brief Determines the value of the rank and wherever data values are tied gives them all the same average rank value
+ * @details
+ *
+ * @param ordinal struct
+ * @return true if there are tied values
+ */
 func Rank(o []Ordinal) bool {
 	n := cap(o)
 	tied := false

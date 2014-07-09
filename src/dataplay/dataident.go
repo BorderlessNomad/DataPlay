@@ -44,7 +44,15 @@ type PossibleCombo struct {
 	Tables []string
 }
 
-// This function checks to see if the data has been imported yet or still is in need of importing
+/**
+ * @brief This function checks to see if the data has been imported yet or still is in need of importing
+ * @details
+ *
+ * @param http
+ * @param http
+ * @param martini
+ * @return
+ */
 func IdentifyTable(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 	if params["id"] == "" {
 		http.Error(res, "There was no ID request", http.StatusBadRequest)
@@ -61,7 +69,13 @@ func IdentifyTable(res http.ResponseWriter, req *http.Request, params martini.Pa
 	return string(b)
 }
 
-// This fetches a array of all the col names and their types.
+/**
+ * @brief This fetches an array of all the col names and their types.
+ * @details
+ *
+ * @param string
+ * @return
+ */
 func FetchTableCols(guid string) (output []ColType) {
 	if guid == "" {
 		return output
@@ -78,7 +92,7 @@ func FetchTableCols(guid string) (output []ColType) {
 	return results
 }
 
-func ExtractDataColumn(guid string, col string) []float64 {
+func ExtractData(guid string, col string) []float64 {
 	var result []float64
 
 	if guid == "" || col == "" {
