@@ -31,6 +31,23 @@ func (t Tracking) TableName() string {
 	return "priv_tracking"
 }
 
+type Correlation struct {
+	Tbl1   string
+	Col1   string
+	Tbl2   string
+	Col2   string
+	Tbl3   string
+	Col3   string
+	Method string
+	Coef   float64
+	Json   string
+	Id     int `primaryKey:"yes"`
+}
+
+func (c Correlation) TableName() string {
+	return "priv_correlation"
+}
+
 type Index struct {
 	Guid    string
 	Name    string
