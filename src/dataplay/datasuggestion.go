@@ -78,7 +78,7 @@ func SelectRandomValidColumn(cols []ColType) string {
 
 	n := len(columns)
 
-	if n >= 0 {
+	if n > 0 {
 		x := rand.Intn(n)
 		return columns[x]
 	} else {
