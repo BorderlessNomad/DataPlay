@@ -12,13 +12,14 @@ angular
 	.module('dataplayApp', [
 		'ngAnimate'
 		'ngCookies'
+		'ipCookie'
 		'ngResource'
 		'ngRoute'
 		'ngSanitize'
-		'UserApp'
 	])
 
 angular.module('dataplayApp')
 	.constant "config",
+		cookieName: "DPSession"
 		api:
 			base_url: "http://localhost:3000/api"

@@ -8,48 +8,69 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'UserCtrl', ($scope, $location, ngCookies, User, Auth) ->
-
+	.controller 'UserCtrl', ['$scope', '$location', 'ipCookie', 'User', 'Auth', 'config', ($scope, $location, ipCookie, User, Auth, config) ->
 		$scope.user =
 			username: null
 			password: null
+			password_confirm: null
+			message: null
 
 		$scope.login = (user) ->
 			if user.username? and user.password?
 				User.logIn(user.username, user.password).success((data) ->
-					Auth.isLogged = true
-					# store Cookie
-					$location.path "/home"
+					$scope.processLogin data
+
 					return
 				).error (status, data) ->
-					console.log "User::Login::Error:", status, data
+					$scope.user.message = status
+					console.log "User::Login::Error:", status
 					return
 
 			return
 
+		$scope.processLogin = (data) ->
+			Auth.username = data.username
+
+			ipCookie data.session.name, data.session.value,
+				expires: data.session.expiry
+				expirationUnit: 'seconds'
+
+			$location.path "/home"
+
+			return
+
 		$scope.logout = () ->
-			if Auth.isLogged
-				# Send DELETE request to Server
+			token = Auth.isAuthenticated()
+
+			if token isnt false
 				User.logOut(token).success((data) ->
-					Auth.isLogged = false
-					# delete Cookie
+					Auth.username = null
+
+					ipCookie.remove config.cookieName
+
 					$location.path "/"
 					return
 				).error (status, data) ->
-					console.log "User::Logout::Error:", status, data
+					$scope.user.message = status
+					console.log "User::Logout::Error:", status
 					return
+
+			$location.path "/login"
 
 			return
 
 		$scope.register = (user) ->
 			if user.username? and user.password?
 				User.register(user.username, user.password).success((data) ->
-					$location.path "/login"
+					$scope.processLogin data
+
 					return
 				).error (status, data) ->
-					console.log "User::Register::Error:", status, data
+					$scope.user.message = status
+					console.log "User::Register::Error:", status
 					return
 
 			return
 
 		return
+	]

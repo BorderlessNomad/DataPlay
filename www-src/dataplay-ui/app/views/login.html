@@ -1,6 +1,19 @@
-<form class="form-signin" role="form" ng-controller="UserCtrl" ng-submit="login(user)" novalidate>
-	<h2 class="form-signin-heading">Please sign in</h2>
-	<input type="email" class="form-control" placeholder="Email address" ng-model="user.username" required autofocus>
-	<input type="password" class="form-control" placeholder="Password" ng-model="user.password" required>
-	<button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+<form name="loginForm" class="form-signin" role="form" ng-controller="UserCtrl" ng-submit="login(user)" novalidate>
+	<div class="alert alert-dismissable alert-danger" ng-show="user.message.length > 0">
+		<button type="button" class="close" data-dismiss="alert">×</button>
+		{{user.message}}
+	</div>
+	<div class="form-group" ng-class="{'has-error': loginForm.username.$invalid && !loginForm.username.$pristine}">
+		<input class="form-control" name="username" type="text" placeholder="Username" ng-required="true" ng-model="user.username" autocomplete="off" />
+		<p data-ng-show="loginForm.username.$invalid && !loginForm.username.$pristine" class="help-block">Required</p>
+	</div>
+	<div class="form-group" ng-class="{'has-error': loginForm.password.$invalid && !loginForm.password.$pristine}">
+		<input class="form-control" name="password" type="password" placeholder="Password" ng-required="true" ng-model="user.password" autocomplete="off" />
+		<p data-ng-show="loginForm.password.$invalid && !loginForm.password.$pristine" class="help-block">Required</p>
+	</div>
+	<div class="form-group">
+		<button type="submit" class="btn btn-primary btn-block" value="Login" title="Login" ng-disabled="!loginForm.$valid">
+			<span>Login</span>
+	</button>
+	</div>
 </form>
