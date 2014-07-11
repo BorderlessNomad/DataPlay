@@ -10,7 +10,11 @@
 ###
 
 angular.module('dataplayApp')
-	.config ($routeProvider) ->
+	.config ($routeProvider, $locationProvider, $provide) ->
+		$provide.decorator '$sniffer', ($delegate) ->
+			$delegate.history = false
+			$delegate
+
 		$routeProvider
 			.when '/',
 				templateUrl: 'views/home.html'
@@ -33,6 +37,7 @@ angular.module('dataplayApp')
 				login: false
 			.when '/logout',
 				templateUrl: 'views/login.html'
+				controller: 'UserCtrl'
 				login: true
 			.when '/register',
 				templateUrl: 'views/register.html'
@@ -40,10 +45,16 @@ angular.module('dataplayApp')
 			.otherwise
 				redirectTo: '/'
 
+		$locationProvider
+			.html5Mode true
+			.hashPrefix '!'
+
+		return
+
 angular.module('dataplayApp')
 	.run ($rootScope, $location, Auth) ->
 		$rootScope.$on "$routeChangeStart", (event, nextRoute, currentRoute) ->
-			if nextRoute? and nextRoute.login and not Auth.isAuthenticated
+			if nextRoute? and nextRoute.login and Auth.isAuthenticated() is false
 				$location.path "/login"
 				return
 

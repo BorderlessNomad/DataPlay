@@ -45,15 +45,16 @@ func Login(res http.ResponseWriter, req *http.Request) {
 	return
 }
 
+// Deprecated
 func Logout(res http.ResponseWriter, req *http.Request) {
-	HandleLogout(res, req)
+	// HandleLogout(res, req)
 
-	failedstr := ""
-	custom := map[string]string{
-		"fail": failedstr,
-	}
+	// failedstr := ""
+	// custom := map[string]string{
+	// 	"fail": failedstr,
+	// }
 
-	RenderTemplate("public/signin.html", custom, res)
+	// RenderTemplate("public/signin.html", custom, res)
 	return
 }
 
