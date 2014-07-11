@@ -15,7 +15,7 @@ func MigrateColumns() {
 		ColumnName string
 		DataType   string
 	}{}
-	err1 := DB.Table("information_schema.columns").Select("table_name, column_name, data_type").Where("table_catalog = ?", "dataplay").Where("table_schema = ?", "public").Where("data_type = ?", "character varying").Where("table_name != ?", "proc").Find(&schema).Error
+	err1 := DB.Table("information_schema.columns").Select("table_name, column_name, data_type").Where("table_catalog = ?", "dataplay").Where("table_schema = ?", "public").Where("data_type = ?", "character varying").Where("table_name != ?", "proc").Where("column_name LIKE ?", "%date%").Find(&schema).Error
 
 	check(err1)
 
@@ -34,14 +34,14 @@ func MigrateColumns() {
 	// fmt.Println("\"Table\",\"Columns\",\"Money\",\"Float\",\"Integer\",\"Date\",\"String\"")
 	for _, info := range schema {
 		/**
-		 * 	Apply TRIM, LOWER, CLEAN
+		 *  Apply TRIM, LOWER, CLEAN
 		 *
-		 * 	DataTypes
-		 * 		Integer -> bigint
-		 * 		Money -> numeric(100, 2)
-		 * 		Float -> numeric(100, 10)
-		 * 		Date (ISO) e.g. 1999-01-08		 *
-		 * 		String -> DO NOTHING
+		 *  DataTypes
+		 *   Integer -> bigint
+		 *   Money -> numeric(100, 2)
+		 *   Float -> numeric(100, 10)
+		 *   Date (ISO) e.g. 1999-01-08   *
+		 *   String -> DO NOTHING
 		 */
 
 		var isMoney, hasFloat, hasInteger, hasDate, isString bool = false, false, false, false, false
@@ -66,6 +66,7 @@ func MigrateColumns() {
 		}
 
 		for _, data := range values {
+			data = strings.Trim(data, " ")
 			if !isString && (alphabet.MatchString(data) || empty.MatchString(data)) {
 				isString = true
 			}
@@ -99,25 +100,67 @@ func MigrateColumns() {
 					dateFormat = "DD/MM/YYYY"
 					hasDate = true
 				}
-				_, errd = time.Parse("02-Nov-06", data)
+				_, errd = time.Parse("02-Jan-06", data)
 				if errd == nil {
 					dateFormat = "DD-Mon-YY"
 					hasDate = true
 				}
+				_, errd = time.Parse("02-Jan-2006", data)
+				if errd == nil {
+					dateFormat = "DD-Mon-YYYY"
+					hasDate = true
+				}
+				_, errd = time.Parse("02/Jan/2006", data)
+				if errd == nil {
+					dateFormat = "DD/Mon/YYYY"
+					hasDate = true
+				}
+				_, errd = time.Parse("02.01.06", data)
+				if errd == nil {
+					dateFormat = "DD.MM.YY"
+					hasDate = true
+				}
+				_, errd = time.Parse("02/01/06", data)
+				if errd == nil {
+					dateFormat = "DD/MM/YY"
+					hasDate = true
+				}
+				_, errd = time.Parse("02/01/2006 15:04", data)
+				if errd == nil {
+					dateFormat = "DD/MM/YYYY"
+					hasDate = true
+				}
+				_, errd = time.Parse("2/1/2006 15:04:05", data)
+				if errd == nil {
+					dateFormat = "DD/MM/YYYY"
+					hasDate = true
+				}
+				_, errd = time.Parse("2/01/2006", data)
+				if errd == nil {
+					dateFormat = "DD/MM/YYYY"
+					hasDate = true
+				}
+				_, errd = time.Parse("02.01.2006", data)
+				if errd == nil {
+					dateFormat = "DD.MM.YYYY"
+					hasDate = true
+				}
 
-				hasDateFailed = true
+				// fmt.Println(dateFormat)
+
+				// hasDateFailed = true
 			}
 		}
 
 		if isMoney && !hasDate && !isString {
 			fmt.Println("Money:", info.TableName, info.ColumnName)
-			AlterColumnToMoney(info.TableName, columnName)
+			// AlterColumnToMoney(info.TableName, columnName)
 		} else if !isMoney && hasFloat && !hasInteger && !hasDate && !isString {
 			fmt.Println("Float:", info.TableName, info.ColumnName)
-			AlterColumnToFloat(info.TableName, columnName)
+			// AlterColumnToFloat(info.TableName, columnName)
 		} else if !isMoney && !hasFloat && hasInteger && !hasDate && !isString && !hasDateFailed {
 			fmt.Println("Integer:", info.TableName, info.ColumnName)
-			AlterColumnToInteger(info.TableName, columnName)
+			// AlterColumnToInteger(info.TableName, columnName)
 		} else if !isMoney && !hasFloat && !hasInteger && hasDate && !hasDateFailed {
 			fmt.Println("Date:", info.TableName, info.ColumnName, dateFormat)
 			AlterColumnToDate(info.TableName, columnName, dateFormat)

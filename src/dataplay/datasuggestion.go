@@ -4,8 +4,15 @@ import (
 	"encoding/json"
 	"github.com/jinzhu/gorm"
 	"math/rand"
+	"regexp"
+	"strings"
 	"time"
 )
+
+type DateAmt struct {
+	Dates   []string
+	Amounts []float64
+}
 
 /**
  * @brief Gets (or generates if one does not exist) a JSON string containing the details of the correlation between a random numeric column of the
@@ -19,41 +26,51 @@ func GetCorrelation(table1 string) string {
 	if table1 == "" {
 		return ""
 	}
-	c := Correlation{}
-	table2 := RandomTableGUID()
-	cols1 := FetchTableCols(table1)
-	cols2 := FetchTableCols(table2)
-	column1 := SelectRandomValidColumn(cols1)
-	column2 := SelectRandomValidColumn(cols2)
 
-	var coef []float64
+	c := Correlation{}
+	table2 := RandomTableGUID()               // gives random 2nd table
+	cols1 := FetchTableCols(table1)           // gets all columns in table 1
+	cols2 := FetchTableCols(table2)           // gets all columns in table 2
+	column1 := SelectRandomValidColumn(cols1) //gives name of random valid (ie: numeric) column from table 1
+	column2 := SelectRandomValidColumn(cols2) //gives name of random valid (ie: numeric) column from table 2
+
+	var coef []float64 // check if correlation already exists for this pairing first
 	err := DB.Model(&c).Where("tbl1 = ?", table1).Where("col1 = ?", column1).Where("tbl2 = ?", table2).Where("col2 = ?", column2).Where("method = ?", "Pearson").Pluck("coef", &coef).Error
 	check(err)
 
 	if coef == nil {
-		x := ExtractData(table1, column1)
-		y := ExtractData(table2, column2)
-		c := Pearson(x, y)
+		x := DateAmt{
+			Dates:   ExtractColumnWithExpression("date", table1, cols1), // extract date column from named table, passing in all columns in table
+			Amounts: ExtractDataColumn(table1, column1),                 // extract  column of data from named column in named table
+		}
+
+		y := DateAmt{
+			Dates:   ExtractColumnWithExpression("date", table2, cols2), // extract date column from named table, passing in all columns in table
+			Amounts: ExtractDataColumn(table2, column2),                 // extract  column of data from named column in named table
+		}
+
+		DataClean(&x, &y)                   //
+		cf := Pearson(x.Amounts, y.Amounts) // calculate coefficient
 
 		correlation := Correlation{
 			Tbl1:   table1,
 			Col1:   column1,
 			Tbl2:   table2,
 			Col2:   column2,
-			Tbl3:   "Null",
-			Col3:   "Null",
+			Tbl3:   "",
+			Col3:   "",
 			Method: "Pearson",
-			Coef:   c,
+			Coef:   cf,
 		}
 
 		jv, _ := json.Marshal(correlation)
 		correlation.Json = string(jv)
 
-		err := DB.Save(&correlation).Error
+		err := DB.Save(&correlation).Error // save newly generated row in correlations table
 		check(err)
 	}
 
-	var result []string
+	var result []string //now query again and result now exists!
 	err = DB.Model(&c).Where("tbl1 = ?", table1).Where("col1 = ?", column1).Where("tbl2 = ?", table2).Where("col2 = ?", column2).Where("method = ?", "Pearson").Pluck("json", &result).Error
 	check(err)
 	return result[0]
@@ -82,7 +99,7 @@ func SelectRandomValidColumn(cols []ColType) string {
 		x := rand.Intn(n)
 		return columns[x]
 	} else {
-		return "Null"
+		return ""
 	}
 }
 
@@ -98,4 +115,49 @@ func RandomTableGUID() string {
 		panic(err)
 	}
 	return guid[0]
+}
+
+/**
+ * @brief Clean the data ready for Pearsons
+ * @details Modify two Date/Amount pair columns to be same length based on discrete date values
+ *
+ * @param DateAmt [description]
+ * @return [description]
+ */
+func DataClean(x *DateAmt, y *DateAmt) {
+	for i, _ := range x.Dates {
+		FixDate(&x.Dates[i])
+	}
+	for i, _ := range y.Dates {
+		FixDate(&y.Dates[i])
+	}
+}
+
+func FixDate(d *string) {
+
+}
+
+/**
+ * @brief searches through table columns for one containing expression or part of expression and returns values in that column
+ * @details
+ *
+ * @param string Expression (part of column name) being searched for, e.g. "date"
+ * @param string Guid of table
+ * @param ColType names of columns in table
+ * @return column of date values
+ */
+func ExtractColumnWithExpression(expression string, guid string, cols []ColType) []string {
+	var result []string
+	if expression == "" || guid == "" {
+		return result
+	}
+
+	for _, v := range cols {
+		dated, _ := regexp.MatchString(expression, strings.ToLower(v.Name))
+		if dated == true {
+			DB.Table(guid).Pluck(v.Name, &result)
+			return result
+		}
+	}
+	return result
 }
