@@ -92,7 +92,7 @@ func FetchTableCols(guid string) (output []ColType) {
 	return results
 }
 
-func ExtractData(guid string, col string) []float64 {
+func ExtractDataColumn(guid string, col string) []float64 {
 	var result []float64
 
 	if guid == "" || col == "" {
