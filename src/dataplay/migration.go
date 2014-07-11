@@ -26,7 +26,7 @@ func MigrateColumns() {
 	empty, _ := regexp.Compile(`^\s*$`)
 
 	excludeColumns := map[string]bool{
-		// "date":                  true,
+		"date":                  true,
 		"table":                 true,
 		"time spent_(hh:mm:ss)": true,
 	}
@@ -131,11 +131,6 @@ func MigrateColumns() {
 					hasDate = true
 				}
 				_, errd = time.Parse("2/1/2006 15:04:05", data)
-				if errd == nil {
-					dateFormat = "DD/MM/YYYY"
-					hasDate = true
-				}
-				_, errd = time.Parse("02/1/2006", data)
 				if errd == nil {
 					dateFormat = "DD/MM/YYYY"
 					hasDate = true
