@@ -26,7 +26,6 @@ angular.module('dataplayApp')
 				password: password
 
 		logOut: (token) ->
-			console.log "Logout", token, config.api.base_url + "/logout" + "/" + token
 			$http.delete config.api.base_url + "/logout" + "/" + token
 
 		register: (username, password) ->

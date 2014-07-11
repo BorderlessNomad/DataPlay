@@ -80,9 +80,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, login UserForm) str
 		}
 	}
 
-	var session *http.Cookie
-	var e *appError
-	session, e = SetSession(user.Uid)
+	session, e := SetSession(user.Uid)
 	if e != nil {
 		http.Error(res, e.Message, e.Code)
 		return ""
