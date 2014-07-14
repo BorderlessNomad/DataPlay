@@ -24,13 +24,21 @@ angular.module('dataplayApp')
 				templateUrl: 'views/search.html'
 				controller: 'SearchCtrl'
 				login: true
-			.when '/overview',
+			.when '/search/:searchString',
+				templateUrl: 'views/search.html'
+				controller: 'SearchCtrl'
+				login: true
+			.when '/overview/:guId',
 				templateUrl: 'views/overview.html'
 				controller: 'OverviewCtrl'
 				login: true
-			.when '/charts',
+			.when '/charts/:guId',
 				templateUrl: 'views/charts.html'
 				controller: 'ChartsCtrl'
+				login: true
+			.when '/map/:guId',
+				templateUrl: 'views/map.html'
+				controller: 'MapCtrl'
 				login: true
 			.when '/login',
 				templateUrl: 'views/login.html'

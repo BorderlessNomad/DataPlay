@@ -2,11 +2,11 @@
 
 ###*
  # @ngdoc function
- # @name dataplayApp.controller:ChartsCtrl
+ # @name dataplayApp.controller:MapCtrl
  # @description
- # # ChartsCtrl
+ # # MapCtrl
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'ChartsCtrl', ['$scope', ($scope) ->
+	.controller 'MapCtrl', ['$scope', ($scope) ->
 	]

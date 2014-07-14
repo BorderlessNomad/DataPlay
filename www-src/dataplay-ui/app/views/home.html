@@ -1,40 +1,18 @@
-<h1>Welcome back <em>{{user.get(config.userName)}}</em></h1>
+<h1 ng-init="getLastVisited()">Welcome back <em>{{user.get(config.userName)}}</em></h1>
 
-<div>
+<div class="list-group" ng-show="lastVisited.length > 0">
 	<p>You where last viewing:</p>
-	<div class="visitedEntry">
-		Gold Prices&nbsp;
-		<a href="/charts/gold">View »</a>&nbsp;
-		<a href="/overview/gold">Overview »</a>&nbsp;
-	</div>
-
-	<div class="visitedEntry">
-		twitter&nbsp;
-		<a href="/charts/tweets">View »</a>&nbsp;
-		<a href="/overview/tweets">Overview »</a>&nbsp;
-		<a href="/maptest/tweets">Map »</a>
-	</div>
-
-	<div class="visitedEntry">
-		Spend over £25,000 in the Department for Education&nbsp;
-		<a href="/charts/c7201ec18a7017a7b47a70dcdc7d4b1b994c2cf85522b1f7aefc2f47e7e">View »</a>&nbsp;
-		<a href="/overview/c7201ec18a7017a7b47a70dcdc7d4b1b994c2cf85522b1f7aefc2f47e7e">Overview »</a>&nbsp;
-	</div>
-
-	<div class="visitedEntry">
-		A test table&nbsp;
-		<a href="/charts/test">View »</a>&nbsp;
-		<a href="/overview/test">Overview »</a>&nbsp;
-	</div>
-
-	<div class="visitedEntry">
-		UK GDP&nbsp;
-		<a href="/charts/gdp">View »</a>&nbsp;
-		<a href="/overview/gdp">Overview »</a>&nbsp;
+	<div class="list-group-item row" ng-repeat="item in lastVisited">
+		<span class="col-md-9">{{item.title}}</span>
+		<span class="col-md-3">
+			<a class="btn btn-danger btn-xs" href="/charts/{{item.guid}}">Chart</a>
+			<a class="btn btn-warning btn-xs" href="/overview/{{item.guid}}">Overview</a>
+			<a class="btn btn-primary btn-xs" ng-href="/map/{{item.guid}}" ng-show="item.map">Map</a>
+		</span>
 	</div>
 </div>
 
-<div>
+<div ng-show="lastVisited.length <= 0">
 	<p>It looks pretty lonley here!</p>
 	<p>Why don't you go and view some data that you are interseted in?</p>
 </div>

@@ -2,33 +2,24 @@ package main
 
 import (
 	"github.com/codegangsta/martini"
-	"github.com/jinzhu/gorm"
 	"net/http"
 )
-
-// Deprecated
-func Authorisation(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
-	CheckAuthRedirect(res, req)
-
-	user := User{}
-	err := DB.Where("uid = ?", GetUserID(res, req)).Find(&user).Error
-	if err != nil && err != gorm.RecordNotFound {
-		panic(err)
-	}
-
-	custom := map[string]string{
-		"username": user.Email,
-	}
-
-	RenderTemplate("public/home.html", custom, res)
-	return
-}
 
 func Charts(res http.ResponseWriter, req *http.Request, params martini.Params) {
 	CheckAuthRedirect(res, req)
 
 	if IsUserLoggedIn(res, req) {
-		TrackVisited(params["id"], GetUserID(res, req)) // Make sure the tracking module knows about their visit.
+		session := params["session"]
+		if len(session) <= 0 {
+			http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+		}
+
+		uid, err := GetUserID(session)
+		if err != nil {
+			http.Error(res, err.Message, err.Code)
+		}
+
+		TrackVisited(params["id"], uid) // Make sure the tracking module knows about their visit.
 	}
 
 	RenderTemplate("public/charts.html", nil, res)
@@ -52,7 +43,17 @@ func Overlay(res http.ResponseWriter, req *http.Request) {
 func Overview(res http.ResponseWriter, req *http.Request, params martini.Params) {
 	CheckAuthRedirect(res, req)
 	if IsUserLoggedIn(res, req) {
-		TrackVisited(params["id"], GetUserID(res, req))
+		session := params["session"]
+		if len(session) <= 0 {
+			http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+		}
+
+		uid, err := GetUserID(session)
+		if err != nil {
+			http.Error(res, err.Message, err.Code)
+		}
+
+		TrackVisited(params["id"], uid)
 	}
 
 	RenderTemplate("public/overview.html", nil, res)

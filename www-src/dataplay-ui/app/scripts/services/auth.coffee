@@ -11,10 +11,7 @@ angular.module('dataplayApp')
 	.factory 'Auth', ['ipCookie', 'config', (ipCookie, config) ->
 		get: (key) ->
 			token = ipCookie key
-			if token?
-				token
-			else
-				false
+			if token? then token else false
 
 		set: (key, value) ->
 			ipCookie key, value,
@@ -24,11 +21,8 @@ angular.module('dataplayApp')
 		remove: (key) ->
 			ipCookie.remove key
 
-		isAuthenticated: () ->
+		isAuthenticated: (returnString) ->
 			token = ipCookie config.sessionName
-			if token?
-				token
-			else
-				false
+			if token? then token else false
 	]
 
