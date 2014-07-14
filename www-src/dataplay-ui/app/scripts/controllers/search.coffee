@@ -8,9 +8,10 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-  .controller 'SearchCtrl', ($scope) ->
-    $scope.awesomeThings = [
-      'HTML5 Boilerplate'
-      'AngularJS'
-      'Karma'
-    ]
+	.controller 'SearchCtrl', ['$scope', ($scope) ->
+		$scope.awesomeThings = [
+			'HTML5 Boilerplate'
+			'AngularJS'
+			'Karma'
+		]
+	]

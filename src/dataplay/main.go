@@ -117,22 +117,14 @@ func initClassicMode() {
 
 	// m.Get("/", Authorisation)
 	/* @todo convert to APIs */
-	// m.Get("/login", Login)
-	// m.Get("/logout", Logout)
-	// m.Get("/register", Register)
 	m.Get("/charts/:id", Charts)
 	m.Get("/search/overlay", SearchOverlay)
 	m.Get("/overlay/:id", Overlay)
 	m.Get("/overview/:id", Overview)
 	m.Get("/search", Search)
 	m.Get("/maptest/:id", MapTest)
-	// m.Post("/noauth/login.json", HandleLogin)
-	// m.Post("/noauth/logout.json", HandleLogout)
-	// m.Post("/noauth/register.json", HandleRegister)
+
 	/* APIs */
-	// m.Post("/api/login", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
-	// 	return HandleLogin(res, req, login)
-	// })
 	m.Post("/api/login", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
 		return HandleLogin(res, req, login)
 	})
@@ -186,10 +178,14 @@ func initMasterMode() {
 
 	m := martini.Classic()
 
-	m.Get("/", Authorisation)
-	m.Get("/login", Login)
-	m.Get("/logout", Logout)
-	m.Get("/register", Register)
+	// m.Get("/", Authorisation)
+	m.Post("/api/login", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
+		return HandleLogin(res, req, login)
+	})
+	m.Delete("/api/logout/:session", HandleLogout)
+	m.Post("/api/register", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
+		return HandleRegister(res, req, login)
+	})
 	m.Get("/charts/:id", Charts)
 	m.Get("/search/overlay", SearchOverlay)
 	m.Get("/overlay/:id", Overlay)

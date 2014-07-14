@@ -10,7 +10,7 @@
 ###
 
 angular.module('dataplayApp')
-	.config ($routeProvider, $locationProvider, $provide) ->
+	.config ['$routeProvider', '$locationProvider', '$provide', ($routeProvider, $locationProvider, $provide) ->
 		$provide.decorator '$sniffer', ($delegate) ->
 			$delegate.history = false
 			$delegate
@@ -50,12 +50,14 @@ angular.module('dataplayApp')
 			.hashPrefix '!'
 
 		return
+	]
 
 angular.module('dataplayApp')
-	.run ($rootScope, $location, Auth) ->
+	.run ['$rootScope', '$location', 'Auth', ($rootScope, $location, Auth) ->
 		$rootScope.$on "$routeChangeStart", (event, nextRoute, currentRoute) ->
 			if nextRoute? and nextRoute.login and Auth.isAuthenticated() is false
 				$location.path "/login"
 				return
 
 		return
+	]

@@ -4,9 +4,9 @@ import (
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"net/http"
-	"net/url"
 )
 
+// Deprecated
 func Authorisation(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
 	CheckAuthRedirect(res, req)
 
@@ -21,50 +21,6 @@ func Authorisation(res http.ResponseWriter, req *http.Request) { // res and req 
 	}
 
 	RenderTemplate("public/home.html", custom, res)
-	return
-}
-
-func Login(res http.ResponseWriter, req *http.Request) {
-	failedstr := ""
-	queryparams, _ := url.ParseQuery(req.URL.String())
-
-	if queryparams.Get("/login?failed") != "" {
-		failedstr = "Incorrect User Name or Password" // They are wrong
-		if queryparams.Get("/login?failed") == "2" {
-			failedstr = "Your password has been upgraded, please login again." // This should not show anymore, we auto redirect
-		} else if queryparams.Get("/login?failed") == "3" {
-			failedstr = "Failed to login you in, Sorry!" // somehting went wrong in password upgrade.
-		}
-	}
-
-	custom := map[string]string{
-		"fail": failedstr,
-	}
-
-	RenderTemplate("public/signin.html", custom, res)
-	return
-}
-
-// Deprecated
-func Logout(res http.ResponseWriter, req *http.Request) {
-	// HandleLogout(res, req)
-
-	// failedstr := ""
-	// custom := map[string]string{
-	// 	"fail": failedstr,
-	// }
-
-	// RenderTemplate("public/signin.html", custom, res)
-	return
-}
-
-func Register(res http.ResponseWriter, req *http.Request) {
-	failedstr := ""
-	custom := map[string]string{
-		"fail": failedstr,
-	}
-
-	RenderTemplate("public/register.html", custom, res)
 	return
 }
 

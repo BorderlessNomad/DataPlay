@@ -39,10 +39,10 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, login UserForm) str
 	var err error
 	err = DB.Where("email = ?", login.Username).Find(&user).Error
 	if err == gorm.RecordNotFound {
-		http.Error(res, "Could not find a user.", http.StatusNotFound)
+		http.Error(res, "No such user found!", http.StatusNotFound)
 		return ""
 	} else if err != nil {
-		http.Error(res, "Could not find a user.", http.StatusInternalServerError)
+		http.Error(res, "No such user found!", http.StatusInternalServerError)
 		return ""
 	}
 
@@ -56,7 +56,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, login UserForm) str
 
 		if err != nil && err != gorm.RecordNotFound {
 			check(err)
-			http.Error(res, "Could not find a user.", http.StatusInternalServerError)
+			http.Error(res, "Unable to find user with MD5.", http.StatusInternalServerError)
 			return ""
 		}
 
@@ -87,12 +87,8 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, login UserForm) str
 	}
 
 	u := map[string]interface{}{
-		"username": user.Email,
-		"session": map[string]interface{}{
-			"name":   session.Name,
-			"value":  session.Value,
-			"expiry": 60 * 60 * 24 * 365, // Year (seconds)
-		},
+		"user":    user.Email,
+		"session": session.Value,
 	}
 	usr, _ := json.Marshal(u)
 
@@ -152,12 +148,8 @@ func HandleRegister(res http.ResponseWriter, req *http.Request, register UserFor
 	}
 
 	u := map[string]interface{}{
-		"username": user.Email,
-		"session": map[string]interface{}{
-			"name":   session.Name,
-			"value":  session.Value,
-			"expiry": 60 * 60 * 24 * 365, // Year (seconds)
-		},
+		"user":    user.Email,
+		"session": session.Value,
 	}
 	usr, _ := json.Marshal(u)
 

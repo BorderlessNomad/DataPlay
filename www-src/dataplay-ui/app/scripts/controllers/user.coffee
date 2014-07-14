@@ -8,7 +8,7 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'UserCtrl', ['$scope', '$location', 'ipCookie', 'User', 'Auth', 'config', ($scope, $location, ipCookie, User, Auth, config) ->
+	.controller 'UserCtrl', ['$scope', '$location', 'User', 'Auth', 'config', ($scope, $location, User, Auth, config) ->
 		$scope.user =
 			username: null
 			password: null
@@ -29,11 +29,8 @@ angular.module('dataplayApp')
 			return
 
 		$scope.processLogin = (data) ->
-			Auth.username = data.username
-
-			ipCookie data.session.name, data.session.value,
-				expires: data.session.expiry
-				expirationUnit: 'seconds'
+			Auth.set config.userName, data.user
+			Auth.set config.sessionName, data.session
 
 			$location.path "/home"
 
@@ -44,9 +41,7 @@ angular.module('dataplayApp')
 
 			if token isnt false
 				User.logOut(token).success((data) ->
-					Auth.username = null
-
-					ipCookie.remove config.cookieName
+					Auth.remove config.sessionName
 
 					$location.path "/"
 					return
@@ -71,6 +66,15 @@ angular.module('dataplayApp')
 					return
 
 			return
+
+		$scope.hasError = () ->
+			if $scope.user.message?.length
+				true
+			else
+				false
+
+		$scope.closeAlert = () ->
+			$scope.user.message = null
 
 		return
 	]
