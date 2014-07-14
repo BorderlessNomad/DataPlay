@@ -112,7 +112,7 @@ func initClassicMode() {
 		// AllowMethods: []string{"PUT", "PATCH"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowCredentials: true,
-		AllowHeaders:     []string{"Origin", "Accept", "Content-Type", "Authorization", "Accept-Encoding", "Content-Length", "Host", "Referer", "User-Agent", "X-CSRF-Token"},
+		AllowHeaders:     []string{"Origin", "Accept", "Content-Type", "Authorization", "Accept-Encoding", "Content-Length", "Host", "Referer", "User-Agent", "X-CSRF-Token", "X-API-SESSION"},
 	}))
 
 	// m.Get("/", Authorisation)
@@ -128,12 +128,12 @@ func initClassicMode() {
 	m.Post("/api/login", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
 		return HandleLogin(res, req, login)
 	})
-	m.Delete("/api/logout/:session", HandleLogout)
+	m.Delete("/api/:session/logout", HandleLogout)
 	m.Post("/api/register", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
 		return HandleRegister(res, req, login)
 	})
 	m.Get("/api/user", CheckAuth)
-	m.Get("/api/visited", GetLastVisitedHttp)
+	m.Get("/api/:session/visited", GetLastVisitedHttp)
 	m.Get("/api/search/:s", SearchForDataHttp)
 	m.Get("/api/getinfo/:id", GetEntry)
 	m.Get("/api/getimportstatus/:id", CheckImportStatus)
@@ -284,7 +284,19 @@ func sendToQueue(res http.ResponseWriter, req *http.Request, params martini.Para
 	q := Queue{}
 	go q.Response()
 
-	params["user"] = strconv.Itoa(GetUserID(res, req))
+	session := params["session"]
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+		return ""
+	}
+
+	uid, err := GetUserID(session)
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
+		return ""
+	}
+
+	params["user"] = strconv.Itoa(uid)
 	message := q.Encode(method, params)
 
 	fmt.Println("Sending request to Queue", request, params, message)

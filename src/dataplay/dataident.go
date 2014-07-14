@@ -103,14 +103,14 @@ func ExtractDataColumn(guid string, col string) []float64 {
 	return result
 }
 
-func HasTableGotLocationData(datasetGUID string) string {
+func HasTableGotLocationData(datasetGUID string) bool {
 	cols := FetchTableCols(datasetGUID)
 
 	if ContainsTableCol(cols, "lat") && (ContainsTableCol(cols, "lon") || ContainsTableCol(cols, "long")) {
-		return "true"
+		return true
 	}
 
-	return "false"
+	return false
 }
 
 func ContainsTableCol(cols []ColType, target string) bool {

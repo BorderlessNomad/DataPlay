@@ -31,35 +31,41 @@ func IsUserLoggedIn(res http.ResponseWriter, req *http.Request) bool {
 	}
 }
 
-func GetUserID(res http.ResponseWriter, req *http.Request) int {
-	cookie, _ := req.Cookie("DPSession")
+func GetUserID(cookie string) (int, *appError) {
+	if len(cookie) <= 0 {
+		return 0, &appError{nil, "No Session specified.", http.StatusUnauthorized}
+	}
 
 	c, err := GetRedisConnection()
-	if cookie != nil && err == nil {
-		defer c.Close()
-
-		r := c.Cmd("GET", cookie.Value)
-		i, err := r.Int() // Get back from Redis the Int value of that cookie.
-		if err != nil {
-			return 0
-		}
-
-		// There might be cases where redis could store 0 (meaning there is no logged in user)
-		// for that session, Meaning that we need to check for when this happens.
-		if i != 0 {
-			return i
-		} else {
-			return 0 // there is no zero user.
-		}
-	} else {
-		return 0
+	if err != nil {
+		return 0, &appError{err, "Unable to connect with Redis server", http.StatusInternalServerError}
 	}
+
+	defer c.Close()
+
+	r := c.Cmd("GET", cookie)
+	i, err := r.Int() // Get back from Redis the Int value of that cookie.
+	if err != nil {
+		return 0, &appError{err, "Unable to parse GET value", http.StatusInternalServerError}
+	}
+
+	// There might be cases where redis could store 0 (meaning there is no logged in user)
+	// for that session, Meaning that we need to check for when this happens.
+	if i <= 0 {
+		return 0, &appError{err, "No such session found.", http.StatusUnauthorized}
+	}
+
+	return i, nil
 }
 
 func SetSession(userid int) (*http.Cookie, *appError) {
+	if userid <= 0 {
+		return nil, &appError{nil, "No UserID specified.", http.StatusInternalServerError}
+	}
+
 	c, err := GetRedisConnection()
 	if err != nil {
-		return nil, &appError{err, "Unable not connect to Redis server", http.StatusInternalServerError}
+		return nil, &appError{err, "Unable to connect with Redis server", http.StatusInternalServerError}
 	}
 
 	defer c.Close()
@@ -67,7 +73,7 @@ func SetSession(userid int) (*http.Cookie, *appError) {
 	NewSessionID := randString(64)
 	r := c.Cmd("SET", NewSessionID, userid)
 	if r.Err != nil {
-		return nil, &appError{r.Err, "Unable not store session in Redis", http.StatusInternalServerError}
+		return nil, &appError{r.Err, "Unable to store session in Redis", http.StatusInternalServerError}
 	}
 
 	NewCookie := &http.Cookie{
@@ -83,7 +89,7 @@ func SetSession(userid int) (*http.Cookie, *appError) {
 func ClearSession(cookie string) (*http.Cookie, *appError) {
 	c, errc := GetRedisConnection()
 	if errc != nil {
-		return nil, &appError{errc, "Unable not connect to Redis server", http.StatusInternalServerError}
+		return nil, &appError{errc, "Unable to connect with Redis server", http.StatusInternalServerError}
 	}
 
 	defer c.Close()
@@ -95,12 +101,12 @@ func ClearSession(cookie string) (*http.Cookie, *appError) {
 	get := c.Cmd("GET", cookie)
 	_, errg := get.Int() // Get back from Redis the Int value of that cookie.
 	if errg != nil {
-		return nil, &appError{errg, "Unable not find session in Redis", http.StatusInternalServerError}
+		return nil, &appError{errg, "Unable to find session in Redis", http.StatusInternalServerError}
 	}
 
 	set := c.Cmd("SET", cookie, 0)
 	if set.Err != nil {
-		return nil, &appError{set.Err, "Unable not update session in Redis", http.StatusInternalServerError}
+		return nil, &appError{set.Err, "Unable to update session in Redis", http.StatusInternalServerError}
 	}
 
 	NewCookie := &http.Cookie{

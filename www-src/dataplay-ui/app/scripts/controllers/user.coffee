@@ -42,6 +42,7 @@ angular.module('dataplayApp')
 			if token isnt false
 				User.logOut(token).success((data) ->
 					Auth.remove config.sessionName
+					Auth.remove config.userName
 
 					$location.path "/"
 					return
@@ -68,10 +69,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.hasError = () ->
-			if $scope.user.message?.length
-				true
-			else
-				false
+			if $scope.user.message?.length then true else false
 
 		$scope.closeAlert = () ->
 			$scope.user.message = null

@@ -1,7 +1,7 @@
 <form name="registerForm" class="form-signin" role="form" ng-controller="UserCtrl" ng-submit="register(user)" novalidate>
 	<alert ng-show="hasError()" type="danger" close="closeAlert()">{{user.message}}</alert>
 	<div class="form-group" ng-class="{'has-error': registerForm.username.$invalid && !registerForm.username.$pristine}">
-		<input class="form-control" name="username" type="text" placeholder="Username" ng-required="true" ng-model="user.username" autocomplete="off" autofocus />
+		<input class="form-control" name="username" type="text" placeholder="Username" ng-required="true" ng-model="user.username" autocomplete="off" />
 		<p data-ng-show="registerForm.username.$invalid && !registerForm.username.$pristine" class="help-block">Required</p>
 	</div>
 	<div class="form-group" ng-class="{'has-error': registerForm.password.$invalid && !registerForm.password.$pristine}">
