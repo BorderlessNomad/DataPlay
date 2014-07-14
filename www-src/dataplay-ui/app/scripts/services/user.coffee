@@ -8,18 +8,7 @@
  # Factory in the dataplayApp.
 ###
 angular.module('dataplayApp')
-	.factory 'Auth', (ipCookie, config) -> {
-		username: null
-
-		isAuthenticated: () ->
-			token = ipCookie config.cookieName
-			if token?
-				token
-			else
-				false
-	}
-
-	.factory 'User', ($http, config) -> {
+	.factory 'User', ['$http', 'config', ($http, config) ->
 		logIn: (username, password) ->
 			$http.post config.api.base_url + "/login",
 				username: username
@@ -32,4 +21,4 @@ angular.module('dataplayApp')
 			$http.post config.api.base_url + "/register",
 				username: username
 				password: password
-	}
+	]

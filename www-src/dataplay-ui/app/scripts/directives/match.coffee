@@ -7,7 +7,7 @@
  # # match
 ###
 angular.module("dataplayApp")
-	.directive "match", ->
+	.directive "match", [() ->
 		require: "ngModel"
 		restrict: "A"
 		scope:
@@ -20,3 +20,4 @@ angular.module("dataplayApp")
 				return
 
 			return
+	]

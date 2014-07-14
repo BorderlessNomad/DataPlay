@@ -7,388 +7,380 @@
 # "test/spec/**/*.js"
 module.exports = (grunt) ->
 
-  # Load grunt tasks automatically
-  require("load-grunt-tasks") grunt
+	# Load grunt tasks automatically
+	require("load-grunt-tasks") grunt
 
-  # Time how long tasks take. Can help when optimizing build times
-  require("time-grunt") grunt
+	# Time how long tasks take. Can help when optimizing build times
+	require("time-grunt") grunt
 
-  # Configurable paths for the application
-  appConfig =
-    app: require("./bower.json").appPath or "app"
-    dist: "dist"
-
-
-  # Define the configuration for all the tasks
-  grunt.initConfig
-
-    # Project settings
-    yeoman: appConfig
-
-    # Watches files for changes and runs tasks based on the changed files
-    watch:
-      bower:
-        files: ["bower.json"]
-        # tasks: ["wiredep"]
-
-      coffee:
-        files: ["<%= yeoman.app %>/scripts/{,*/}*.{coffee,litcoffee,coffee.md}"]
-        tasks: ["newer:coffee:dist"]
-
-      coffeeTest:
-        files: ["test/spec/{,*/}*.{coffee,litcoffee,coffee.md}"]
-        tasks: [
-          "newer:coffee:test"
-          "karma"
-        ]
-
-      less:
-        files: ["<%= yeoman.app %>/styles/{,*/}*.less"],
-        tasks: ["less"]
-
-      styles:
-        files: ["<%= yeoman.app %>/styles/{,*/}*.css"]
-        tasks: ["newer:copy:styles", "autoprefixer"]
-
-      gruntfile:
-        files: ["Gruntfile.coffee"]
-
-      livereload:
-        options:
-          livereload: "<%= connect.options.livereload %>"
-
-        files: [
-          "<%= yeoman.app %>/{,*/}*.html"
-          "<%= yeoman.app %>/styles/{,*/}*.less"
-          "<%= yeoman.app %>/scripts/{,*/}*.js"
-          "<%= yeoman.app %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}"
-        ]
+	# Configurable paths for the application
+	appConfig =
+		app: require("./bower.json").appPath or "app"
+		dist: "dist"
 
 
-    # The actual grunt server settings
-    connect:
-      options:
-        port: 9000
-        # Change this to "0.0.0.0" to access the server from outside.
-        hostname: "localhost" # localhost or 0.0.0.0
-        livereload: 9001
+	# Define the configuration for all the tasks
+	grunt.initConfig
 
-      livereload:
-        options:
-          open: true
-          middleware: (connect) -> [
-            connect.static ".tmp"
-            connect().use "/bower_components", connect.static("./bower_components")
-            connect.static appConfig.app
-          ]
+		# Project settings
+		yeoman: appConfig
 
-      test:
-        options:
-          port: 9001
-          middleware: (connect) -> [
-            connect.static ".tmp"
-            connect.static "test"
-            connect().use "/bower_components", connect.static("./bower_components")
-            connect.static appConfig.app
-          ]
+		# Watches files for changes and runs tasks based on the changed files
+		watch:
+			bower:
+				files: ["bower.json"]
 
-      dist:
-        options:
-          open: true
-          base: "<%= yeoman.dist %>"
+			coffee:
+				files: ["<%= yeoman.app %>/scripts/{,*/}*.{coffee,litcoffee,coffee.md}"]
+				tasks: ["newer:coffee:dist"]
 
+			coffeeTest:
+				files: ["test/spec/{,*/}*.{coffee,litcoffee,coffee.md}"]
+				tasks: [
+					"newer:coffee:test"
+					"karma"
+				]
 
-    # Make sure code styles are up to par and there are no obvious mistakes
-    jshint:
-      options:
-        jshintrc: ".jshintrc"
-        reporter: require "jshint-stylish"
+			less:
+				files: ["<%= yeoman.app %>/styles/{,*/}*.less"],
+				tasks: ["less"]
 
-      all:
-        src: ["Gruntfile.coffee"]
+			styles:
+				files: ["<%= yeoman.app %>/styles/{,*/}*.css"]
+				tasks: ["newer:copy:styles", "autoprefixer"]
 
+			gruntfile:
+				files: ["Gruntfile.coffee"]
 
-    # Empties folders to start fresh
-    clean:
-      dist:
-        files: [
-          dot: true
-          src: [
-            ".tmp"
-            "<%= yeoman.dist %>/{,*/}*"
-            "!<%= yeoman.dist %>/.git*"
-          ]
-        ]
+			livereload:
+				options:
+					livereload: "<%= connect.options.livereload %>"
 
-      server: ".tmp"
-
-    # Add vendor prefixed styles
-    autoprefixer:
-      options:
-        browsers: ["last 1 version"]
-      dist:
-        files:
-          expand: true,
-          cwd: ".tmp/styles/",
-          src: "{,*/}*.css",
-          dest: ".tmp/styles/"
-
-    # Automatically inject Bower components into the app
-    # wiredep:
-    #   options:
-    #     cwd: "<%= yeoman.app %>"
-
-    #   app:
-    #     src: ["<%= yeoman.app %>/index.html"]
-    #     ignorePath: /\.\.\//
+				files: [
+					"<%= yeoman.app %>/{,*/}*.html"
+					"<%= yeoman.app %>/styles/{,*/}*.less"
+					"<%= yeoman.app %>/scripts/{,*/}*.js"
+					"<%= yeoman.app %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}"
+				]
 
 
-    # Compiles CoffeeScript to JavaScript
-    coffee:
-      options:
-        sourceMap: true
-        sourceRoot: ""
+		# The actual grunt server settings
+		connect:
+			options:
+				port: 9000
+				# Change this to "0.0.0.0" to access the server from outside.
+				hostname: "localhost" # localhost or 0.0.0.0
+				livereload: 9001
 
-      dist:
-        files: [
-          expand: true
-          cwd: "<%= yeoman.app %>/scripts"
-          src: "{,*/}*.coffee"
-          dest: ".tmp/scripts"
-          ext: ".js"
-        ]
+			livereload:
+				options:
+					open: true
+					middleware: (connect) -> [
+						connect.static ".tmp"
+						connect().use "/bower_components", connect.static("./bower_components")
+						connect.static appConfig.app
+					]
 
-      test:
-        files: [
-          expand: true
-          cwd: "test/spec"
-          src: "{,*/}*.coffee"
-          dest: ".tmp/spec"
-          ext: ".js"
-        ]
+			test:
+				options:
+					port: 9001
+					middleware: (connect) -> [
+						connect.static ".tmp"
+						connect.static "test"
+						connect().use "/bower_components", connect.static("./bower_components")
+						connect.static appConfig.app
+					]
 
-    less:
-      options:
-        paths: ["<%= yeoman.app %>/styles"],
-        cleancss: true
-        strictMath: false
-        strictUnits: true
-        # sourceMap: true
-        # sourceMapFilename: "<%= yeoman.app %>/styles/main.css.map"
-        # sourceMapBasepath: "<%= yeoman.app %>/"
-        # sourceMapRootpath: "/"
-      dist:
-        files: [
-          expand: true
-          cwd: "<%= yeoman.app %>/styles"
-          src: ["*.less"]
-          dest: ".tmp/styles"
-          ext: ".css"
-        ]
-
-    # Renames files for browser caching purposes
-    filerev:
-      dist:
-        src: [
-          "<%= yeoman.dist %>/scripts/{,*/}*.js"
-          "<%= yeoman.dist %>/styles/{,*/}*.css"
-          "<%= yeoman.dist %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}"
-          "<%= yeoman.dist %>/styles/fonts/*"
-        ]
+			dist:
+				options:
+					open: true
+					base: "<%= yeoman.dist %>"
 
 
-    # Reads HTML for usemin blocks to enable smart builds that automatically
-    # concat, minify and revision files. Creates configurations in memory so
-    # additional tasks can operate on them
-    useminPrepare:
-      html: "<%= yeoman.app %>/index.html"
-      options:
-        dest: "<%= yeoman.dist %>"
-        flow:
-          html:
-            steps:
-              js: [
-                "concat"
-                "uglifyjs"
-              ]
-              css: ["cssmin"]
+		# Make sure code styles are up to par and there are no obvious mistakes
+		jshint:
+			options:
+				jshintrc: ".jshintrc"
+				reporter: require "jshint-stylish"
 
-            post: {}
+			all:
+				src: ["Gruntfile.coffee"]
 
 
-    # Performs rewrites based on filerev and the useminPrepare configuration
-    usemin:
-      html: ["<%= yeoman.dist %>/{,*/}*.html"]
-      css: ["<%= yeoman.dist %>/styles/{,*/}*.css"]
-      options:
-        assetsDirs: [
-          "<%= yeoman.dist %>"
-          "<%= yeoman.dist %>/images"
-        ]
+		# Empties folders to start fresh
+		clean:
+			dist:
+				files: [
+					dot: true
+					src: [
+						".tmp"
+						"<%= yeoman.dist %>/{,*/}*"
+						"!<%= yeoman.dist %>/.git*"
+					]
+				]
 
-    imagemin:
-      dist:
-        files: [
-          expand: true
-          cwd: "<%= yeoman.app %>/images"
-          src: "{,*/}*.{png,jpg,jpeg,gif}"
-          dest: "<%= yeoman.dist %>/images"
-        ]
+			server: ".tmp"
 
-    svgmin:
-      dist:
-        files: [
-          expand: true
-          cwd: "<%= yeoman.app %>/images"
-          src: "{,*/}*.svg"
-          dest: "<%= yeoman.dist %>/images"
-        ]
+		# Add vendor prefixed styles
+		autoprefixer:
+			options:
+				browsers: ["last 1 version"]
+			dist:
+				files:
+					expand: true,
+					cwd: ".tmp/styles/",
+					src: "{,*/}*.css",
+					dest: ".tmp/styles/"
 
-    htmlmin:
-      dist:
-        options:
-          collapseWhitespace: true
-          conservativeCollapse: true
-          collapseBooleanAttributes: true
-          removeCommentsFromCDATA: true
-          removeOptionalTags: true
+		# Compiles CoffeeScript to JavaScript
+		coffee:
+			options:
+				sourceMap: true
+				sourceRoot: ""
 
-        files: [
-          expand: true
-          cwd: "<%= yeoman.dist %>"
-          src: [
-            "*.html"
-            "views/{,*/}*.html"
-          ]
-          dest: "<%= yeoman.dist %>"
-        ]
+			dist:
+				files: [
+					expand: true
+					cwd: "<%= yeoman.app %>/scripts"
+					src: "{,*/}*.coffee"
+					dest: ".tmp/scripts"
+					ext: ".js"
+				]
 
+			test:
+				files: [
+					expand: true
+					cwd: "test/spec"
+					src: "{,*/}*.coffee"
+					dest: ".tmp/spec"
+					ext: ".js"
+				]
 
-    # ngmin tries to make the code safe for minification automatically by
-    # using the Angular long form for dependency injection. It doesn"t work on
-    # things like resolve or inject so those have to be done manually.
-    ngmin:
-      dist:
-        files: [
-          expand: true
-          cwd: ".tmp/concat/scripts"
-          src: "*.js"
-          dest: ".tmp/concat/scripts"
-        ]
+		uglify:
+			options:
+				mangle: false # AngularJS is not very happy about mangling globals e.g. $scope
+				beautify: false # Debug
 
-    # Copies remaining files to places other tasks can use
-    copy:
-      dist:
-        files: [
-          {
-            expand: true
-            dot: true
-            cwd: "<%= yeoman.app %>"
-            dest: "<%= yeoman.dist %>"
-            src: [
-              "*.{ico,png,txt}"
-              ".htaccess"
-              "*.html"
-              "views/{,*/}*.html"
-              "images/{,*/}*.{webp}"
-              "fonts/*"
-            ]
-          }
-          {
-            expand: true
-            cwd: ".tmp/images"
-            dest: "<%= yeoman.dist %>/images"
-            src: ["generated/*"]
-          }
-          {
-            expand: true
-            cwd: "bower_components/bootstrap/dist"
-            src: "fonts/*"
-            dest: "<%= yeoman.dist %>"
-          }
-        ]
+		less:
+			options:
+				paths: ["<%= yeoman.app %>/styles"],
+				cleancss: true
+				strictMath: false
+				strictUnits: true
+				# sourceMap: true
+				# sourceMapFilename: "<%= yeoman.app %>/styles/main.css.map"
+				# sourceMapBasepath: "<%= yeoman.app %>/"
+				# sourceMapRootpath: "/"
+			dist:
+				files: [
+					expand: true
+					cwd: "<%= yeoman.app %>/styles"
+					src: ["*.less"]
+					dest: ".tmp/styles"
+					ext: ".css"
+				]
 
-      styles:
-        expand: true
-        cwd: "<%= yeoman.app %>/styles"
-        dest: ".tmp/styles/"
-        src: "{,*/}*.css"
-
-    # Run some tasks in parallel to speed up the build process
-    concurrent:
-      server: [
-        "coffee:dist"
-        "less"
-      ]
-      test: [
-        "coffee"
-        "less"
-      ]
-      dist: [
-        "coffee"
-        "less"
-        "imagemin"
-        "svgmin"
-      ]
+		# Renames files for browser caching purposes
+		filerev:
+			dist:
+				src: [
+					"<%= yeoman.dist %>/scripts/{,*/}*.js"
+					"<%= yeoman.dist %>/styles/{,*/}*.css"
+					"<%= yeoman.dist %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}"
+					"<%= yeoman.dist %>/styles/fonts/*"
+				]
 
 
-    # Test settings
-    karma:
-      unit:
-        configFile: "test/karma.conf.coffee"
-        singleRun: true
+		# Reads HTML for usemin blocks to enable smart builds that automatically
+		# concat, minify and revision files. Creates configurations in memory so
+		# additional tasks can operate on them
+		useminPrepare:
+			html: "<%= yeoman.app %>/index.html"
+			options:
+				dest: "<%= yeoman.dist %>"
+				flow:
+					html:
+						steps:
+							js: [
+								"concat"
+								"uglifyjs"
+							]
+							css: ["cssmin"]
 
-  # Usage:
-  #   grunt serve (For Development mode. Has LiveReload and is served directly from app root)
-  #   grunt serve:dist (For Production mode. No LiveReload and served from 'dist' root)
-  grunt.registerTask "serve", "Compile then start a connect web server", (target) ->
-    console.log target
-    if target is "dist"
-      return grunt.task.run [
-        "build"
-        "connect:dist:keepalive"
-      ]
-    grunt.task.run [
-      "clean:server"
-      # "wiredep"
-      "concurrent:server"
-      "connect:livereload"
-      "watch"
-    ]
-    return
+						post: {}
 
-  grunt.registerTask "server", "DEPRECATED TASK. Use the \"serve\" task instead", (target) ->
-    grunt.log.warn "The `server` task has been deprecated. Use `grunt serve` to start a server."
-    grunt.task.run ["serve:" + target]
-    return
 
-  grunt.registerTask "test", [
-    "clean:server"
-    "less"
-    "concurrent:test"
-    "connect:test"
-    "karma"
-  ]
+		# Performs rewrites based on filerev and the useminPrepare configuration
+		usemin:
+			html: ["<%= yeoman.dist %>/{,*/}*.html"]
+			css: ["<%= yeoman.dist %>/styles/{,*/}*.css"]
+			options:
+				assetsDirs: [
+					"<%= yeoman.dist %>"
+					"<%= yeoman.dist %>/images"
+				]
 
-  grunt.registerTask "build", [
-    "clean:dist"
-    # "wiredep"
-    "useminPrepare"
-    "concurrent:dist"
-    "concat"
-    "ngmin"
-    "copy:dist"
-    "cssmin"
-    "uglify"
-    "filerev"
-    "usemin"
-    "htmlmin"
-  ]
+		imagemin:
+			dist:
+				files: [
+					expand: true
+					cwd: "<%= yeoman.app %>/images"
+					src: "{,*/}*.{png,jpg,jpeg,gif}"
+					dest: "<%= yeoman.dist %>/images"
+				]
 
-  grunt.registerTask "default", [
-    "newer:jshint"
-    "test"
-    "build"
-  ]
+		svgmin:
+			dist:
+				files: [
+					expand: true
+					cwd: "<%= yeoman.app %>/images"
+					src: "{,*/}*.svg"
+					dest: "<%= yeoman.dist %>/images"
+				]
 
-  return
+		htmlmin:
+			dist:
+				options:
+					collapseWhitespace: true
+					conservativeCollapse: true
+					collapseBooleanAttributes: true
+					removeCommentsFromCDATA: true
+					removeOptionalTags: true
+
+				files: [
+					expand: true
+					cwd: "<%= yeoman.dist %>"
+					src: [
+						"*.html"
+						"views/{,*/}*.html"
+					]
+					dest: "<%= yeoman.dist %>"
+				]
+
+
+		# ngmin tries to make the code safe for minification automatically by
+		# using the Angular long form for dependency injection. It doesn"t work on
+		# things like resolve or inject so those have to be done manually.
+		ngmin:
+			dist:
+				files: [
+					expand: true
+					cwd: ".tmp/concat/scripts"
+					src: "*.js"
+					dest: ".tmp/concat/scripts"
+				]
+
+		# Copies remaining files to places other tasks can use
+		copy:
+			dist:
+				files: [
+					{
+						expand: true
+						dot: true
+						cwd: "<%= yeoman.app %>"
+						dest: "<%= yeoman.dist %>"
+						src: [
+							"*.{ico,png,txt}"
+							".htaccess"
+							"*.html"
+							"views/{,*/}*.html"
+							"images/{,*/}*.{webp}"
+							"fonts/*"
+						]
+					}
+					{
+						expand: true
+						cwd: ".tmp/images"
+						dest: "<%= yeoman.dist %>/images"
+						src: ["generated/*"]
+					}
+					{
+						expand: true
+						cwd: "bower_components/bootstrap/dist"
+						src: "fonts/*"
+						dest: "<%= yeoman.dist %>"
+					}
+				]
+
+			styles:
+				expand: true
+				cwd: "<%= yeoman.app %>/styles"
+				dest: ".tmp/styles/"
+				src: "{,*/}*.css"
+
+		# Run some tasks in parallel to speed up the build process
+		concurrent:
+			server: [
+				"coffee:dist"
+				"less"
+			]
+			test: [
+				"coffee"
+				"less"
+			]
+			dist: [
+				"coffee"
+				"less"
+				"imagemin"
+				"svgmin"
+			]
+
+
+		# Test settings
+		karma:
+			unit:
+				configFile: "test/karma.conf.coffee"
+				singleRun: true
+
+	# Usage:
+	#   grunt serve (For Development mode. Has LiveReload and is served directly from app root)
+	#   grunt serve:dist (For Production mode. No LiveReload and served from 'dist' root)
+	grunt.registerTask "serve", "Compile then start a connect web server", (target) ->
+		console.log target
+		if target is "dist"
+			return grunt.task.run [
+				"build"
+				"connect:dist:keepalive"
+			]
+		grunt.task.run [
+			"clean:server"
+			"concurrent:server"
+			"connect:livereload"
+			"watch"
+		]
+		return
+
+	grunt.registerTask "server", "DEPRECATED TASK. Use the \"serve\" task instead", (target) ->
+		grunt.log.warn "The `server` task has been deprecated. Use `grunt serve` to start a server."
+		grunt.task.run ["serve:" + target]
+		return
+
+	grunt.registerTask "test", [
+		"clean:server"
+		"less"
+		"concurrent:test"
+		"connect:test"
+		"karma"
+	]
+
+	grunt.registerTask "build", [
+		"clean:dist"
+		"ngmin"
+		"useminPrepare"
+		"concurrent:dist"
+		"concat"
+		"copy:dist"
+		"cssmin"
+		"uglify"
+		"filerev"
+		"usemin"
+		"htmlmin"
+	]
+
+	grunt.registerTask "default", [
+		"newer:jshint"
+		"test"
+		"build"
+	]
+
+	return

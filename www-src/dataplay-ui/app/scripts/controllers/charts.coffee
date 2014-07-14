@@ -8,9 +8,10 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-  .controller 'ChartsCtrl', ($scope) ->
-    $scope.awesomeThings = [
-      'HTML5 Boilerplate'
-      'AngularJS'
-      'Karma'
-    ]
+	.controller 'ChartsCtrl', ['$scope', ($scope) ->
+		$scope.awesomeThings = [
+			'HTML5 Boilerplate'
+			'AngularJS'
+			'Karma'
+		]
+	]
