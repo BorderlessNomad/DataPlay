@@ -1,27 +1,29 @@
 {
-	"folders": [{
-		"folder_exclude_patterns": [
-			"src",
-			"bin",
-			"pkg",
-			"www-src"
-		],
-		"follow_symlinks": true,
-		"name": "Data Play",
-		"path": "."
-	}, {
-		"follow_symlinks": true,
-		"name": "Go",
-		"path": "src\\dataplay"
-	}, {
-		"follow_symlinks": true,
-		"name": "Frontend",
-		"path": "www-src"
-	}, {
-		"follow_symlinks": true,
-		"name": "Angular",
-		"path": "www-src\\dataplay-ui"
-	}],
+	"folders":
+	[
+		{
+			"folder_exclude_patterns":
+			[
+				"src",
+				"bin",
+				"pkg",
+				"www-src"
+			],
+			"follow_symlinks": true,
+			"name": "Data Play",
+			"path": "."
+		},
+		{
+			"follow_symlinks": true,
+			"name": "Go",
+			"path": "src\\dataplay"
+		},
+		{
+			"follow_symlinks": true,
+			"name": "Frontend",
+			"path": "www-src"
+		}
+	],
 	"settings": {
 		"translate_tabs_to_spaces": false,
 		"ensure_newline_at_eof_on_save": true,

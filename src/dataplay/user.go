@@ -4,16 +4,10 @@ import (
 	bcrypt "code.google.com/p/go.crypto/bcrypt"
 	"crypto/md5"
 	"encoding/hex"
-	"encoding/json"
-	"github.com/codegangsta/martini"
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"net/http"
 )
-
-type UserForm struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
 
 func GetMD5Hash(text string) string {
 	hasher := md5.New()
@@ -29,129 +23,91 @@ func CheckAuthRedirect(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func HandleLogin(res http.ResponseWriter, req *http.Request, login UserForm) string {
-	if login.Username == "" || login.Password == "" {
-		http.Error(res, "Username/Password missing.", http.StatusBadRequest)
-		return ""
+func HandleLogin(res http.ResponseWriter, req *http.Request) {
+	username := req.FormValue("username")
+	password := req.FormValue("password")
+
+	if username == "" || password == "" {
+		http.Redirect(res, req, fmt.Sprintf("/login?failed=1"), http.StatusNotFound)
 	}
 
 	user := User{}
-	var err error
-	err = DB.Where("email = ?", login.Username).Find(&user).Error
-	if err == gorm.RecordNotFound {
-		http.Error(res, "No such user found!", http.StatusNotFound)
-		return ""
+	err := DB.Where("email = ?", username).Find(&user).Error
+	if err != nil && err == gorm.RecordNotFound {
+		http.Redirect(res, req, fmt.Sprintf("/login?failed=1"), http.StatusNotFound)
 	} else if err != nil {
-		http.Error(res, "No such user found!", http.StatusInternalServerError)
-		return ""
+		check(err)
 	}
 
-	// Check the password with bcrypt
-	if len(user.Password) > 0 && bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(login.Password)) == nil {
-		// Do nothing and continue :)
+	if user.Password != "" && bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) == nil { // Check the password with bcrypt
+		if SetSession(res, req, user.Uid) != nil {
+			http.Error(res, "Could not setup session.", http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(res, req, "/", http.StatusFound)
 	} else {
 		// Just in the case that the user is on a really old MD5 password (useful for admins resetting passwords too) check
 		count := 0
-		err := DB.Model(&user).Where("password = ?", GetMD5Hash(login.Password)).Count(&count).Error
-
-		if err != nil && err != gorm.RecordNotFound {
-			check(err)
-			http.Error(res, "Unable to find user with MD5.", http.StatusInternalServerError)
-			return ""
-		}
+		err := DB.Model(&user).Where("password = ?", GetMD5Hash(password)).Count(&count).Error
+		check(err)
 
 		if count == 0 {
-			http.Error(res, "Invalid username/password.", http.StatusBadRequest)
-			return ""
+			http.Error(res, "Could not find a user.", http.StatusNotFound)
+			// http.Redirect(res, req, "/login?failed=1", http.StatusNotFound)
+			return
 		}
 
 		// Ooooh, We need to upgrade this password!
-		hashedPassword, e := bcrypt.GenerateFromPassword([]byte(login.Password), bcrypt.DefaultCost)
-		if e != nil {
-			http.Error(res, "Unable to upgrade the password.", http.StatusInternalServerError)
-			return ""
-		}
-
-		err = DB.Model(&user).Update("password", string(hashedPassword)).Error
-		if err != nil {
+		hashedPassword, e := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if e == nil {
+			err := DB.Model(&user).Update("password", string(hashedPassword)).Error
 			check(err)
-			http.Error(res, "Unable to update the password.", http.StatusInternalServerError)
-			return ""
+
+			if SetSession(res, req, user.Uid) != nil {
+				http.Error(res, "Could not setup session.", http.StatusInternalServerError)
+				return
+			}
+
+			http.Redirect(res, req, "/", http.StatusFound)
 		}
-	}
 
-	session, e := SetSession(user.Uid)
-	if e != nil {
-		http.Error(res, e.Message, e.Code)
-		return ""
+		http.Redirect(res, req, fmt.Sprintf("/login?failed=3&r=%s", e), http.StatusFound)
 	}
-
-	u := map[string]interface{}{
-		"user":    user.Email,
-		"session": session.Value,
-	}
-	usr, _ := json.Marshal(u)
-
-	return string(usr)
 }
 
-func HandleLogout(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	sid := params["session"]
-	if len(sid) <= 0 {
-		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
-		return ""
-	}
+func HandleLogout(res http.ResponseWriter, req *http.Request) {
+	ClearSession(res, req)
 
-	_, e := ClearSession(sid)
-	if e != nil {
-		http.Error(res, e.Message, e.Code)
-		return ""
-	}
-
-	return ""
+	http.Redirect(res, req, "/login", http.StatusTemporaryRedirect)
+	return
 }
 
-func HandleRegister(res http.ResponseWriter, req *http.Request, register UserForm) string {
-	if register.Username == "" || register.Password == "" {
-		http.Error(res, "Username/Password missing.", http.StatusBadRequest)
-		return ""
-	}
+func HandleRegister(res http.ResponseWriter, req *http.Request) string {
+	username := req.FormValue("username")
+	password := req.FormValue("password")
 
 	user := User{}
-	err := DB.Where("email = ?", register.Username).First(&user).Error
+	err := DB.Where("email = ?", username).First(&user).Error
 	if err != gorm.RecordNotFound {
-		http.Error(res, "Username already exists.", http.StatusConflict)
-		return ""
+		http.Error(res, "That username is already registered.", http.StatusConflict)
+		return "That username is already registered."
 	}
 
-	hashedPassword, err1 := bcrypt.GenerateFromPassword([]byte(register.Password), bcrypt.DefaultCost)
+	hashedPassword, err1 := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err1 != nil {
-		http.Error(res, "Invalid Username/Password.", http.StatusBadRequest)
-		return ""
+		return "The password you entered is invalid."
 	}
 
-	user.Email = register.Username
+	user.Email = username
 	user.Password = string(hashedPassword)
 	err2 := DB.Save(&user).Error
 	if err2 != nil {
-		check(err2)
-		http.Error(res, "Unable to create user.", http.StatusInternalServerError)
-		return ""
+		return "Could not make the user you requested."
 	}
 
-	var session *http.Cookie
-	var e *appError
-	session, e = SetSession(user.Uid)
-	if e != nil {
-		http.Error(res, e.Message, e.Code)
-		return ""
-	}
+	SetSession(res, req, user.Uid)
 
-	u := map[string]interface{}{
-		"user":    user.Email,
-		"session": session.Value,
-	}
-	usr, _ := json.Marshal(u)
-
-	return string(usr)
+	http.Redirect(res, req, "/", http.StatusFound)
+	return ""
 }

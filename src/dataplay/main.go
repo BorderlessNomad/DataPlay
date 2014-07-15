@@ -12,8 +12,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/codegangsta/martini"
-	"github.com/codegangsta/martini-contrib/binding"
-	"github.com/martini-contrib/cors"
 	"log"
 	"net/http"
 	"os"
@@ -106,34 +104,23 @@ func initClassicMode() {
 
 	m := martini.Classic()
 
-	m.Use(cors.Allow(&cors.Options{
-		AllowAllOrigins: true,
-		// AllowOrigins:     []string{"http://localhost:9000"},
-		// AllowMethods: []string{"PUT", "PATCH"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
-		AllowCredentials: true,
-		AllowHeaders:     []string{"Origin", "Accept", "Content-Type", "Authorization", "Accept-Encoding", "Content-Length", "Host", "Referer", "User-Agent", "X-CSRF-Token", "X-API-SESSION"},
-	}))
-
-	// m.Get("/", Authorisation)
+	m.Get("/", Authorisation)
 	/* @todo convert to APIs */
+	m.Get("/login", Login)
+	m.Get("/logout", Logout)
+	m.Get("/register", Register)
 	m.Get("/charts/:id", Charts)
 	m.Get("/search/overlay", SearchOverlay)
 	m.Get("/overlay/:id", Overlay)
 	m.Get("/overview/:id", Overview)
 	m.Get("/search", Search)
 	m.Get("/maptest/:id", MapTest)
-
+	m.Post("/noauth/login.json", HandleLogin)
+	m.Post("/noauth/logout.json", HandleLogout)
+	m.Post("/noauth/register.json", HandleRegister)
 	/* APIs */
-	m.Post("/api/login", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
-		return HandleLogin(res, req, login)
-	})
-	m.Delete("/api/:session/logout", HandleLogout)
-	m.Post("/api/register", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
-		return HandleRegister(res, req, login)
-	})
 	m.Get("/api/user", CheckAuth)
-	m.Get("/api/:session/visited", GetLastVisitedHttp)
+	m.Get("/api/visited", GetLastVisitedHttp)
 	m.Get("/api/search/:s", SearchForDataHttp)
 	m.Get("/api/getinfo/:id", GetEntry)
 	m.Get("/api/getimportstatus/:id", CheckImportStatus)
@@ -178,14 +165,10 @@ func initMasterMode() {
 
 	m := martini.Classic()
 
-	// m.Get("/", Authorisation)
-	m.Post("/api/login", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
-		return HandleLogin(res, req, login)
-	})
-	m.Delete("/api/logout/:session", HandleLogout)
-	m.Post("/api/register", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
-		return HandleRegister(res, req, login)
-	})
+	m.Get("/", Authorisation)
+	m.Get("/login", Login)
+	m.Get("/logout", Logout)
+	m.Get("/register", Register)
 	m.Get("/charts/:id", Charts)
 	m.Get("/search/overlay", SearchOverlay)
 	m.Get("/overlay/:id", Overlay)
@@ -284,19 +267,7 @@ func sendToQueue(res http.ResponseWriter, req *http.Request, params martini.Para
 	q := Queue{}
 	go q.Response()
 
-	session := params["session"]
-	if len(session) <= 0 {
-		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
-		return ""
-	}
-
-	uid, err := GetUserID(session)
-	if err != nil {
-		http.Error(res, err.Message, err.Code)
-		return ""
-	}
-
-	params["user"] = strconv.Itoa(uid)
+	params["user"] = strconv.Itoa(GetUserID(res, req))
 	message := q.Encode(method, params)
 
 	fmt.Println("Sending request to Queue", request, params, message)
@@ -314,7 +285,7 @@ func sendToQueue(res http.ResponseWriter, req *http.Request, params martini.Para
  */
 func JsonApiHandler(res http.ResponseWriter, req *http.Request) {
 	if strings.HasPrefix(req.URL.Path, "/api") {
-		// CheckAuthRedirect(res, req) // Make everything in the API auth'd
+		CheckAuthRedirect(res, req) // Make everything in the API auth'd
 		res.Header().Set("Content-Type", "application/json")
 	}
 }
