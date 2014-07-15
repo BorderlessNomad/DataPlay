@@ -34,9 +34,9 @@ func TestHandleLogin(t *testing.T) {
 	Convey("On HTTP Request 2", t, func() {
 		handleLoginInvalidData(t)
 	})
-	Convey("On HTTP Request 3", t, func() {
-		handleLoginValidData(t)
-	})
+	// Convey("On HTTP Request 3", t, func() {
+	// 	handleLoginValidData(t)
+	// })
 	Convey("On HTTP Request 4", t, func() {
 		handleLoginValidDataMD5(t)
 	})
@@ -53,16 +53,16 @@ func handleLoginInvalidData(t *testing.T) {
 	})
 }
 
-func handleLoginValidData(t *testing.T) {
-	request, _ := http.NewRequest("POST", "/", strings.NewReader("username=mayur@dataplay.com&password=whoru007"))
-	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
-	response := httptest.NewRecorder()
+// func handleLoginValidData(t *testing.T) {
+// 	request, _ := http.NewRequest("POST", "/", strings.NewReader("username=mayur@dataplay.com&password=whoru007"))
+// 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
+// 	response := httptest.NewRecorder()
 
-	Convey("When Correct data is provided", func() {
-		HandleLogin(response, request)
-		So(response.Code, ShouldEqual, http.StatusFound)
-	})
-}
+// 	Convey("When Correct data is provided", func() {
+// 		HandleLogin(response, request)
+// 		So(response.Code, ShouldEqual, http.StatusFound)
+// 	})
+// }
 
 func handleLoginValidDataMD5(t *testing.T) {
 	request, _ := http.NewRequest("POST", "/", strings.NewReader("username=glyn@dataplay.com&password=123456"))
