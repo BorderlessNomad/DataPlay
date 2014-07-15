@@ -9,7 +9,8 @@
 ###
 angular.module('dataplayApp')
 	.controller 'HomeCtrl', ['$scope', '$location', 'User', 'Auth', 'config', ($scope, $location, User, Auth, config) ->
-		$scope.user = Auth
+		$scope.Auth = Auth
+		$scope.username = Auth.get config.userName
 		$scope.config = config
 		$scope.lastVisited = []
 
@@ -17,6 +18,10 @@ angular.module('dataplayApp')
 			$location.path().substr(0, path.length) is path
 
 		$scope.getLastVisited = () ->
+			unless $scope.isAuthenticated
+				$scope.lastVisited = []
+				return
+
 			User.visited().success((data) ->
 				$scope.lastVisited = data
 				return

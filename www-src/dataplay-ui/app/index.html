@@ -44,12 +44,12 @@
 				</div>
 				<div class="navbar-collapse collapse">
 					<ul class="nav navbar-nav">
-						<li ng-class="{active: isActive('/')}" ng-show="user.isAuthenticated() !== false"><a href="/">Home</a></li>
+						<li ng-class="{active: isActive('/')}" ng-show="Auth.isAuthenticated() !== false"><a href="/">Home</a></li>
 					</ul>
 					<ul class="nav navbar-nav navbar-right">
-						<li ng-class="{active: isActive('/login')}" ng-hide="user.isAuthenticated()!== false"><a ng-href="/login">Login</a></li>
-						<li ng-class="{active: isActive('/register')}" ng-hide="user.isAuthenticated() !== false"><a ng-href="/register">Register</a></li>
-						<li ng-show="user.isAuthenticated() !== false"><a href="#" ng-controller="UserCtrl" ng-click="logout()">Logout</a></li>
+						<li ng-class="{active: isActive('/login')}" ng-hide="Auth.isAuthenticated() !== false"><a ng-href="/login">Login</a></li>
+						<li ng-class="{active: isActive('/register')}" ng-hide="Auth.isAuthenticated() !== false"><a ng-href="/register">Register</a></li>
+						<li ng-show="Auth.isAuthenticated() !== false"><a href="#" ng-controller="UserCtrl" ng-click="logout()">Logout</a></li>
 					</ul>
 				</div><!--/.nav-collapse -->
 			</div>
