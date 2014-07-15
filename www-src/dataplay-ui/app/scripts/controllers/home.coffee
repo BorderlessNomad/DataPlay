@@ -18,7 +18,7 @@ angular.module('dataplayApp')
 			$location.path().substr(0, path.length) is path
 
 		$scope.getLastVisited = () ->
-			unless $scope.isAuthenticated
+			unless $scope.Auth.isAuthenticated()
 				$scope.lastVisited = []
 				return
 
