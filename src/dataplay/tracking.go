@@ -60,7 +60,7 @@ func GetLastVisited(uid int) ([][]string, *appError) {
 			Title string
 		}{}
 
-		err := DB.Select("MAX (priv_tracking.id) id, priv_tracking.guid, (SELECT index.title FROM index WHERE index.guid = priv_tracking.guid LIMIT 1) as title, MAX (priv_tracking.created) created").Where("priv_tracking.user = ?", uid).Group("guid").Order("created desc").Order("guid desc").Limit(5).Find(&results).Error
+		err := DB.Select("MAX (priv_tracking.id) id, priv_tracking.guid, (SELECT index.title FROM index WHERE index.guid = priv_tracking.guid LIMIT 1) as title, MAX (priv_tracking.created) created").Joins("LEFT JOIN index ON index.guid = priv_tracking.guid").Where("title != ?", "").Where("priv_tracking.user = ?", uid).Group("priv_tracking.guid").Order("created desc").Order("priv_tracking.guid desc").Limit(5).Find(&results).Error
 
 		if err != nil && err != gorm.RecordNotFound {
 			return nil, &appError{err, "Database query failed", http.StatusServiceUnavailable}
