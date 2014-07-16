@@ -165,7 +165,7 @@ func initMasterMode() {
 
 	m := martini.Classic()
 
-	// m.Get("/", Authorisation) // Disabled temp
+	m.Get("/", Authorisation)
 	m.Get("/login", Login)
 	m.Get("/logout", Logout)
 	m.Get("/register", Register)
@@ -285,7 +285,7 @@ func sendToQueue(res http.ResponseWriter, req *http.Request, params martini.Para
  */
 func JsonApiHandler(res http.ResponseWriter, req *http.Request) {
 	if strings.HasPrefix(req.URL.Path, "/api") {
-		CheckAuthRedirect(res, req) // Make everything in the API auth'd
+		// CheckAuthRedirect(res, req) // Make everything in the API auth'd
 		res.Header().Set("Content-Type", "application/json")
 	}
 }
