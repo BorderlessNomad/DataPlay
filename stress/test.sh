@@ -20,6 +20,31 @@ INTENSITY=${INTENSITY_LIST[low]} # Number of Requests
 METHOD=${METHOD_LIST[search]}
 ACTION=${ACTION_LIST[nhs]}
 
+function help {
+	echo "DataPlay stress test"
+	echo ""
+	echo "Usage: $0 [options...]"
+	echo "Options are:"
+	echo "	-i, --intensity 	Number of requests to be made [1...${INTENSITY_LIST[max]}] [Default: $INTENSITY] or see below"
+	echo "	-m, --method 		Method to invoke [search] [Default: $METHOD] or see below"
+	echo "	-a, --action 		Number of requests to be made [Default: $ACTION] or see below"
+	echo ""
+	echo "available options for --intensity [ ${!INTENSITY_LIST[@]} ]"
+	echo "available options for --method [ ${!METHOD_LIST[@]} ]"
+	echo "available options for --action [ ${!ACTION_LIST[@]} ]"
+	echo ""
+	echo "Examples:"
+	echo "$0 -i 100 -m search -a nhs"
+	echo "$0 -m search -a nhs"
+	echo "$0 --intensity 1000"
+	echo ""
+}
+
+[ $# -eq 0 ] && {
+	help
+	exit 1;
+}
+
 numRegEx='^[0-9]+$'
 strRegEx='^[A-Za-z]+$'
 
@@ -28,6 +53,10 @@ while [[ $# > 1 ]]; do
 	shift
 
 	case $key in
+		-h|--help)
+			help
+			exit 1;
+			;;
 		-i|--intensity)
 			INTENSITY="$1"
 			if ! [[ $INTENSITY =~ $numRegEx ]]; then # It's not a Number
@@ -62,6 +91,10 @@ while [[ $# > 1 ]]; do
 				echo "Error: action '$ACTION' is not in allowed list." >&2; exit 1
 			fi
 			shift
+			;;
+		*)
+			echo "Invalid argument $1"
+			exit 1;
 			;;
 	esac
 done
