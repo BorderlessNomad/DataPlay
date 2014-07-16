@@ -165,7 +165,7 @@ func initMasterMode() {
 
 	m := martini.Classic()
 
-	m.Get("/", Authorisation)
+	// m.Get("/", Authorisation) // Disabled temp
 	m.Get("/login", Login)
 	m.Get("/logout", Logout)
 	m.Get("/register", Register)
