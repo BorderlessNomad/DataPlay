@@ -125,6 +125,9 @@ func initClassicMode() {
 	m.Get("/maptest/:id", MapTest)
 
 	/* APIs */
+	m.Get("/api/ping", func(res http.ResponseWriter, req *http.Request) string {
+		return "pong"
+	})
 	m.Post("/api/login", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
 		return HandleLogin(res, req, login)
 	})
@@ -134,7 +137,7 @@ func initClassicMode() {
 	})
 	m.Get("/api/user", CheckAuth)
 	m.Get("/api/:session/visited", GetLastVisitedHttp)
-	m.Get("/api/search/:s", SearchForDataHttp)
+	m.Get("/api/:session/search/:s", SearchForDataHttp)
 	m.Get("/api/getinfo/:id", GetEntry)
 	m.Get("/api/getimportstatus/:id", CheckImportStatus)
 	m.Get("/api/getdata/:id", DumpTableHttp)

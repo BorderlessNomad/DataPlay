@@ -24,4 +24,8 @@ angular.module('dataplayApp')
 
 		visited: () ->
 			$http.get config.api.base_url + '/' + Auth.isAuthenticated(true) + "/visited"
+
+		search: (word) ->
+			console.log word, Auth.isAuthenticated(true)
+			$http.get config.api.base_url + '/' + Auth.isAuthenticated(true) + "/search/" + word
 	]

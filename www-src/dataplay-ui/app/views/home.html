@@ -5,8 +5,8 @@
 	<div class="list-group-item row" ng-repeat="item in lastVisited">
 		<span class="col-md-9">{{item.title}}</span>
 		<span class="col-md-3">
-			<a class="btn btn-danger btn-xs" href="/charts/{{item.guid}}">Chart</a>
-			<a class="btn btn-warning btn-xs" href="/overview/{{item.guid}}">Overview</a>
+			<a class="btn btn-danger btn-xs" ng-href="/charts/{{item.guid}}">Chart</a>
+			<a class="btn btn-warning btn-xs" ng-href="/overview/{{item.guid}}">Overview</a>
 			<a class="btn btn-primary btn-xs" ng-href="/map/{{item.guid}}" ng-show="item.map">Map</a>
 		</span>
 	</div>
