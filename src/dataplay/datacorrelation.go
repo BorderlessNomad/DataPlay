@@ -141,8 +141,8 @@ func StandDev(x []float64) float64 {
 	sumx := 0.0
 	n := float64(len(x))
 	mean := Mean(x)
-	for i, _ := range x {
-		sumx += math.Pow((x[i] - mean), 2)
+	for _, v := range x {
+		sumx += math.Pow((v - mean), 2)
 	}
 	return math.Sqrt(sumx / n)
 }
@@ -157,8 +157,8 @@ func StandDev(x []float64) float64 {
 func Mean(x []float64) float64 {
 	n := float64(len(x))
 	sumx := 0.0
-	for i, _ := range x {
-		sumx += x[i]
+	for _, v := range x {
+		sumx += v
 	}
 	return sumx / n
 }

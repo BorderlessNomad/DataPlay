@@ -7,7 +7,7 @@ import (
 )
 
 func TestGetCorrelation(t *testing.T) {
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 1000; i++ {
 		Convey("Should return JSON string with correlation", t, func() {
 			table := RandomTableName()
 			result := GetCorrelation(table)
@@ -33,7 +33,7 @@ func TestGetCoef(t *testing.T) {
 
 	Convey("Should return coefficient value when passed map", t, func() {
 		result := GetCoef(tst)
-		So(result, ShouldEqual, 0.9999762331129333)
+		So(result, ShouldEqual, 0.9999999260538963)
 	})
 
 }
@@ -132,33 +132,30 @@ func TestDetermineRange(t *testing.T) {
 }
 
 func TestCreateBuckets(t *testing.T) {
-	test := make([]DateAmt, 20)
-	test[0].Date = time.Date(2013, 1, 1, 0, 0, 0, 0, time.UTC)
-	test[1].Date = time.Date(2014, 12, 31, 0, 0, 0, 0, time.UTC)
-	test[2].Date = time.Date(2013, 8, 2, 0, 0, 0, 0, time.UTC)
-	test[3].Date = time.Date(2013, 9, 5, 0, 0, 0, 0, time.UTC)
-	test[4].Date = time.Date(2014, 3, 6, 0, 0, 0, 0, time.UTC)
-	test[5].Date = time.Date(2013, 10, 3, 0, 0, 0, 0, time.UTC)
-	test[6].Date = time.Date(2013, 2, 4, 0, 0, 0, 0, time.UTC)
-	test[7].Date = time.Date(2013, 10, 20, 0, 0, 0, 0, time.UTC)
-	test[8].Date = time.Date(2013, 8, 23, 0, 0, 0, 0, time.UTC)
-	test[9].Date = time.Date(2013, 10, 5, 0, 0, 0, 0, time.UTC)
-	test[10].Date = time.Date(2013, 8, 6, 0, 0, 0, 0, time.UTC)
-	test[11].Date = time.Date(2013, 6, 7, 0, 0, 0, 0, time.UTC)
-	test[12].Date = time.Date(2014, 10, 2, 0, 0, 0, 0, time.UTC)
-	test[13].Date = time.Date(2013, 11, 15, 0, 0, 0, 0, time.UTC)
-	test[14].Date = time.Date(2014, 3, 6, 0, 0, 0, 0, time.UTC)
-	test[15].Date = time.Date(2013, 10, 3, 0, 0, 0, 0, time.UTC)
-	test[16].Date = time.Date(2013, 7, 14, 0, 0, 0, 0, time.UTC)
-	test[17].Date = time.Date(2014, 1, 7, 0, 0, 0, 0, time.UTC)
-	test[18].Date = time.Date(2013, 4, 12, 0, 0, 0, 0, time.UTC)
-	test[19].Date = time.Date(2013, 9, 15, 0, 0, 0, 0, time.UTC)
-	from := time.Date(2013, 1, 1, 0, 0, 0, 0, time.UTC)
-	to := time.Date(2013, 12, 31, 0, 0, 0, 0, time.UTC)
+	t1 := time.Date(2014, 1, 1, 0, 0, 0, 0, time.UTC)
+	t2 := time.Date(2014, 1, 2, 0, 0, 0, 0, time.UTC)
+	t3 := time.Date(2014, 1, 3, 0, 0, 0, 0, time.UTC)
+	t4 := time.Date(2014, 1, 4, 0, 0, 0, 0, time.UTC)
+	t5 := time.Date(2014, 1, 5, 0, 0, 0, 0, time.UTC)
+	t6 := time.Date(2014, 1, 6, 0, 0, 0, 0, time.UTC)
+	t7 := time.Date(2014, 1, 7, 0, 0, 0, 0, time.UTC)
+	chk := make([]FromTo, 6)
+	chk[0].From = t1
+	chk[0].To = t2
+	chk[1].From = t2
+	chk[1].To = t3
+	chk[2].From = t3
+	chk[2].To = t4
+	chk[3].From = t4
+	chk[3].To = t5
+	chk[4].From = t5
+	chk[4].To = t6
+	chk[5].From = t6
+	chk[5].To = t7
 
 	Convey("Should return range of dated FromTo buckets", t, func() {
-		result := CreateBuckets(test, from, to, 730)
-		So(result, ShouldNotBeNil)
+		result := CreateBuckets(t1, t6, 6)
+		So(result, ShouldResemble, chk)
 	})
 }
 
@@ -170,23 +167,23 @@ func TestFillBuckets(t *testing.T) {
 	testDA[2].Date = time.Date(2014, 1, 3, 0, 0, 0, 0, time.UTC)
 	testDA[3].Date = time.Date(2014, 2, 28, 0, 0, 0, 0, time.UTC)
 	testDA[4].Date = time.Date(2014, 12, 31, 0, 0, 0, 0, time.UTC)
-	testDA[0].Amount = 1.2
-	testDA[1].Amount = 0.8
-	testDA[2].Amount = 3.7
-	testDA[3].Amount = 6.3
+	testDA[0].Amount = 1.0
+	testDA[1].Amount = 2.0
+	testDA[2].Amount = 3.4
+	testDA[3].Amount = 6.6
 	testDA[4].Amount = 5.0
 
 	testBkt := make([]FromTo, 3)
 	testBkt[0].From = time.Date(2014, 1, 1, 0, 0, 0, 0, time.UTC)
-	testBkt[0].To = time.Date(2014, 1, 2, 0, 0, 0, 0, time.UTC)
+	testBkt[0].To = time.Date(2014, 1, 3, 0, 0, 0, 0, time.UTC)
 	testBkt[1].From = time.Date(2014, 1, 3, 0, 0, 0, 0, time.UTC)
 	testBkt[1].To = time.Date(2014, 3, 1, 0, 0, 0, 0, time.UTC)
 	testBkt[2].From = time.Date(2014, 3, 1, 0, 0, 0, 0, time.UTC)
-	testBkt[2].To = time.Date(2014, 12, 31, 0, 0, 0, 0, time.UTC)
+	testBkt[2].To = time.Date(2015, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	Convey("Should return bucket", t, func() {
 		result := FillBuckets(testDA, testBkt)
-		chk := []float64{2.0, 10.0, 5.0}
+		chk := []float64{3.0, 10.0, 5.0}
 		So(result, ShouldResemble, chk)
 	})
 
