@@ -18,6 +18,7 @@ import (
 	"playgen/database"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var (
@@ -144,6 +145,8 @@ func initClassicMode() {
 
 	m.Use(JsonApiHandler)
 
+	m.Use(LogRequest)
+
 	m.Use(martini.Static("../node_modules")) //Why?
 
 	m.Run()
@@ -227,6 +230,8 @@ func initMasterMode() {
 
 	m.Use(JsonApiHandler)
 
+	m.Use(LogRequest)
+
 	m.Use(martini.Static("../node_modules")) //Why?
 
 	m.Run()
@@ -261,6 +266,11 @@ func initNodeMode() {
 
 var responseChannel chan string
 
+/**
+ * @details Send requet to Queue for remote execution in parallel mode.
+ * Request & responses are async however output will be sent to ResponseWriter
+ * as soon as it is received via singleton channel.
+ */
 func sendToQueue(res http.ResponseWriter, req *http.Request, params martini.Params, request string, method string) string {
 	responseChannel = make(chan string, 1)
 
@@ -278,7 +288,7 @@ func sendToQueue(res http.ResponseWriter, req *http.Request, params martini.Para
 }
 
 /**
- * @details A HTTP middleware that Forces anything with /api to have a json doctype. Since it makes sence to
+ * @details A HTTP middleware that Forces anything with /api to have a json doctype.
  *
  * @param http.ResponseWriter
  * @param *http.Request
@@ -288,6 +298,38 @@ func JsonApiHandler(res http.ResponseWriter, req *http.Request) {
 		// CheckAuthRedirect(res, req) // Make everything in the API auth'd
 		res.Header().Set("Content-Type", "application/json")
 	}
+}
+
+/**
+ * @brief Log incoming requests
+ * @details Log all requests ending on '/api' for performance monitoring,
+ * this method will start a timer before procesing data and will report at
+ * the end of execution process. Data is stored in Redis via StoreMonitoringData
+ * in sync manner.
+ *
+ * @param http [description]
+ * @param http [description]
+ * @param martini [description]
+ * @return [description]
+ */
+func LogRequest(res http.ResponseWriter, req *http.Request, c martini.Context) {
+	// Do not proceed if request is not for "/api"
+	if !strings.HasPrefix(req.URL.Path, "/api") {
+		return
+	}
+
+	startTime := time.Now()
+
+	rw := res.(martini.ResponseWriter)
+	c.Next() // Execute requested method
+
+	endTime := time.Since(startTime)
+	executionTime := endTime.Nanoseconds() / 1000 // nanoseconds/1000 = microsecond (us)
+
+	urlData := strings.Split(req.URL.Path, "/")
+
+	// Send data for storage
+	go StoreMonitoringData(urlData[1], urlData[2], req.URL.Path, req.Method, rw.Status(), executionTime)
 }
 
 /**
