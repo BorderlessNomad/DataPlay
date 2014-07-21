@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo 'BUILDING DEPENDENCIES' &&
-npm install -g &&
+npm install &&
 echo 'BUILDING JS/CSS' &&
 grunt &&
 
