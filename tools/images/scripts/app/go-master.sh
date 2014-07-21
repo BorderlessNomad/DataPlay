@@ -7,6 +7,7 @@
 #
 # [Note: running dataplay-go-master image will do 1) & 2) (recommended)]
 
+APP="dataplay"
 SOURCE="https://github.com/playgenhub/DataPlay/archive/"
 BRANCH="develop"
 DEST="/home/ubuntu/www"
@@ -21,6 +22,10 @@ RESPONSE_QUEUE="dataplay-response-prod"
 RESPONSE_KEY="api-response-prod"
 RESPONSE_TAG="consumer-response-prod"
 MODE="2" # Master mode
+
+# Kill any running process
+echo "SHUTDOWN RUNING APP.."
+killall -9 $APP
 
 cd $DEST
 echo "Fetching latest ZIP"
