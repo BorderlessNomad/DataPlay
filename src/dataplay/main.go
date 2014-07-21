@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/codegangsta/martini"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"playgen/database"
@@ -88,6 +89,7 @@ func main() {
 }
 
 func initClassicMode() {
+	rand.Seed(time.Now().Unix())
 	fmt.Println("[init] starting in Classic mode")
 
 	e := DBSetup()
@@ -321,6 +323,10 @@ func LogRequest(res http.ResponseWriter, req *http.Request, c martini.Context) {
 	startTime := time.Now()
 
 	rw := res.(martini.ResponseWriter)
+
+	// tm := TimeMachine(100, 500)
+	// time.Sleep(tm * time.Millisecond)
+
 	c.Next() // Execute requested method
 
 	endTime := time.Since(startTime)
@@ -330,6 +336,10 @@ func LogRequest(res http.ResponseWriter, req *http.Request, c martini.Context) {
 
 	// Send data for storage
 	go StoreMonitoringData(urlData[1], urlData[2], req.URL.Path, req.Method, rw.Status(), executionTime)
+}
+
+func TimeMachine(min, max int) time.Duration {
+	return time.Duration(rand.Intn(max-min) + min)
 }
 
 /**
