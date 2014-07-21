@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 )
@@ -33,6 +34,8 @@ func StoreMonitoringData(httpEndPoint, httpRequest, httpUrl, httpMethod string, 
 		return fmt.Errorf("Could not select database from Redis.")
 	}
 
+	host, err := GetHostName()
+
 	data := map[string]interface{}{
 		"endpoint":  httpEndPoint,
 		"request":   httpRequest,
@@ -41,6 +44,7 @@ func StoreMonitoringData(httpEndPoint, httpRequest, httpUrl, httpMethod string, 
 		"code":      httpCode,
 		"duration":  executionTime,
 		"timestamp": int32(timeNow.Unix()),
+		"host":      host,
 	}
 
 	key := strconv.FormatInt(nanoTime, 10)
@@ -65,4 +69,14 @@ func GetUnixNanoTimeStamp() (time.Time, int64) {
 	nanos := now.UnixNano()
 
 	return now, nanos
+}
+
+/**
+ * @brief Get Hostname
+ * @details Retrieve hostname of a system along with NS-Lookup
+ */
+func GetHostName() (name string, err error) {
+	name, err = os.Hostname()
+
+	return
 }
