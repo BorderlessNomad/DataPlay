@@ -14,13 +14,21 @@ BRANCH="develop"
 DEST="/home/ubuntu/www"
 START="start.sh"
 LOG="ouput.log"
-EXCHANGE="playgen-prod"
+
+QUEUE_USERNAME="playgen"
+QUEUE_PASSWORD="aDam3ntiUm"
+QUEUE_SERVER="109.231.121.13"
+QUEUE_PORT="5672"
+QUEUE_ADDRESS="amqp://$QUEUE_USERNAME:$QUEUE_PASSWORD@$QUEUE_SERVER:$QUEUE_PORT/"
+QUEUE_EXCHANGE="playgen-prod"
+
 REQUEST_QUEUE="dataplay-request-prod"
 REQUEST_KEY="api-request-prod"
 REQUEST_TAG="consumer-request-prod"
 RESPONSE_QUEUE="dataplay-response-prod"
 RESPONSE_KEY="api-response-prod"
 RESPONSE_TAG="consumer-response-prod"
+
 MODE="2" # Master mode
 
 # Kill any running process
@@ -41,7 +49,7 @@ mv -f $REPO-$BRANCH/* $APP
 cd $APP
 chmod u+x $START
 echo "Starting $START in Mode=$MODE"
-nohup sh $START --mode=$MODE --exchange="$EXCHANGE" --requestqueue="$REQUEST_QUEUE" --requestkey="$REQUEST_KEY" --reqtag="$REQUEST_TAG" --responsequeue="$RESPONSE_QUEUE" --responsekey="$RESPONSE_KEY" --restag="$RESPONSE_TAG" &> $LOG &
+nohup sh $START --mode=$MODE --uri="$QUEUE_ADDRESS" --exchange="$QUEUE_EXCHANGE" --requestqueue="$REQUEST_QUEUE" --requestkey="$REQUEST_KEY" --reqtag="$REQUEST_TAG" --responsequeue="$RESPONSE_QUEUE" --responsekey="$RESPONSE_KEY" --restag="$RESPONSE_TAG" &> $LOG &
 echo "Done!"
 echo "(Note: tail -f $DEST/$APP/$LOG for more details)"
 
