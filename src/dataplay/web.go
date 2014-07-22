@@ -11,6 +11,9 @@ func Authorisation(res http.ResponseWriter, req *http.Request) { // res and req 
 	CheckAuthRedirect(res, req)
 
 	uid := GetUserID(res, req)
+	if uid == 0 {
+		return
+	}
 
 	user := User{}
 	err := DB.Where("uid = ?", uid).Find(&user).Error
