@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"net/http"
@@ -10,8 +11,14 @@ import (
 func Authorisation(res http.ResponseWriter, req *http.Request) { // res and req are injected by Martini
 	CheckAuthRedirect(res, req)
 
+	uid := GetUserID(res, req)
+
+	if uid == 0 {
+		http.Redirect(res, req, fmt.Sprintf("/login?failed=1"), http.StatusUnauthorized)
+	}
+
 	user := User{}
-	err := DB.Where("uid = ?", GetUserID(res, req)).Find(&user).Error
+	err := DB.Where("uid = ?", uid).Find(&user).Error
 	if err != nil && err != gorm.RecordNotFound {
 		panic(err)
 	}
