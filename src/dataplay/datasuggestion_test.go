@@ -10,7 +10,11 @@ func TestGetCorrelation(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		Convey("Should return JSON string with correlation", t, func() {
 			table := RandomTableName()
-			result := GetCorrelation(table)
+			guid := NameToGuid(table)
+			colNames := FetchTableCols(guid)
+			vCol := RandomAmountColumn(colNames)
+			dCol := RandomDateColumn(colNames)
+			result := GetCorrelation(table, vCol, dCol)
 			So(result, ShouldNotBeNil)
 		})
 	}
@@ -20,19 +24,19 @@ func TestGetCoef(t *testing.T) {
 	tst := make(map[string]string)
 
 	Convey("Should return nothing when passed empty map", t, func() {
-		result := GetCoef(tst)
+		result := GetCoefP(tst)
 		So(result, ShouldEqual, 0)
 	})
 
 	tst["table1"] = "gold"
 	tst["table2"] = "gold"
-	tst["amtCol1"] = "price"
-	tst["amtCol2"] = "price"
+	tst["valCol1"] = "price"
+	tst["valCol2"] = "price"
 	tst["dateCol1"] = "date"
 	tst["dateCol2"] = "date"
 
 	Convey("Should return coefficient value of approx 1 when passed same map for table 1 and 2", t, func() {
-		result := GetCoef(tst)
+		result := GetCoefP(tst)
 		So(result, ShouldEqual, 0.9999999580630539)
 	})
 
@@ -75,17 +79,18 @@ func TestRandomTableName(t *testing.T) {
 	})
 }
 
-func TestExtractDateAmt(t *testing.T) {
+func TestExtractDateVal(t *testing.T) {
 	Convey("Should return extracted date and amoutn cols", t, func() {
-		result := ExtractDateAmt("gold", "date", "price")
+		result := ExtractDateVal("gold", "date", "price")
 		So(result, ShouldNotBeNil)
 	})
 }
 
 func TestDetermineRange(t *testing.T) {
-	testX := make([]DateAmt, 7)
-	testY := make([]DateAmt, 8)
-	testZ := make([]DateAmt, 1)
+	testX := make([]DateVal, 7)
+	testY := make([]DateVal, 8)
+	testZ := make([]DateVal, 1)
+
 	testX[0].Date = time.Date(2013, 10, 1, 0, 0, 0, 0, time.UTC)
 	testX[1].Date = time.Date(2013, 10, 7, 0, 0, 0, 0, time.UTC)
 	testX[2].Date = time.Date(2013, 10, 2, 0, 0, 0, 0, time.UTC)
@@ -138,6 +143,7 @@ func TestCreateBuckets(t *testing.T) {
 	t4 := time.Date(2014, 1, 4, 0, 0, 0, 0, time.UTC)
 	t5 := time.Date(2014, 1, 5, 0, 0, 0, 0, time.UTC)
 	t6 := time.Date(2014, 1, 6, 0, 0, 0, 0, time.UTC)
+
 	chk := make([]FromTo, 6)
 	chk[0].From = t1
 	chk[0].To = t2
@@ -160,17 +166,17 @@ func TestCreateBuckets(t *testing.T) {
 
 func TestFillBuckets(t *testing.T) {
 
-	testDA := make([]DateAmt, 5)
+	testDA := make([]DateVal, 5)
 	testDA[0].Date = time.Date(2014, 1, 1, 0, 0, 0, 0, time.UTC)
 	testDA[1].Date = time.Date(2014, 1, 2, 0, 0, 0, 0, time.UTC)
 	testDA[2].Date = time.Date(2014, 1, 3, 0, 0, 0, 0, time.UTC)
 	testDA[3].Date = time.Date(2014, 2, 28, 0, 0, 0, 0, time.UTC)
 	testDA[4].Date = time.Date(2014, 12, 31, 0, 0, 0, 0, time.UTC)
-	testDA[0].Amount = 1.3
-	testDA[1].Amount = 1.7
-	testDA[2].Amount = 3.4
-	testDA[3].Amount = 6.6
-	testDA[4].Amount = 5.0
+	testDA[0].Value = 1.3
+	testDA[1].Value = 1.7
+	testDA[2].Value = 3.4
+	testDA[3].Value = 6.6
+	testDA[4].Value = 5.0
 
 	testBkt := make([]FromTo, 3)
 	testBkt[0].From = time.Date(2014, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -209,7 +215,7 @@ func TestDaysInYear(t *testing.T) {
 func TestBetween(t *testing.T) {
 	from := time.Date(2010, 1, 1, 0, 0, 0, 0, time.UTC)
 	to := time.Date(2010, 12, 31, 0, 0, 0, 0, time.UTC)
-	date := DateAmt{Date: time.Date(2010, 1, 1, 0, 0, 0, 0, time.UTC), Amount: 0}
+	date := DateVal{Date: time.Date(2010, 1, 1, 0, 0, 0, 0, time.UTC), Value: 0}
 
 	Convey("Date should be on start date", t, func() {
 		result := date.Between(from, to)
@@ -217,13 +223,13 @@ func TestBetween(t *testing.T) {
 	})
 
 	Convey("Date should be between start and end dates", t, func() {
-		date = DateAmt{Date: time.Date(2010, 6, 1, 0, 0, 0, 0, time.UTC), Amount: 0}
+		date = DateVal{Date: time.Date(2010, 6, 1, 0, 0, 0, 0, time.UTC), Value: 0}
 		result := date.Between(from, to)
 		So(result, ShouldEqual, true)
 	})
 
 	Convey("Date should be outside start and end dates", t, func() {
-		date = DateAmt{Date: time.Date(2011, 1, 1, 0, 0, 0, 0, time.UTC), Amount: 0}
+		date = DateVal{Date: time.Date(2011, 1, 1, 0, 0, 0, 0, time.UTC), Value: 0}
 		result := date.Between(from, to)
 		So(result, ShouldEqual, false)
 	})
@@ -242,8 +248,8 @@ func TestDayNum(t *testing.T) {
 
 // 	tst["table1"] = "imp8138bcab2ed69363ad18cdd1b64361f2acac7f90_c37b20778b8bac50d96"
 // 	tst["table2"] = "imp76999521f9de1ccaf694be88d591ff2a1124dda5_1132dfb9ac9b715dc3b"
-// 	tst["amtCol1"] = "amount"
-// 	tst["amtCol2"] = "transaction_num"
+// 	tst["valCol1"] = "amount"
+// 	tst["valCol2"] = "transaction_num"
 // 	tst["dateCol1"] = "date"
 // 	tst["dateCol2"] = "accounting_date"
 
