@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"net/http"
@@ -12,10 +11,6 @@ func Authorisation(res http.ResponseWriter, req *http.Request) { // res and req 
 	CheckAuthRedirect(res, req)
 
 	uid := GetUserID(res, req)
-
-	if uid == 0 {
-		http.Redirect(res, req, fmt.Sprintf("/login?failed=1"), http.StatusUnauthorized)
-	}
 
 	user := User{}
 	err := DB.Where("uid = ?", uid).Find(&user).Error

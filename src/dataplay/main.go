@@ -297,7 +297,7 @@ func sendToQueue(res http.ResponseWriter, req *http.Request, params martini.Para
  */
 func JsonApiHandler(res http.ResponseWriter, req *http.Request) {
 	if strings.HasPrefix(req.URL.Path, "/api") {
-		// CheckAuthRedirect(res, req) // Make everything in the API auth'd
+		CheckAuthRedirect(res, req) // Make everything in the API auth'd
 		res.Header().Set("Content-Type", "application/json")
 	}
 }
