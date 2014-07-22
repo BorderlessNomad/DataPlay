@@ -11,6 +11,9 @@ import (
 
 func IsUserLoggedIn(res http.ResponseWriter, req *http.Request) bool {
 	cookie, _ := req.Cookie("DPSession")
+
+	fmt.Println("IsUserLoggedIn Cookie:", cookie.Value)
+
 	c, err := GetRedisConnection()
 	if cookie != nil && err == nil {
 		defer c.Close()
@@ -34,6 +37,8 @@ func IsUserLoggedIn(res http.ResponseWriter, req *http.Request) bool {
 
 func GetUserID(res http.ResponseWriter, req *http.Request) int {
 	cookie, _ := req.Cookie("DPSession")
+
+	fmt.Println("GetUserID Cookie:", cookie.Value)
 
 	c, err := GetRedisConnection()
 	if cookie != nil && err == nil {
@@ -81,6 +86,8 @@ func SetSession(res http.ResponseWriter, req *http.Request, userid int) (e error
 
 func ClearSession(res http.ResponseWriter, req *http.Request) (e error) {
 	cookie, _ := req.Cookie("DPSession")
+	fmt.Println("ClearSession Cookie:", cookie.Value)
+
 	c, errc := GetRedisConnection()
 	if errc != nil {
 		return fmt.Errorf("Could not connect to redis server to make session")

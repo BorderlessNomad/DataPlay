@@ -29,6 +29,7 @@ install_nodejs () {
 	apt-get update
 	apt-get install -y python g++ make nodejs
 	npm install -g grunt grunt-cli
+	chown -R ubuntu:ubuntu /home/ubuntu/.npm # Fix permissions
 }
 
 update_iptables () {
