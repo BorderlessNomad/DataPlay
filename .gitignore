@@ -30,3 +30,5 @@ src/dataplay/public/processing.html
 src/dataplay/public/register.html
 src/dataplay/public/search.html
 src/dataplay/public/signin.html
+*.log
+stress/concurrent.sh
