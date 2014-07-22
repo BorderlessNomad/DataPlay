@@ -13,7 +13,7 @@ HOSTLOCAL="127.0.1.1"
 echo "$HOSTLOCAL $HOSTNAME" >> /etc/hosts
 
 apt-get update
-apt-get -y dist-upgrade
+apt-get -y upgrade
 apt-get install -y build-essential sudo openssh-server screen gcc curl git make binutils bison wget python-software-properties htop zip
 
 # Install latest PostgresSQL with GIS support
