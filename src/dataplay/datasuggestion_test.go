@@ -7,7 +7,7 @@ import (
 )
 
 func TestGetCorrelation(t *testing.T) {
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 100; i++ {
 		Convey("Should return JSON string with correlation", t, func() {
 			table := RandomTableName()
 			result := GetCorrelation(table)
@@ -31,9 +31,9 @@ func TestGetCoef(t *testing.T) {
 	tst["dateCol1"] = "date"
 	tst["dateCol2"] = "date"
 
-	Convey("Should return coefficient value when passed map", t, func() {
+	Convey("Should return coefficient value of approx 1 when passed same map for table 1 and 2", t, func() {
 		result := GetCoef(tst)
-		So(result, ShouldEqual, 0.9999999260538963)
+		So(result, ShouldEqual, 0.9999999580630539)
 	})
 
 }
@@ -138,7 +138,6 @@ func TestCreateBuckets(t *testing.T) {
 	t4 := time.Date(2014, 1, 4, 0, 0, 0, 0, time.UTC)
 	t5 := time.Date(2014, 1, 5, 0, 0, 0, 0, time.UTC)
 	t6 := time.Date(2014, 1, 6, 0, 0, 0, 0, time.UTC)
-	t7 := time.Date(2014, 1, 7, 0, 0, 0, 0, time.UTC)
 	chk := make([]FromTo, 6)
 	chk[0].From = t1
 	chk[0].To = t2
@@ -151,7 +150,7 @@ func TestCreateBuckets(t *testing.T) {
 	chk[4].From = t5
 	chk[4].To = t6
 	chk[5].From = t6
-	chk[5].To = t7
+	chk[5].To = t6
 
 	Convey("Should return range of dated FromTo buckets", t, func() {
 		result := CreateBuckets(t1, t6, 6)
@@ -167,8 +166,8 @@ func TestFillBuckets(t *testing.T) {
 	testDA[2].Date = time.Date(2014, 1, 3, 0, 0, 0, 0, time.UTC)
 	testDA[3].Date = time.Date(2014, 2, 28, 0, 0, 0, 0, time.UTC)
 	testDA[4].Date = time.Date(2014, 12, 31, 0, 0, 0, 0, time.UTC)
-	testDA[0].Amount = 1.0
-	testDA[1].Amount = 2.0
+	testDA[0].Amount = 1.3
+	testDA[1].Amount = 1.7
 	testDA[2].Amount = 3.4
 	testDA[3].Amount = 6.6
 	testDA[4].Amount = 5.0
@@ -237,3 +236,20 @@ func TestDayNum(t *testing.T) {
 		So(result, ShouldEqual, 42004)
 	})
 }
+
+// func TestGetCoef(t *testing.T) {
+// 	tst := make(map[string]string)
+
+// 	tst["table1"] = "imp8138bcab2ed69363ad18cdd1b64361f2acac7f90_c37b20778b8bac50d96"
+// 	tst["table2"] = "imp76999521f9de1ccaf694be88d591ff2a1124dda5_1132dfb9ac9b715dc3b"
+// 	tst["amtCol1"] = "amount"
+// 	tst["amtCol2"] = "transaction_num"
+// 	tst["dateCol1"] = "date"
+// 	tst["dateCol2"] = "accounting_date"
+
+// 	Convey("Should return coefficient value when passed map", t, func() {
+// 		result := GetCoef(tst)
+// 		So(result, ShouldEqual, 0)
+// 	})
+
+// }

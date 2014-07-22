@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	// "fmt"
 	"github.com/jinzhu/gorm"
+	"math"
 	"math/rand"
 	"regexp"
 	"strings"
@@ -36,7 +38,6 @@ func GetCorrelation(table1 string) string {
 		var coef []float64 // check if correlation already exists for this pairing first
 		err := DB.Model(&c).Where("tbl1 = ?", m["table1"]).Where("col1 = ?", m["amtCol1"]).Where("tbl2 = ?", m["table2"]).Where("col2 = ?", m["amtCol2"]).Where("method = ?", "Pearson").Pluck("coef", &coef).Error
 		check(err)
-
 		if coef == nil {
 			cf := GetCoef(m)
 			correlation := Correlation{
@@ -113,7 +114,7 @@ func GetCoef(m map[string]string) float64 {
 	} else if rngY < rngX && fromY.After(fromX) && toY.Before(toX) { //////////////////////////////// 2. Y range is within X range
 		bucketRange = CreateBuckets(fromY, toY, rngY)
 	} else if fromX.Before(fromY) && toX.Before(fromY) || fromX.After(toY) && toX.After(toY) { ////// 3. ranges have no overlap
-		return 0
+		return 0 /// pie charts
 	} else if fromX.Before(fromY) { ///////////////////////////////////////////////////////////////// 4. ranges overlap between from Y and to X
 		rngYX := dayNum(toX) - dayNum(fromY)
 		bucketRange = CreateBuckets(fromY, toX, rngYX)
@@ -126,6 +127,26 @@ func GetCoef(m map[string]string) float64 {
 	xBuckets := FillBuckets(x, bucketRange) // put table 1 values into buckets
 	yBuckets := FillBuckets(y, bucketRange) // put table 2 values into buckets
 	cf = Pearson(xBuckets, yBuckets)        // calculate coefficient of table 1 and table 2 values
+
+	// if cf == 0 {
+	// 	fmt.Println("\n\n\nxxxB - ", cf)
+	// 	fmt.Println("\n\n X", x)
+	// 	fmt.Println("\n\n Y", y)
+	// 	fmt.Println("\n\n DATE RANGE ", bucketRange)
+	// 	fmt.Println("\n\n X BUCKETS", xBuckets)
+	// 	fmt.Println("\n\n Y BUCKETS", yBuckets)
+	// }
+
+	// if cf != 0 {
+
+	// 	fmt.Println("\n\n\nxxxC - ", cf)
+	// 	fmt.Println("\n\n xxx - X", x)
+	// 	fmt.Println("\n\n xxx - Y", y)
+	// 	fmt.Println("\n\n xxx - DATE RANGE ", bucketRange)
+	// 	fmt.Println("\n\n xxx - X BUCKETS", xBuckets)
+	// 	fmt.Println("\n\n xxx - Y BUCKETS", yBuckets)
+	// }
+
 	return cf
 }
 
@@ -250,7 +271,7 @@ func ExtractDateAmt(tablename string, dateCol string, amtCol string) []DateAmt {
  * @brief Returns the date range (from date, to date and the intervening difference between those dates in days) of an array of dates
  */
 func DetermineRange(Dates []DateAmt) (time.Time, time.Time, int) {
-	lim := 5 // less dates than this gives nothing worth plotting
+	lim := 1 // less dates than this gives nothing worth plotting
 	var fromDate time.Time
 	var toDate time.Time
 
@@ -284,51 +305,52 @@ func CreateBuckets(fromDate time.Time, toDate time.Time, rng int) []FromTo {
 	}
 
 	lim := 10
-	bucketAmt := 0
+	max := 0
 
 	if rng >= lim { /// no more than 10 buckets
-		bucketAmt = lim
+		max = lim
 	} else {
-		bucketAmt = rng
+		max = rng
 	}
 
+	step, bucketAmt, rem := Steps(rng, max) // get steps between dates, amount of buckets and remainder
 	result := make([]FromTo, bucketAmt)
-	step := rng / bucketAmt // get steps between dates - rounds down so will never go over date range in loop
-	date := fromDate        // set starting date
+	date := fromDate // set starting date
 	i := 0
 
-	for ; i < bucketAmt; i++ {
+	for ; i < bucketAmt-1; i++ {
 		result[i].From = date                   // current date becomes from date
 		result[i].To = date.AddDate(0, 0, step) // step amount to to date
 		date = result[i].To
 	}
-
-	result[i-1].To = toDate.AddDate(0, 0, 1) /// catch any dates that were rounded off
+	result[i].From = date
+	result[i].To = toDate.AddDate(0, 0, rem) /// catch remaining dates in smaller end bucket
 	return result
 }
 
 /**
- * @brief Takes array of dates and amount values and drops and sums them into a discrete range of values which is returned
+ * @brief Takes array of dates and amount values and specified discrete date ranges sums the values according to where the dates place them in that range
  */
 func FillBuckets(dateAmt []DateAmt, bucketRange []FromTo) []float64 {
 	if dateAmt == nil || bucketRange == nil {
 		return nil
 	}
 
-	bucket := make([]float64, len(bucketRange))
+	buckets := make([]float64, len(bucketRange))
 
-	for i, _ := range dateAmt {
-		for j, _ := range bucketRange {
-			if dateAmt[i].Between(bucketRange[j].From, bucketRange[j].To) {
-				bucket[j] += dateAmt[i].Amount
+	for _, v := range dateAmt {
+		for j, w := range bucketRange {
+			if v.Between(w.From, w.To) {
+				buckets[j] += float64(v.Amount)
+				break
 			}
 		}
 	}
-	return bucket
+	return buckets
 }
 
 /**
- * @brief Determine if date lies between 2 dates
+ * @brief Determine if date lies between 2 dates (from a inclusive up to b non inclusive)
  */
 func (d DateAmt) Between(from time.Time, to time.Time) bool {
 	if d.Date == from || (d.Date.After(from) && d.Date.Before(to)) {
@@ -337,6 +359,9 @@ func (d DateAmt) Between(from time.Time, to time.Time) bool {
 	return false
 }
 
+/**
+ * @brief Return date as number of days since 1900
+ */
 func dayNum(d time.Time) int {
 	var date time.Time
 	var days int
@@ -364,4 +389,14 @@ func daysInYear(y int) int {
 	d1 := time.Date(y, 1, 1, 0, 0, 0, 0, time.UTC)
 	d2 := time.Date(y+1, 1, 1, 0, 0, 0, 0, time.UTC)
 	return int(d2.Sub(d1) / (24 * time.Hour))
+}
+
+/**
+ * @brief Return number of steps, number of buckets, remainder steps
+ */
+func Steps(a int, b int) (int, int, int) {
+	stepNum := math.Ceil(float64(a) / float64(b))
+	bucketNum := a / int(stepNum)
+	remNum := math.Mod(float64(a), stepNum)
+	return int(stepNum), bucketNum, int(remNum)
 }
