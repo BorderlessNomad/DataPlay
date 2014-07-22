@@ -8,10 +8,10 @@
 # [Note: running dataplay-go-node image will do 1) & 2) (recommended)]
 
 APP="dataplay"
-SOURCE="https://github.com/playgenhub/DataPlay/archive/"
+REPO="DataPlay"
+SOURCE="https://github.com/playgenhub/$REPO/archive/"
 BRANCH="develop"
 DEST="/home/ubuntu/www"
-DIR="dataplay"
 START="start.sh"
 LOG="ouput.log"
 EXCHANGE="playgen-prod"
@@ -21,7 +21,7 @@ REQUEST_TAG="consumer-request-prod"
 RESPONSE_QUEUE="dataplay-response-prod"
 RESPONSE_KEY="api-response-prod"
 RESPONSE_TAG="consumer-response-prod"
-MODE="1" # Node mode
+MODE="1" # Master mode
 
 # Kill any running process
 echo "SHUTDOWN RUNING APP.."
@@ -32,17 +32,17 @@ echo "Fetching latest ZIP"
 wget -Nq $SOURCE$BRANCH.zip -O $BRANCH.zip
 echo "Extracting from $BRANCH.zip"
 unzip -oq $BRANCH.zip
-if [ -d $DIR ]; then
-	rm -r $DIR
+if [ -d $APP ]; then
+	rm -r $APP
 fi
-mkdir $DIR
-echo "Moving files from DataPlay-$BRANCH/ to $DIR"
-mv -f DataPlay-$BRANCH/* $DIR
-cd $DIR
+mkdir $APP
+echo "Moving files from $REPO-$BRANCH/ to $APP"
+mv -f $REPO-$BRANCH/* $APP
+cd $APP
 chmod u+x $START
 echo "Starting $START in Mode=$MODE"
 nohup sh $START --mode=$MODE --exchange="$EXCHANGE" --requestqueue="$REQUEST_QUEUE" --requestkey="$REQUEST_KEY" --reqtag="$REQUEST_TAG" --responsequeue="$RESPONSE_QUEUE" --responsekey="$RESPONSE_KEY" --restag="$RESPONSE_TAG" &> $LOG &
 echo "Done!"
-echo "(Note: tail -f $DEST/$DIR/$LOG for more details)"
+echo "(Note: tail -f $DEST/$APP/$LOG for more details)"
 
 exit 1

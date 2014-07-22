@@ -1,27 +1,19 @@
 #!/bin/bash
 
-# This is application bootstrap script for App in Master (producer) node
+# This is application bootstrap script for API Monitoring probe
 # 1). Install Ubuntu base image or dataplay-ubuntu-base
 # 2). Run go.sh (base server setup)
 # 3). Run this script as 'sudo'
 #
 # [Note: running dataplay-go-master image will do 1) & 2) (recommended)]
 
-APP="dataplay"
-REPO="DataPlay"
+APP="dataplay-monitoring"
+REPO="DataPlay-Monitoring"
 SOURCE="https://github.com/playgenhub/$REPO/archive/"
-BRANCH="develop"
+BRANCH="master"
 DEST="/home/ubuntu/www"
-START="start.sh"
+START="run.sh"
 LOG="ouput.log"
-EXCHANGE="playgen-prod"
-REQUEST_QUEUE="dataplay-request-prod"
-REQUEST_KEY="api-request-prod"
-REQUEST_TAG="consumer-request-prod"
-RESPONSE_QUEUE="dataplay-response-prod"
-RESPONSE_KEY="api-response-prod"
-RESPONSE_TAG="consumer-response-prod"
-MODE="2" # Master mode
 
 # Kill any running process
 echo "SHUTDOWN RUNING APP.."
@@ -40,8 +32,8 @@ echo "Moving files from $REPO-$BRANCH/ to $APP"
 mv -f $REPO-$BRANCH/* $APP
 cd $APP
 chmod u+x $START
-echo "Starting $START in Mode=$MODE"
-nohup sh $START --mode=$MODE --exchange="$EXCHANGE" --requestqueue="$REQUEST_QUEUE" --requestkey="$REQUEST_KEY" --reqtag="$REQUEST_TAG" --responsequeue="$RESPONSE_QUEUE" --responsekey="$RESPONSE_KEY" --restag="$RESPONSE_TAG" &> $LOG &
+echo "Starting $START"
+nohup sh $START &> $LOG &
 echo "Done!"
 echo "(Note: tail -f $DEST/$APP/$LOG for more details)"
 
