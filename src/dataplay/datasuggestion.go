@@ -7,6 +7,7 @@ import (
 	"math"
 	"math/rand"
 	"regexp"
+	// "strconv"
 	"strings"
 	"time"
 )
@@ -21,52 +22,168 @@ type FromTo struct {
 	To   time.Time
 }
 
+func GetVisualCorrelation(table1 string, valCol1 string, dateCol1 string) float64 {
+	if table1 == "" || valCol1 == "" || dateCol1 == "" {
+		return 0
+	}
+
+	result := 0.0
+	m := make(map[string]string)
+	m["table1"], m["dateCol1"], m["valCol1"] = table1, dateCol1, valCol1
+	// c := Correlation{}
+
+	nameChk := GetRandomNames(m, false)
+	if nameChk {
+		// var coef []float64
+		// err := DB.Model(&c).Where("tbl1 = ?", m["table1"]).Where("col1 = ?", m["valCol1"]).Where("tbl2 = ?", m["table2"]).Where("col2 = ?", m["valCol2"]).Where("tbl3 = ?", m["table3"]).Where("col3 = ?", m["valCol3"]).Where("method = ?", "Spurious").Pluck("coef", &coef).Error
+		// check(err)
+		// if coef == nil {
+		x := ExtractDateVal(m["table1"], m["dateCol1"], m["valCol1"])
+		y := ExtractDateVal(m["table2"], m["dateCol2"], m["valCol2"])
+		fromX, toX, rngX := DetermineRange(x)
+		fromY, toY, rngY := DetermineRange(y)
+		if rngX == 0 || rngY == 0 {
+			return 0
+		}
+
+		var bucketRange []FromTo
+
+		if rngX <= rngY && (fromX == fromY && toX == toY || fromX.After(fromY) && toX.Before(toY)) {
+			bucketRange = CreateBuckets(fromX, toX, rngX)
+			fmt.Println("\nxxxFROM", fromX)
+			fmt.Println("\nxxxTO", toX)
+			fmt.Println("\nrng", rngX)
+		} else if rngY < rngX && fromY.After(fromX) && toY.Before(toX) {
+			bucketRange = CreateBuckets(fromY, toY, rngY)
+			fmt.Println("\nxxxFROM", fromY)
+			fmt.Println("\nxxxTO", toY)
+			fmt.Println("\nrng", rngY)
+		} else if fromX.Before(fromY) && toX.Before(fromY) || fromX.After(toY) && toX.After(toY) {
+			return 0
+		} else if fromX.Before(fromY) {
+			rngYX := dayNum(toX) - dayNum(fromY)
+			bucketRange = CreateBuckets(fromY, toX, rngYX)
+			fmt.Println("\nxxxFROM", fromY)
+			fmt.Println("\nxxxTO", toX)
+			fmt.Println("\nrng", rngYX)
+		} else {
+			rngXY := dayNum(toY) - dayNum(fromX)
+			bucketRange = CreateBuckets(fromX, toY, rngXY)
+			fmt.Println("\nxxxFROM", fromX)
+			fmt.Println("\nxxxTO", toY)
+			fmt.Println("\nrng", rngXY)
+		}
+
+		xBuckets := FillBuckets(x, bucketRange)
+		yBuckets := FillBuckets(y, bucketRange)
+		n := len(xBuckets)
+		fmt.Println("\nxxx RANGE", bucketRange)
+		fmt.Println("\nzzz X BUCKETS", xBuckets)
+		fmt.Println("\nzzz Y BUCKETS", yBuckets)
+		fmt.Println("\nzzz N", n)
+
+		var high []float64
+		var low []float64
+
+		for i, v := range xBuckets {
+			if v > yBuckets[i] {
+				high = append(high, v)
+				low = append(low, yBuckets[i])
+			} else {
+				high = append(high, yBuckets[i])
+				low = append(low, v)
+			}
+		}
+		fmt.Println("xxxHIGH", high)
+		fmt.Println("xxxLOW", low)
+		highTotal := 0
+		lowTotal := 0
+
+		for i := 0; i < n; i++ {
+			days := dayNum(bucketRange[i].To) - dayNum(bucketRange[i].From)
+			highTotal = highTotal + days*int(high[i])
+			lowTotal = lowTotal + days*int(low[i])
+		}
+		fmt.Println("aaahighafter", highTotal)
+		fmt.Println("aaalowafter", lowTotal)
+		result = 1 / (float64(highTotal) / float64(lowTotal))
+		fmt.Println("xxxresult", result)
+	}
+	return result
+}
+
 /**
  * @brief Gets (or generates if one does not exist) a JSON string containing the details of the correlation between a random numeric column of the
  * passed table and a random numeric column of another randomly selected table from the database
  */
-func GetCorrelation(table1 string, valCol1 string, dateCol1 string) string {
-	if table1 == "" {
+func GetCorrelation(table1 string, valCol1 string, dateCol1 string, spur bool) string {
+	if table1 == "" || valCol1 == "" || dateCol1 == "" {
 		return ""
 	}
 
-	c := Correlation{}
 	m := make(map[string]string)
-	m["table1"] = table1
-	m["dateCol1"] = dateCol1
-	m["valCol1"] = valCol1
-	nameChk := GetRandomNames(m, false)
+	m["table1"], m["dateCol1"], m["valCol1"] = table1, dateCol1, valCol1
+	c := Correlation{}
+	result := ""
 
-	if nameChk {
-		var coef []float64 // check if correlation already exists for this pairing first
-		err := DB.Model(&c).Where("tbl1 = ?", m["table1"]).Where("col1 = ?", m["valCol1"]).Where("tbl2 = ?", m["table2"]).Where("col2 = ?", m["valCol2"]).Where("method = ?", "Pearson").Pluck("coef", &coef).Error
-		check(err)
-		if coef == nil {
-			cf := GetCoefP(m)
-			correlation := Correlation{
-				Tbl1:   m["table1"],
-				Col1:   m["valCol1"],
-				Tbl2:   m["table2"],
-				Col2:   m["valCol2"],
-				Tbl3:   m["table3"],
-				Col3:   m["valCol3"],
-				Method: "Pearson",
-				Coef:   cf,
-			}
-
-			jv, _ := json.Marshal(correlation)
-			correlation.Json = string(jv)
-			err := DB.Save(&correlation).Error // save newly generated row in correlations table
+	if spur {
+		nameChk := GetRandomNames(m, spur)
+		if nameChk {
+			var coef []float64 // check if correlation already exists for this pairing first
+			err := DB.Model(&c).Where("tbl1 = ?", m["table1"]).Where("col1 = ?", m["valCol1"]).Where("tbl2 = ?", m["table2"]).Where("col2 = ?", m["valCol2"]).Where("tbl3 = ?", m["table3"]).Where("col3 = ?", m["valCol3"]).Where("method = ?", "Spurious").Pluck("coef", &coef).Error
 			check(err)
+			if coef == nil {
+				cf := GetCoefP(m)
+				correlation := Correlation{
+					Tbl1:   m["table1"],
+					Col1:   m["valCol1"],
+					Tbl2:   m["table2"],
+					Col2:   m["valCol2"],
+					Tbl3:   m["table3"],
+					Col3:   m["valCol3"],
+					Method: "Spurious",
+					Coef:   cf,
+				}
+				jv, _ := json.Marshal(correlation)
+				correlation.Json = string(jv)
+				err := DB.Save(&correlation).Error // save newly generated row in correlations table
+				check(err)
+			}
+			var r []string //query again and result now exists!
+			err = DB.Model(&c).Where("tbl1 = ?", m["table1"]).Where("col1 = ?", m["valCol1"]).Where("tbl2 = ?", m["table2"]).Where("col2 = ?", m["valCol2"]).Where("tbl3 = ?", m["table3"]).Where("col3 = ?", m["valCol3"]).Where("method = ?", "Spurious").Pluck("json", &r).Error
+			check(err)
+			result = r[0]
 		}
-
-		var result []string //query again and result now exists!
-		err = DB.Model(&c).Where("tbl1 = ?", m["table1"]).Where("col1 = ?", m["valCol1"]).Where("tbl2 = ?", m["table2"]).Where("col2 = ?", m["valCol2"]).Where("method = ?", "Pearson").Pluck("json", &result).Error
-		check(err)
-		return result[0]
+	} else {
+		nameChk := GetRandomNames(m, spur)
+		if nameChk {
+			var coef []float64 // check if correlation already exists for this pairing first
+			err := DB.Model(&c).Where("tbl1 = ?", m["table1"]).Where("col1 = ?", m["valCol1"]).Where("tbl2 = ?", m["table2"]).Where("col2 = ?", m["valCol2"]).Where("method = ?", "Pearson").Pluck("coef", &coef).Error
+			check(err)
+			if coef == nil {
+				cf := GetCoefP(m)
+				correlation := Correlation{
+					Tbl1:   m["table1"],
+					Col1:   m["valCol1"],
+					Tbl2:   m["table2"],
+					Col2:   m["valCol2"],
+					Tbl3:   "",
+					Col3:   "",
+					Method: "Pearson",
+					Coef:   cf,
+				}
+				jv, _ := json.Marshal(correlation)
+				correlation.Json = string(jv)
+				err := DB.Save(&correlation).Error // save newly generated row in correlations table
+				check(err)
+			}
+			var r []string //query again and result now exists!
+			err = DB.Model(&c).Where("tbl1 = ?", m["table1"]).Where("col1 = ?", m["valCol1"]).Where("tbl2 = ?", m["table2"]).Where("col2 = ?", m["valCol2"]).Where("method = ?", "Pearson").Pluck("json", &r).Error
+			check(err)
+			result = r[0]
+		}
 	}
-
-	return ""
+	return result
 }
 
 /**
@@ -409,18 +526,17 @@ func CreateBuckets(fromDate time.Time, toDate time.Time, rng int) []FromTo {
 		max = rng
 	}
 
-	step, bucketAmt, rem := Steps(rng, max) // get steps between dates, amount of buckets and remainder
-	result := make([]FromTo, bucketAmt)
+	days, bNum := Steps(rng, max) // get days between dates and number of buckets
+	result := make([]FromTo, bNum+1)
 	date := fromDate // set starting date
-	i := 0
 
-	for ; i < bucketAmt-1; i++ {
+	for i := 0; i < bNum; i++ {
 		result[i].From = date                   // current date becomes from date
-		result[i].To = date.AddDate(0, 0, step) // step amount to to date
+		result[i].To = date.AddDate(0, 0, days) // step amount to to date
 		date = result[i].To
 	}
-	result[i].From = date
-	result[i].To = toDate.AddDate(0, 0, rem) /// catch remaining dates in smaller end bucket
+	result[bNum].From = date
+	result[bNum].To = toDate.AddDate(0, 0, 1)
 	return result
 }
 
@@ -490,9 +606,8 @@ func daysInYear(y int) int {
 /**
  * @brief Return number of steps, number of buckets, remainder steps
  */
-func Steps(a int, b int) (int, int, int) {
+func Steps(a int, b int) (int, int) {
 	stepNum := math.Ceil(float64(a) / float64(b))
 	bucketNum := a / int(stepNum)
-	remNum := math.Mod(float64(a), stepNum)
-	return int(stepNum), bucketNum, int(remNum)
+	return int(stepNum), bucketNum
 }
