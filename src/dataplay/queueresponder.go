@@ -181,7 +181,7 @@ func (resp *QueueResponder) handle(deliveries <-chan amqp.Delivery, done chan er
 		 * As soon as Response is received close the connection to allow efficient
 		 * queue management & run in fast sync mode
 		 */
-		responder.Shutdown()
+		// responder.Shutdown()
 	}
 
 	isResponderConnected = false
