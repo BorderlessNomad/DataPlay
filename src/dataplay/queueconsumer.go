@@ -54,6 +54,7 @@ func (cons *QueueConsumer) Consumer(amqpURI, exchangeName, exchangeType, queueNa
 	go func() {
 		fmt.Printf("Consumer::closing: %s", <-c.conn.NotifyClose(make(chan *amqp.Error)))
 		// Connection is closed so start again
+		time.Sleep(5000 * time.Millisecond)
 		c.Consume()
 	}()
 
