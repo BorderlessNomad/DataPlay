@@ -16,8 +16,6 @@ func IsUserLoggedIn(res http.ResponseWriter, req *http.Request) bool {
 	if cookie != nil && err == nil {
 		defer c.Close()
 
-		fmt.Println("IsUserLoggedIn Cookie:", cookie.Value)
-
 		r := c.Cmd("GET", cookie.Value)
 		i, err := r.Int() // Get back from Redis the Int value of that cookie.
 		if err != nil {
@@ -42,8 +40,6 @@ func GetUserID(res http.ResponseWriter, req *http.Request) int {
 	c, err := GetRedisConnection()
 	if cookie != nil && err == nil {
 		defer c.Close()
-
-		fmt.Println("GetUserID Cookie:", cookie.Value)
 
 		r := c.Cmd("GET", cookie.Value)
 		i, err := r.Int() // Get back from Redis the Int value of that cookie.
@@ -98,8 +94,6 @@ func ClearSession(res http.ResponseWriter, req *http.Request) (e error) {
 	if cookie == nil {
 		return fmt.Errorf("No cookie found")
 	}
-
-	fmt.Println("ClearSession Cookie:", cookie.Value)
 
 	get := c.Cmd("GET", cookie.Value)
 	_, errg := get.Int() // Get back from Redis the Int value of that cookie.

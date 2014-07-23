@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"log"
+	"time"
 )
 
 type QueueResponder struct {
@@ -16,10 +17,14 @@ type QueueResponder struct {
 var responder *QueueResponder
 var err error
 
+var isResponderConnected bool = false
+var responderReconnectAttempts int = 0
+
 func (resp *QueueResponder) Response() {
 	responder, err = resp.Responder(*uri, *exchangeName, *exchangeType, *responseQueue, *responseKey, *responseTag)
 	if err != nil {
-		log.Fatalf("%s", err)
+		fmt.Errorf("Responder::error during Response %s", err)
+		resp.Reconnect()
 	}
 
 	log.Printf("Responder::running")
@@ -28,7 +33,28 @@ func (resp *QueueResponder) Response() {
 	log.Printf("Responder::shutting down")
 
 	if err := responder.Shutdown(); err != nil {
-		log.Fatalf("Responder::error during shutdown: %s", err)
+		fmt.Errorf("Responder::error during shutdown %s", err)
+		resp.Reconnect()
+	}
+}
+
+func (resp *QueueResponder) Reconnect() {
+	for responderReconnectAttempts < MaxAttempts {
+		responderReconnectAttempts++
+
+		if !isResponderConnected {
+			time.Sleep(time.Millisecond * BackoffInterval)
+
+			log.Printf("Responder::try reconnect Attempt %d", responderReconnectAttempts)
+
+			resp.Response()
+		} else {
+			log.Printf("Responder::reconnected Attempted %d", responderReconnectAttempts)
+
+			responderReconnectAttempts = 0
+
+			break
+		}
 	}
 }
 
@@ -137,6 +163,8 @@ func (resp *QueueResponder) Shutdown() error {
 
 func (resp *QueueResponder) handle(deliveries <-chan amqp.Delivery, done chan error) {
 	for d := range deliveries {
+		isResponderConnected = true
+
 		log.Printf(
 			"Responder::got %dB delivery: [%v]",
 			len(d.Body),
@@ -155,6 +183,8 @@ func (resp *QueueResponder) handle(deliveries <-chan amqp.Delivery, done chan er
 		 */
 		responder.Shutdown()
 	}
+
+	isResponderConnected = false
 
 	log.Printf("Responder::handle: deliveries channel closed")
 	done <- nil
