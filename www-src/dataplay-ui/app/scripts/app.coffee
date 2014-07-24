@@ -21,6 +21,7 @@ angular
 
 angular.module('dataplayApp')
 	.constant "config",
+		sessionHeader: "X-API-SESSION"
 		sessionName: "DPSession"
 		userName: "DPUser"
 		api:

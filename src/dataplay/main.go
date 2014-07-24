@@ -112,7 +112,19 @@ func initClassicMode() {
 		// AllowMethods: []string{"PUT", "PATCH"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowCredentials: true,
-		AllowHeaders:     []string{"Origin", "Accept", "Content-Type", "Authorization", "Accept-Encoding", "Content-Length", "Host", "Referer", "User-Agent", "X-CSRF-Token", "X-API-SESSION"},
+		AllowHeaders: []string{
+			"Origin",
+			"Accept",
+			"Content-Type",
+			"Authorization",
+			"Accept-Encoding",
+			"Content-Length",
+			"Host",
+			"Referer",
+			"User-Agent",
+			"X-CSRF-Token",
+			"X-API-SESSION",
+		},
 	}))
 
 	// m.Get("/", Authorisation)
@@ -131,13 +143,13 @@ func initClassicMode() {
 	m.Post("/api/login", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
 		return HandleLogin(res, req, login)
 	})
-	m.Delete("/api/:session/logout", HandleLogout)
+	m.Delete("/api/logout", HandleLogout)
 	m.Post("/api/register", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
 		return HandleRegister(res, req, login)
 	})
 	m.Get("/api/user", CheckAuth)
-	m.Get("/api/:session/visited", GetLastVisitedHttp)
-	m.Get("/api/:session/search/:s", SearchForDataHttp)
+	m.Get("/api/visited", GetLastVisitedHttp)
+	m.Get("/api/search/:s", SearchForDataHttp)
 	m.Get("/api/getinfo/:id", GetEntry)
 	m.Get("/api/getimportstatus/:id", CheckImportStatus)
 	m.Get("/api/getdata/:id", DumpTableHttp)
@@ -160,7 +172,7 @@ func initClassicMode() {
 
 	m.Use(JsonApiHandler)
 
-	m.Use(martini.Static("../node_modules")) //Why?
+	m.Use(SessionApiHandler)
 
 	m.Run()
 }
@@ -319,6 +331,14 @@ func JsonApiHandler(res http.ResponseWriter, req *http.Request) {
 	if strings.HasPrefix(req.URL.Path, "/api") {
 		// CheckAuthRedirect(res, req) // Make everything in the API auth'd
 		res.Header().Set("Content-Type", "application/json")
+	}
+}
+
+func SessionApiHandler(res http.ResponseWriter, req *http.Request) {
+	if req.URL.Path == "/api/login" || req.URL.Path == "/api/register" {
+		// Do nothing
+	} else if len(req.Header.Get("X-API-SESSION")) <= 0 || req.Header.Get("X-API-SESSION") == "false" {
+		res.WriteHeader(http.StatusUnauthorized)
 	}
 }
 

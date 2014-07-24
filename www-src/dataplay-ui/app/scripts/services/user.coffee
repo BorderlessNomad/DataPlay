@@ -15,7 +15,7 @@ angular.module('dataplayApp')
 				password: password
 
 		logOut: (token) ->
-			$http.delete config.api.base_url + '/' + Auth.isAuthenticated(true) + "/logout"
+			$http.delete config.api.base_url + "/logout"
 
 		register: (username, password) ->
 			$http.post config.api.base_url + "/register",
@@ -23,9 +23,8 @@ angular.module('dataplayApp')
 				password: password
 
 		visited: () ->
-			$http.get config.api.base_url + '/' + Auth.isAuthenticated(true) + "/visited"
+			$http.get config.api.base_url + "/visited"
 
 		search: (word) ->
-			console.log word, Auth.isAuthenticated(true)
-			$http.get config.api.base_url + '/' + Auth.isAuthenticated(true) + "/search/" + word
+			$http.get config.api.base_url + "/search/" + word
 	]

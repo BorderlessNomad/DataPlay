@@ -10,7 +10,7 @@ import (
 )
 
 func GetLastVisitedHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	session := params["session"]
+	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
 		return ""

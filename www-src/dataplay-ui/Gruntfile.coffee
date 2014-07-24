@@ -336,7 +336,6 @@ module.exports = (grunt) ->
 	#   grunt serve (For Development mode. Has LiveReload and is served directly from app root)
 	#   grunt serve:dist (For Production mode. No LiveReload and served from 'dist' root)
 	grunt.registerTask "serve", "Compile then start a connect web server", (target) ->
-		console.log target
 		if target is "dist"
 			return grunt.task.run [
 				"build"

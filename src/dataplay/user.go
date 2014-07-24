@@ -96,7 +96,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, login UserForm) str
 }
 
 func HandleLogout(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	sid := params["session"]
+	sid := req.Header.Get("X-API-SESSION")
 	if len(sid) <= 0 {
 		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
 		return ""
