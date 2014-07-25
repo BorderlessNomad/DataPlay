@@ -4,10 +4,28 @@
 	<a class="btn btn-warning pull-right reset" ng-click="resetAll()">Reset all</a>
 
 	<div class="row" ng-init="getCharts()">
-		<div class="col-md-4" ng-repeat="chart in Charts" id="{{chart.id}}" >
+		<div class="col-md-4" ng-repeat="chart in chartsInfo" id="{{chart.id}}" >
 			<a ng-href="/charts/{{guid}}?type={{chart.plot}}&x={{chart.x}}&y={{chart.y}}">
 				<h4>{{chart.x}}-{{chart.y}} ({{chart.type}})</h4>
 			</a>
+			<div
+				ng-show="chart.plot == 'lineChart'"
+				dc-chart="{{chart.plot}}"
+				dc-width="{{width}}"
+				dc-height="{{height}}"
+				dc-margins="{{margin}}"
+				dc-mouse-zoomable="false"
+
+				dc-render-area="true"
+				dc-transition-duration="500"
+				dc-colors="d3.scale.category20()"
+				dc-color-accessor="parseInt(d.value)%20"
+				dc-elastic-y="true"
+				dc-dimension="{{chart.entry.dimension}}"
+				dc-group="{{chart.entry.group}}"
+				dc-ticks="3"
+				dc-x="lineChartXScale(chart.entry)"
+			></div>
 		</div>
 		<div id="charts"></div>
 	</div>

@@ -17,6 +17,7 @@ angular
 		'ngSanitize'
 		'ipCookie'
 		'ui.bootstrap'
+		'angularDc'
 	])
 
 angular.module('dataplayApp')
