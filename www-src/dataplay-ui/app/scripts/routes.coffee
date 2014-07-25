@@ -28,15 +28,15 @@ angular.module('dataplayApp')
 				templateUrl: 'views/search.html'
 				controller: 'SearchCtrl'
 				login: true
-			.when '/overview/:guId',
+			.when '/overview/:id',
 				templateUrl: 'views/overview.html'
 				controller: 'OverviewCtrl'
 				login: true
-			.when '/charts/:guId',
+			.when '/charts/:id',
 				templateUrl: 'views/charts.html'
 				controller: 'ChartsCtrl'
 				login: true
-			.when '/map/:guId',
+			.when '/map/:id',
 				templateUrl: 'views/map.html'
 				controller: 'MapCtrl'
 				login: true

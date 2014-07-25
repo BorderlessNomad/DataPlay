@@ -1,6 +1,6 @@
 html {
-  position: relative;
-  min-height: 100%;
+	position: relative;
+	min-height: 100%;
 }
 
 body {
@@ -14,19 +14,19 @@ body > .container {
 .nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
 
 .footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 60px;
-  color: #ffffff;
-  background-color: #464545;
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+	height: 60px;
+	color: #ffffff;
+	background-color: #464545;
 
-  .text-muted {
-  	color: #ffffff;
-  }
+	.text-muted {
+		color: #ffffff;
+	}
 }
 
-.list-group {
+.list-group, .overview {
 	.row {
 		margin-left: 0;
 		margin-right: 0;
@@ -36,5 +36,15 @@ body > .container {
 .container {
 	.text-muted {
 		margin: 20px 0;
+	}
+}
+
+.overview {
+	h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+		display: inline-block;
+	}
+
+	.reset {
+		margin-top: 20px;
 	}
 }
