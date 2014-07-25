@@ -8,11 +8,11 @@ import (
 
 func TestVisualCorrelation(t *testing.T) {
 	for i := 0; i < 100; i++ {
-		Convey("Should return visual correlation value", t, func() {
+		Convey("Should return true if Visual Correlation found", t, func() {
 			table := RandomTableName()
 			guid := NameToGuid(table)
 			colNames := FetchTableCols(guid)
-			vCol := RandomAmountColumn(colNames)
+			vCol := RandomValueColumn(colNames)
 			dCol := RandomDateColumn(colNames)
 			result := GetCorrelation(table, vCol, dCol, V)
 			So(result, ShouldNotBeNil)
@@ -22,11 +22,11 @@ func TestVisualCorrelation(t *testing.T) {
 
 func TestPearsonCorrelation(t *testing.T) {
 	for i := 0; i < 100; i++ {
-		Convey("Should return JSON string with correlation", t, func() {
+		Convey("Should return true if Pearson Correlation found", t, func() {
 			table := RandomTableName()
 			guid := NameToGuid(table)
 			colNames := FetchTableCols(guid)
-			vCol := RandomAmountColumn(colNames)
+			vCol := RandomValueColumn(colNames)
 			dCol := RandomDateColumn(colNames)
 			result := GetCorrelation(table, vCol, dCol, P)
 			So(result, ShouldNotBeNil)
@@ -36,11 +36,11 @@ func TestPearsonCorrelation(t *testing.T) {
 
 func TestSpuriousCorrelation(t *testing.T) {
 	for i := 0; i < 100; i++ {
-		Convey("Should return JSON string with correlation", t, func() {
+		Convey("Should return true if sPurious Correlation found", t, func() {
 			table := RandomTableName()
 			guid := NameToGuid(table)
 			colNames := FetchTableCols(guid)
-			vCol := RandomAmountColumn(colNames)
+			vCol := RandomValueColumn(colNames)
 			dCol := RandomDateColumn(colNames)
 			result := GetCorrelation(table, vCol, dCol, S)
 			So(result, ShouldNotBeNil)
@@ -49,28 +49,46 @@ func TestSpuriousCorrelation(t *testing.T) {
 }
 
 func TestGetCoef(t *testing.T) {
-	tst := make(map[string]string)
+	tstM := make(map[string]string)
+	tstCd := new(CorrelationData)
 
 	Convey("Should return nothing when passed empty map", t, func() {
-		result := GetCoef(tst, P)
+		result := GetCoef(tstM, P, tstCd)
 		So(result, ShouldEqual, 0)
 	})
 
-	tst["table1"] = "gold"
-	tst["table2"] = "gold"
-	tst["valCol1"] = "price"
-	tst["valCol2"] = "price"
-	tst["dateCol1"] = "date"
-	tst["dateCol2"] = "date"
+	tstM["table1"] = "gold"
+	tstM["table2"] = "gold"
+	tstM["valCol1"] = "price"
+	tstM["valCol2"] = "price"
+	tstM["dateCol1"] = "date"
+	tstM["dateCol2"] = "date"
 
 	Convey("Should return coefficient value of approx 1 when passed same map for table 1 and 2", t, func() {
-		result := GetCoef(tst, P)
+		result := GetCoef(tstM, P, tstCd)
 		So(result, ShouldEqual, 0.9999999259611582)
+	})
+}
+
+func TestGetValidate(t *testing.T) {
+	tstM := make(map[string]string)
+	tstCd := new(CorrelationData)
+	tstM["table1"] = "gold"
+	tstM["table2"] = "gold"
+	tstM["valCol1"] = "price"
+	tstM["valCol2"] = "price"
+	tstM["dateCol1"] = "date"
+	tstM["dateCol2"] = "date"
+	tstM["method"] = "test"
+
+	Convey("Should return coefficient value of approx 1 when passed same map for table 1 and 2", t, func() {
+		result := Validate(tstM, 0.1, tstCd)
+		So(result, ShouldNotBeNil)
 	})
 
 }
 
-func TestRandomAmountColumn(t *testing.T) {
+func TestRandomValueColumn(t *testing.T) {
 	test := make([]ColType, 4)
 	test[0].Name = "num_a"
 	test[1].Name = "num_b"
@@ -82,7 +100,7 @@ func TestRandomAmountColumn(t *testing.T) {
 	test[3].Sqltype = "int"
 
 	Convey("Should return random date column", t, func() {
-		result := RandomAmountColumn(test)
+		result := RandomValueColumn(test)
 		So(result, ShouldStartWith, "num")
 	})
 }
