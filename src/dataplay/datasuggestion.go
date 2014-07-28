@@ -13,33 +13,29 @@ import (
 
 type cmeth int
 
-const (
+const ( //go version of enum
 	P cmeth = iota
 	S
 	V
 )
 
 type CorrelationData struct {
-	Title1  string
-	Title2  string
-	Title3  string
-	Desc1   string
-	Desc2   string
-	Desc3   string
-	LabelX1 string
-	LabelX2 string
-	LabelX3 string
-	LabelY1 string
-	LabelY2 string
-	LabelY3 string
-	Vals1   []XYVal
-	Vals2   []XYVal
-	Vals3   []XYVal
+	Table1 TableData
+	Table2 TableData
+	Table3 TableData
+}
+
+type TableData struct {
+	Title  string
+	Desc   string
+	LabelX string
+	LabelY string
+	Values []XYVal
 }
 
 type XYVal struct {
-	XVal string
-	YVal string
+	X string
+	Y string
 }
 
 type DateVal struct {
@@ -52,13 +48,37 @@ type FromTo struct {
 	To   time.Time
 }
 
-func GetCorrelation(table1 string, valCol1 string, dateCol1 string, c cmeth) string {
+// Take in table and column names and a threshold for the looping and get correlated tables
+// Use 3:1:1 for Spurious to Pearson and Visual as Spurious less likely to find correlations
+func GenerateCorrelations(table1 string, valCol1 string, dateCol1 string, thresh int) string {
 	if table1 == "" || valCol1 == "" || dateCol1 == "" {
 		return ""
 	}
-
 	m := make(map[string]string)
 	m["table1"], m["dateCol1"], m["valCol1"] = table1, dateCol1, valCol1
+	c := P
+
+	for i := 0; i < thresh; i++ {
+		r := i % 5
+
+		if r == 0 {
+			c = P
+		} else if r == 1 {
+			c = V
+		} else {
+			c = S
+		}
+
+		GetCorrelation(m, c)
+	}
+
+	return "win"
+}
+
+// Take in table and column values and a correlation type, generate some more random tables and check for a pre-existing correlation.
+// If a correlation for the generated tables combination doesn't exist, attempt to generate a new correlation and return that
+func GetCorrelation(m map[string]string, c cmeth) string {
+
 	cor := Correlation{}
 	var jsonData []string
 	method := ""
@@ -84,9 +104,9 @@ func GetCorrelation(table1 string, valCol1 string, dateCol1 string, c cmeth) str
 		if jsonData == nil {
 			cf := GetCoef(m, c, cd)
 
-			if cf != 0 {
+			if cf != 0 { //Save the correlation if one is generated
 				m["method"] = method
-				_ = Validate(m, cf, cd)
+				SaveCorrelation(m, c, cf, cd)
 			}
 
 			if c == P {
@@ -110,6 +130,7 @@ func GetCorrelation(table1 string, valCol1 string, dateCol1 string, c cmeth) str
 
 }
 
+// Generate a coefficient (if data allows), based on requested correlation type
 func GetCoef(m map[string]string, c cmeth, cd *CorrelationData) float64 {
 	if len(m) == 0 {
 		return 0.0
@@ -208,27 +229,29 @@ func GetCoef(m map[string]string, c cmeth, cd *CorrelationData) float64 {
 	values3 := make([]XYVal, n)
 
 	for i, v := range labels {
-		values1[i].XVal = v
-		values1[i].YVal = strconv.FormatFloat(xBuckets[i], 'f', -1, 64)
-		values2[i].XVal = v
-		values2[i].YVal = strconv.FormatFloat(yBuckets[i], 'f', -1, 64)
+		values1[i].X = v
+		values1[i].Y = strconv.FormatFloat(xBuckets[i], 'f', -1, 64)
+		values2[i].X = v
+		values2[i].Y = strconv.FormatFloat(yBuckets[i], 'f', -1, 64)
 
 		if c == S {
-			values3[i].XVal = v
-			values3[i].YVal = strconv.FormatFloat(zBuckets[i], 'f', -1, 64)
+			values3[i].X = v
+			values3[i].Y = strconv.FormatFloat(zBuckets[i], 'f', -1, 64)
 		}
 	}
 
-	(*cd).Vals1 = values1
-	(*cd).Vals2 = values2
-	(*cd).Vals3 = values3
+	(*cd).Table1.Values = values1
+	(*cd).Table2.Values = values2
+	(*cd).Table3.Values = values3
 	return cf
 }
 
-func Validate(m map[string]string, cf float64, cd *CorrelationData) string {
+//Create a json string containing all the data needed for generating a graph and then insert this and all the other correlation info into the correlations table
+func SaveCorrelation(m map[string]string, c cmeth, cf float64, cd *CorrelationData) string {
 	ind1 := Index{}
 	ind2 := Index{}
 	ind3 := Index{}
+
 	guid1 := NameToGuid(m["table1"])
 	guid2 := NameToGuid(m["table2"])
 	guid3 := NameToGuid(m["table3"])
@@ -237,34 +260,40 @@ func Validate(m map[string]string, cf float64, cd *CorrelationData) string {
 	check(err1)
 	err2 := DB.Model(&ind2).Where("guid= ?", guid2).Find(&ind2).Error
 	check(err2)
-	err3 := DB.Model(&ind3).Where("guid= ?", guid3).Find(&ind3).Error
-	check(err3)
 
-	(*cd).Title1 = ind1.Title
-	(*cd).Title2 = ind2.Title
-	(*cd).Title3 = ind3.Title
-	(*cd).Desc1 = ind1.Notes
-	(*cd).Desc2 = ind2.Notes
-	(*cd).Desc3 = ind3.Notes
-	(*cd).LabelX1 = m["dateCol1"]
-	(*cd).LabelX2 = m["dateCol2"]
-	(*cd).LabelX3 = m["dateCol3"]
-	(*cd).LabelY1 = m["valCol1"]
-	(*cd).LabelY2 = m["valCol2"]
-	(*cd).LabelY3 = m["valCol3"]
+	if c == S {
+		err3 := DB.Model(&ind3).Where("guid= ?", guid3).Find(&ind3).Error
+		check(err3)
+	}
+
+	(*cd).Table1.Title = ind1.Title
+	(*cd).Table2.Title = ind2.Title
+	(*cd).Table3.Title = ind3.Title
+	(*cd).Table1.Desc = ind1.Notes
+	(*cd).Table2.Desc = ind2.Notes
+	(*cd).Table3.Desc = ind3.Notes
+	(*cd).Table1.LabelX = m["dateCol1"]
+	(*cd).Table2.LabelX = m["dateCol2"]
+	(*cd).Table3.LabelX = m["dateCol3"]
+	(*cd).Table1.LabelY = m["valCol1"]
+	(*cd).Table2.LabelY = m["valCol2"]
+	(*cd).Table3.LabelY = m["valCol3"]
 
 	jv, _ := json.Marshal(*cd)
 
 	correlation := Correlation{
-		Tbl1:   m["table1"],
-		Col1:   m["valCol1"],
-		Tbl2:   m["table2"],
-		Col2:   m["valCol2"],
-		Tbl3:   m["table3"],
-		Col3:   m["valCol3"],
-		Method: m["method"],
-		Coef:   cf,
-		Json:   string(jv),
+		Tbl1:      m["table1"],
+		Col1:      m["valCol1"],
+		Tbl2:      m["table2"],
+		Col2:      m["valCol2"],
+		Tbl3:      m["table3"],
+		Col3:      m["valCol3"],
+		Method:    m["method"],
+		Coef:      cf,
+		Json:      string(jv),
+		Rating:    0,
+		Credit:    0,
+		Discredit: 0,
 	}
 
 	err := DB.Save(&correlation).Error
@@ -273,33 +302,7 @@ func Validate(m map[string]string, cf float64, cd *CorrelationData) string {
 	return string(jv)
 }
 
-func GetRandomNames(m map[string]string, c cmeth) bool {
-	allNames := true
-
-	m["table2"] = RandomTableName()
-	guid2 := NameToGuid(m["table2"])
-	columnNames2 := FetchTableCols(guid2)
-	m["valCol2"] = RandomValueColumn(columnNames2)
-	m["dateCol2"] = RandomDateColumn(columnNames2)
-
-	if m["table1"] == "" || m["table2"] == "" || m["valCol1"] == "" || m["valCol2"] == "" || m["dateCol1"] == "" || m["dateCol2"] == "" {
-		allNames = false
-	}
-
-	if c == S {
-		m["table3"] = RandomTableName()
-		guid3 := NameToGuid(m["table3"])
-		columnNames3 := FetchTableCols(guid3)
-		m["valCol3"] = RandomValueColumn(columnNames3)
-		m["dateCol3"] = RandomDateColumn(columnNames3)
-		if m["table3"] == "" || m["valCol3"] == "" || m["dateCol3"] == "" {
-			allNames = false
-		}
-	}
-
-	return allNames
-}
-
+// Determine if two sets of dates overlap - X values are referenced so they can be altered and passed back again for Spurious correlation
 func GetIntersect(pFromX *time.Time, pToX *time.Time, pRngX *int, fromY time.Time, toY time.Time, rngY int) []FromTo {
 	var bucketRange []FromTo
 	fromX, toX, rngX := *pFromX, *pToX, *pRngX
@@ -326,6 +329,34 @@ func GetIntersect(pFromX *time.Time, pToX *time.Time, pRngX *int, fromY time.Tim
 	}
 
 	return bucketRange
+}
+
+// generate some random tables and columns, amount dependent on correlation type
+func GetRandomNames(m map[string]string, c cmeth) bool {
+	allNames := true
+
+	m["table2"] = RandomTableName()
+	guid2 := NameToGuid(m["table2"])
+	columnNames2 := FetchTableCols(guid2)
+	m["valCol2"] = RandomValueColumn(columnNames2)
+	m["dateCol2"] = RandomDateColumn(columnNames2)
+
+	if m["table1"] == "" || m["table2"] == "" || m["valCol1"] == "" || m["valCol2"] == "" || m["dateCol1"] == "" || m["dateCol2"] == "" {
+		allNames = false
+	}
+
+	if c == S {
+		m["table3"] = RandomTableName()
+		guid3 := NameToGuid(m["table3"])
+		columnNames3 := FetchTableCols(guid3)
+		m["valCol3"] = RandomValueColumn(columnNames3)
+		m["dateCol3"] = RandomDateColumn(columnNames3)
+		if m["table3"] == "" || m["valCol3"] == "" || m["dateCol3"] == "" {
+			allNames = false
+		}
+	}
+
+	return allNames
 }
 
 // generate a random value column if one exists
@@ -399,7 +430,7 @@ func NameToGuid(tablename string) string {
 	return guid[0]
 }
 
-/// return date column from table
+/// return date and value columns combined within struct from table
 func ExtractDateVal(tablename string, dateCol string, valCol string) []DateVal {
 	if tablename == "" || dateCol == "" || valCol == "" {
 		return nil
@@ -495,7 +526,7 @@ func CreateBuckets(fromDate time.Time, toDate time.Time, rng int) []FromTo {
 	return result
 }
 
-// sum dated values that fall on or between relevant dates and return array of new values
+// sum dated values that fall on or between relevant dates and return array of these summed values
 func FillBuckets(dateVal []DateVal, bucketRange []FromTo) []float64 {
 	if dateVal == nil || bucketRange == nil {
 		return nil
@@ -514,7 +545,7 @@ func FillBuckets(dateVal []DateVal, bucketRange []FromTo) []float64 {
 	return buckets
 }
 
-// return true if date is between 2 other dates
+// return true if date is between 2 other dates (from inclusive, up to exclusive)
 func (d DateVal) Between(from time.Time, to time.Time) bool {
 	if d.Date == from || (d.Date.After(from) && d.Date.Before(to)) {
 		return true
@@ -568,4 +599,43 @@ func daysInYear(y int) int {
 	d1 := time.Date(y, 1, 1, 0, 0, 0, 0, time.UTC)
 	d2 := time.Date(y+1, 1, 1, 0, 0, 0, 0, time.UTC)
 	return int(d2.Sub(d1) / (24 * time.Hour))
+}
+
+// increment user credited total for correlation
+func Credit(id int) {
+	cor := Correlation{}
+	err := DB.Where("id= ?", id).Find(&cor).Error
+	check(err)
+	err = DB.Model(&cor).Update("credit", cor.Credit+1).Error
+	check(err)
+}
+
+// increment user discredited total for correlation
+func Discredit(id int) {
+	cor := Correlation{}
+	err := DB.Where("id= ?", id).Find(&cor).Error
+	check(err)
+	err = DB.Model(&cor).Update("discredit", cor.Discredit+1).Error
+	check(err)
+}
+
+// given a small fraction of ratings there is a strong (95%) chance that the "real", final positive rating will be this value
+// eg: gives expected (not necessarily current as there may have only been a few votes so far) value of positive ratings / total ratings
+func Ranking(id int) float64 {
+	cor := Correlation{}
+	err := DB.Where("id= ?", id).Find(&cor).Error
+	check(err)
+	pos := float64(cor.Credit)
+	tot := float64(cor.Credit + cor.Discredit)
+
+	if tot == 0 {
+		return 0
+	}
+
+	z := 1.96
+	phat := pos / tot
+	cor.Rating = (phat + z*z/(2*tot) - z*math.Sqrt((phat*(1-phat)+z*z/(4*tot))/tot)) / (1 + z*z/tot)
+	err = DB.Save(&cor).Error
+	check(err)
+	return cor.Rating
 }

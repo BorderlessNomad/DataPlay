@@ -6,43 +6,59 @@ import (
 	"time"
 )
 
+func TestGenerateCorrelations(t *testing.T) {
+	Convey("Should run 10 loops correlation types", t, func() {
+		result := GenerateCorrelations("gold", "price", "date", 10)
+		So(result, ShouldEqual, "win")
+	})
+}
+
 func TestVisualCorrelation(t *testing.T) {
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 10; i++ {
 		Convey("Should return true if Visual Correlation found", t, func() {
-			table := RandomTableName()
-			guid := NameToGuid(table)
+			table1 := RandomTableName()
+			guid := NameToGuid(table1)
 			colNames := FetchTableCols(guid)
-			vCol := RandomValueColumn(colNames)
-			dCol := RandomDateColumn(colNames)
-			result := GetCorrelation(table, vCol, dCol, V)
+			tstM := map[string]string{
+				"table1":   table1,
+				"valCol1":  RandomValueColumn(colNames),
+				"dateCol1": RandomDateColumn(colNames),
+			}
+			result := GetCorrelation(tstM, P)
 			So(result, ShouldNotBeNil)
 		})
 	}
 }
 
 func TestPearsonCorrelation(t *testing.T) {
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 10; i++ {
 		Convey("Should return true if Pearson Correlation found", t, func() {
-			table := RandomTableName()
-			guid := NameToGuid(table)
+			table1 := RandomTableName()
+			guid := NameToGuid(table1)
 			colNames := FetchTableCols(guid)
-			vCol := RandomValueColumn(colNames)
-			dCol := RandomDateColumn(colNames)
-			result := GetCorrelation(table, vCol, dCol, P)
+			tstM := map[string]string{
+				"table1":   table1,
+				"valCol1":  RandomValueColumn(colNames),
+				"dateCol1": RandomDateColumn(colNames),
+			}
+			result := GetCorrelation(tstM, S)
 			So(result, ShouldNotBeNil)
 		})
 	}
 }
 
 func TestSpuriousCorrelation(t *testing.T) {
-	for i := 0; i < 100; i++ {
-		Convey("Should return true if sPurious Correlation found", t, func() {
-			table := RandomTableName()
-			guid := NameToGuid(table)
+	for i := 0; i < 10; i++ {
+		Convey("Should return true if Spurious Correlation found", t, func() {
+			table1 := RandomTableName()
+			guid := NameToGuid(table1)
 			colNames := FetchTableCols(guid)
-			vCol := RandomValueColumn(colNames)
-			dCol := RandomDateColumn(colNames)
-			result := GetCorrelation(table, vCol, dCol, S)
+			tstM := map[string]string{
+				"table1":   table1,
+				"valCol1":  RandomValueColumn(colNames),
+				"dateCol1": RandomDateColumn(colNames),
+			}
+			result := GetCorrelation(tstM, V)
 			So(result, ShouldNotBeNil)
 		})
 	}
@@ -70,7 +86,7 @@ func TestGetCoef(t *testing.T) {
 	})
 }
 
-func TestGetValidate(t *testing.T) {
+func TestSaveCorrelation(t *testing.T) {
 	tstM := make(map[string]string)
 	tstCd := new(CorrelationData)
 	tstM["table1"] = "gold"
@@ -82,7 +98,7 @@ func TestGetValidate(t *testing.T) {
 	tstM["method"] = "test"
 
 	Convey("Should return coefficient value of approx 1 when passed same map for table 1 and 2", t, func() {
-		result := Validate(tstM, 0.1, tstCd)
+		result := SaveCorrelation(tstM, P, 0.1, tstCd)
 		So(result, ShouldNotBeNil)
 	})
 
@@ -310,4 +326,30 @@ func TestLabelGen(t *testing.T) {
 		result := LabelGen(test)
 		So(result, ShouldResemble, check)
 	})
+}
+
+func TestRanking(t *testing.T) {
+	n := 1 // id
+
+	cor := Correlation{} // reset all
+	err := DB.First(&cor, 1).Update("credit", 0).Error
+	check(err)
+	err = DB.First(&cor, 1).Update("discredit", 0).Error
+	check(err)
+	err = DB.First(&cor, 1).Update("rating", 0.0).Error
+	check(err)
+
+	for i := 0; i < 23; i++ {
+		Credit(n)
+	}
+
+	for i := 0; i < 15; i++ {
+		Discredit(n)
+	}
+
+	Convey("Should return ranking", t, func() {
+		result := Ranking(n)
+		So(result, ShouldEqual, 0.44717586998695963)
+	})
+
 }
