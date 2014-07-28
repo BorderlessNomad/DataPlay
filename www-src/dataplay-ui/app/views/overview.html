@@ -11,20 +11,47 @@
 			<div
 				ng-show="chart.plot == 'lineChart'"
 				dc-chart="{{chart.plot}}"
+
 				dc-width="{{width}}"
 				dc-height="{{height}}"
 				dc-margins="{{margin}}"
 				dc-mouse-zoomable="false"
+				dc-brush-on="false"
 
+				dc-render-data-points="true"
+				dc-elastic-y="true"
 				dc-render-area="true"
 				dc-transition-duration="500"
 				dc-colors="d3.scale.category20()"
-				dc-color-accessor="parseInt(d.value)%20"
-				dc-elastic-y="true"
-				dc-dimension="{{chart.entry.dimension}}"
-				dc-group="{{chart.entry.group}}"
-				dc-ticks="3"
-				dc-x="lineChartXScale(chart.entry)"
+
+				dc-tick-format="chart.tickFormat"
+				dc-tick-values="chart.tickValues"
+				dc-dimension="chart.entry.dimension"
+				dc-group="chart.entry.group"
+				dc-x="chart.xScale"
+				dc-x-units="chart.xUnits"
+			></div>
+
+			<div
+				ng-show="chart.plot == 'pieChart'"
+				dc-chart="{{chart.plot}}"
+
+				dc-width="{{width}}"
+				dc-height="{{height}}"
+				dc-margins="{{margin}}"
+				dc-mouse-zoomable="false"
+				dc-brush-on="false"
+
+				dc-radius="chart.radius"
+				dc-inner-radius="chart.innerRadius"
+				dc-transition-duration="500"
+				dc-colors="d3.scale.category20()"
+
+				dc-dimension="chart.entry.dimension"
+				dc-group="chart.entry.group"
+				dc-min-angle-for-label="0.1"
+				dc-title="chart.title"
+				dc-slices-cap="6"
 			></div>
 		</div>
 		<div id="charts"></div>

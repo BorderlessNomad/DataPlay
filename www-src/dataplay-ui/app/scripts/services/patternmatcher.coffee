@@ -185,71 +185,10 @@ angular.module('dataplayApp')
 				handlers: [
 					# ------------------------- Simple Numbered Date --------------------------
 					{
-						# Matches yyyy-mm-dd
-						pattern: /^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/
+						# Matches yyyy/mm/dd, yy/m/d, mm/dd .... with separator -
+						pattern: /^[^0-9]*(((19|20)?\d\d)-)?((0)?([1-9])|1[012])-((0)?([1-9])|[12][0-9]|3[01])[^0-9]*$/
 						# Groups: 1->yearEntry, 2->fullYear, 3->century, 4->monthEntry, 5->month0, 6->monthN, 7->dayEntry, 8->day0, 9->dayN
 						parse: (m) => parseDate m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9]
-					}
-					{
-						# Matches yyyy/mm/dd, yy/m/d, mm/dd .... with separators: - / . and space
-						pattern: /^[^0-9]*(((19|20)?\d\d)[- \/])?((0)?([1-9])|1[012])[- \/]((0)?([1-9])|[12][0-9]|3[01])[^0-9]*$/
-						# Groups: 1->yearEntry, 2->fullYear, 3->century, 4->monthEntry, 5->month0, 6->monthN, 7->dayEntry, 8->day0, 9->dayN
-						parse: (m) => parseDate m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9]
-					}
-					{
-						# Matches yyyy/dd/mm, yy/d/m, dd/mm .... with separators: - / . and space
-						pattern: /^[^0-9]*(((19|20)?\d\d)[- \/])?((0)?([1-9])|[12][0-9]|3[01])[- \/]((0)?([1-9])|1[012])[^0-9]*$/
-						# Groups: 1->yearEntry, 2->fullYear, 3->century, 4->dayEntry, 5->day0, 6->dayN, 7->monthEntry, 8->month0, 9->monthN
-						parse: (m) => parseDate m[1], m[2], m[3], m[7], m[8], m[9], m[4], m[5], m[6]
-					}
-					{
-						# Matches dd/mm/yyyy, d/m/yy, dd/mm .... with separators: - / . and space
-						pattern: /^[^0-9]*((0)?([1-9])|[12][0-9]|3[01])[- \/]((0)?([1-9])|1[012])([- \/]((19|20)?\d\d))?[^0-9]*$/
-						# Groups: 1->dayEntry, 2->day0, 3->dayN, 4->monthEntry, 5->month0, 6->monthN, 7->yearEntry, 8->fullYear, 9->century
-						parse: (m) => parseDate m[7], m[8], m[9], m[4], m[5], m[6], m[1], m[2], m[3]
-					}
-					{
-						# Matches mm/dd/yyyy, m/d/yy, mm/dd .... with separators: - / . and space
-						pattern: /^[^0-9]*((0)?([1-9])|1[012])[- \/]((0)?([1-9])|[12][0-9]|3[01])([- \/]((19|20)?\d\d))?[^0-9]*$/
-						# Groups: 1->monthEntry, 2->month0, 3->monthN, 4->dayEntry, 5->day0, 6->dayN, 7->yearEntry, 8->fullYear, 9->century
-						parse: (m) => parseDate m[7], m[8], m[9], m[1], m[2], m[3], m[4], m[5], m[6]
-					}
-					# ------------------------- Named Months --------------------------
-					{
-						# Matches yyyy/mm/dd, yy/m/d, mm/dd .... with Month name and separators: - / . and space
-						pattern: /^[^A-Z0-9]*(((19|20)?\d\d)[- \/]?)?([A-Z]{3,9})[- \/]?((0)?([1-9])|[12][0-9]|3[01])[^0-9]*$/i
-						# Groups: 1->yearEntry, 2->fullYear, 3->century, 4->monthName, 5->dayEntry, 6->day0, 7->dayN
-						parse: (m) =>
-							mm = @parseMonthName m[4]
-							return "error: month name" unless mm
-							parseDate m[1], m[2], m[3], mm, null, null, m[7], m[8], m[9]
-					}
-					{
-						# Matches yyyy/dd/mm, yy/d/m, dd/mm .... with Month name and separators: - / . and space
-						pattern: /^[^0-9]*(((19|20)?\d\d)[- \/])?((0)?([1-9])|[12][0-9]|3[01])[- \/]?([A-Z]{3,9})[^A-Z0-9]*$/i
-						# Groups: 1->yearEntry, 2->fullYear, 3->century, 4->dayEntry, 5->day0, 6->dayN, 7->monthName
-						parse: (m) =>
-							mm = @parseMonthName m[7]
-							return "error: month name" unless mm
-							parseDate m[1], m[2], m[3], mm, null, null, m[4], m[5], m[6]
-					}
-					{
-						# Matches dd/mm/yyyy, d/m/yy, dd/mm .... with Month name and separators: - / . and space
-						pattern: /^[^0-9]*((0)?([1-9])|[12][0-9]|3[01])[- \/]?([A-Z]{3,9})([- \/]?((19|20)?\d\d))?[^A-Z0-9]*$/i
-						# Groups: 1->dayEntry, 2->day0, 3->dayN, 4->monthName, 5->yearEntry, 6->fullYear, 7->century
-						parse: (m) =>
-							mm = @parseMonthName m[4]
-							return "error: month name" unless mm
-							parseDate m[7], m[8], m[9], mm, null, null, m[1], m[2], m[3]
-					}
-					{
-						# Matches mm/dd/yyyy, m/d/yy, mm/dd .... with Month name and separators: - / . and space
-						pattern: /^[^A-Z0-9]*([A-Z]{3,9})[- \/]?((0)?([1-9])|[12][0-9]|3[01])([- \/]((19|20)?\d\d))?[^0-9]*$/i
-						# Groups: 1->monthName, 2->dayEntry, 3->day0, 4->dayN, 5->yearEntry, 6->fullYear, 7->century
-						parse: (m) =>
-							mm = @parseMonthName m[1]
-							return "error: month name" unless mm
-							parseDate m[7], m[8], m[9], mm, null, null, m[4], m[5], m[6]
 					}
 				]
 			}
@@ -349,25 +288,7 @@ angular.module('dataplayApp')
 				else null
 
 		parseDate = (ye, yyyy, yc, mm, m0, mn, dd, d0, dn) ->
-			# If no year entry, assing current year
-			yyyy = new Date().getYear() unless ye
-			# Years with only 2 digits belongs to this century
-			yyyy = "20#{yyyy}" if ye and not yc
-			# Put '0' digit in month if it isn't already
-			mm = "0#{mm}" if mn and not m0
-			# Check days for months (no conditionals allowed in Javascript regex)
-			switch parseInt(mm, 10)
-				when 4,6,9,11
-					return "error: month day" if parseInt(dd, 10)>30
-				when 2
-					nby = parseInt(yyyy, 10) % 4
-					ddn = parseInt(dd, 10)
-					return "error: month day" if ddn>29 or (ddn>28 and nby)
-			# Put '0' digit in day if it isn't already
-			dd = "0#{dd}" if dn and not d0
-			# This will be our standard date format
-			#"#{yyyy}-#{mm}-#{dd}"
-			new Date(yyyy, mm-1, dd)
+			new Date(yyyy, mm - 1, dd)
 
 		# Public API here
 		{

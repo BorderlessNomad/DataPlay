@@ -10,10 +10,9 @@
 angular.module('dataplayApp')
 	.controller 'OverviewCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', ($scope, $routeParams, Overview, PatternMatcher) ->
 		$scope.params = $routeParams
-		$scope.chartsInfo = []
+		$scope.chartStore = []
 
 		$scope.guid = null
-		$scope.container = 'body'
 		$scope.data = null
 		$scope.keys = []
 		$scope.cfdata = null
@@ -35,13 +34,6 @@ angular.module('dataplayApp')
 			bottom: 30
 			left: 30
 
-		d3.csv "bower_components/angular-dc/example/stocks/morley.csv", (error, experiments) ->
-			ndx = crossfilter experiments
-			$scope.runDimension = ndx.dimension (d) ->
-				"run-" + d.Run
-			$scope.speedSumGroup = $scope.runDimension.group().reduceSum (d) ->
-				d.Speed * d.Run
-
 		$scope.getCharts = () ->
 			Overview.reducedData $scope.params.id, 10, 100
 				.success (data) ->
@@ -51,14 +43,17 @@ angular.module('dataplayApp')
 							do (key) ->
 								vp = PatternMatcher.getPattern data[0][key]
 								kp = PatternMatcher.getKeyPattern key
+
 								patterns[key] = valuePattern: vp, keyPattern: kp
+
 								# Now parse ALL the data
 								# TODO get into account key pattern before parsing everything???
-								entry[key] = PatternMatcher.parse(entry[key], patterns[key].valuePattern) for entry in data
+								for entry in data
+									entry[key] = PatternMatcher.parse entry[key], patterns[key].valuePattern
 
 						console.log "Patterns: ", patterns
 
-						$scope.plot $scope.params.id, {dataset: data, patterns: patterns}, '#charts'
+						$scope.plot $scope.params.id, {dataset: data, patterns: patterns}
 
 					return
 				.error (data) ->
@@ -67,10 +62,10 @@ angular.module('dataplayApp')
 
 			return
 
-		$scope.plot = (guid, data, container, width, height) ->
+		$scope.plot = (guid, data, width, height) ->
+			console.log "plot", guid, data
 			$scope.guid = guid
 			$scope.data = data
-			$scope.container = container
 
 			$scope.width = width if width
 			$scope.height = height if height
@@ -154,46 +149,44 @@ angular.module('dataplayApp')
 			return
 
 		$scope.drawLineChart = (data, entry, xScale, ordinals) ->
-			data["entry"] = entry
-			data["xScale"] = xScale
-			data["ordinals"] = ordinals
+			data.options =
+				chart:
+					type: data.plot
+					width: $scope.width
+					height: $scope.height
+					margin: $scope.margin
+					x: (d) ->
+						d[data.x]
+					y: (d) ->
+						d[data.y]
+					color: d3.scale.category20()
+					transitionDuration: 500
+					useInteractiveGuideline: true
+					xAxis:
+						axisLabel: data.x
+						tickFormat: (d) ->
+							switch $scope.data.patterns[entry.x].valuePattern
+								when 'date' then d3.time.format('%Y')(new Date(d))
+								when 'label', 'text' then d.substring(0, 20)
+								else d
+					yAxis:
+						axisLabel: data.y
+					interactive: true
+					rescaleY: true
+					showXAxis: true
 
-			data["colorAccessor"] = (d) -> parseInt(d.value) % 20
-			data["tickFormat"] = (d) => # needs xAxis()
-				switch $scope.data.patterns[entry.x].valuePattern
-					when 'date' then d.getFullYear()
-					when 'label', 'text' then d.substring 0, 20
-					else d
+			data.data = [
+				key: "Gold Prices"
+				values: $scope.data.dataset
+			]
 
-			data["xUnits"] = dc.units.integers
-			data["tickValues"] = null
-			if ordinals
-				data["xUnits"] = dc.units.ordinal
-				l = ordinals.length
-				data["tickValues"] = [ordinals[0], ordinals[Math.floor(l/2)], ordinals[l-1]]
-
-			data
-
-		$scope.drawPieChart = (data, entry) ->
-			data["entry"] = entry
-
-			data["radius"] = Math.min($scope.width, $scope.height) / 2
-			data["innerRadius"] = 0.1 * Math.min $scope.width, $scope.height
-			data["colorAccessor"] = (d) -> parseInt(d.value) % 20
-			data["label"] = (d) =>
-				switch $scope.data.patterns[entry.x].valuePattern
-					when 'date' then d.data.key.getFullYear()
-					when 'label', 'text' then d.data.key.substring 0, 20
-					else d.data.key
-			data["title"] = (d) -> d.value
-
-			console.log "drawPieChart", data
+			console.log "drawLineChart", data.data
 
 			data
 
 		# $scope.drawLineChart = (entry, fixedId, xScale, ordinals) ->
-		# 	console.log "drawLineChart", "##{fixedId}"
-		# 	chart = dc.drawLineChart "##{fixedId}"
+
+		# 	chart = dc.lineChart "##{fixedId}"
 
 		# 	chart.width($scope.width)
 		# 		.height($scope.height)
@@ -350,7 +343,7 @@ angular.module('dataplayApp')
 			console.log "drawCharts"
 			lastCharts = []
 
-			$scope.chartsInfo = []
+			$scope.chartStore = []
 
 			for entry in $scope.groups
 				do (entry) =>
@@ -364,7 +357,6 @@ angular.module('dataplayApp')
 								.rangeBands([0, $scope.width])
 						when 'date'
 							xScale = d3.time.scale()
-								#.domain(d3.extent(entry.group.all(), (d) -> PGPatternMatcher.parse(d.key, 'date')))
 								.domain(d3.extent(entry.group.all(), (d) -> d.key))
 								.range([0, $scope.width])
 						else
@@ -375,13 +367,13 @@ angular.module('dataplayApp')
 					fixedId = "#{entry.type}-#{entry.x}-#{entry.y}".replace(/[^a-zA-Z0-9_-]/gi, '_')
 
 					chartId = null
-					for dcChart in $scope.charts
-						do (dcChart) =>
+					for chart in $scope.charts
+						do (chart) =>
 							if not chartId and (
-								not dcChart.maxEntries or entry.group.size() < dcChart.maxEntries
-							) and dcChart.id not in lastCharts
-								chartId = dcChart.id
-								lastCharts.push dcChart.id
+								not chart.maxEntries or entry.group.size() < chart.maxEntries
+							) and chart.id not in lastCharts
+								chartId = chart.id
+								lastCharts.push chart.id
 								return
 
 					lastCharts = [] if lastCharts.length is $scope.charts.length
@@ -390,52 +382,44 @@ angular.module('dataplayApp')
 					if chartId in ['bar', 'pie', 'bubble']
 						plotChart = chartId
 
-					console.log chartId
-
 					data =
 						id: fixedId
+						plot: plotChart + "Chart"
+						type: entry.type
 						x: entry.x
 						y: entry.y
-						type: entry.type
-						plot: plotChart + "Chart"
 
-					chart = switch chartId
-					# 	when 'row' then $scope.drawRowsChart entry, fixedId
-					# 	when 'bar' then $scope.drawBarsChart entry, fixedId, xScale, m
-						when 'pie' then $scope.drawPieChart data, entry
-					# 	when 'bubble' then $scope.drawBubblesChart entry, fixedId, xScale
-						when 'line' then data = $scope.drawLineChart data, entry, xScale, m
-						else data = $scope.drawLineChart data, entry, xScale, m
+					switch chartId
+						when 'line'
+							$scope.chartStore.push $scope.drawLineChart data, entry, xScale, m
+						else
+							$scope.chartStore.push $scope.drawLineChart data, entry, xScale, m
 
-					# chart = switch chartId
-					# 	when 'row' then $scope.drawRowsChart entry, fixedId
-					# 	when 'bar' then $scope.drawBarsChart entry, fixedId, xScale, m
-					# 	when 'pie' then $scope.drawPieChart entry, fixedId
-					# 	when 'bubble' then $scope.drawBubblesChart entry, fixedId, xScale
-					# 	when 'line' then $scope.drawLineChart entry, fixedId, xScale, m
-					# 	else $scope.drawLineChart entry, fixedId, xScale, m
+		# 			# chart = switch chartId
+		# 			# 	when 'row' then $scope.drawRowsChart entry, fixedId
+		# 			# 	when 'bar' then $scope.drawBarsChart entry, fixedId, xScale, m
+		# 			# 	when 'pie' then $scope.drawPieChart entry, fixedId
+		# 			# 	when 'bubble' then $scope.drawBubblesChart entry, fixedId, xScale
+		# 			# 	when 'line' then $scope.drawLineChart entry, fixedId, xScale, m
+		# 			# 	else $scope.drawLineChart entry, fixedId, xScale, m
 
-					# # TESTING: How to get filtered data .... for maps or 3rd party elements
-					# chart.on "filtered", (chart, filter) ->
-					# 	console.log "filtered", chart.dimension().top(Infinity)
-					# 	console.log filter
-					# 	# Trigger 'update' for focusing maps on items bounds and 'updateOnlyItems' for no focus
-					# 	# $(@).trigger 'updateOnlyItems', {elements: chart.dimension().bottom Infinity} #@todo
-					# 	return
+		# 			# # TESTING: How to get filtered data .... for maps or 3rd party elements
+		# 			# chart.on "filtered", (chart, filter) ->
+		# 			# 	console.log "filtered", chart.dimension().top(Infinity)
+		# 			# 	console.log filter
+		# 			# 	# Trigger 'update' for focusing maps on items bounds and 'updateOnlyItems' for no focus
+		# 			# 	# $(@).trigger 'updateOnlyItems', {elements: chart.dimension().bottom Infinity} #@todo
+		# 			# 	return
 
-					$scope.chartsInfo.push data
+		# 			return
 
-					console.log "data:", fixedId, data
-
-					return
-
-			dc.renderAll()
+			# dc.renderAll()
 
 			return
 
-		$scope.resetAll = ->
-			dc.filterAll()
-			dc.redrawAll()
+		# $scope.resetAll = ->
+		# 	dc.filterAll()
+		# 	dc.redrawAll()
 
 		return
 	]
