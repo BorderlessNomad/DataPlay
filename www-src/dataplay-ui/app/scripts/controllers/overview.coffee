@@ -233,45 +233,18 @@ angular.module('dataplayApp')
 					when 'label', 'text' then d.key.substring 0, 20
 					else d.key
 			data["title"] = (d) -> d.value
-			data["points"] = (d) ->
-
 
 			data
 
-		# $scope.drawBubbleChart = (entry, fixedId, xScale) ->
-		# 	console.log "drawBubbleChart"
-		# 	svg = d3.select("##{fixedId}")
-		# 		.append('svg')
-		# 		.attr('width', $scope.width)
-		# 		.attr('height', $scope.height)
-		# 	chart = dc.bubbleOverlay("##{fixedId}")
-		# 		.svg(svg)
-		# 		.width($scope.width)
-		# 		.height($scope.height)
-		# 		.dimension(entry.dimension)
-		# 		.group(entry.group)
-		# 		.transitionDuration(500)
-		# 		.keyAccessor((d) -> "Key#{d.key}".replace(/[^a-zA-Z0-9_-]/gi, '_'))
-		# 		.colors(d3.scale.category20())
-		# 		.colorAccessor((d) -> parseInt(d.value)%20)
-		# 		.radiusValueAccessor((d) -> d.value)
-		# 		.r(d3.scale.linear().domain(d3.extent(entry.group.all(), (d) -> parseInt(d.value))))
-		# 		.maxBubbleRelativeSize(0.1)
-		# 		.label(
-		# 			(d) =>
-		# 				switch $scope.data.patterns[entry.x].valuePattern
-		# 					when 'date' then d.key.getFullYear()
-		# 					when 'label', 'text' then "#{d.key}".substring(0, 20)
-		# 					else d.key
-		# 		)
-		# 		.minRadiusWithLabel(5)
-		# 		.title((d) -> d.value)
-		# 	chart.point(
-		# 		"Key#{d.key}".replace(/[^a-zA-Z0-9_-]/gi, '_')
-		# 		0.1*$scope.width+0.8*xScale(d.key)
-		# 		0.2*$scope.height+0.6*$scope.height*Math.random()
-		# 	) for d in entry.group.all()
-		# 	chart
+		$scope.bubbleChartPostSetup = (chart) ->
+			# data = $scope.chartsInfo[chart.__dc_flag__]
+			# chart.point(
+			# 	"Key#{d.key}".replace(/[^a-zA-Z0-9_-]/gi, '_')
+			# 	0.1*$scope.width+0.8*data.xScale(d.key)
+			# 	0.2*$scope.height+0.6*$scope.height*Math.random()
+			# ) for d in data.entry.group.all()
+
+			# return
 
 		$scope.drawCharts = ->
 			lastCharts = []
@@ -342,11 +315,6 @@ angular.module('dataplayApp')
 						when 'pie'
 							$scope.drawPieChart data, entry
 						when 'bubble'
-							data["point"] = [
-								"Key#{d.key}".replace(/[^a-zA-Z0-9_-]/gi, '_')
-								0.1 * $scope.width + 0.8 * xScale(d.key)
-								0.2 * $scope.height + 0.6* $scope.height * Math.random()
-							] for d in entry.group.all()
 							$scope.drawBubbleChart data, entry
 						else
 							$scope.drawLineChart data, entry

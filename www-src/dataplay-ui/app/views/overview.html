@@ -11,7 +11,7 @@
 			<div class="chartSwitch"
 				ng-switch-when="lineChart"
 
-				dc-chart="{{chart.plot}}"
+				dc-chart="lineChart"
 
 				dc-width="{{width}}"
 				dc-height="{{height}}"
@@ -35,7 +35,7 @@
 			<div class="chartSwitch"
 				ng-switch-when="barChart"
 
-				dc-chart="{{chart.plot}}"
+				dc-chart="barChart"
 
 				dc-width="{{width}}"
 				dc-height="{{height}}"
@@ -60,7 +60,7 @@
 			<div class="chartSwitch"
 				ng-switch-when="rowChart"
 
-				dc-chart="{{chart.plot}}"
+				dc-chart="rowChart"
 
 				dc-width="{{width}}"
 				dc-height="{{height}}"
@@ -87,7 +87,7 @@
 			<div class="chartSwitch"
 				ng-switch-when="pieChart"
 
-				dc-chart="{{chart.plot}}"
+				dc-chart="pieChart"
 
 				dc-width="{{width}}"
 				dc-height="{{height}}"
@@ -110,7 +110,7 @@
 			<div class="chartSwitch"
 				ng-switch-when="bubbleChart"
 
-				dc-chart="{{chart.plot}}"
+				dc-chart="bubbleOverlay"
 
 				dc-width="{{width}}"
 				dc-height="{{height}}"
@@ -128,10 +128,10 @@
 				dc-group="chart.entry.group"
 				dc-r="chart.r"
 				dc-x="chart.xScale"
-				dc-point="chart.point"
 				dc-max-bubble-relative-size="0.1"
 				dc-min-radis-with-label="5"
 				dc-title="chart.title"
+				dc-post-setup-chart="bubbleChartPostSetup"
 			></div>
 
 			<div class="chartSwitch" ng-switch-default>Oops! nothing to plot.</div>
