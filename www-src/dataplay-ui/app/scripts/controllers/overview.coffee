@@ -13,12 +13,10 @@ angular.module('dataplayApp')
 		$scope.chartsInfo = []
 
 		$scope.guid = null
-		$scope.container = 'body'
 		$scope.data = null
 		$scope.keys = []
 		$scope.cfdata = null
 		$scope.dimensions = []
-		$scope.dimensionsMap = {}
 		$scope.groups = []
 		$scope.charts = [
 			{ id: 'row', maxEntries: 15 }
@@ -58,7 +56,7 @@ angular.module('dataplayApp')
 
 						console.log "Patterns: ", patterns
 
-						$scope.plot $scope.params.id, {dataset: data, patterns: patterns}, '#charts'
+						$scope.plot $scope.params.id, {dataset: data, patterns: patterns}
 
 					return
 				.error (data) ->
@@ -67,10 +65,9 @@ angular.module('dataplayApp')
 
 			return
 
-		$scope.plot = (guid, data, container, width, height) ->
+		$scope.plot = (guid, data, width, height) ->
 			$scope.guid = guid
 			$scope.data = data
-			$scope.container = container
 
 			$scope.width = width if width
 			$scope.height = height if height
@@ -130,12 +127,18 @@ angular.module('dataplayApp')
 			#useGroup = true # TODO: Crap this when using patterns above ...
 
 			if useGroup
-				# TODO: mark here if there's already a count, it has no sense to do more than once ...
 				noCount = true for group in $scope.groups when group.x is xKey
 				if not noCount
-					group = x: xKey, y: yKey, type: 'count', dimension: $scope.dimensions[i], group: null
-					group.group = $scope.dimensions[i].group().reduceCount((d) -> d[yKey])
-					$scope.groups.push group
+					data =
+						x: xKey
+						y: yKey
+						type: 'count'
+						dimension: $scope.dimensions[i]
+						group: null
+
+					data.group = $scope.dimensions[i].group().reduceCount((d) -> d[yKey])
+
+					$scope.groups.push data
 
 				useSum = switch yPattern
 					# TODO: discard more patterns here ....
@@ -144,20 +147,22 @@ angular.module('dataplayApp')
 						when 'identifier', 'date' then false
 						else true
 					else true
-				#console.log useSum
 
 				if useSum
-					group2 = x: xKey, y: yKey, type: 'sum', dimension: $scope.dimensions[i], group: null
-					group2.group = $scope.dimensions[i].group().reduceSum((d) -> d[yKey])
-					$scope.groups.push group2
+					data =
+						x: xKey
+						y: yKey
+						type: 'sum'
+						dimension: $scope.dimensions[i]
+						group: null
+
+					data.group = $scope.dimensions[i].group().reduceSum((d) -> d[yKey])
+
+					$scope.groups.push data
 
 			return
 
-		$scope.drawLineChart = (data, entry, xScale, ordinals) ->
-			data["entry"] = entry
-			data["xScale"] = xScale
-			data["ordinals"] = ordinals
-
+		$scope.drawLineChart = (data, entry) ->
 			data["colorAccessor"] = (d) -> parseInt(d.value) % 20
 			data["tickFormat"] = (d) => # needs xAxis()
 				switch $scope.data.patterns[entry.x].valuePattern
@@ -165,18 +170,46 @@ angular.module('dataplayApp')
 					when 'label', 'text' then d.substring 0, 20
 					else d
 
-			data["xUnits"] = dc.units.integers
 			data["tickValues"] = null
-			if ordinals
-				data["xUnits"] = dc.units.ordinal
-				l = ordinals.length
-				data["tickValues"] = [ordinals[0], ordinals[Math.floor(l/2)], ordinals[l-1]]
+			if data["ordinals"]? and data["ordinals"].length
+				l = data["ordinals"].length
+				data["tickValues"] = [data["ordinals"][0], data["ordinals"][Math.floor(l/2)], data["ordinals"][l-1]]
+
+			data
+
+		$scope.drawBarChart = (data, entry) ->
+			data["colorAccessor"] = (d) -> parseInt(d.value) % 20
+			data["tickFormat"] = (d) => # needs xAxis()
+				switch $scope.data.patterns[entry.x].valuePattern
+					when 'date' then d.getFullYear()
+					when 'label', 'text' then d.substring 0, 20
+					else d
+
+			data["tickValues"] = null
+			if data["ordinals"]? and data["ordinals"].length
+				l = data["ordinals"].length
+				data["tickValues"] = [data["ordinals"][0], data["ordinals"][Math.floor(l/2)], data["ordinals"][l-1]]
+
+			data
+
+		$scope.drawRowChart = (data, entry) ->
+			data["labelOffsetY"] = $scope.height / ( 2 * entry.group.size())
+			data["colorAccessor"] = (d) -> parseInt(d.value) % 20
+			data["tickFormat"] = (d) => # needs xAxis()
+				switch $scope.data.patterns[entry.x].valuePattern
+					when 'date' then d.getFullYear()
+					when 'label', 'text' then d.substring 0, 20
+					else d
+			data["label"] = (d) => # needs xAxis()
+				switch $scope.data.patterns[entry.x].valuePattern
+					when 'date' then d.data.key.getFullYear()
+					when 'label', 'text' then d.data.key.substring 0, 20
+					else d.data.key
+			data["title"] = (d) -> d.value
 
 			data
 
 		$scope.drawPieChart = (data, entry) ->
-			data["entry"] = entry
-
 			data["radius"] = Math.min($scope.width, $scope.height) / 2
 			data["innerRadius"] = 0.1 * Math.min $scope.width, $scope.height
 			data["colorAccessor"] = (d) -> parseInt(d.value) % 20
@@ -187,132 +220,26 @@ angular.module('dataplayApp')
 					else d.data.key
 			data["title"] = (d) -> d.value
 
-			console.log "drawPieChart", data
+			data
+
+		$scope.drawBubbleChart = (data, entry) ->
+			data["radiusValueAccessor"] = (d) -> d.value
+			data["keyAccessor"] = (d) -> "Key#{d.key}".replace(/[^a-zA-Z0-9_-]/gi, '_')
+			data["colorAccessor"] = (d) -> parseInt(d.value) % 20
+			data["r"] = d3.scale.linear().domain(d3.extent(entry.group.all(), (d) -> parseInt(d.value)))
+			data["label"] = (d) =>
+				switch $scope.data.patterns[entry.x].valuePattern
+					when 'date' then d.key.getFullYear()
+					when 'label', 'text' then d.key.substring 0, 20
+					else d.key
+			data["title"] = (d) -> d.value
+			data["points"] = (d) ->
+
 
 			data
 
-		# $scope.drawLineChart = (entry, fixedId, xScale, ordinals) ->
-		# 	console.log "drawLineChart", "##{fixedId}"
-		# 	chart = dc.drawLineChart "##{fixedId}"
-
-		# 	chart.width($scope.width)
-		# 		.height($scope.height)
-		# 		.margins({top: 10, right: 10, bottom: 30, left: 30})
-		# 		.dimension(entry.dimension)
-		# 		.group(entry.group)
-		# 		.transitionDuration(500)
-		# 		.colors(d3.scale.category20())
-		# 		.colorAccessor((d) -> parseInt(d.value)%20)
-		# 		.elasticY(true)
-		# 		.x(xScale)
-		# 		.xAxis()
-		# 		.ticks(3)
-		# 		.tickFormat(
-		# 			(d) =>
-		# 				switch $scope.data.patterns[entry.x].valuePattern
-		# 					when 'date' then d.getFullYear()
-		# 					when 'label', 'text' then "#{d}".substring(0, 20)
-		# 					else d
-		# 		)
-
-		# 	if ordinals
-		# 		chart.xUnits(dc.units.ordinal)
-		# 		l = ordinals.length
-		# 		chart.xAxis().tickValues([ordinals[0], ordinals[Math.floor(l/2)], ordinals[l-1]])
-		# 		# TODO: Everything should deliver a chart, thrash the workaround below when well-tested
-		# 		# if isNaN chart.yAxisMin()
-		# 		#   $(@container).find("##{entry.type}-#{entry.x}-#{entry.y}").remove()
-		# 		# else
-		# 		#   chart.yAxis().ticks(3)
-
-		# 	chart
-
-		# $scope.drawBarsChart = (entry, fixedId, xScale, ordinals) ->
-		# 	console.log "drawBarsChart"
-		# 	chart = dc.barChart "##{fixedId}"
-		# 	chart.width($scope.width)
-		# 		.height($scope.height)
-		# 		.margins({top: 10, right: 10, bottom: 30, left: 30})
-		# 		.dimension(entry.dimension)
-		# 		.group(entry.group)
-		# 		.transitionDuration(500)
-		# 		.centerBar(true)
-		# 		.gap(2)
-		# 		.colors(d3.scale.category20())
-		# 		.colorAccessor((d) -> parseInt(d.data.value)%20)
-		# 		.elasticY(true)
-		# 		.x(xScale)
-		# 		.xAxis()
-		# 		.ticks(3)
-		# 		.tickFormat(
-		# 			(d) =>
-		# 				switch $scope.data.patterns[entry.x].valuePattern
-		# 					when 'date' then d.getFullYear()
-		# 					when 'label', 'text' then "#{d}".substring(0, 20)
-		# 					else d
-		# 		)
-		# 	if ordinals
-		# 		chart.xUnits(dc.units.ordinal)
-		# 		l = ordinals.length
-		# 		chart.xAxis().tickValues([ordinals[0], ordinals[Math.floor(l/2)], ordinals[l-1]])
-		# 	chart
-
-		# $scope.drawRowsChart = (entry, fixedId) ->
-		# 	console.log "drawRowsChart"
-		# 	chart = dc.rowChart "##{fixedId}"
-		# 	chart.width($scope.width)
-		# 		.height($scope.height)
-		# 		.margins({top: 5, right: 10, bottom: 20, left: 10})
-		# 		.dimension(entry.dimension)
-		# 		.group(entry.group)
-		# 		.transitionDuration(500)
-		# 		.gap(1)
-		# 		.colors(d3.scale.category20())
-		# 		.label(
-		# 			(d) =>
-		# 				switch $scope.data.patterns[entry.x].valuePattern
-		# 					when 'date' then d.key.getFullYear()
-		# 					when 'label', 'text' then "#{d.key}".substring(0, 20)
-		# 					else d.key
-		# 		)
-		# 		.labelOffsetY($scope.height/(2*entry.group.size()))
-		# 		.title((d) -> d.value)
-		# 		.elasticX(true)
-		# 		.xAxis()
-		# 		.ticks(2)
-		# 		.tickFormat(
-		# 			(d) =>
-		# 				switch $scope.data.patterns[entry.y].valuePattern
-		# 					when 'date' then d.getFullYear()
-		# 					when 'label', 'text' then "#{d}".substring(0, 20)
-		# 					else d
-		# 		)
-		# 	chart
-
-		# $scope.drawPieChart = (entry, fixedId) ->
-		# 	console.log "drawPieChart"
-		# 	chart = dc.pieChart "##{fixedId}"
-		# 	chart.width($scope.width)
-		# 		.height($scope.height)
-		# 		.radius(Math.min($scope.width, $scope.height)/2)
-		# 		.innerRadius(0.1*Math.min($scope.width, $scope.height))
-		# 		.dimension(entry.dimension)
-		# 		.group(entry.group)
-		# 		.transitionDuration(500)
-		# 		.colors(d3.scale.category20())
-		# 		.label(
-		# 			(d) =>
-		# 				switch $scope.data.patterns[entry.x].valuePattern
-		# 					when 'date' then d.data.key.getFullYear()
-		# 					when 'label', 'text' then "#{d.data.key}".substring(0, 20)
-		# 					else d.data.key
-		# 		)
-		# 		.minAngleForLabel(0.2)
-		# 		.title((d) -> d.value)
-		# 	chart
-
-		# $scope.drawBubblesChart = (entry, fixedId, xScale) ->
-		# 	console.log "drawBubblesChart"
+		# $scope.drawBubbleChart = (entry, fixedId, xScale) ->
+		# 	console.log "drawBubbleChart"
 		# 	svg = d3.select("##{fixedId}")
 		# 		.append('svg')
 		# 		.attr('width', $scope.width)
@@ -347,41 +274,38 @@ angular.module('dataplayApp')
 		# 	chart
 
 		$scope.drawCharts = ->
-			console.log "drawCharts"
 			lastCharts = []
 
 			$scope.chartsInfo = []
 
 			for entry in $scope.groups
 				do (entry) =>
-					switch $scope.data.patterns[entry.x].valuePattern
+					ordinals = []
+					ordinals.push d.key for d in entry.group.all() when d not in ordinals
+
+					xScale = switch $scope.data.patterns[entry.x].valuePattern
 						# TODO: handle more patterns here .....
 						when 'label'
-							m = []
-							m.push d.key for d in entry.group.all() when d not in m
-							xScale = d3.scale.ordinal()
-								.domain(m)
-								.rangeBands([0, $scope.width])
+							d3.scale.ordinal()
+								.domain ordinals
+								.rangeBands [0, $scope.width]
 						when 'date'
-							xScale = d3.time.scale()
-								#.domain(d3.extent(entry.group.all(), (d) -> PGPatternMatcher.parse(d.key, 'date')))
-								.domain(d3.extent(entry.group.all(), (d) -> d.key))
-								.range([0, $scope.width])
+							d3.time.scale()
+								.domain d3.extent(entry.group.all(), (d) -> d.key)
+								.range [0, $scope.width]
 						else
-							xScale = d3.scale.linear()
-								.domain(d3.extent(entry.group.all(), (d) -> parseInt(d.key)))
-								.range([0, $scope.width])
+							d3.scale.linear()
+								.domain d3.extent(entry.group.all(), (d) -> parseInt(d.key))
+								.range [0, $scope.width]
 
 					fixedId = "#{entry.type}-#{entry.x}-#{entry.y}".replace(/[^a-zA-Z0-9_-]/gi, '_')
 
 					chartId = null
-					for dcChart in $scope.charts
-						do (dcChart) =>
-							if not chartId and (
-								not dcChart.maxEntries or entry.group.size() < dcChart.maxEntries
-							) and dcChart.id not in lastCharts
-								chartId = dcChart.id
-								lastCharts.push dcChart.id
+					for chart in $scope.charts
+						do (chart) =>
+							if not chartId and (not chart.maxEntries or entry.group.size() < chart.maxEntries) and chart.id not in lastCharts
+								chartId = chart.id
+								lastCharts.push chart.id
 								return
 
 					lastCharts = [] if lastCharts.length is $scope.charts.length
@@ -390,7 +314,12 @@ angular.module('dataplayApp')
 					if chartId in ['bar', 'pie', 'bubble']
 						plotChart = chartId
 
-					console.log chartId
+					xUnits = dc.units.integers
+					if ordinals? and ordinals.length
+						xUnits = switch $scope.data.patterns[entry.x].valuePattern
+							when 'date' then d3.time.years
+							when 'label', 'text' then dc.units.ordinal
+							else dc.units.integers
 
 					data =
 						id: fixedId
@@ -398,38 +327,33 @@ angular.module('dataplayApp')
 						y: entry.y
 						type: entry.type
 						plot: plotChart + "Chart"
+						xScale: xScale
+						ordinals: ordinals
+						xUnits: xUnits
+						entry: entry
 
-					chart = switch chartId
-					# 	when 'row' then $scope.drawRowsChart entry, fixedId
-					# 	when 'bar' then $scope.drawBarsChart entry, fixedId, xScale, m
-						when 'pie' then $scope.drawPieChart data, entry
-					# 	when 'bubble' then $scope.drawBubblesChart entry, fixedId, xScale
-						when 'line' then data = $scope.drawLineChart data, entry, xScale, m
-						else data = $scope.drawLineChart data, entry, xScale, m
-
-					# chart = switch chartId
-					# 	when 'row' then $scope.drawRowsChart entry, fixedId
-					# 	when 'bar' then $scope.drawBarsChart entry, fixedId, xScale, m
-					# 	when 'pie' then $scope.drawPieChart entry, fixedId
-					# 	when 'bubble' then $scope.drawBubblesChart entry, fixedId, xScale
-					# 	when 'line' then $scope.drawLineChart entry, fixedId, xScale, m
-					# 	else $scope.drawLineChart entry, fixedId, xScale, m
-
-					# # TESTING: How to get filtered data .... for maps or 3rd party elements
-					# chart.on "filtered", (chart, filter) ->
-					# 	console.log "filtered", chart.dimension().top(Infinity)
-					# 	console.log filter
-					# 	# Trigger 'update' for focusing maps on items bounds and 'updateOnlyItems' for no focus
-					# 	# $(@).trigger 'updateOnlyItems', {elements: chart.dimension().bottom Infinity} #@todo
-					# 	return
+					data = switch chartId
+						when 'line'
+							$scope.drawLineChart data, entry
+						when 'bar'
+							$scope.drawBarChart data, entry
+						when 'row'
+							$scope.drawRowChart data, entry
+						when 'pie'
+							$scope.drawPieChart data, entry
+						when 'bubble'
+							data["point"] = [
+								"Key#{d.key}".replace(/[^a-zA-Z0-9_-]/gi, '_')
+								0.1 * $scope.width + 0.8 * xScale(d.key)
+								0.2 * $scope.height + 0.6* $scope.height * Math.random()
+							] for d in entry.group.all()
+							$scope.drawBubbleChart data, entry
+						else
+							$scope.drawLineChart data, entry
 
 					$scope.chartsInfo.push data
 
-					console.log "data:", fixedId, data
-
 					return
-
-			dc.renderAll()
 
 			return
 
