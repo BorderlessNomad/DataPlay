@@ -26,6 +26,7 @@ angular.module('dataplayApp')
 			{ id: 'bubble', maxEntries: 60 }
 			{ id: 'line' }
 		]
+		$scope.xTicks = 7
 		$scope.width = 350
 		$scope.height = 200
 		$scope.margin =
@@ -173,35 +174,29 @@ angular.module('dataplayApp')
 			chart.colorAccessor (d) -> parseInt(d.value) % 20
 
 			chart.xAxis()
-				.ticks 6
-				.tickFormat (d) =>
-					switch $scope.data.patterns[data.entry.x].valuePattern
-						when 'date' then d.getFullYear()
-						when 'label', 'text' then d.substring 0, 20
-						else d
+				.ticks $scope.xTicks
+				# .tickFormat (d) =>
+				# 	switch $scope.data.patterns[data.entry.x].valuePattern
+				# 		when 'date' then d.getFullYear()
+				# 		when 'label', 'text' then d.substring 0, 20
+				# 		else d
 
 			if data.ordinals? and data.ordinals.length > 0
 				chart.xUnits switch $scope.data.patterns[data.entry.x].valuePattern
 					when 'date' then d3.time.years
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
-				l = data.ordinals.length
-				# chart.xAxis().tickValues [data.ordinals[0], data.ordinals[Math.floor(l/2)], data.ordinals[l-1]]
 
+				l = data.ordinals.length
+				tickValues = []
+				tickValues.push data.ordinals[0]
+				tickValues.push data.ordinals[Math.floor(l / $scope.xTicks * i)] for i in [1..$scope.xTicks - 2]
+				tickValues.push data.ordinals[l - 1]
+				chart.xAxis().tickValues tickValues
 
 			return
 
 		$scope.drawBarChart = (data, entry) ->
-			data["tickFormat"] = (d) => # needs xAxis()
-				switch $scope.data.patterns[entry.x].valuePattern
-					when 'date' then d.getFullYear()
-					when 'label', 'text' then d.substring 0, 20
-					else d
-
-			data["tickValues"] = null
-			if data["ordinals"]? and data["ordinals"].length
-				l = data["ordinals"].length
-				data["tickValues"] = [data["ordinals"][0], data["ordinals"][Math.floor(l/2)], data["ordinals"][l-1]]
 
 			data
 
@@ -212,18 +207,20 @@ angular.module('dataplayApp')
 
 			chart.xAxis()
 				.ticks 6
-				.tickFormat (d) =>
-					switch $scope.data.patterns[data.entry.x].valuePattern
-						when 'date' then d.getFullYear()
-						when 'label', 'text' then d.substring 0, 20
-						else d
+				# .tickFormat (d) =>
+				# 	switch $scope.data.patterns[data.entry.x].valuePattern
+				# 		when 'date' then d.getFullYear()
+				# 		when 'label', 'text' then d.substring 0, 20
+				# 		else d
 
 			if data.ordinals? and data.ordinals.length > 0
+				console.log "barChartPostSetup", data.ordinals
 				chart.xUnits switch $scope.data.patterns[data.entry.x].valuePattern
 					when 'date' then d3.time.years
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
 				l = data.ordinals.length
+				# chart.xAxis().tickValues [data.ordinals[0], data.ordinals[Math.floor(l/2)], data.ordinals[l-1]]
 
 			return
 
@@ -264,7 +261,13 @@ angular.module('dataplayApp')
 		$scope.bubbleChartPostSetup = (chart, options) ->
 			data = $scope.chartsInfo[$scope.getChartOffset chart]
 
+			svg = d3.select("##{data.id}")
+				.append 'svg'
+				.attr 'width', $scope.width
+				.attr 'height', $scope.height
+
 			chart
+				.svg svg
 				.keyAccessor (d) -> "Key#{d.key}".replace(/[^a-zA-Z0-9_-]/gi, '_')
 				.colorAccessor (d) -> parseInt(d.value) % 20
 				.radiusValueAccessor (d) -> d.value
@@ -288,6 +291,10 @@ angular.module('dataplayApp')
 			if chart is 'line'
 				if not $scope.data.patterns[x].keyPattern?
 					return 'bar'
+
+			if chart is 'bar'
+				if $scope.data.patterns[x].keyPattern? and $scope.data.patterns[x].keyPattern is 'date'
+					return 'line'
 
 			chart
 
@@ -362,10 +369,6 @@ angular.module('dataplayApp')
 						when 'pie'
 							$scope.drawPieChart data, entry
 						when 'bubble'
-							data["svg"] = d3.select("##{fixedId}")
-								.append 'svg'
-								.attr 'width', $scope.width
-								.attr 'height', $scope.height
 							$scope.drawBubbleChart data, entry
 						else
 							$scope.drawLineChart data, entry
