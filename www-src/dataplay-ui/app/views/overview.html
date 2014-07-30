@@ -22,14 +22,13 @@
 				dc-elastic-y="true"
 				dc-transition-duration="500"
 				dc-colors="d3.scale.category20()"
-				dc-color-accessor="chart.colorAccessor"
 
 				dc-render-data-points="true"
 				dc-render-area="true"
 				dc-dimension="chart.entry.dimension"
 				dc-group="chart.entry.group"
 				dc-x="chart.xScale"
-				dc-x-units="chart.xUnits"
+				dc-post-setup-chart="lineChartPostSetup"
 			></div>
 
 			<div class="chartSwitch"
@@ -46,15 +45,14 @@
 				dc-elastic-y="true"
 				dc-transition-duration="500"
 				dc-colors="d3.scale.category20()"
-				dc-color-accessor="chart.colorAccessor"
 
 				dc-center-bar="true"
 				dc-gap="2"
-				dc-tick-format="chart.tickFormat"
 				dc-dimension="chart.entry.dimension"
 				dc-group="chart.entry.group"
 				dc-x="chart.xScale"
 				dc-x-units="chart.xUnits"
+				dc-post-setup-chart="barChartPostSetup"
 			></div>
 
 			<div class="chartSwitch"
@@ -111,6 +109,7 @@
 				ng-switch-when="bubbleChart"
 
 				dc-chart="bubbleOverlay"
+				dc-svg="chart.svg"
 
 				dc-width="{{width}}"
 				dc-height="{{height}}"
@@ -118,19 +117,14 @@
 				dc-mouse-zoomable="false"
 				dc-brush-on="false"
 
-				dc-radius-value-accessor="chart.radiusValueAccessor"
 				dc-transition-duration="500"
 				dc-colors="d3.scale.category20()"
-				dc-color-accessor="chart.colorAccessor"
 
-				dc-key-accessor="chart.keyAccessor"
 				dc-dimension="chart.entry.dimension"
 				dc-group="chart.entry.group"
-				dc-r="chart.r"
 				dc-x="chart.xScale"
 				dc-max-bubble-relative-size="0.1"
 				dc-min-radis-with-label="5"
-				dc-title="chart.title"
 				dc-post-setup-chart="bubbleChartPostSetup"
 			></div>
 
