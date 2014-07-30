@@ -59,6 +59,8 @@ update_iptables () {
 	iptables -A INPUT -p tcp --dport 5672 -j ACCEPT
 	iptables -A INPUT -p tcp --dport 15672 -j ACCEPT
 	iptables -A INPUT -p tcp --dport 4369 -j ACCEPT
+
+	iptables-save
 }
 
 if [ "$(id -u)" != "0" ]; then
