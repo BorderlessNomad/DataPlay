@@ -32,3 +32,4 @@ src/dataplay/public/search.html
 src/dataplay/public/signin.html
 stress/concurrent.sh
 www-src/dataplay-ui/bower_components/
+www-src/dataplay-ui/

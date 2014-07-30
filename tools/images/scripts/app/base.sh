@@ -33,6 +33,15 @@ install_nodejs () {
 }
 
 update_iptables () {
+	# Monitoring ports 80, 8080, 4242, 4243, 4245
+	iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+	iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+	iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
+	iptables -A INPUT -p tcp --dport 4242 -j ACCEPT
+	iptables -A INPUT -p tcp --dport 4243 -j ACCEPT
+	iptables -A INPUT -p tcp --dport 4245 -j ACCEPT
+
+	# NAT Redirect
 	iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 3000
 	iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 443 -j REDIRECT --to-port 3443
 }
@@ -53,5 +62,7 @@ echo "3. ---- Install essential packages ----"
 install_essentials
 echo "4. ---- Install Node.js ----"
 install_nodejs
+echo "5. ---- Update IPTables rules ----"
+update_iptables
 
 echo "---- Completed ----"
