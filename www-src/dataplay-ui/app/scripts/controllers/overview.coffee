@@ -26,7 +26,7 @@ angular.module('dataplayApp')
 			{ id: 'bubble', maxEntries: 60 }
 			{ id: 'line' }
 		]
-		$scope.xTicks = 7
+		$scope.xTicks = 8
 		$scope.width = 350
 		$scope.height = 200
 		$scope.margin =
@@ -177,22 +177,25 @@ angular.module('dataplayApp')
 				.ticks $scope.xTicks
 				# .tickFormat (d) =>
 				# 	switch $scope.data.patterns[data.entry.x].valuePattern
-				# 		when 'date' then d.getFullYear()
+				# 		when 'date' then new Date(d)
+				# 		when 'intNumber' then parseInt(d)
 				# 		when 'label', 'text' then d.substring 0, 20
 				# 		else d
 
 			if data.ordinals? and data.ordinals.length > 0
+				console.log "lineChartPostSetup", $scope.data.patterns[data.entry.x].valuePattern
 				chart.xUnits switch $scope.data.patterns[data.entry.x].valuePattern
 					when 'date' then d3.time.years
+					when 'intNumber' then dc.units.integers
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
 
-				l = data.ordinals.length
-				tickValues = []
-				tickValues.push data.ordinals[0]
-				tickValues.push data.ordinals[Math.floor(l / $scope.xTicks * i)] for i in [1..$scope.xTicks - 2]
-				tickValues.push data.ordinals[l - 1]
-				chart.xAxis().tickValues tickValues
+				# l = data.ordinals.length
+				# tickValues = []
+				# tickValues.push data.ordinals[0]
+				# tickValues.push data.ordinals[Math.floor(l / $scope.xTicks * i)] for i in [1..$scope.xTicks - 1]
+				# tickValues.push data.ordinals[l - 1]
+				# chart.xAxis().tickValues tickValues
 
 			return
 
@@ -206,7 +209,7 @@ angular.module('dataplayApp')
 			chart.colorAccessor (d) -> parseInt(d.value) % 20
 
 			chart.xAxis()
-				.ticks 6
+				.ticks $scope.xTicks
 				# .tickFormat (d) =>
 				# 	switch $scope.data.patterns[data.entry.x].valuePattern
 				# 		when 'date' then d.getFullYear()
@@ -217,6 +220,7 @@ angular.module('dataplayApp')
 				console.log "barChartPostSetup", data.ordinals
 				chart.xUnits switch $scope.data.patterns[data.entry.x].valuePattern
 					when 'date' then d3.time.years
+					when 'intNumber' then dc.units.integers
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
 				l = data.ordinals.length
@@ -345,6 +349,7 @@ angular.module('dataplayApp')
 					if ordinals? and ordinals.length
 						xUnits = switch $scope.data.patterns[entry.x].valuePattern
 							when 'date' then d3.time.years
+							when 'intNumber' then dc.units.integers
 							when 'label', 'text' then dc.units.ordinal
 							else dc.units.integers
 
