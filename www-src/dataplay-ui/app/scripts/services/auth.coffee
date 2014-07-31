@@ -21,8 +21,8 @@ angular.module('dataplayApp')
 		remove: (key) ->
 			ipCookie.remove key
 
-		isAuthenticated: (returnString) ->
+		isAuthenticated: () ->
 			token = ipCookie config.sessionName
-			if token? then token else false
+			if token? and token.length then true else false
 	]
 

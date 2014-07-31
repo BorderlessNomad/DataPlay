@@ -12,10 +12,10 @@ angular.module('dataplayApp')
 		$httpProvider.interceptors.push "RequestInterceptor"
 		return
 
-	.factory 'RequestInterceptor', ['$q', 'Auth', 'config', ($q, Auth, appConfig) ->
-		"request": (config) ->
-			# console.log "INTERCEPTED CONFIG", config, appConfig, Auth.isAuthenticated()
-			config.headers[appConfig.sessionHeader] = Auth.isAuthenticated()
+	.factory 'RequestInterceptor', ['$q', 'Auth', 'config', ($q, Auth, config) ->
+		"request": (reqConfig) ->
+			# console.log "INTERCEPTED CONFIG", reqConfig, config, Auth.isAuthenticated()
+			reqConfig.headers[config.sessionHeader] = Auth.get config.sessionName
 
-			config || $q.when config
+			reqConfig || $q.when reqConfig
 	]

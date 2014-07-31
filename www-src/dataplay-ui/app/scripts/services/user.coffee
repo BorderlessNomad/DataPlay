@@ -26,5 +26,5 @@ angular.module('dataplayApp')
 			$http.get config.api.base_url + "/visited"
 
 		search: (word) ->
-			$http.get config.api.base_url + "/search/" + word
+			$http.get config.api.base_url + "/search/#{word}"
 	]

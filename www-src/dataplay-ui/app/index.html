@@ -32,29 +32,7 @@
 		<![endif]-->
 
 		<!-- Fixed navbar -->
-		<div class="navbar navbar-default navbar-fixed-top" role="navigation" ng-controller="HomeCtrl">
-			<div class="container">
-				<div class="navbar-header">
-					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-						<span class="sr-only">Toggle navigation</span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-					</button>
-					<a class="navbar-brand" href="/">DataPlay</a>
-				</div>
-				<div class="navbar-collapse collapse">
-					<ul class="nav navbar-nav">
-						<li ng-class="{active: isActive('/')}" ng-show="Auth.isAuthenticated() !== false"><a href="/">Home</a></li>
-					</ul>
-					<ul class="nav navbar-nav navbar-right">
-						<li ng-class="{active: isActive('/login')}" ng-hide="Auth.isAuthenticated() !== false"><a ng-href="/login">Login</a></li>
-						<li ng-class="{active: isActive('/register')}" ng-hide="Auth.isAuthenticated() !== false"><a ng-href="/register">Register</a></li>
-						<li ng-show="Auth.isAuthenticated() !== false"><a href="#" ng-controller="UserCtrl" ng-click="logout()">Logout</a></li>
-					</ul>
-				</div><!--/.nav-collapse -->
-			</div>
-		</div>
+		<div class="navbar navbar-default navbar-fixed-top" role="navigation" ng-include="'views/header.html'"></div>
 
 		<!-- Add your site or application content here -->
 		<div class="container">
@@ -63,11 +41,7 @@
 			</div>
 		</div>
 
-		<div class="footer">
-			<div class="container">
-				<p class="text-muted">Powered by <strong><em>PlayGen</em></strong> &copy; 2014.</p>
-			</div>
-		</div>
+		<div class="footer" ng-include="'views/footer.html'"></div>
 
 		<!-- Google Analytics -->
 		<!-- <script>
@@ -78,7 +52,7 @@
 		</script> -->
 		<!-- End Google Analytics -->
 
-		<!-- build:js(.) scripts/ie.js -->
+		<!-- build:js(.) scripts/ie-fix.js -->
 		<!-- bower:js -->
 		<!--[if lt IE 9]>
 		<script src="bower_components/html5shiv/dist/html5shiv.js"></script>
@@ -117,6 +91,7 @@
 		<script src="scripts/services/auth.js"></script>
 		<script src="scripts/services/user.js"></script>
 		<script src="scripts/services/overview.js"></script>
+		<script src="scripts/services/charts.js"></script>
 		<script src="scripts/services/requestinterceptor.js"></script>
 		<script src="scripts/services/patternmatcher.js"></script>
 

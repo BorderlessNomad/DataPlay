@@ -5,11 +5,11 @@
 
 	<div class="row" ng-init="getCharts()">
 		<div class="col-md-4" ng-repeat="chart in chartsInfo" id="{{chart.id}}" ng-switch="chart.plot">
-			<a ng-href="/charts/{{guid}}?type={{chart.plot}}&x={{chart.x}}&y={{chart.y}}">
+			<a ng-href="/charts/{{guid}}/{{chart.plot}}/{{chart.x}}/{{chart.y}}">
 				<h4>{{chart.x}}-{{chart.y}} ({{chart.type}})</h4>
 			</a>
 			<div class="chartSwitch"
-				ng-switch-when="lineChart"
+				ng-switch-when="line"
 
 				dc-chart="lineChart"
 
@@ -32,7 +32,7 @@
 			></div>
 
 			<div class="chartSwitch"
-				ng-switch-when="barChart"
+				ng-switch-when="bar"
 
 				dc-chart="barChart"
 
@@ -55,7 +55,7 @@
 			></div>
 
 			<div class="chartSwitch"
-				ng-switch-when="rowChart"
+				ng-switch-when="row"
 
 				dc-chart="rowChart"
 
@@ -82,7 +82,7 @@
 			></div>
 
 			<div class="chartSwitch"
-				ng-switch-when="pieChart"
+				ng-switch-when="pie"
 
 				dc-chart="pieChart"
 
@@ -105,7 +105,7 @@
 			></div>
 
 			<div class="chartSwitch"
-				ng-switch-when="bubbleChart"
+				ng-switch-when="bubble"
 
 				dc-chart="bubbleOverlay"
 
@@ -128,6 +128,5 @@
 
 			<div class="chartSwitch" ng-switch-default>Oops! nothing to plot.</div>
 		</div>
-		<div id="charts"></div>
 	</div>
 </div>

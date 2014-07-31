@@ -32,7 +32,7 @@ angular.module('dataplayApp')
 				templateUrl: 'views/overview.html'
 				controller: 'OverviewCtrl'
 				login: true
-			.when '/charts/:id',
+			.when '/charts/:id/:type/:x/:y',
 				templateUrl: 'views/charts.html'
 				controller: 'ChartsCtrl'
 				login: true
@@ -63,7 +63,7 @@ angular.module('dataplayApp')
 angular.module('dataplayApp')
 	.run ['$rootScope', '$location', 'Auth', ($rootScope, $location, Auth) ->
 		$rootScope.$on "$routeChangeStart", (event, nextRoute, currentRoute) ->
-			if nextRoute? and nextRoute.login and Auth.isAuthenticated() is false
+			if nextRoute? and nextRoute.login and not Auth.isAuthenticated()
 				$location.path "/login"
 				return
 

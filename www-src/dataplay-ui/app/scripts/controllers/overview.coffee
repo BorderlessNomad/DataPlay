@@ -8,7 +8,7 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'OverviewCtrl', ['$scope', '$timeout', '$routeParams', 'Overview', 'PatternMatcher', ($scope, $timeout, $routeParams, Overview, PatternMatcher) ->
+	.controller 'OverviewCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', ($scope, $routeParams, Overview, PatternMatcher) ->
 		$scope.params = $routeParams
 		$scope.chartsInfo = []
 		$scope.chartRegistryOffset = 0
@@ -54,7 +54,7 @@ angular.module('dataplayApp')
 								# TODO get into account key pattern before parsing everything???
 								entry[key] = PatternMatcher.parse(entry[key], patterns[key].valuePattern) for entry in data
 
-						console.log "Patterns: ", patterns
+						# console.log "Patterns: ", patterns
 
 						$scope.plot $scope.params.id, {dataset: data, patterns: patterns}
 
@@ -183,7 +183,6 @@ angular.module('dataplayApp')
 				# 		else d
 
 			if data.ordinals? and data.ordinals.length > 0
-				console.log "lineChartPostSetup", $scope.data.patterns[data.entry.x].valuePattern
 				chart.xUnits switch $scope.data.patterns[data.entry.x].valuePattern
 					when 'date' then d3.time.years
 					when 'intNumber' then dc.units.integers
@@ -217,7 +216,6 @@ angular.module('dataplayApp')
 				# 		else d
 
 			if data.ordinals? and data.ordinals.length > 0
-				console.log "barChartPostSetup", data.ordinals
 				chart.xUnits switch $scope.data.patterns[data.entry.x].valuePattern
 					when 'date' then d3.time.years
 					when 'intNumber' then dc.units.integers
@@ -358,7 +356,7 @@ angular.module('dataplayApp')
 						x: entry.x
 						y: entry.y
 						type: entry.type
-						plot: plotChart + "Chart"
+						plot: plotChart
 						xScale: xScale
 						ordinals: ordinals
 						xUnits: xUnits

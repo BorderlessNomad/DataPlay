@@ -37,7 +37,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.logout = () ->
-			token = Auth.isAuthenticated()
+			token = Auth.get config.sessionName
 
 			if token isnt false
 				User.logOut(token).success((data) ->
