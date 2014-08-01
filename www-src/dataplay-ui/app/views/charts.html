@@ -1,14 +1,20 @@
 <div class="charts" ng-init="init()">
-	<h1>{{info.Title}}</h1>
-	<h5 ng-bind-html="info.Notes"></h5>
+	<div class="row">
+		<div class="col-md-6"><h1>{{info.Title}}</h1></div>
+		<div class="col-md-6 pull-right"><h5 ng-bind-html="info.Notes"></h5></div>
+	</div>
 
 	<div class="row" ng-init="getCharts()">
 		<div class="col-md-12" ng-switch="chart.type">
 			<div
+				id="chart"
 				ng-switch-when="lines"
 
 				dc-chart="lineChart"
 
+				dc-width="{{width}}"
+				dc-height="{{height}}"
+				dc-margins="{{margin}}"
 				dc-mouse-zoomable="false"
 				dc-brush-on="false"
 
