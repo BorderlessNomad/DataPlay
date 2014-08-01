@@ -26,14 +26,14 @@ angular.module('dataplayApp')
 			{ id: 'bubble', maxEntries: 60 }
 			{ id: 'line' }
 		]
-		$scope.xTicks = 8
+		$scope.xTicks = 6
 		$scope.width = 350
 		$scope.height = 200
 		$scope.margin =
 			top: 10
 			right: 10
 			bottom: 30
-			left: 30
+			left: 70
 
 		$scope.getChartOffset = (chart) ->
 			chart.__dc_flag__ - $scope.chartRegistryOffset - 1

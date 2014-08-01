@@ -13,9 +13,9 @@ angular.module('dataplayApp')
 		$scope.width = 1170 - (15 + 15);
 		$scope.height = $scope.width * 9 / 16
 		$scope.margin =
-			top: 10
+			top: 50
 			right: 10
-			bottom: 20
+			bottom: 50
 			left: 100
 		$scope.info = {}
 		$scope.chart = {}
@@ -125,12 +125,22 @@ angular.module('dataplayApp')
 			data
 
 		$scope.lineChartPostSetup = (chart) ->
-			console.log "wh", $scope.width, $scope.height
 			chart.colorAccessor (d) -> parseInt(d.value) % 20
 
 			entry = crossfilter $scope.chart.data
 			dimension = entry.dimension (d) -> d[0]
 			group = dimension.group().reduceSum (d) -> d[1]
+
+			svg = d3.svg.line()
+				.interpolate "basis"
+				.x (d) -> d[0]
+				.y (d) -> d[1]
+
+			line = d3.select("#chart")
+				.append("svg")
+
+			line.append "path"
+				.attr "d", svg $scope.chart.data
 
 			chart.dimension dimension
 			chart.group group
@@ -154,6 +164,25 @@ angular.module('dataplayApp')
 						.range [0, $scope.width]
 
 			chart.x xScale
+
+			return
+
+		$scope.lineChartPostRender = (chart) ->
+			chart.svg()
+				.append "text"
+				.attr "class", "x-axis-label"
+				.attr "text-anchor", "middle"
+				.attr "x", (chart.width() + $scope.margin.left) / 2
+				.attr "y", chart.height() - 10
+				.text $scope.params.x
+
+			chart.svg()
+				.append "text"
+				.attr "class", "y-axis-label"
+				.attr "text-anchor", "middle"
+				.attr "x", $scope.margin.left
+				.attr "y", $scope.margin.top - 10
+				.text $scope.params.y
 
 			return
 
