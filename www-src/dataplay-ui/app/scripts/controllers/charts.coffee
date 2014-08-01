@@ -18,7 +18,8 @@ angular.module('dataplayApp')
 			bottom: 50
 			left: 100
 		$scope.info = {}
-		$scope.chart = {}
+		$scope.chart =
+			data: null
 		$scope.cfdata = null
 
 		$scope.init = () ->
@@ -39,65 +40,43 @@ angular.module('dataplayApp')
 
 		$scope.getData = () ->
 			Charts.reducedData $scope.params.id, $scope.params.x, $scope.params.y, 10, 100
-				.success (data) ->
-					if data? and data.length
-						$scope.chart.dataset = data
-						$scope.chart.keys = []
-						$scope.chart.patterns = {}
+				.then (results) ->
+					$scope.reduceData results.data if results.data?
 
-						for key of data[0]
-							do (key) ->
-								$scope.chart.keys.push key
-								$scope.chart.patterns[key] =
-									valuePattern: PatternMatcher.getPattern data[0][key]
-									keyPattern: PatternMatcher.getKeyPattern data[0][key]
+					Charts.identifyData $scope.params.id
+				.then (results) ->
+					$scope.identifyData results.data if results.data?
 
-						$scope.identifyData()
-					return
-				.error (data) ->
-					console.log "Charts::getChart::Error:", status
-					return
+					if $scope.params.type in ['bar', 'pie', 'bubble']
+						Charts.groupedData $scope.params.id, $scope.params.x, $scope.params.y
+							.then (results) ->
+								data = if results.data? then results.data else []
+					else
+						$scope.chart.dataset
+				.then (data) ->
+					$scope.chart.type = $scope.params.type
+					$scope.chart.data = $scope.parseResults $scope.params.x, $scope.params.y, data
 
-		$scope.identifyData = () ->
-			Charts.identifyData $scope.params.id
-				.success (data) ->
-					for col in data.Cols
-						do (col) ->
-							switch col.Sqltype
-								when "int", "bigint"
-									$scope.chart.patterns[col.Name].valuePattern = 'intNumber' if $scope.chart.patterns?[col.Name]?.valuePattern?
-								when "float"
-									$scope.chart.patterns[col.Name].valuePattern = 'floatNumber' if $scope.chart.patterns?[col.Name]?.valuePattern?
+		$scope.reduceData = (data) ->
+			$scope.chart.dataset = data
+			$scope.chart.keys = []
+			$scope.chart.patterns = {}
 
-					$scope.initChart 'lines'
-					return
-				.error (data) ->
-					console.log "Charts::identifyData::Error:", status
-					return
+			for key of data[0]
+				do (key) ->
+					$scope.chart.keys.push key
+					$scope.chart.patterns[key] =
+						valuePattern: PatternMatcher.getPattern data[0][key]
+						keyPattern: PatternMatcher.getKeyPattern data[0][key]
 
-		$scope.initChart = (type) ->
-			if $scope.chart.type isnt type
-				$scope.chart.type = type
-				$scope.chart.data = null
-				# $scope.populateKeys()
-				$scope.parseChartData $scope.params.id, $scope.params.x, $scope.params.y, $scope.chart.type, $scope.chart.dataset
-
-		$scope.populateKeys = () ->
-			# TODO: Dropdown of X & Y axis
-
-		$scope.parseChartData = (guid, x, y, type, data) ->
-			if type in ['bars', 'pie', 'bubbles']
-				Charts.groupedData guid, x, y
-					.success (results) ->
-						$scope.chart.data = $scope.parseResults x, y, results
-						return
-					.error (results) ->
-						console.log "Charts::parseChartData::Error:", status
-						return
-			else
-				$scope.chart.data = $scope.parseResults x, y, data
-
-			return
+		$scope.identifyData = (data) ->
+			for col in data.Cols
+				do (col) ->
+					switch col.Sqltype
+						when "int", "bigint"
+							$scope.chart.patterns[col.Name].valuePattern = 'intNumber' if $scope.chart.patterns?[col.Name]?.valuePattern?
+						when "float"
+							$scope.chart.patterns[col.Name].valuePattern = 'floatNumber' if $scope.chart.patterns?[col.Name]?.valuePattern?
 
 		$scope.parseResults = (xAxis, yAxis, results) ->
 			datapool = []
@@ -125,8 +104,6 @@ angular.module('dataplayApp')
 			data
 
 		$scope.lineChartPostSetup = (chart) ->
-			chart.colorAccessor (d) -> parseInt(d.value) % 20
-
 			entry = crossfilter $scope.chart.data
 			dimension = entry.dimension (d) -> d[0]
 			group = dimension.group().reduceSum (d) -> d[1]
@@ -148,6 +125,9 @@ angular.module('dataplayApp')
 			ordinals = []
 			ordinals.push d.key for d in group.all() when d not in ordinals
 
+			chart.colorAccessor (d, i) ->
+				parseInt(d.y) % ordinals.length
+
 			xScale = switch $scope.chart.patterns[$scope.params.x].valuePattern
 				# TODO: handle more patterns here .....
 				when 'label'
@@ -165,24 +145,47 @@ angular.module('dataplayApp')
 
 			chart.x xScale
 
+			vis = d3.select "#chart"
+				.append "svg:svg"
+
 			return
 
-		$scope.lineChartPostRender = (chart) ->
-			chart.svg()
-				.append "text"
-				.attr "class", "x-axis-label"
-				.attr "text-anchor", "middle"
-				.attr "x", (chart.width() + $scope.margin.left) / 2
-				.attr "y", chart.height() - 10
-				.text $scope.params.x
+		$scope.barChartPostSetup = (chart) ->
+			chart.colorAccessor (d, i) -> i + 1
 
-			chart.svg()
-				.append "text"
-				.attr "class", "y-axis-label"
-				.attr "text-anchor", "middle"
-				.attr "x", $scope.margin.left
-				.attr "y", $scope.margin.top - 10
-				.text $scope.params.y
+			entry = crossfilter $scope.chart.data
+			dimension = entry.dimension (d) -> d[0]
+			group = dimension.group().reduceSum (d) -> d[1]
+
+			chart.dimension dimension
+			chart.group group
+
+			ordinals = []
+			ordinals.push d.key for d in group.all() when d not in ordinals
+
+			xScale = switch $scope.chart.patterns[$scope.params.x].valuePattern
+				# TODO: handle more patterns here .....
+				when 'label'
+					d3.scale.ordinal()
+						.domain ordinals
+						.rangeBands [0, $scope.width]
+				when 'date'
+					d3.time.scale()
+						.domain d3.extent(group.all(), (d) -> d.key)
+						.range [0, $scope.width]
+				else
+					d3.scale.linear()
+						.domain d3.extent(group.all(), (d) -> d.key)
+						.range [0, $scope.width]
+
+			chart.x xScale
+
+			if ordinals? and ordinals.length > 0
+				chart.xUnits switch $scope.chart.patterns[$scope.params.x].valuePattern
+					when 'date' then d3.time.years
+					when 'intNumber' then dc.units.integers
+					when 'label', 'text' then dc.units.ordinal
+					else dc.units.ordinal
 
 			return
 

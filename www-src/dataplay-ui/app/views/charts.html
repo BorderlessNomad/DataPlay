@@ -8,7 +8,7 @@
 		<div class="col-md-12" ng-switch="chart.type">
 			<div
 				id="chart"
-				ng-switch-when="lines"
+				ng-switch-when="line"
 
 				dc-chart="lineChart"
 
@@ -22,14 +22,17 @@
 				dc-transition-duration="500"
 				dc-colors="d3.scale.category20()"
 
+				dc-x-axis-label="params.x"
+				dc-y-axis-label="params.y"
+
 				dc-render-data-points="true"
 				dc-render-area="true"
 
 				dc-post-setup-chart="lineChartPostSetup"
-				dc-on-post-render="lineChartPostRender"
 			></div>
 
-			<!-- <div
+			<div
+				id="chart"
 				ng-switch-when="bar"
 
 				dc-chart="barChart"
@@ -44,13 +47,13 @@
 				dc-transition-duration="500"
 				dc-colors="d3.scale.category20()"
 
-				dc-center-bar="true"
-				dc-gap="2"
-				dc-dimension="chart.entry.dimension"
-				dc-group="chart.entry.group"
-				dc-x="chart.xScale"
+				dc-x-axis-label="params.x"
+				dc-y-axis-label="params.y"
+
+				dc-gap="20"
+
 				dc-post-setup-chart="barChartPostSetup"
-			></div> -->
+			></div>
 
 			<!-- <div
 				ng-switch-when="row"
