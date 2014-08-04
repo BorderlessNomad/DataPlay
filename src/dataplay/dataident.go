@@ -92,17 +92,6 @@ func FetchTableCols(guid string) (output []ColType) {
 	return results
 }
 
-func ExtractDataColumn(guid string, col string) []float64 {
-	var result []float64
-
-	if guid == "" || col == "" {
-		return result
-	}
-
-	DB.Table(guid).Pluck(col, &result)
-	return result
-}
-
 func HasTableGotLocationData(datasetGUID string) bool {
 	cols := FetchTableCols(datasetGUID)
 
