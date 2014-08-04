@@ -57,18 +57,6 @@ func TestFetchTableCols(t *testing.T) {
 	})
 }
 
-func TestExtractDataColumn(t *testing.T) {
-	result := ExtractDataColumn("gdp", "gdpindex")
-	Convey("When no guid passed no column names are returned", t, func() {
-		So(result, ShouldNotBeNil)
-	})
-
-	Convey("When no guid passed no values are returned", t, func() {
-		result = ExtractDataColumn("", "")
-		So(result, ShouldBeNil)
-	})
-}
-
 func TestHasTableGotLocatonData(t *testing.T) {
 	result := HasTableGotLocationData("tweets")
 

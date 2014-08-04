@@ -32,16 +32,19 @@ func (t Tracking) TableName() string {
 }
 
 type Correlation struct {
-	Tbl1   string
-	Col1   string
-	Tbl2   string
-	Col2   string
-	Tbl3   string
-	Col3   string
-	Method string
-	Coef   float64
-	Json   string
-	Id     int `primaryKey:"yes"`
+	Tbl1      string
+	Col1      string
+	Tbl2      string
+	Col2      string
+	Tbl3      string
+	Col3      string
+	Method    string
+	Coef      float64
+	Json      string
+	Id        int `primaryKey:"yes"`
+	Rating    float64
+	Credit    int
+	Discredit int
 }
 
 func (c Correlation) TableName() string {
