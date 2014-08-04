@@ -12,6 +12,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/codegangsta/martini"
+	"github.com/codegangsta/martini-contrib/binding"
+	"github.com/martini-contrib/cors"
 	"log"
 	"math/rand"
 	"net/http"
@@ -107,21 +109,47 @@ func initClassicMode() {
 
 	m := martini.Classic()
 
-	m.Get("/", Authorisation)
+	m.Use(cors.Allow(&cors.Options{
+		AllowAllOrigins: true,
+		// AllowOrigins:     []string{"http://localhost:9000"},
+		// AllowMethods: []string{"PUT", "PATCH"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowCredentials: true,
+		AllowHeaders: []string{
+			"Origin",
+			"Accept",
+			"Content-Type",
+			"Authorization",
+			"Accept-Encoding",
+			"Content-Length",
+			"Host",
+			"Referer",
+			"User-Agent",
+			"X-CSRF-Token",
+			"X-API-SESSION",
+		},
+	}))
+
+	// m.Get("/", Authorisation)
 	/* @todo convert to APIs */
-	m.Get("/login", Login)
-	m.Get("/logout", Logout)
-	m.Get("/register", Register)
 	m.Get("/charts/:id", Charts)
 	m.Get("/search/overlay", SearchOverlay)
 	m.Get("/overlay/:id", Overlay)
 	m.Get("/overview/:id", Overview)
 	m.Get("/search", Search)
 	m.Get("/maptest/:id", MapTest)
-	m.Post("/noauth/login.json", HandleLogin)
-	m.Post("/noauth/logout.json", HandleLogout)
-	m.Post("/noauth/register.json", HandleRegister)
+
 	/* APIs */
+	m.Get("/api/ping", func(res http.ResponseWriter, req *http.Request) string {
+		return "pong"
+	})
+	m.Post("/api/login", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
+		return HandleLogin(res, req, login)
+	})
+	m.Delete("/api/logout", HandleLogout)
+	m.Post("/api/register", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
+		return HandleRegister(res, req, login)
+	})
 	m.Get("/api/user", CheckAuth)
 	m.Get("/api/visited", GetLastVisitedHttp)
 	m.Get("/api/search/:s", SearchForDataHttp)
@@ -147,9 +175,7 @@ func initClassicMode() {
 
 	m.Use(JsonApiHandler)
 
-	m.Use(LogRequest)
-
-	m.Use(martini.Static("../node_modules")) //Why?
+	m.Use(SessionApiHandler)
 
 	m.Run()
 }
@@ -170,10 +196,14 @@ func initMasterMode() {
 
 	m := martini.Classic()
 
-	m.Get("/", Authorisation)
-	m.Get("/login", Login)
-	m.Get("/logout", Logout)
-	m.Get("/register", Register)
+	// m.Get("/", Authorisation)
+	m.Post("/api/login", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
+		return HandleLogin(res, req, login)
+	})
+	m.Delete("/api/logout/:session", HandleLogout)
+	m.Post("/api/register", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
+		return HandleRegister(res, req, login)
+	})
 	m.Get("/charts/:id", Charts)
 	m.Get("/search/overlay", SearchOverlay)
 	m.Get("/overlay/:id", Overlay)
@@ -279,7 +309,19 @@ func sendToQueue(res http.ResponseWriter, req *http.Request, params martini.Para
 	q := Queue{}
 	go q.Response()
 
-	params["user"] = strconv.Itoa(GetUserID(res, req))
+	session := params["session"]
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+		return ""
+	}
+
+	uid, err := GetUserID(session)
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
+		return ""
+	}
+
+	params["user"] = strconv.Itoa(uid)
 	message := q.Encode(method, params)
 
 	fmt.Println("Sending request to Queue", request, params, message)
@@ -299,6 +341,14 @@ func JsonApiHandler(res http.ResponseWriter, req *http.Request) {
 	if strings.HasPrefix(req.URL.Path, "/api") {
 		// CheckAuthRedirect(res, req) // Make everything in the API auth'd
 		res.Header().Set("Content-Type", "application/json")
+	}
+}
+
+func SessionApiHandler(res http.ResponseWriter, req *http.Request) {
+	if req.URL.Path == "/api/login" || req.URL.Path == "/api/register" {
+		// Do nothing
+	} else if len(req.Header.Get("X-API-SESSION")) <= 0 || req.Header.Get("X-API-SESSION") == "false" {
+		res.WriteHeader(http.StatusUnauthorized)
 	}
 }
 

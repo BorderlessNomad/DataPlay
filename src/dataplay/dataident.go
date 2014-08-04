@@ -92,14 +92,25 @@ func FetchTableCols(guid string) (output []ColType) {
 	return results
 }
 
-func HasTableGotLocationData(datasetGUID string) string {
+func ExtractDataColumn(guid string, col string) []float64 {
+	var result []float64
+
+	if guid == "" || col == "" {
+		return result
+	}
+
+	DB.Table(guid).Pluck(col, &result)
+	return result
+}
+
+func HasTableGotLocationData(datasetGUID string) bool {
 	cols := FetchTableCols(datasetGUID)
 
 	if ContainsTableCol(cols, "lat") && (ContainsTableCol(cols, "lon") || ContainsTableCol(cols, "long")) {
-		return "true"
+		return true
 	}
 
-	return "false"
+	return false
 }
 
 func ContainsTableCol(cols []ColType, target string) bool {

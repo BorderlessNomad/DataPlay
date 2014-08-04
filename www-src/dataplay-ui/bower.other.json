@@ -1,0 +1,27 @@
+{
+  "name": "dataplay",
+  "version": "1.0.0",
+  "dependencies": {
+    "html5shiv": "^3.7",
+    "respond": "^1.4",
+    "json3": "^3",
+    "es5-shim": "^3",
+    "angular": "^1.2",
+    "angular-resource": "^1.2",
+    "angular-cookies": "^1.2",
+    "angular-sanitize": "^1.2",
+    "angular-animate": "^1.2",
+    "angular-route": "^1.2",
+    "angular-cookie": "^4",
+    "angular-bootstrap": "^0.11",
+    "bootswatch": "^3.2",
+    "crossfilter": "^1.3.7",
+    "d3": "^3.4.11",
+    "angular-nvd3": "^0.0.9"
+  },
+  "devDependencies": {
+    "angular-mocks": "^1.2",
+    "angular-scenario": "^1.2"
+  },
+  "appPath": "app"
+}

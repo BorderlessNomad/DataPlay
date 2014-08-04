@@ -1,0 +1,132 @@
+<div class="overview">
+	<h1>Overview</h1> <em>of</em> <h4>"{{params.id}}"</h4>
+
+	<a class="btn btn-warning pull-right reset" ng-click="resetAll()">Reset all</a>
+
+	<div class="row" ng-init="getCharts()">
+		<div class="col-md-4" ng-repeat="chart in chartsInfo" id="{{chart.id}}" ng-switch="chart.plot">
+			<a ng-href="/charts/{{guid}}/{{chart.plot}}/{{chart.x}}/{{chart.y}}">
+				<h4>{{chart.x}}-{{chart.y}} ({{chart.type}})</h4>
+			</a>
+			<div class="chartSwitch"
+				ng-switch-when="line"
+
+				dc-chart="lineChart"
+
+				dc-width="{{width}}"
+				dc-height="{{height}}"
+				dc-margins="{{margin}}"
+				dc-mouse-zoomable="false"
+				dc-brush-on="false"
+
+				dc-elastic-y="true"
+				dc-transition-duration="500"
+				dc-colors="d3.scale.category20()"
+
+				dc-render-data-points="true"
+				dc-render-area="true"
+				dc-dimension="chart.entry.dimension"
+				dc-group="chart.entry.group"
+				dc-x="chart.xScale"
+				dc-post-setup-chart="lineChartPostSetup"
+			></div>
+
+			<div class="chartSwitch"
+				ng-switch-when="bar"
+
+				dc-chart="barChart"
+
+				dc-width="{{width}}"
+				dc-height="{{height}}"
+				dc-margins="{{margin}}"
+				dc-mouse-zoomable="false"
+				dc-brush-on="false"
+
+				dc-elastic-y="true"
+				dc-transition-duration="500"
+				dc-colors="d3.scale.category20()"
+
+				dc-center-bar="true"
+				dc-gap="2"
+				dc-dimension="chart.entry.dimension"
+				dc-group="chart.entry.group"
+				dc-x="chart.xScale"
+				dc-post-setup-chart="barChartPostSetup"
+			></div>
+
+			<div class="chartSwitch"
+				ng-switch-when="row"
+
+				dc-chart="rowChart"
+
+				dc-width="{{width}}"
+				dc-height="{{height}}"
+				dc-margins="{{margin}}"
+				dc-mouse-zoomable="false"
+				dc-brush-on="false"
+
+				dc-elastic-y="true"
+				dc-transition-duration="500"
+				dc-colors="d3.scale.category20()"
+				dc-color-accessor="chart.colorAccessor"
+
+				dc-elastic-x="true"
+				dc-label-offset-y="chart.labelOffsetY"
+				dc-label="chart.label"
+				dc-gap="1"
+				dc-tick-format="chart.tickFormat"
+				dc-dimension="chart.entry.dimension"
+				dc-group="chart.entry.group"
+				dc-title="chart.title"
+				dc-ticks="2"
+			></div>
+
+			<div class="chartSwitch"
+				ng-switch-when="pie"
+
+				dc-chart="pieChart"
+
+				dc-width="{{width}}"
+				dc-height="{{height}}"
+				dc-margins="{{margin}}"
+				dc-mouse-zoomable="false"
+				dc-brush-on="false"
+
+				dc-radius="chart.radius"
+				dc-inner-radius="chart.innerRadius"
+				dc-transition-duration="500"
+				dc-colors="d3.scale.category20()"
+
+				dc-dimension="chart.entry.dimension"
+				dc-group="chart.entry.group"
+				dc-min-angle-for-label="0.1"
+				dc-title="chart.title"
+				dc-slices-cap="6"
+			></div>
+
+			<div class="chartSwitch"
+				ng-switch-when="bubble"
+
+				dc-chart="bubbleOverlay"
+
+				dc-width="{{width}}"
+				dc-height="{{height}}"
+				dc-margins="{{margin}}"
+				dc-mouse-zoomable="false"
+				dc-brush-on="false"
+
+				dc-transition-duration="500"
+				dc-colors="d3.scale.category20()"
+
+				dc-dimension="chart.entry.dimension"
+				dc-group="chart.entry.group"
+				dc-x="chart.xScale"
+				dc-max-bubble-relative-size="0.1"
+				dc-min-radis-with-label="5"
+				dc-post-setup-chart="bubbleChartPostSetup"
+			></div>
+
+			<div class="chartSwitch" ng-switch-default>Oops! nothing to plot.</div>
+		</div>
+	</div>
+</div>

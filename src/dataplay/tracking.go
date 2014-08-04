@@ -2,14 +2,25 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"net/http"
 	"strconv"
 	"time"
 )
 
-func GetLastVisitedHttp(res http.ResponseWriter, req *http.Request) string {
-	uid := GetUserID(res, req)
+func GetLastVisitedHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+		return ""
+	}
+
+	uid, err := GetUserID(session)
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
+		return ""
+	}
 
 	result, err := GetLastVisited(uid)
 	if err != nil {
@@ -23,7 +34,6 @@ func GetLastVisitedHttp(res http.ResponseWriter, req *http.Request) string {
 		return ""
 	}
 
-	/* We ALWAYS return something [[], [], ...] or [] */
 	return string(r)
 }
 
@@ -50,8 +60,8 @@ func GetLastVisitedQ(params map[string]string) string {
 	return string(r)
 }
 
-func GetLastVisited(uid int) ([][]string, *appError) {
-	data := make([][]string, 0)
+func GetLastVisited(uid int) ([]interface{}, *appError) {
+	data := make([]interface{}, 0)
 
 	if uid != 0 {
 		/* Anonymous struct for storing results */
@@ -60,19 +70,19 @@ func GetLastVisited(uid int) ([][]string, *appError) {
 			Title string
 		}{}
 
-		err := DB.Select("MAX (priv_tracking.id) id, priv_tracking.guid, (SELECT index.title FROM index WHERE index.guid = priv_tracking.guid LIMIT 1) as title, MAX (priv_tracking.created) created").Joins("LEFT JOIN index ON index.guid = priv_tracking.guid").Where("title != ?", "").Where("priv_tracking.user = ?", uid).Group("priv_tracking.guid").Order("created desc").Order("priv_tracking.guid desc").Limit(5).Find(&results).Error
+		err := DB.Select("MAX (priv_tracking.id) id, priv_tracking.guid, (SELECT index.title FROM index WHERE index.guid = priv_tracking.guid LIMIT 1) as title, MAX (priv_tracking.created) created").Joins("LEFT JOIN index ON index.guid = priv_tracking.guid").Where("title != ?", "").Where("priv_tracking.user = ?", uid).Group("priv_tracking.guid").Order("created DESC").Order("priv_tracking.guid DESC").Limit(5).Find(&results).Error
 
 		if err != nil && err != gorm.RecordNotFound {
-			return nil, &appError{err, "Database query failed", http.StatusServiceUnavailable}
+			return nil, &appError{err, "Database query failed", http.StatusInternalServerError}
 		}
 
 		for _, result := range results {
 			r := HasTableGotLocationData(result.Guid)
 
-			data = append(data, []string{
-				SanitizeString(result.Guid),
-				SanitizeString(result.Title),
-				r,
+			data = append(data, map[string]interface{}{
+				"guid":  SanitizeString(result.Guid),
+				"title": SanitizeString(result.Title),
+				"map":   r,
 			})
 		}
 	}

@@ -1,0 +1,22 @@
+<h1 ng-init="getLastVisited()">Welcome back <em>{{username}}</em></h1>
+
+<div class="list-group" ng-show="lastVisited.length > 0">
+	<p>You where last viewing:</p>
+	<div class="list-group-item row" ng-repeat="item in lastVisited">
+		<span class="col-md-9">{{item.title}}</span>
+		<span class="col-md-3">
+			<a class="btn btn-danger btn-xs" ng-href="/charts/{{item.guid}}">Chart</a>
+			<a class="btn btn-warning btn-xs" ng-href="/overview/{{item.guid}}">Overview</a>
+			<a class="btn btn-primary btn-xs" ng-href="/map/{{item.guid}}" ng-show="item.map">Map</a>
+		</span>
+	</div>
+</div>
+
+<div ng-show="lastVisited.length <= 0">
+	<p>It looks pretty lonley here!</p>
+	<p>Why don't you go and view some data that you are interseted in?</p>
+</div>
+
+<p>
+	<a class="btn btn-lg btn-primary" href="/search" role="button">Search Data</a>
+</p>

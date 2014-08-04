@@ -22,9 +22,21 @@ type Authresponse struct {
 //This function is used to gather what is the username is
 // This used to be used on the front page but now it is mainly used as a "noop" call to check if the user is logged in or not.
 func CheckAuth(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	session := params["session"]
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+		return ""
+	}
+
+	uid, err := GetUserID(session)
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
+		return ""
+	}
+
 	user := User{}
-	err := DB.Where("uid = ?", GetUserID(res, req)).Find(&user).Error
-	check(err)
+	err1 := DB.Where("uid = ?", uid).Find(&user).Error
+	check(err1)
 
 	result := Authresponse{
 		Username: user.Email,
@@ -39,11 +51,21 @@ func CheckAuth(res http.ResponseWriter, req *http.Request, params martini.Params
 type SearchResult struct {
 	Title        string
 	GUID         string
-	LocationData string
+	LocationData bool
 }
 
 func SearchForDataHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	uid := GetUserID(res, req)
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+		return ""
+	}
+
+	uid, err := GetUserID(session)
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
+		return ""
+	}
 
 	result, error := SearchForData(params["s"], uid)
 	if error != nil {
@@ -51,8 +73,8 @@ func SearchForDataHttp(res http.ResponseWriter, req *http.Request, params martin
 		return ""
 	}
 
-	r, err := json.Marshal(result)
-	if err != nil {
+	r, err1 := json.Marshal(result)
+	if err1 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
 		return ""
 	}
