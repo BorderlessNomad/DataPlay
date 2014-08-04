@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	"time"
@@ -24,7 +25,7 @@ func TestVisualCorrelation(t *testing.T) {
 				"valCol1":  RandomValueColumn(colNames),
 				"dateCol1": RandomDateColumn(colNames),
 			}
-			result := GetCorrelation(tstM, P)
+			result := GenerateCorrelation(tstM, P)
 			So(result, ShouldNotBeNil)
 		})
 	}
@@ -41,7 +42,7 @@ func TestPearsonCorrelation(t *testing.T) {
 				"valCol1":  RandomValueColumn(colNames),
 				"dateCol1": RandomDateColumn(colNames),
 			}
-			result := GetCorrelation(tstM, S)
+			result := GenerateCorrelation(tstM, S)
 			So(result, ShouldNotBeNil)
 		})
 	}
@@ -58,7 +59,7 @@ func TestSpuriousCorrelation(t *testing.T) {
 				"valCol1":  RandomValueColumn(colNames),
 				"dateCol1": RandomDateColumn(colNames),
 			}
-			result := GetCorrelation(tstM, V)
+			result := GenerateCorrelation(tstM, V)
 			So(result, ShouldNotBeNil)
 		})
 	}
@@ -350,6 +351,16 @@ func TestRanking(t *testing.T) {
 	Convey("Should return ranking", t, func() {
 		result := Ranking(n)
 		So(result, ShouldEqual, 0.44717586998695963)
+	})
+
+}
+
+func TestGetRelatedCharts(t *testing.T) {
+	//var cols []ColType {{"date" "price"}, {"price_all" "date"}, {"price_all" "price_new"},}
+	Convey("Should return chartlist", t, func() {
+		result := GetRelatedCharts("houseprices", 3, 12)
+		fmt.Println("XXXYYY", len(result))
+		So(result, ShouldEqual, "")
 	})
 
 }

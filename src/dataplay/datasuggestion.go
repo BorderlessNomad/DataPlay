@@ -20,6 +20,7 @@ const ( //go version of enum
 )
 
 type CorrelationData struct {
+	Method string
 	Table1 TableData
 	Table2 TableData
 	Table3 TableData
@@ -69,7 +70,7 @@ func GenerateCorrelations(table1 string, valCol1 string, dateCol1 string, thresh
 			c = S
 		}
 
-		GetCorrelation(m, c)
+		GenerateCorrelation(m, c)
 	}
 
 	return "win"
@@ -77,7 +78,7 @@ func GenerateCorrelations(table1 string, valCol1 string, dateCol1 string, thresh
 
 // Take in table and column values and a correlation type, generate some more random tables and check for a pre-existing correlation.
 // If a correlation for the generated tables combination doesn't exist, attempt to generate a new correlation and return that
-func GetCorrelation(m map[string]string, c cmeth) string {
+func GenerateCorrelation(m map[string]string, c cmeth) string {
 
 	cor := Correlation{}
 	var jsonData []string
@@ -266,6 +267,7 @@ func SaveCorrelation(m map[string]string, c cmeth, cf float64, cd *CorrelationDa
 		check(err3)
 	}
 
+	(*cd).Method = m["method"]
 	(*cd).Table1.Title = ind1.Title
 	(*cd).Table2.Title = ind2.Title
 	(*cd).Table3.Title = ind3.Title
@@ -639,3 +641,67 @@ func Ranking(id int) float64 {
 	check(err)
 	return cor.Rating
 }
+
+func GetRelatedCharts(tableName string, offset int, count int) []XYVal {
+	columns := FetchTableCols(tableName)
+	length := len(columns)
+	var charts []XYVal
+	var temp XYVal
+
+	for i := 0; i < length; i++ {
+		for j := 0; j < length; j++ {
+			if columns[i] != columns[j] {
+				temp.X = columns[i].Name
+				temp.Y = columns[j].Name
+				charts = append(charts, temp)
+			}
+		}
+	}
+	return charts[offset : offset+count]
+	/// inject chart type for each, intelligent but random
+	/// return JSON with title etc
+}
+
+func GetCreditedCorrelatedCharts() {
+	///add correlation tyoe to JSON?
+	//where table 1 is the same, highest user rating
+	/// inject chart type for each, intelligent but random - if 3 then use bubble
+	/// return JSON with title etc
+
+}
+func GetNewCorrelatedCharts() {
+	// where table 1 is the same and no correlation value exists
+	/// inject chart type for each, intelligent but random - if 3 then use bubble
+	/// return JSON with title etc
+}
+
+// ind1 := Index{}
+// ind2 := Index{}
+// ind3 := Index{}
+
+// guid1 := NameToGuid(m["table1"])
+// guid2 := NameToGuid(m["table2"])
+// guid3 := NameToGuid(m["table3"])
+
+// err1 := DB.Model(&ind1).Where("guid= ?", guid1).Find(&ind1).Error
+// check(err1)
+// err2 := DB.Model(&ind2).Where("guid= ?", guid2).Find(&ind2).Error
+// check(err2)
+
+// if c == S {
+// 	err3 := DB.Model(&ind3).Where("guid= ?", guid3).Find(&ind3).Error
+// 	check(err3)
+// }
+
+// (*cd).Table1.Title = ind1.Title
+// (*cd).Table2.Title = ind2.Title
+// (*cd).Table3.Title = ind3.Title
+// (*cd).Table1.Desc = ind1.Notes
+// (*cd).Table2.Desc = ind2.Notes
+// (*cd).Table3.Desc = ind3.Notes
+// (*cd).Table1.LabelX = m["dateCol1"]
+// (*cd).Table2.LabelX = m["dateCol2"]
+// (*cd).Table3.LabelX = m["dateCol3"]
+// (*cd).Table1.LabelY = m["valCol1"]
+// (*cd).Table2.LabelY = m["valCol2"]
+// (*cd).Table3.LabelY = m["valCol3"]
