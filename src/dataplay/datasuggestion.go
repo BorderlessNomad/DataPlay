@@ -3,9 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"math"
 	"math/rand"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -19,6 +21,11 @@ const ( //go version of enum
 	S
 	V
 )
+
+type RelatedCharts struct {
+	Charts []TableData
+	Count  int
+}
 
 type CorrelationData struct {
 	Method    string    `json:"method"`
@@ -658,6 +665,7 @@ func Ranking(id int) float64 {
 	return cor.Rating
 }
 
+// Generate all possible permutations of xy columns
 func XYPermutations(columns []ColType) []XYVal {
 	length := len(columns)
 	var xyNames []XYVal
@@ -674,48 +682,51 @@ func XYPermutations(columns []ColType) []XYVal {
 			}
 		}
 	}
-	fmt.Println("GOBOTS", len(xyNames))
 	return xyNames
 }
 
-func GetRelatedCharts(tableName string, offset int, count int) (string, int) {
-
+func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *appError) {
 	columns := FetchTableCols(tableName) //array column names
 	guid := NameToGuid(tableName)
 	charts := make([]TableData, 0)     ///empty slice for adding all possible charts
 	xyNames := XYPermutations(columns) // get all possible valid permuations of columns as X & Y
-	ind := Index{}
+	index := Index{}
 
-	err := DB.Where("guid= ?", guid).Find(&ind).Error
+	err := DB.Where("guid= ?", guid).Find(&index).Error
 	if err != nil && err != gorm.RecordNotFound {
-		return "sql error", 0
+		return RelatedCharts{nil, 0}, &appError{err, "Database query failed", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
-		j, _ := json.Marshal(charts)
-		return string(j), 0
+		return RelatedCharts{nil, 0}, &appError{err, "No Chart found", http.StatusNotFound}
 	}
 
 	var xyPie XYVal
 
-	for _, v := range columns {
+	for _, v := range columns { // create single column pie charts
 		xyPie.X = v.Name
 		single := fmt.Sprintf("SELECT %s AS x, COUNT(%s) AS y FROM %s GROUP BY %s", v.Name, v.Name, guid, v.Name)
-		GetChartData("pie", single, xyPie, &charts, ind)
+
+		GetChartData("pie", single, xyPie, &charts, index)
 	}
 
-	for _, v := range xyNames {
+	for _, v := range xyNames { /// creare column and line charts, stacked column if plotting varchar against varchar
 		double := fmt.Sprintf("SELECT %s AS x, %s AS y FROM  %s", v.X, v.Y, guid)
 		if v.Xtype == "varchar" && v.Ytype == "varchar" {
-			GetChartData("stacked column", double, v, &charts, ind)
+			GetChartData("stacked column", double, v, &charts, index)
 		}
-		GetChartData("column", double, v, &charts, ind)
-		GetChartData("line", double, v, &charts, ind)
+
+		GetChartData("column", double, v, &charts, index)
+		GetChartData("line", double, v, &charts, index)
 	}
 
-	/// randomise
-	x := len(charts)
-	charts = charts[offset : offset+count] /// make random slice results
-	j, _ := json.Marshal(charts)
-	return string(j), x
+	// for i := range charts { // shuffle charts into random order
+	// 	j := rand.Intn(i + 1)
+	// 	charts[i], charts[j] = charts[j], charts[i]
+	// }
+
+	chartLength := len(charts)
+	charts = charts[offset : offset+count] // return marshalled slice
+
+	return RelatedCharts{charts, chartLength}, nil
 }
 
 func GetChartData(chartType string, sql string, names XYVal, charts *[]TableData, ind Index) {
@@ -738,13 +749,85 @@ func GetChartData(chartType string, sql string, names XYVal, charts *[]TableData
 		tmpTD.Values = append(tmpTD.Values, tmpXY)
 	}
 
-	if chartType != "pie" || (chartType == "pie" && pieSlices < 20) {
+	if chartType != "pie" || (chartType == "pie" && pieSlices < 20) { // drop pie charts with too many slices
 		*charts = append(*charts, tmpTD)
 	}
 }
 
+func GetRelatedChartsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+		return ""
+	}
+
+	var offset, count int
+	var err error
+
+	if params["offset"] == "" {
+		offset = 0
+	} else {
+		offset, err = strconv.Atoi(params["offset"])
+		if err != nil {
+			http.Error(res, "Invalid offset parameter.", http.StatusBadRequest)
+			return ""
+		}
+	}
+
+	if params["count"] == "" {
+		count = 3
+	} else {
+		count, err = strconv.Atoi(params["count"])
+		if err != nil {
+			http.Error(res, "Invalid count parameter.", http.StatusBadRequest)
+			return ""
+		}
+	}
+
+	result, error := GetRelatedCharts(params["tablename"], offset, count)
+	if error != nil {
+		http.Error(res, error.Message, error.Code)
+		return ""
+	}
+
+	r, err1 := json.Marshal(result)
+	if err1 != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return ""
+	}
+
+	return string(r)
+}
+
+func GetRelatedChartsQ(params map[string]string) string {
+	if params["user"] == "" {
+		return ""
+	}
+
+	offset, e := strconv.Atoi(params["offset"])
+	if e != nil {
+		return ""
+	}
+
+	count, e := strconv.Atoi(params["count"])
+	if e != nil {
+		return ""
+	}
+
+	result, err := GetRelatedCharts(params["tablename"], offset, count)
+	if err != nil {
+		return ""
+	}
+
+	r, e := json.Marshal(result)
+	if e != nil {
+		return ""
+	}
+
+	return string(r)
+}
+
 func GetCreditedCorrelatedCharts() {
-	///add correlation tyoe to JSON?
 	//where table 1 is the same, highest user rating
 	/// inject chart type for each, intelligent but random - if 3 then use bubble
 	/// return JSON with title etc

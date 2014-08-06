@@ -359,7 +359,7 @@ func TestGetRelatedCharts(t *testing.T) {
 	Convey("Should return chartlist", t, func() {
 		result, i := GetRelatedCharts("gdp", 0, 24)
 		fmt.Println("wwww", i)
-		So(result, ShouldNotBeNil)
+		So(result, ShouldEqual, "")
 	})
 
 }
