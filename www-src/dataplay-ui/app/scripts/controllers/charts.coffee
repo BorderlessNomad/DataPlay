@@ -125,16 +125,16 @@ angular.module('dataplayApp')
 			dimension = entry.dimension (d) -> d[0]
 			group = dimension.group().reduceSum (d) -> d[1]
 
-			svg = d3.svg.line()
-				.interpolate "basis"
-				.x (d) -> d[0]
-				.y (d) -> d[1]
+			# svg = d3.svg.line()
+			# 	.interpolate "basis"
+			# 	.x (d) -> d[0]
+			# 	.y (d) -> d[1]
 
-			line = d3.select("#chart")
-				.append("svg")
+			# line = d3.select("#chart")
+			# 	.append("svg")
 
-			line.append "path"
-				.attr "d", svg $scope.chart.data
+			# line.append "path"
+			# 	.attr "d", svg $scope.chart.data
 
 			chart.dimension dimension
 			chart.group group

@@ -24,7 +24,7 @@ angular.module('dataplayApp')
 				templateUrl: 'views/search.html'
 				controller: 'SearchCtrl'
 				login: true
-			.when '/search/:searchString',
+			.when '/search/:query',
 				templateUrl: 'views/search.html'
 				controller: 'SearchCtrl'
 				login: true
@@ -60,12 +60,29 @@ angular.module('dataplayApp')
 		return
 	]
 
+# Auth Handler
 angular.module('dataplayApp')
 	.run ['$rootScope', '$location', 'Auth', ($rootScope, $location, Auth) ->
 		$rootScope.$on "$routeChangeStart", (event, nextRoute, currentRoute) ->
 			if nextRoute? and nextRoute.login and not Auth.isAuthenticated()
 				$location.path "/login"
 				return
+
+		return
+	]
+
+# Disable refresh on Route change when $location.path('/path', false)
+angular.module('dataplayApp')
+	.run ['$rootScope', '$location', '$route', ($rootScope, $location, $route) ->
+		original = $location.path
+		$location.path = (path, reload) ->
+			if reload is false
+				lastRoute = $route.current
+				un = $rootScope.$on "$locationChangeSuccess", () ->
+					$route.current = lastRoute
+					un()
+
+			original.apply $location, [path]
 
 		return
 	]

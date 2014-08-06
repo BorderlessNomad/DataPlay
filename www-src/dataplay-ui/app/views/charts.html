@@ -1,7 +1,7 @@
 <div class="charts" ng-init="init()">
 	<div class="row">
-		<div class="col-md-6"><h1>{{info.Title}}</h1></div>
-		<div class="col-md-6 pull-right"><h5 ng-bind-html="info.Notes"></h5></div>
+		<div class="col-md-6 chart-title"><h1>{{info.Title}}</h1></div>
+		<div class="col-md-6 chart-info pull-right well well-sm"><h5 ng-bind-html="info.Notes"></h5></div>
 	</div>
 
 	<div class="row" ng-init="getCharts()">

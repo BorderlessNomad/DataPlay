@@ -8,15 +8,15 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'SearchCtrl', ['$scope', '$timeout', 'User', ($scope, $timeout, User) ->
-		$scope.word = ""
+	.controller 'SearchCtrl', ['$scope', '$location', '$routeParams', 'User', ($scope, $location, $routeParams, User) ->
+		$scope.query = if $routeParams.query? then $routeParams.query else ""
 		$scope.searchTimeout = null
 		$scope.results = []
 
 		$scope.search = () ->
-			return if $scope.word.length < 3
+			return if $scope.query.length < 3
 
-			User.search($scope.word).success((data) ->
+			User.search($scope.query).success((data) ->
 				$scope.results = data
 				return
 			).error (status, data) ->
@@ -24,6 +24,17 @@ angular.module('dataplayApp')
 				return
 
 			return
+
+		# Initiate search if we have /search/:query
+		$scope.search()
+
+		# Watch change to 'query' and do SILENT $location replace [No REFRESH]
+		#	Note: Watch is initiated only after window.ready
+		$scope.$watch "query", ((newVal, oldVal) ->
+			if newVal.length >= 3
+				qs = "/search/#{newVal}"
+				$location.path qs, false
+		), true
 
 		return
 	]
