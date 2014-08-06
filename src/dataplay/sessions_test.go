@@ -34,7 +34,10 @@ func handleLoggedIn(t *testing.T) {
 	request, _ := http.NewRequest("POST", "/", strings.NewReader("username=glyn@dataplay.com&password=123456"))
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
 	response := httptest.NewRecorder()
-	HandleLogin(response, request)
+	u := UserForm{}
+	u.Username = "glyn@dataplay.com"
+	u.Password = "123456"
+	HandleLogin(response, request, u)
 
 	NewSessionID := randString(64)
 	c, _ := GetRedisConnection()
@@ -70,7 +73,8 @@ func handleLoggedOut(t *testing.T) {
 
 func handleClearSession(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
-	response := httptest.NewRecorder()
+	// response := httptest.NewRecorder()
+	response := ""
 
 	NewSessionID := randString(64)
 	c, _ := GetRedisConnection()
@@ -83,9 +87,10 @@ func handleClearSession(t *testing.T) {
 		Path:    "/",
 		Expires: time.Now().AddDate(1, 0, 0),
 	}
-	http.SetCookie(response, NewCookie)
+	// http.SetCookie(response, NewCookie)
 	request.Header.Set("Cookie", NewCookie.String())
-	e_return := ClearSession(response, request)
+	// e_return := ClearSession(response, request)
+	e_return, _ := ClearSession(response)
 
 	Convey("When session cookie is cleared", t, func() {
 		So(e_return, ShouldBeNil)

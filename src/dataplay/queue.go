@@ -43,6 +43,9 @@ type Message struct {
 	MethodArgs map[string]string
 }
 
+var BackoffInterval time.Duration = 5000 //Milliseconds
+var MaxAttempts int = 100
+
 type funcs map[string]func(map[string]string) (ret string)
 
 func (q *Queue) Encode(name string, params map[string]string) string {

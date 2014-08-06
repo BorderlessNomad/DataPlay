@@ -818,9 +818,10 @@ func DumpReducedTable(params map[string]string) ([]map[string]interface{}, *appE
 		return nil, &appError{e2, "Database query failed (COLUMNS)", http.StatusInternalServerError}
 	}
 
-	values := make([]interface{}, len(columns))
-	scanArgs := make([]interface{}, len(columns))
-	for i := range values {
+	colLength := len(columns)
+	values := make([]interface{}, colLength)
+	scanArgs := make([]interface{}, colLength)
+	for i := 0; i < colLength; i++ {
 		scanArgs[i] = &values[i]
 	}
 

@@ -11,6 +11,9 @@ import (
 func TestGetLastVisited(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
+	params := map[string]string{
+		"s": "",
+	}
 
 	NewSessionID := randString(64)
 	c, _ := GetRedisConnection()
@@ -24,9 +27,9 @@ func TestGetLastVisited(t *testing.T) {
 		Expires: time.Now().AddDate(1, 0, 0),
 	}
 	http.SetCookie(response, NewCookie)
-	request.Header.Set("Cookie", NewCookie.String())
+	request.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 
-	result := GetLastVisitedHttp(response, request)
+	result := GetLastVisitedHttp(response, request, params)
 	Convey("Should get last visited", t, func() {
 		So(result, ShouldNotBeBlank)
 	})

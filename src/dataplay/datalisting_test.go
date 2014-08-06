@@ -12,6 +12,9 @@ import (
 func TestCheckAuth(t *testing.T) {
 	request, _ := http.NewRequest("POST", "/", strings.NewReader("username=glyn@dataplay.com&password=123456"))
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
+	u := UserForm{}
+	u.Username = "glyn@dataplay.com"
+	u.Password = "123456"
 	response := httptest.NewRecorder()
 	NewSessionID := randString(64)
 	c, _ := GetRedisConnection()
@@ -26,7 +29,7 @@ func TestCheckAuth(t *testing.T) {
 	}
 	http.SetCookie(response, NewCookie)
 	request.Header.Set("Cookie", NewCookie.String())
-	HandleLogin(response, request)
+	HandleLogin(response, request, u)
 	params := map[string]string{
 		"id": "181",
 	}
@@ -39,6 +42,7 @@ func TestCheckAuth(t *testing.T) {
 
 func TestSearchForData(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
+	request.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 	response := httptest.NewRecorder()
 	params := map[string]string{
 		"s": "",

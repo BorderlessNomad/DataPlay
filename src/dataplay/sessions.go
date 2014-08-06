@@ -10,9 +10,11 @@ import (
 
 func IsUserLoggedIn(res http.ResponseWriter, req *http.Request) bool {
 	cookie, _ := req.Cookie("DPSession")
+
 	c, err := GetRedisConnection()
 	if cookie != nil && err == nil {
 		defer c.Close()
+
 		r := c.Cmd("GET", cookie.Value)
 		i, err := r.Int() // Get back from Redis the Int value of that cookie.
 		if err != nil {
@@ -135,9 +137,12 @@ func GetRedisConnection() (c *redis.Client, err error) {
 	if os.Getenv("redishost") != "" {
 		redishost = os.Getenv("redishost")
 	}
+
 	c, err = redis.DialTimeout("tcp", redishost, time.Duration(10)*time.Second)
+
 	if err != nil {
 		Logger.Println("Could not connect to the redis server. Is it running? Sessions wont work otherwise !!1")
 	}
+
 	return c, err
 }

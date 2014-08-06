@@ -12,13 +12,39 @@ import (
 type QueueProducer struct {
 }
 
+var isProducerConnected bool = false
+var producerReconnectAttempts int = 0
+
 func (prod *QueueProducer) send(message string) {
 	log.Printf("Producer::sending %dB OK [%s]", len(message), *requestQueue)
-	if err := prod.publish(*uri, *exchangeName, *exchangeType, *requestQueue, *requestKey, message, *reliable); err != nil {
-		log.Fatalf("%s", err)
+
+	err := prod.publish(*uri, *exchangeName, *exchangeType, *requestQueue, *requestKey, message, *reliable)
+	if err != nil {
+		fmt.Errorf("Producer::error during publish %s", err)
+		prod.Reconnect(message)
 	}
 
 	log.Printf("Producer::sent %dB OK", len(message))
+}
+
+func (prod *QueueProducer) Reconnect(message string) {
+	for producerReconnectAttempts < MaxAttempts {
+		producerReconnectAttempts++
+
+		if !isProducerConnected {
+			time.Sleep(time.Millisecond * BackoffInterval)
+
+			log.Printf("Producer::try reconnect Attempt %d", producerReconnectAttempts)
+
+			prod.send(message)
+		} else {
+			log.Printf("Producer::reconnected Attempted %d", producerReconnectAttempts)
+
+			producerReconnectAttempts = 0
+
+			break
+		}
+	}
 }
 
 func (prod *QueueProducer) respond(message string) {
@@ -42,6 +68,7 @@ func (prod *QueueProducer) publish(amqpURI, exchange, exchangeType, queue, key, 
 	if err != nil {
 		return fmt.Errorf("Producer::Dial: %s", err)
 	}
+
 	defer connection.Close()
 
 	log.Printf("Producer::got Connection, getting Channel")
@@ -100,8 +127,12 @@ func (prod *QueueProducer) broadcast(channel *amqp.Channel, exchange, key, body 
 			CorrelationId: uuid,
 		},
 	); err != nil {
+		isProducerConnected = false
+
 		return fmt.Errorf("Producer::Exchange Publish: %s", err)
 	}
+
+	isProducerConnected = true
 
 	return nil
 }

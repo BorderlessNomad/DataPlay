@@ -15,11 +15,13 @@ import (
 	"github.com/codegangsta/martini-contrib/binding"
 	"github.com/martini-contrib/cors"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"playgen/database"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var (
@@ -89,6 +91,7 @@ func main() {
 }
 
 func initClassicMode() {
+	rand.Seed(time.Now().Unix())
 	fmt.Println("[init] starting in Classic mode")
 
 	e := DBSetup()
@@ -262,6 +265,8 @@ func initMasterMode() {
 
 	m.Use(JsonApiHandler)
 
+	m.Use(LogRequest)
+
 	m.Use(martini.Static("../node_modules")) //Why?
 
 	m.Run()
@@ -296,6 +301,11 @@ func initNodeMode() {
 
 var responseChannel chan string
 
+/**
+ * @details Send requet to Queue for remote execution in parallel mode.
+ * Request & responses are async however output will be sent to ResponseWriter
+ * as soon as it is received via singleton channel.
+ */
 func sendToQueue(res http.ResponseWriter, req *http.Request, params martini.Params, request string, method string) string {
 	responseChannel = make(chan string, 1)
 
@@ -325,7 +335,7 @@ func sendToQueue(res http.ResponseWriter, req *http.Request, params martini.Para
 }
 
 /**
- * @details A HTTP middleware that Forces anything with /api to have a json doctype. Since it makes sence to
+ * @details A HTTP middleware that Forces anything with /api to have a json doctype.
  *
  * @param http.ResponseWriter
  * @param *http.Request
@@ -343,6 +353,46 @@ func SessionApiHandler(res http.ResponseWriter, req *http.Request) {
 	} else if len(req.Header.Get("X-API-SESSION")) <= 0 || req.Header.Get("X-API-SESSION") == "false" {
 		res.WriteHeader(http.StatusUnauthorized)
 	}
+}
+
+/**
+ * @brief Log incoming requests
+ * @details Log all requests ending on '/api' for performance monitoring,
+ * this method will start a timer before procesing data and will report at
+ * the end of execution process. Data is stored in Redis via StoreMonitoringData
+ * in sync manner.
+ *
+ * @param http [description]
+ * @param http [description]
+ * @param martini [description]
+ * @return [description]
+ */
+func LogRequest(res http.ResponseWriter, req *http.Request, c martini.Context) {
+	// Do not proceed if request is not for "/api"
+	if !strings.HasPrefix(req.URL.Path, "/api") {
+		return
+	}
+
+	startTime := time.Now()
+
+	rw := res.(martini.ResponseWriter)
+
+	// tm := TimeMachine(100, 500)
+	// time.Sleep(tm * time.Millisecond)
+
+	c.Next() // Execute requested method
+
+	endTime := time.Since(startTime)
+	executionTime := endTime.Nanoseconds() / 1000 // nanoseconds/1000 = microsecond (us)
+
+	urlData := strings.Split(req.URL.Path, "/")
+
+	// Send data for storage
+	go StoreMonitoringData(urlData[1], urlData[2], req.URL.Path, req.Method, rw.Status(), executionTime)
+}
+
+func TimeMachine(min, max int) time.Duration {
+	return time.Duration(rand.Intn(max-min) + min)
 }
 
 /**

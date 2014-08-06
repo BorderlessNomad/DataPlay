@@ -14,10 +14,14 @@ type QueueConsumer struct {
 	done    chan error
 }
 
+var isConsumerConnected bool = false
+var consumerReconnectAttempts int = 0
+
 func (cons *QueueConsumer) Consume() {
 	consumer, err := cons.Consumer(*uri, *exchangeName, *exchangeType, *requestQueue, *requestKey, *requestTag)
 	if err != nil {
-		log.Fatalf("%s", err)
+		fmt.Errorf("Consumer::error during Consume %s", err)
+		cons.Reconnect()
 	}
 
 	if *lifetime > 0 {
@@ -28,10 +32,36 @@ func (cons *QueueConsumer) Consume() {
 		select {}
 	}
 
+	go func() {
+		fmt.Printf("Consumer::closing: %s \n", <-cons.conn.NotifyClose(make(chan *amqp.Error)))
+		cons.Reconnect()
+	}()
+
 	log.Printf("Consumer::shutting down")
 
 	if err := consumer.Shutdown(); err != nil {
-		log.Fatalf("Consumer::error during shutdown: %s", err)
+		fmt.Errorf("Consumer::error during shutdown %s", err)
+		cons.Reconnect()
+	}
+}
+
+func (cons *QueueConsumer) Reconnect() {
+	for consumerReconnectAttempts < MaxAttempts {
+		consumerReconnectAttempts++
+
+		if !isConsumerConnected {
+			time.Sleep(time.Millisecond * BackoffInterval)
+
+			log.Printf("Consumer::try reconnect Attempt %d", consumerReconnectAttempts)
+
+			cons.Consume()
+		} else {
+			log.Printf("Consumer::reconnected Attempted %d", consumerReconnectAttempts)
+
+			consumerReconnectAttempts = 0
+
+			break
+		}
 	}
 }
 
@@ -50,12 +80,6 @@ func (cons *QueueConsumer) Consumer(amqpURI, exchangeName, exchangeType, queueNa
 	if err != nil {
 		return nil, fmt.Errorf("Dial: %s", err)
 	}
-
-	go func() {
-		fmt.Printf("Consumer::closing: %s", <-c.conn.NotifyClose(make(chan *amqp.Error)))
-		// Connection is closed so start again
-		c.Consume()
-	}()
 
 	log.Printf("Consumer::got Connection, getting Channel")
 	c.channel, err = c.conn.Channel()
@@ -142,6 +166,8 @@ func (cons *QueueConsumer) Shutdown() error {
 
 func (cons *QueueConsumer) handle(deliveries <-chan amqp.Delivery, done chan error) {
 	for d := range deliveries {
+		isConsumerConnected = true
+
 		log.Printf(
 			"Consumer::got %dB delivery: [%v]",
 			len(d.Body),
@@ -164,6 +190,11 @@ func (cons *QueueConsumer) handle(deliveries <-chan amqp.Delivery, done chan err
 		d.Ack(false)
 	}
 
+	isConsumerConnected = false
+
 	log.Printf("Consumer::handle: deliveries channel closed")
+
+	cons.Reconnect()
+
 	done <- nil
 }
