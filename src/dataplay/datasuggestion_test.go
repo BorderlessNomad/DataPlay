@@ -356,11 +356,10 @@ func TestRanking(t *testing.T) {
 }
 
 func TestGetRelatedCharts(t *testing.T) {
-	//var cols []ColType {{"date" "price"}, {"price_all" "date"}, {"price_all" "price_new"},}
 	Convey("Should return chartlist", t, func() {
-		result := GetRelatedCharts("houseprices", 3, 12)
-		fmt.Println("XXXYYY", len(result))
-		So(result, ShouldEqual, "")
+		result, i := GetRelatedCharts("gdp", 0, 24)
+		fmt.Println("wwww", i)
+		So(result, ShouldNotBeNil)
 	})
 
 }

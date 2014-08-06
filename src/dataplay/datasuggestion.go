@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"math"
 	"math/rand"
@@ -20,23 +21,27 @@ const ( //go version of enum
 )
 
 type CorrelationData struct {
-	Method string
-	Table1 TableData
-	Table2 TableData
-	Table3 TableData
+	Method    string    `json:"method"`
+	ChartType []string  `json:"validCharts"`
+	Table1    TableData `json:"table1"`
+	Table2    TableData `json:"table2"`
+	Table3    TableData `json:"table3"`
 }
 
 type TableData struct {
-	Title  string
-	Desc   string
-	LabelX string
-	LabelY string
-	Values []XYVal
+	ChartType string  `json:"chart,omitempty"`
+	Title     string  `json:"title,omitempty"`
+	Desc      string  `json:"desc,omitempty"`
+	LabelX    string  `json:"xLabel,omitempty"`
+	LabelY    string  `json:"yLabel,omitempty"`
+	Values    []XYVal `json:"values,omitempty"`
 }
 
 type XYVal struct {
-	X string
-	Y string
+	X     string `json:"x,omitempty"`
+	Y     string `json:"y,omitempty"`
+	Xtype string `json:"-"`
+	Ytype string `json:"-"`
 }
 
 type DateVal struct {
@@ -144,6 +149,8 @@ func GetCoef(m map[string]string, c cmeth, cd *CorrelationData) float64 {
 	var cf float64
 
 	if c == P {
+		charts := []string{"bar", "column", "line", "scatter"}
+		(*cd).ChartType = charts
 		x := ExtractDateVal(m["table1"], m["dateCol1"], m["valCol1"])
 		y := ExtractDateVal(m["table2"], m["dateCol2"], m["valCol2"])
 		fromX, toX, rngX := DetermineRange(x)
@@ -159,6 +166,8 @@ func GetCoef(m map[string]string, c cmeth, cd *CorrelationData) float64 {
 		cf = Pearson(xBuckets, yBuckets)
 
 	} else if c == S {
+		charts := []string{"bubble", "line", "scatter", "stacked"}
+		(*cd).ChartType = charts
 		x := ExtractDateVal(m["table2"], m["dateCol2"], m["valCol2"])
 		y := ExtractDateVal(m["table3"], m["dateCol3"], m["valCol3"])
 		z := ExtractDateVal(m["table1"], m["dateCol1"], m["valCol1"])
@@ -178,6 +187,8 @@ func GetCoef(m map[string]string, c cmeth, cd *CorrelationData) float64 {
 		cf = Spurious(xBuckets, yBuckets, zBuckets)
 
 	} else if c == V {
+		charts := []string{"bar", "column", "line", "scatter"}
+		(*cd).ChartType = charts
 		x := ExtractDateVal(m["table1"], m["dateCol1"], m["valCol1"])
 		y := ExtractDateVal(m["table2"], m["dateCol2"], m["valCol2"])
 		fromX, toX, rngX := DetermineRange(x)
@@ -243,7 +254,9 @@ func GetCoef(m map[string]string, c cmeth, cd *CorrelationData) float64 {
 
 	(*cd).Table1.Values = values1
 	(*cd).Table2.Values = values2
-	(*cd).Table3.Values = values3
+	if c == S {
+		(*cd).Table3.Values = values3
+	}
 	return cf
 }
 
@@ -270,16 +283,19 @@ func SaveCorrelation(m map[string]string, c cmeth, cf float64, cd *CorrelationDa
 	(*cd).Method = m["method"]
 	(*cd).Table1.Title = ind1.Title
 	(*cd).Table2.Title = ind2.Title
-	(*cd).Table3.Title = ind3.Title
 	(*cd).Table1.Desc = ind1.Notes
 	(*cd).Table2.Desc = ind2.Notes
-	(*cd).Table3.Desc = ind3.Notes
 	(*cd).Table1.LabelX = m["dateCol1"]
 	(*cd).Table2.LabelX = m["dateCol2"]
-	(*cd).Table3.LabelX = m["dateCol3"]
 	(*cd).Table1.LabelY = m["valCol1"]
 	(*cd).Table2.LabelY = m["valCol2"]
-	(*cd).Table3.LabelY = m["valCol3"]
+
+	if c == S {
+		(*cd).Table3.Title = ind3.Title
+		(*cd).Table3.Desc = ind3.Notes
+		(*cd).Table3.LabelX = m["dateCol3"]
+		(*cd).Table3.LabelY = m["valCol3"]
+	}
 
 	jv, _ := json.Marshal(*cd)
 
@@ -642,24 +658,89 @@ func Ranking(id int) float64 {
 	return cor.Rating
 }
 
-func GetRelatedCharts(tableName string, offset int, count int) []XYVal {
-	columns := FetchTableCols(tableName)
+func XYPermutations(columns []ColType) []XYVal {
 	length := len(columns)
-	var charts []XYVal
-	var temp XYVal
+	var xyNames []XYVal
+	var tmpXY XYVal
 
 	for i := 0; i < length; i++ {
 		for j := 0; j < length; j++ {
 			if columns[i] != columns[j] {
-				temp.X = columns[i].Name
-				temp.Y = columns[j].Name
-				charts = append(charts, temp)
+				tmpXY.X = columns[i].Name
+				tmpXY.Y = columns[j].Name
+				tmpXY.Xtype = columns[i].Sqltype
+				tmpXY.Ytype = columns[j].Sqltype
+				xyNames = append(xyNames, tmpXY)
 			}
 		}
 	}
-	return charts[offset : offset+count]
-	/// inject chart type for each, intelligent but random
-	/// return JSON with title etc
+	fmt.Println("GOBOTS", len(xyNames))
+	return xyNames
+}
+
+func GetRelatedCharts(tableName string, offset int, count int) (string, int) {
+
+	columns := FetchTableCols(tableName) //array column names
+	guid := NameToGuid(tableName)
+	charts := make([]TableData, 0)     ///empty slice for adding all possible charts
+	xyNames := XYPermutations(columns) // get all possible valid permuations of columns as X & Y
+	ind := Index{}
+
+	err := DB.Where("guid= ?", guid).Find(&ind).Error
+	if err != nil && err != gorm.RecordNotFound {
+		return "sql error", 0
+	} else if err == gorm.RecordNotFound {
+		j, _ := json.Marshal(charts)
+		return string(j), 0
+	}
+
+	var xyPie XYVal
+
+	for _, v := range columns {
+		xyPie.X = v.Name
+		single := fmt.Sprintf("SELECT %s AS x, COUNT(%s) AS y FROM %s GROUP BY %s", v.Name, v.Name, guid, v.Name)
+		GetChartData("pie", single, xyPie, &charts, ind)
+	}
+
+	for _, v := range xyNames {
+		double := fmt.Sprintf("SELECT %s AS x, %s AS y FROM  %s", v.X, v.Y, guid)
+		if v.Xtype == "varchar" && v.Ytype == "varchar" {
+			GetChartData("stacked column", double, v, &charts, ind)
+		}
+		GetChartData("column", double, v, &charts, ind)
+		GetChartData("line", double, v, &charts, ind)
+	}
+
+	/// randomise
+	x := len(charts)
+	charts = charts[offset : offset+count] /// make random slice results
+	j, _ := json.Marshal(charts)
+	return string(j), x
+}
+
+func GetChartData(chartType string, sql string, names XYVal, charts *[]TableData, ind Index) {
+	var tmpTD TableData
+	var tmpXY XYVal
+	tmpTD.ChartType = chartType
+	tmpTD.Title = ind.Title
+	tmpTD.Desc = ind.Notes
+	tmpTD.LabelX = names.X
+	if chartType != "pie" {
+		tmpTD.LabelY = names.Y
+	}
+	rows, _ := DB.Raw(sql).Rows()
+	defer rows.Close()
+	pieSlices := 0
+
+	for rows.Next() {
+		pieSlices++
+		rows.Scan(&tmpXY.X, &tmpXY.Y)
+		tmpTD.Values = append(tmpTD.Values, tmpXY)
+	}
+
+	if chartType != "pie" || (chartType == "pie" && pieSlices < 20) {
+		*charts = append(*charts, tmpTD)
+	}
 }
 
 func GetCreditedCorrelatedCharts() {
@@ -674,34 +755,3 @@ func GetNewCorrelatedCharts() {
 	/// inject chart type for each, intelligent but random - if 3 then use bubble
 	/// return JSON with title etc
 }
-
-// ind1 := Index{}
-// ind2 := Index{}
-// ind3 := Index{}
-
-// guid1 := NameToGuid(m["table1"])
-// guid2 := NameToGuid(m["table2"])
-// guid3 := NameToGuid(m["table3"])
-
-// err1 := DB.Model(&ind1).Where("guid= ?", guid1).Find(&ind1).Error
-// check(err1)
-// err2 := DB.Model(&ind2).Where("guid= ?", guid2).Find(&ind2).Error
-// check(err2)
-
-// if c == S {
-// 	err3 := DB.Model(&ind3).Where("guid= ?", guid3).Find(&ind3).Error
-// 	check(err3)
-// }
-
-// (*cd).Table1.Title = ind1.Title
-// (*cd).Table2.Title = ind2.Title
-// (*cd).Table3.Title = ind3.Title
-// (*cd).Table1.Desc = ind1.Notes
-// (*cd).Table2.Desc = ind2.Notes
-// (*cd).Table3.Desc = ind3.Notes
-// (*cd).Table1.LabelX = m["dateCol1"]
-// (*cd).Table2.LabelX = m["dateCol2"]
-// (*cd).Table3.LabelX = m["dateCol3"]
-// (*cd).Table1.LabelY = m["valCol1"]
-// (*cd).Table2.LabelY = m["valCol2"]
-// (*cd).Table3.LabelY = m["valCol3"]
