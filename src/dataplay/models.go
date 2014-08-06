@@ -24,10 +24,20 @@ type Tracking struct {
 	Id      int `primaryKey:"yes"`
 	User    int
 	Guid    string
+	Info    string
 	Created time.Time
 }
 
 func (t Tracking) TableName() string {
+	return "priv_tracking"
+}
+
+type TrackingInfo struct {
+	Id   int `primaryKey:"yes"`
+	Info []byte
+}
+
+func (ti TrackingInfo) TableName() string {
 	return "priv_tracking"
 }
 

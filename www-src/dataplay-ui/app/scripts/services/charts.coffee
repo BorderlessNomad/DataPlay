@@ -10,7 +10,6 @@
 angular.module('dataplayApp')
 	.factory 'Charts', ['$http', 'config', ($http, config) ->
 		info: (guid) ->
-			console.log "Charts", guid, config.api.base_url + "/getinfo/#{guid}"
 			$http.get config.api.base_url + "/getinfo/#{guid}"
 
 		reducedData: (guid, x, y, percent, min) ->

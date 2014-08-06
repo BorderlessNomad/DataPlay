@@ -8,7 +8,7 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'ChartsCtrl', ['$scope', '$routeParams', 'Charts', 'PatternMatcher', ($scope, $routeParams, Charts, PatternMatcher) ->
+	.controller 'ChartsCtrl', ['$scope', '$routeParams', 'PatternMatcher', 'Charts', 'Tracker', ($scope, $routeParams, PatternMatcher, Charts, Tracker) ->
 		$scope.params = $routeParams
 		$scope.width = 1170 - (15 + 15);
 		$scope.height = $scope.width * 9 / 16
@@ -28,6 +28,9 @@ angular.module('dataplayApp')
 			return
 
 		$scope.getInfo = () ->
+			# Track
+			Tracker.visited $scope.params.id, $scope.params.type, $scope.params.x, $scope.params.y
+
 			Charts.info $scope.params.id
 				.success (data) ->
 					if data?

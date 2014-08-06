@@ -149,6 +149,9 @@ func initClassicMode() {
 	})
 	m.Get("/api/user", CheckAuth)
 	m.Get("/api/visited", GetLastVisitedHttp)
+	m.Post("/api/visited", binding.Bind(VisitedForm{}), func(res http.ResponseWriter, req *http.Request, visited VisitedForm) string {
+		return TrackVisitedHttp(res, req, visited)
+	})
 	m.Get("/api/search/:s", SearchForDataHttp)
 	m.Get("/api/getinfo/:id", GetEntry)
 	m.Get("/api/getimportstatus/:id", CheckImportStatus)
