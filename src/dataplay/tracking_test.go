@@ -36,11 +36,11 @@ func TestGetLastVisited(t *testing.T) {
 
 }
 
-func TestTrackVisited(t *testing.T) {
-	Convey("Track visited", t, func() {
-		TrackVisited("gold", 11)
-	})
-}
+// func TestTrackVisited(t *testing.T) {
+// 	Convey("Track visited", t, func() {
+// 		TrackVisited("gold", 11)
+// 	})
+// }
 
 func TestGetLastVisitedQ(t *testing.T) {
 	m := make(map[string]string)

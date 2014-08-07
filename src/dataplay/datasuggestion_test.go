@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
@@ -357,8 +358,9 @@ func TestRanking(t *testing.T) {
 
 func TestGetRelatedCharts(t *testing.T) {
 	Convey("Should return chartlist", t, func() {
-		result, i := GetRelatedCharts("gdp", 0, 24)
-		fmt.Println("wwww", i)
+		result, _ := GetRelatedCharts("gdp", 0, 12)
+		r, _ := json.Marshal(result)
+		fmt.Println("wwww", string(r))
 		So(result, ShouldEqual, "")
 	})
 
