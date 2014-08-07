@@ -41,11 +41,16 @@ angular.module('dataplayApp')
 		$scope.getRelatedCharts = () ->
 			$scope.chartRegistryOffset = dc.chartRegistry.list().length
 
+			allowed = ['line', 'column', 'row']
+
 			Overview.related $scope.params.id
 				.success (data) ->
 					if data? and data.Charts? and data.Charts.length > 0
 						for key, chart of data.Charts
-							continue if chart.chart isnt 'line'
+							if chart.chart not in allowed
+								console.log "continue", chart.chart
+								continue
+							console.log "ok", chart.chart
 							chart.id = "#{$scope.params.id}-#{chart.xLabel}-#{chart.yLabel}-#{chart.chart}"
 
 							chart.patterns = []
@@ -105,6 +110,32 @@ angular.module('dataplayApp')
 				.ticks $scope.xTicks
 
 			chart.x $scope.getXScale data
+
+			return
+
+		$scope.barChartPostSetup = (chart) ->
+			data = $scope.chartsInfo[$scope.getChartOffset chart]
+
+			data.entry = crossfilter data.values
+			data.dimension = data.entry.dimension (d) -> d.x
+			data.group = data.dimension.group().reduceSum (d) -> d.y
+
+			chart.dimension data.dimension
+			chart.group data.group
+
+			data.ordinals = []
+			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
+
+			chart.colorAccessor (d, i) -> i + 1
+
+			chart.x $scope.getXScale data
+
+			if ordinals? and ordinals.length > 0
+				chart.xUnits switch data.patterns[data.xLabel].valuePattern
+					when 'date' then d3.time.years
+					when 'intNumber' then dc.units.integers
+					when 'label', 'text' then dc.units.ordinal
+					else dc.units.ordinal
 
 			return
 

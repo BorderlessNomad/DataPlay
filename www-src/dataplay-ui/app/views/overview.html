@@ -33,8 +33,8 @@
 				dc-post-setup-chart="lineChartPostSetup"
 			></div>
 
-			<!-- <div class="chartSwitch"
-				ng-switch-when="bar"
+			<div class="chartSwitch"
+				ng-switch-when="column"
 
 				dc-chart="barChart"
 
@@ -48,15 +48,13 @@
 				dc-transition-duration="500"
 				dc-colors="d3.scale.category20()"
 
-				dc-center-bar="true"
-				dc-gap="2"
-				dc-dimension="chart.entry.dimension"
-				dc-group="chart.entry.group"
-				dc-x="chart.xScale"
-				dc-post-setup-chart="barChartPostSetup"
-			></div> -->
+				dc-x-axis-label="chart.xLabel"
+				dc-y-axis-label="chart.yLabel"
 
-			<!-- <div class="chartSwitch"
+				dc-post-setup-chart="barChartPostSetup"
+			></div>
+
+			<div class="chartSwitch"
 				ng-switch-when="row"
 
 				dc-chart="rowChart"
@@ -70,18 +68,12 @@
 				dc-elastic-y="true"
 				dc-transition-duration="500"
 				dc-colors="d3.scale.category20()"
-				dc-color-accessor="chart.colorAccessor"
 
 				dc-elastic-x="true"
-				dc-label-offset-y="chart.labelOffsetY"
-				dc-label="chart.label"
-				dc-gap="1"
-				dc-tick-format="chart.tickFormat"
-				dc-dimension="chart.entry.dimension"
-				dc-group="chart.entry.group"
-				dc-title="chart.title"
-				dc-ticks="2"
-			></div> -->
+
+				dc-x-axis-label="chart.xLabel"
+				dc-y-axis-label="chart.yLabel"
+			></div>
 
 			<!-- <div class="chartSwitch"
 				ng-switch-when="pie"
