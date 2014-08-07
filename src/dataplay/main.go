@@ -176,6 +176,10 @@ func initClassicMode() {
 	m.Get("/api/stringmatch/:word/:x", FindStringMatches)
 	m.Get("/api/relatedstrings/:guid", GetRelatedDatasetByStrings)
 
+	// API v1.1
+	m.Get("/api/related/:tablename", GetRelatedChartsHttp)
+	m.Get("/api/related/:tablename/:offset/:count", GetRelatedChartsHttp)
+
 	m.Use(JsonApiHandler)
 
 	m.Use(SessionApiHandler)

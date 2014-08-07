@@ -343,7 +343,7 @@ func DumpTable(params map[string]string) ([]map[string]interface{}, *appError) {
 	var tablename string
 	var err error
 
-	tablename, err = getRealTableName(params["id"])
+	tablename, err = GetRealTableName(params["id"])
 	if err != nil || len(tablename) == 0 {
 		return nil, &appError{err, "Unable to find that table", http.StatusBadRequest}
 	}
@@ -436,7 +436,7 @@ func DumpTableRangeQ(params map[string]string) string {
 // This function will empty a whole table out into JSON
 // Due to what seems to be a golang bug, everything is outputted as a string.
 func DumpTableRange(params map[string]string) ([]map[string]interface{}, *appError) {
-	tablename, e := getRealTableName(params["id"])
+	tablename, e := GetRealTableName(params["id"])
 	if e != nil {
 		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
@@ -533,7 +533,7 @@ func DumpTableGroupedQ(params map[string]string) string {
 // This is very useful for things like picharts
 // /api/getdatagrouped/:id/:x/:y
 func DumpTableGrouped(params map[string]string) ([]map[string]interface{}, *appError) {
-	tablename, e := getRealTableName(params["id"])
+	tablename, e := GetRealTableName(params["id"])
 	if e != nil {
 		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
@@ -645,7 +645,7 @@ func DumpTablePredictionQ(params map[string]string) string {
 
 // This call will get a X,Y and a prediction of a value. that is asked for
 func DumpTablePrediction(params map[string]string) ([]float64, *appError) {
-	tablename, e := getRealTableName(params["id"])
+	tablename, e := GetRealTableName(params["id"])
 	if e != nil {
 		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
@@ -759,7 +759,7 @@ func DumpReducedTable(params map[string]string) ([]map[string]interface{}, *appE
 		return nil, &appError{nil, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest}
 	}
 
-	tablename, e := getRealTableName(params["id"])
+	tablename, e := GetRealTableName(params["id"])
 	if e != nil {
 		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
@@ -894,11 +894,11 @@ func DumpReducedTable(params map[string]string) ([]map[string]interface{}, *appE
  *
  * @return string output, error
  */
-func getRealTableName(guid string) (out string, e error) {
+func GetRealTableName(guid string) (out string, e error) {
 	data := OnlineData{}
 	err := DB.Select("tablename").Where("guid = ?", guid).Find(&data).Error
-	if err == gorm.RecordNotFound {
 
+	if err == gorm.RecordNotFound {
 		return "", fmt.Errorf("Could not find table")
 	}
 
