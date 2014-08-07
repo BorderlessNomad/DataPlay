@@ -32,23 +32,23 @@ type CorrelationData struct {
 	ChartType []string  `json:"validCharts"`
 	Table1    TableData `json:"table1"`
 	Table2    TableData `json:"table2"`
-	Table3    TableData `json:"table3"`
+	Table3    TableData `json:"table3, omitempty"`
 }
 
 type TableData struct {
-	ChartType string  `json:"chart,omitempty"`
-	Title     string  `json:"title,omitempty"`
-	Desc      string  `json:"desc,omitempty"`
-	LabelX    string  `json:"xLabel,omitempty"`
+	ChartType string  `json:"chart"`
+	Title     string  `json:"title"`
+	Desc      string  `json:"desc"`
+	LabelX    string  `json:"xLabel"`
 	LabelY    string  `json:"yLabel,omitempty"`
-	Values    []XYVal `json:"values,omitempty"`
+	Values    []XYVal `json:"values"`
 }
 
 type XYVal struct {
-	X     string `json:"x,omitempty"`
-	Y     string `json:"y,omitempty"`
-	Xtype string `json:"-"`
-	Ytype string `json:"-"`
+	X     string `json:"x"`
+	Y     string `json:"y"`
+	Xtype string `json:"-, omitempty"`
+	Ytype string `json:"-, omitempty"`
 }
 
 type DateVal struct {
@@ -249,13 +249,13 @@ func GetCoef(m map[string]string, c cmeth, cd *CorrelationData) float64 {
 
 	for i, v := range labels {
 		values1[i].X = v
-		values1[i].Y = strconv.FormatFloat(xBuckets[i], 'f', -1, 64)
+		values1[i].Y = FloatToString(xBuckets[i])
 		values2[i].X = v
-		values2[i].Y = strconv.FormatFloat(yBuckets[i], 'f', -1, 64)
+		values2[i].Y = FloatToString(yBuckets[i])
 
 		if c == S {
 			values3[i].X = v
-			values3[i].Y = strconv.FormatFloat(zBuckets[i], 'f', -1, 64)
+			values3[i].Y = FloatToString(zBuckets[i])
 		}
 	}
 
@@ -273,9 +273,9 @@ func SaveCorrelation(m map[string]string, c cmeth, cf float64, cd *CorrelationDa
 	ind2 := Index{}
 	ind3 := Index{}
 
-	guid1, _ := GetRealTableName(m["table1"])
-	guid2, _ := GetRealTableName(m["table2"])
-	guid3, _ := GetRealTableName(m["table3"])
+	guid1 := NameToGuid(m["table1"])
+	guid2 := NameToGuid(m["table2"])
+	guid3 := NameToGuid(m["table3"])
 
 	err1 := DB.Model(&ind1).Where("guid= ?", guid1).Find(&ind1).Error
 	check(err1)
@@ -361,7 +361,7 @@ func GetRandomNames(m map[string]string, c cmeth) bool {
 	allNames := true
 
 	m["table2"] = RandomTableName()
-	guid2, _ := GetRealTableName(m["table2"])
+	guid2 := NameToGuid(m["table2"])
 	columnNames2 := FetchTableCols(guid2)
 	m["valCol2"] = RandomValueColumn(columnNames2)
 	m["dateCol2"] = RandomDateColumn(columnNames2)
@@ -372,7 +372,7 @@ func GetRandomNames(m map[string]string, c cmeth) bool {
 
 	if c == S {
 		m["table3"] = RandomTableName()
-		guid3, _ := GetRealTableName(m["table3"])
+		guid3 := NameToGuid(m["table3"])
 		columnNames3 := FetchTableCols(guid3)
 		m["valCol3"] = RandomValueColumn(columnNames3)
 		m["dateCol3"] = RandomDateColumn(columnNames3)
@@ -676,14 +676,13 @@ func XYPermutations(columns []ColType) []XYVal {
 }
 
 func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *appError) {
-	fmt.Println("GetRelatedCharts", tableName, offset, count)
 	columns := FetchTableCols(tableName) //array column names
 	guid, _ := GetRealTableName(tableName)
-	charts := make([]TableData, 0)     ///empty slice for adding all possible charts
-	xyNames := XYPermutations(columns) // get all possible valid permuations of columns as X & Y
+	charts := make([]TableData, 0) ///empty slice for adding all possible charts
 	index := Index{}
+	xyNames := XYPermutations(columns) // get all possible valid permuations of columns as X & Y
 
-	err := DB.Where("guid = ?", guid).Find(&index).Error
+	err := DB.Where("guid = ?", tableName).Find(&index).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return RelatedCharts{nil, 0}, &appError{err, "Database query failed", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
@@ -694,20 +693,18 @@ func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *
 
 	for _, v := range columns { // create single column pie charts
 		xyPie.X = v.Name
-		single := fmt.Sprintf("SELECT %s AS x, COUNT(%s) AS y FROM %s GROUP BY %s", v.Name, v.Name, guid, v.Name)
-
-		GetChartData("pie", single, xyPie, &charts, index)
+		xyPie.Xtype = v.Sqltype
+		pieSQL := fmt.Sprintf("SELECT %s AS x, COUNT(%s) AS y FROM %s GROUP BY %s", v.Name, v.Name, guid, v.Name)
+		GetChartData("pie", pieSQL, xyPie, &charts, index)
 	}
 
 	for _, v := range xyNames { /// creare column and line charts, stacked column if plotting varchar against varchar
-		double := fmt.Sprintf("SELECT %s AS x, %s AS y FROM  %s", v.X, v.Y, guid)
+		SQL := fmt.Sprintf("SELECT %s AS x, %s AS y FROM  %s", v.X, v.Y, guid)
 		if v.Xtype == "varchar" && v.Ytype == "varchar" {
-			GetChartData("stacked column", double, v, &charts, index)
+			GetChartData("stacked column", SQL, v, &charts, index)
 		}
-
-		GetChartData("column", double, v, &charts, index)
-
-		GetChartData("line", double, v, &charts, index)
+		GetChartData("column", SQL, v, &charts, index)
+		GetChartData("line", SQL, v, &charts, index)
 	}
 
 	// for i := range charts { // shuffle charts into random order
@@ -733,27 +730,102 @@ func GetChartData(chartType string, sql string, names XYVal, charts *[]TableData
 	var tmpTD TableData
 	var tmpXY XYVal
 	tmpTD.ChartType = chartType
-	tmpTD.Title = ind.Title
-	tmpTD.Desc = ind.Notes
+	tmpTD.Title = SanitizeString(ind.Title)
+	tmpTD.Desc = SanitizeString(ind.Notes)
 	tmpTD.LabelX = names.X
-
-	if chartType != "pie" {
-		tmpTD.LabelY = names.Y
-	}
+	var dx, dy time.Time
+	var fx, fy float64
+	var vx, vy string
+	pieSlices := 0
 
 	rows, _ := DB.Raw(sql).Rows()
 
 	defer rows.Close()
 
-	pieSlices := 0
+	if chartType == "pie" { // single column pie chart x = type, y = count
+		for rows.Next() {
+			pieSlices++
+			if names.Xtype == "varchar" {
+				rows.Scan(&vx, &fy)
+				tmpXY.X = vx
+				tmpXY.Y = FloatToString(fy)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "date" {
+				rows.Scan(&dx, &fy)
+				tmpXY.X = (dx.String()[0:9])
+				tmpXY.Y = FloatToString(fy)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "float" {
+				rows.Scan(&fx, &fy)
+				tmpXY.X = FloatToString(fx)
+				tmpXY.Y = FloatToString(fy)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else {
+				tmpXY.X = ""
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			}
+		}
 
-	for rows.Next() {
-		pieSlices++
-		rows.Scan(&tmpXY.X, &tmpXY.Y)
-		tmpTD.Values = append(tmpTD.Values, tmpXY)
-	}
+		if pieSlices < 20 && pieSlices > 1 { // reject pies with too many slices or not enough
+			*charts = append(*charts, tmpTD)
+		}
 
-	if chartType != "pie" || (chartType == "pie" && pieSlices < 20) { // drop pie charts with too many slices
+	} else {
+		tmpTD.LabelY = names.Y
+
+		for rows.Next() {
+			if names.Xtype == "date" && names.Ytype == "date" {
+				rows.Scan(&dx, &dy)
+				tmpXY.X = (dx.String()[0:9])
+				tmpXY.Y = (dy.String()[0:9])
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "date" && names.Ytype == "float" {
+				rows.Scan(&dx, &fy)
+				tmpXY.X = (dx.String()[0:9])
+				tmpXY.Y = FloatToString(fy)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "date" && names.Ytype == "varchar" {
+				rows.Scan(&dx, &vy)
+				tmpXY.X = (dx.String()[0:9])
+				tmpXY.Y = vy
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "float" && names.Ytype == "date" {
+				rows.Scan(&fx, &dy)
+				tmpXY.X = FloatToString(fx)
+				tmpXY.Y = (dy.String()[0:9])
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "float" && names.Ytype == "float" {
+				rows.Scan(&fx, &fy)
+				tmpXY.X = FloatToString(fx)
+				tmpXY.Y = FloatToString(fy)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "float" && names.Ytype == "varchar" {
+				rows.Scan(&fx, &vy)
+				tmpXY.X = FloatToString(fx)
+				tmpXY.Y = vy
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "varchar" && names.Ytype == "date" {
+				rows.Scan(&vx, &dy)
+				tmpXY.X = vx
+				tmpXY.Y = (dy.String()[0:9])
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "varchar" && names.Ytype == "float" {
+				rows.Scan(&vx, &fy)
+				tmpXY.X = vx
+				tmpXY.Y = FloatToString(fy)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "varchar" && names.Ytype == "varchar" {
+				rows.Scan(&vx, &vy)
+				tmpXY.X = vx
+				tmpXY.Y = vy
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else {
+				tmpXY.X = ""
+				tmpXY.Y = ""
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			}
+		}
+
 		*charts = append(*charts, tmpTD)
 	}
 }
@@ -831,14 +903,192 @@ func GetRelatedChartsQ(params map[string]string) string {
 	return string(r)
 }
 
-func GetCreditedCorrelatedCharts() {
+func GetCreditedCorrelatedCharts(tableName string, offset int, count int) (RelatedCharts, *appError) {
+	charts := make([]TableData, 0) ///empty slice for adding all possible charts
+
 	//where table 1 is the same, highest user rating
 	/// inject chart type for each, intelligent but random - if 3 then use bubble
 	/// return JSON with title etc
 
+	chartLength := len(charts)
+	if count+offset > chartLength {
+		return RelatedCharts{nil, 0}, &appError{err, "Out of range", http.StatusBadRequest}
+	}
+	charts = charts[offset : offset+count]
+	return RelatedCharts{charts, chartLength}, nil // return slice and length
 }
-func GetNewCorrelatedCharts() {
+
+func GetNewCorrelatedCharts(tableName string, offset int, count int) (RelatedCharts, *appError) {
+	charts := make([]TableData, 0) ///empty slice for adding all possible charts
+
 	// where table 1 is the same and no correlation value exists
 	/// inject chart type for each, intelligent but random - if 3 then use bubble
 	/// return JSON with title etc
+
+	chartLength := len(charts)
+	if count+offset > chartLength {
+		return RelatedCharts{nil, 0}, &appError{err, "Out of range", http.StatusBadRequest}
+	}
+	charts = charts[offset : offset+count]
+	return RelatedCharts{charts, chartLength}, nil // return slice and length
+}
+
+func GetNewCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+		return ""
+	}
+
+	var offset, count int
+	var err error
+
+	if params["offset"] == "" {
+		offset = 0
+	} else {
+		offset, err = strconv.Atoi(params["offset"])
+		if err != nil {
+			http.Error(res, "Invalid offset parameter.", http.StatusBadRequest)
+			return ""
+		}
+	}
+
+	if params["count"] == "" {
+		count = 3
+	} else {
+		count, err = strconv.Atoi(params["count"])
+		if err != nil {
+			http.Error(res, "Invalid count parameter.", http.StatusBadRequest)
+			return ""
+		}
+	}
+
+	result, error := GetNewCorrelatedCharts(params["tablename"], offset, count)
+	if error != nil {
+		http.Error(res, error.Message, error.Code)
+		return ""
+	}
+
+	r, err1 := json.Marshal(result)
+	if err1 != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return ""
+	}
+
+	return string(r)
+}
+
+func GetNewCorrelatedChartsQ(params map[string]string) string {
+	if params["user"] == "" {
+		return ""
+	}
+
+	offset, e := strconv.Atoi(params["offset"])
+	if e != nil {
+		return ""
+	}
+
+	count, e := strconv.Atoi(params["count"])
+	if e != nil {
+		return ""
+	}
+
+	result, err := GetNewCorrelatedCharts(params["tablename"], offset, count)
+	if err != nil {
+		return ""
+	}
+
+	r, e := json.Marshal(result)
+	if e != nil {
+		return ""
+	}
+
+	return string(r)
+}
+
+func GetCreditedCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+		return ""
+	}
+
+	var offset, count int
+	var err error
+
+	if params["offset"] == "" {
+		offset = 0
+	} else {
+		offset, err = strconv.Atoi(params["offset"])
+		if err != nil {
+			http.Error(res, "Invalid offset parameter.", http.StatusBadRequest)
+			return ""
+		}
+	}
+
+	if params["count"] == "" {
+		count = 3
+	} else {
+		count, err = strconv.Atoi(params["count"])
+		if err != nil {
+			http.Error(res, "Invalid count parameter.", http.StatusBadRequest)
+			return ""
+		}
+	}
+
+	result, error := GetCreditedCorrelatedCharts(params["tablename"], offset, count)
+	if error != nil {
+		http.Error(res, error.Message, error.Code)
+		return ""
+	}
+
+	r, err1 := json.Marshal(result)
+	if err1 != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return ""
+	}
+
+	return string(r)
+}
+
+func GetCreditedCorrelatedChartsQ(params map[string]string) string {
+	if params["user"] == "" {
+		return ""
+	}
+
+	offset, e := strconv.Atoi(params["offset"])
+	if e != nil {
+		return ""
+	}
+
+	count, e := strconv.Atoi(params["count"])
+	if e != nil {
+		return ""
+	}
+
+	result, err := GetCreditedCorrelatedCharts(params["tablename"], offset, count)
+	if err != nil {
+		return ""
+	}
+
+	r, e := json.Marshal(result)
+	if e != nil {
+		return ""
+	}
+
+	return string(r)
+}
+
+func FloatToString(input_num float64) string {
+	return strconv.FormatFloat(input_num, 'f', -1, 64)
+}
+
+// convert table name to guid
+func NameToGuid(tablename string) string {
+	var guid []string
+	err := DB.Table("priv_onlinedata").Where("tablename = ?", tablename).Pluck("guid", &guid).Error
+	if err != nil && err != gorm.RecordNotFound {
+		return ""
+	}
+	return guid[0]
 }

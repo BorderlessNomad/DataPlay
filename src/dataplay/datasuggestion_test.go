@@ -1,7 +1,8 @@
 package main
 
 import (
-	"fmt"
+	// "encoding/json"
+	// "fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	"time"
@@ -18,7 +19,7 @@ func TestVisualCorrelation(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		Convey("Should return true if Visual Correlation found", t, func() {
 			table1 := RandomTableName()
-			guid := NameToGuid(table1)
+			guid, _ := GetRealTableName(table1)
 			colNames := FetchTableCols(guid)
 			tstM := map[string]string{
 				"table1":   table1,
@@ -35,7 +36,7 @@ func TestPearsonCorrelation(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		Convey("Should return true if Pearson Correlation found", t, func() {
 			table1 := RandomTableName()
-			guid := NameToGuid(table1)
+			guid, _ := GetRealTableName(table1)
 			colNames := FetchTableCols(guid)
 			tstM := map[string]string{
 				"table1":   table1,
@@ -52,7 +53,7 @@ func TestSpuriousCorrelation(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		Convey("Should return true if Spurious Correlation found", t, func() {
 			table1 := RandomTableName()
-			guid := NameToGuid(table1)
+			guid, _ := GetRealTableName(table1)
 			colNames := FetchTableCols(guid)
 			tstM := map[string]string{
 				"table1":   table1,
@@ -356,9 +357,14 @@ func TestRanking(t *testing.T) {
 }
 
 func TestGetRelatedCharts(t *testing.T) {
+	m := map[string]string{
+		"user":      "1",
+		"offset":    "0",
+		"count":     "4",
+		"tablename": "b7c7cf16798087fc5a02afdb154ae02ff89e45b78990a9eae73d4c76c14",
+	}
 	Convey("Should return chartlist", t, func() {
-		result, i := GetRelatedCharts("gdp", 0, 24)
-		fmt.Println("wwww", i)
+		result := GetRelatedChartsQ(m)
 		So(result, ShouldEqual, "")
 	})
 
