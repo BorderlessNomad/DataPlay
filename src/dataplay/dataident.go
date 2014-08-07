@@ -82,7 +82,7 @@ func FetchTableCols(guid string) (output []ColType) {
 	}
 
 	var tablename string
-	tablename, e := getRealTableName(guid)
+	tablename, e := GetRealTableName(guid)
 	if e != nil {
 		return output
 	}
@@ -216,7 +216,7 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, params martini.P
  * @return JSON containing Matched data
  */
 func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	RealTableName, e := getRealTableName(params["id"])
+	RealTableName, e := GetRealTableName(params["id"])
 	if e != nil {
 		http.Error(res, "Could not find that Table", http.StatusInternalServerError)
 		return ""
@@ -288,7 +288,7 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, params martin
 }
 
 func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	RealTableName, e := getRealTableName(params["guid"])
+	RealTableName, e := GetRealTableName(params["guid"])
 	if e != nil {
 		http.Error(res, "Could not find that table", http.StatusInternalServerError)
 		return ""

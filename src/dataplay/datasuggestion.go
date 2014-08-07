@@ -273,9 +273,9 @@ func SaveCorrelation(m map[string]string, c cmeth, cf float64, cd *CorrelationDa
 	ind2 := Index{}
 	ind3 := Index{}
 
-	guid1 := NameToGuid(m["table1"])
-	guid2 := NameToGuid(m["table2"])
-	guid3 := NameToGuid(m["table3"])
+	guid1, _ := GetRealTableName(m["table1"])
+	guid2, _ := GetRealTableName(m["table2"])
+	guid3, _ := GetRealTableName(m["table3"])
 
 	err1 := DB.Model(&ind1).Where("guid= ?", guid1).Find(&ind1).Error
 	check(err1)
@@ -361,7 +361,7 @@ func GetRandomNames(m map[string]string, c cmeth) bool {
 	allNames := true
 
 	m["table2"] = RandomTableName()
-	guid2 := NameToGuid(m["table2"])
+	guid2, _ := GetRealTableName(m["table2"])
 	columnNames2 := FetchTableCols(guid2)
 	m["valCol2"] = RandomValueColumn(columnNames2)
 	m["dateCol2"] = RandomDateColumn(columnNames2)
@@ -372,7 +372,7 @@ func GetRandomNames(m map[string]string, c cmeth) bool {
 
 	if c == S {
 		m["table3"] = RandomTableName()
-		guid3 := NameToGuid(m["table3"])
+		guid3, _ := GetRealTableName(m["table3"])
 		columnNames3 := FetchTableCols(guid3)
 		m["valCol3"] = RandomValueColumn(columnNames3)
 		m["dateCol3"] = RandomDateColumn(columnNames3)
@@ -443,16 +443,6 @@ func RandomTableName() string {
 		return ""
 	}
 	return name[0]
-}
-
-// convert table name to guid
-func NameToGuid(tablename string) string {
-	var guid []string
-	err := DB.Table("priv_onlinedata").Where("tablename = ?", tablename).Pluck("guid", &guid).Error
-	if err != nil && err != gorm.RecordNotFound {
-		return ""
-	}
-	return guid[0]
 }
 
 /// return date and value columns combined within struct from table
@@ -686,17 +676,18 @@ func XYPermutations(columns []ColType) []XYVal {
 }
 
 func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *appError) {
+	fmt.Println("GetRelatedCharts", tableName, offset, count)
 	columns := FetchTableCols(tableName) //array column names
-	guid := NameToGuid(tableName)
+	guid, _ := GetRealTableName(tableName)
 	charts := make([]TableData, 0)     ///empty slice for adding all possible charts
 	xyNames := XYPermutations(columns) // get all possible valid permuations of columns as X & Y
 	index := Index{}
 
-	err := DB.Where("guid= ?", guid).Find(&index).Error
+	err := DB.Where("guid = ?", guid).Find(&index).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return RelatedCharts{nil, 0}, &appError{err, "Database query failed", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
-		return RelatedCharts{nil, 0}, &appError{err, "No Chart found", http.StatusNotFound}
+		return RelatedCharts{nil, 0}, &appError{err, "No related chart found", http.StatusNotFound}
 	}
 
 	var xyPie XYVal
@@ -715,6 +706,7 @@ func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *
 		}
 
 		GetChartData("column", double, v, &charts, index)
+
 		GetChartData("line", double, v, &charts, index)
 	}
 
@@ -736,11 +728,15 @@ func GetChartData(chartType string, sql string, names XYVal, charts *[]TableData
 	tmpTD.Title = ind.Title
 	tmpTD.Desc = ind.Notes
 	tmpTD.LabelX = names.X
+
 	if chartType != "pie" {
 		tmpTD.LabelY = names.Y
 	}
+
 	rows, _ := DB.Raw(sql).Rows()
+
 	defer rows.Close()
+
 	pieSlices := 0
 
 	for rows.Next() {
