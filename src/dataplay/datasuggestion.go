@@ -63,9 +63,9 @@ type FromTo struct {
 
 // Take in table and column names and a threshold for the looping and get correlated tables
 // Use 3:1:1 for Spurious to Pearson and Visual as Spurious less likely to find correlations
-func GenerateCorrelations(table1 string, valCol1 string, dateCol1 string, thresh int) string {
+func GenerateCorrelations(table1 string, valCol1 string, dateCol1 string, thresh int) {
 	if table1 == "" || valCol1 == "" || dateCol1 == "" {
-		return ""
+		///NEEDS ERROR!
 	}
 	m := make(map[string]string)
 	m["table1"], m["dateCol1"], m["valCol1"] = table1, dateCol1, valCol1
@@ -84,8 +84,6 @@ func GenerateCorrelations(table1 string, valCol1 string, dateCol1 string, thresh
 
 		GenerateCorrelation(m, c)
 	}
-
-	return "win"
 }
 
 // Take in table and column values and a correlation type, generate some more random tables and check for a pre-existing correlation.
@@ -705,6 +703,7 @@ func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *
 		}
 		GetChartData("column", SQL, v, &charts, index)
 		GetChartData("line", SQL, v, &charts, index)
+		GetChartData("bar", SQL, v, &charts, index)
 	}
 
 	// for i := range charts { // shuffle charts into random order
@@ -755,7 +754,7 @@ func GetChartData(chartType string, sql string, names XYVal, charts *[]TableData
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			} else if names.Xtype == "date" {
 				rows.Scan(&dx, &fy)
-				tmpXY.X = (dx.String()[0:9])
+				tmpXY.X = (dx.String()[0:10])
 				tmpXY.Y = FloatToString(fy)
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			} else if names.Xtype == "float" {
@@ -775,34 +774,33 @@ func GetChartData(chartType string, sql string, names XYVal, charts *[]TableData
 
 	} else {
 		tmpTD.LabelY = names.Y
-
 		for rows.Next() {
 			if names.Xtype == "date" && names.Ytype == "date" {
 				rows.Scan(&dx, &dy)
-				tmpXY.X = (dx.String()[0:9])
-				tmpXY.Y = (dy.String()[0:9])
+				tmpXY.X = (dx.String()[0:10])
+				tmpXY.Y = (dy.String()[0:10])
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if names.Xtype == "date" && names.Ytype == "float" {
+			} else if names.Xtype == "date" && (names.Ytype == "float" || names.Ytype == "integer") {
 				rows.Scan(&dx, &fy)
-				tmpXY.X = (dx.String()[0:9])
+				tmpXY.X = (dx.String()[0:10])
 				tmpXY.Y = FloatToString(fy)
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			} else if names.Xtype == "date" && names.Ytype == "varchar" {
 				rows.Scan(&dx, &vy)
-				tmpXY.X = (dx.String()[0:9])
+				tmpXY.X = (dx.String()[0:10])
 				tmpXY.Y = vy
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if names.Xtype == "float" && names.Ytype == "date" {
+			} else if (names.Xtype == "float" || names.Xtype == "integer") && names.Ytype == "date" {
 				rows.Scan(&fx, &dy)
 				tmpXY.X = FloatToString(fx)
-				tmpXY.Y = (dy.String()[0:9])
+				tmpXY.Y = (dy.String()[0:10])
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if names.Xtype == "float" && names.Ytype == "float" {
+			} else if (names.Xtype == "float" || names.Xtype == "integer") && (names.Ytype == "float" || names.Ytype == "integer") {
 				rows.Scan(&fx, &fy)
 				tmpXY.X = FloatToString(fx)
 				tmpXY.Y = FloatToString(fy)
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if names.Xtype == "float" && names.Ytype == "varchar" {
+			} else if (names.Xtype == "float" || names.Xtype == "integer") && names.Ytype == "varchar" {
 				rows.Scan(&fx, &vy)
 				tmpXY.X = FloatToString(fx)
 				tmpXY.Y = vy
@@ -810,9 +808,9 @@ func GetChartData(chartType string, sql string, names XYVal, charts *[]TableData
 			} else if names.Xtype == "varchar" && names.Ytype == "date" {
 				rows.Scan(&vx, &dy)
 				tmpXY.X = vx
-				tmpXY.Y = (dy.String()[0:9])
+				tmpXY.Y = (dy.String()[0:10])
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if names.Xtype == "varchar" && names.Ytype == "float" {
+			} else if names.Xtype == "varchar" && (names.Ytype == "float" || names.Ytype == "integer") {
 				rows.Scan(&vx, &fy)
 				tmpXY.X = vx
 				tmpXY.Y = FloatToString(fy)

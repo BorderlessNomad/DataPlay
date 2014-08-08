@@ -4,14 +4,15 @@ import (
 	// "encoding/json"
 	// "fmt"
 	. "github.com/smartystreets/goconvey/convey"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 )
 
 func TestGenerateCorrelations(t *testing.T) {
 	Convey("Should run 10 loops correlation types", t, func() {
-		result := GenerateCorrelations("gold", "price", "date", 10)
-		So(result, ShouldEqual, "win")
+		GenerateCorrelations("gold", "price", "date", 10)
 	})
 }
 
@@ -360,12 +361,27 @@ func TestGetRelatedCharts(t *testing.T) {
 	m := map[string]string{
 		"user":      "1",
 		"offset":    "0",
-		"count":     "4",
-		"tablename": "b7c7cf16798087fc5a02afdb154ae02ff89e45b78990a9eae73d4c76c14",
+		"count":     "04",
+		"tablename": "gold",
 	}
 	Convey("Should return chartlist", t, func() {
 		result := GetRelatedChartsQ(m)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
+}
 
+func TestGetRelatedChartsHttp(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+	res := httptest.NewRecorder()
+	params := map[string]string{
+		"user":      "1",
+		"offset":    "0",
+		"count":     "10",
+		"tablename": "fe5e88f1c898b2ea870c928a3b94d5a1bf219d057e68010a018a73634dd",
+	}
+	Convey("Should return chartlist", t, func() {
+		result := GetRelatedChartsHttp(res, req, params)
+		So(result, ShouldNotBeNil)
+	})
 }
