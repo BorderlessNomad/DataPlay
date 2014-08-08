@@ -4,13 +4,14 @@
 	<a class="btn btn-warning pull-right reset" ng-click="resetAll()">Reset all</a>
 
 	<div class="row" ng-init="getRelatedCharts()">
-		<div class="col-md-4" ng-repeat="chart in chartsInfo" id="{{chart.id}}" ng-switch="chart.chart">
-			<a ng-href="/charts/{{params.id}}/{{chart.chart}}/{{chart.xLabel}}/{{chart.yLabel}}">
+		<div class="col-md-4" ng-repeat="chart in chartsInfo" id="{{chart.id}}">
+			<a ng-href="/charts/{{params.id}}/{{chart.type}}/{{chart.xLabel}}/{{chart.yLabel}}">
 				<span ng-show="chart.xLabel && chart.yLabel"><h4>{{chart.xLabel}}</h4> <h5>vs</h5> <h4>{{chart.yLabel}}</h4></span>
 				<span ng-show="chart.xLabel && !chart.yLabel"><h4>{{chart.xLabel}}</h4></span>
 			</a>
+
 			<div class="chartSwitch"
-				ng-switch-when="line"
+				ng-if="chart.type == 'line'"
 
 				dc-chart="lineChart"
 
@@ -34,7 +35,28 @@
 			></div>
 
 			<div class="chartSwitch"
-				ng-switch-when="column"
+				ng-if="chart.type == 'row' || chart.type == 'bar'"
+
+				dc-chart="rowChart"
+
+				dc-width="{{width}}"
+				dc-height="{{height}}"
+				dc-margins="{{margin}}"
+				dc-mouse-zoomable="false"
+				dc-brush-on="false"
+
+				dc-elastic-x="true"
+				dc-transition-duration="500"
+				dc-colors="d3.scale.category20()"
+
+				dc-x-axis-label="chart.xLabel"
+				dc-y-axis-label="chart.yLabel"
+
+				dc-post-setup-chart="rowChartPostSetup"
+			></div>
+
+			<div class="chartSwitch"
+				ng-if="chart.type == 'column'"
 
 				dc-chart="barChart"
 
@@ -51,32 +73,11 @@
 				dc-x-axis-label="chart.xLabel"
 				dc-y-axis-label="chart.yLabel"
 
-				dc-post-setup-chart="barChartPostSetup"
+				dc-post-setup-chart="columnChartPostSetup"
 			></div>
 
 			<div class="chartSwitch"
-				ng-switch-when="row"
-
-				dc-chart="rowChart"
-
-				dc-width="{{width}}"
-				dc-height="{{height}}"
-				dc-margins="{{margin}}"
-				dc-mouse-zoomable="false"
-				dc-brush-on="false"
-
-				dc-elastic-y="true"
-				dc-transition-duration="500"
-				dc-colors="d3.scale.category20()"
-
-				dc-elastic-x="true"
-
-				dc-x-axis-label="chart.xLabel"
-				dc-y-axis-label="chart.yLabel"
-			></div>
-
-			<!-- <div class="chartSwitch"
-				ng-switch-when="pie"
+				ng-if="chart.type == 'pie'"
 
 				dc-chart="pieChart"
 
@@ -86,20 +87,14 @@
 				dc-mouse-zoomable="false"
 				dc-brush-on="false"
 
-				dc-radius="chart.radius"
-				dc-inner-radius="chart.innerRadius"
 				dc-transition-duration="500"
 				dc-colors="d3.scale.category20()"
 
-				dc-dimension="chart.entry.dimension"
-				dc-group="chart.entry.group"
-				dc-min-angle-for-label="0.1"
-				dc-title="chart.title"
-				dc-slices-cap="6"
-			></div> -->
+				dc-post-setup-chart="pieChartPostSetup"
+			></div>
 
 			<!-- <div class="chartSwitch"
-				ng-switch-when="bubble"
+				ng-if="chart.type == 'bubble'"
 
 				dc-chart="bubbleOverlay"
 
@@ -120,7 +115,9 @@
 				dc-post-setup-chart="bubbleChartPostSetup"
 			></div> -->
 
-			<div class="chartSwitch" ng-switch-default>Oops! nothing to plot.</div>
+			<div class="chartSwitch" >
+				<div class="well text-center">Oops! nothing to plot.</div>
+			</div>
 		</div>
 	</div>
 </div>

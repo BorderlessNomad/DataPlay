@@ -106,7 +106,7 @@ angular.module('dataplayApp')
 
 			data
 
-		$scope.getXScale = (ordinals) ->
+		$scope.getXScale = (ordinals, group) ->
 			xScale = switch $scope.chart.patterns[$scope.params.x].valuePattern
 				when 'label'
 					d3.scale.ordinal()
@@ -128,51 +128,19 @@ angular.module('dataplayApp')
 			dimension = entry.dimension (d) -> d[0]
 			group = dimension.group().reduceSum (d) -> d[1]
 
-			# svg = d3.svg.line()
-			# 	.interpolate "basis"
-			# 	.x (d) -> d[0]
-			# 	.y (d) -> d[1]
-
-			# line = d3.select("#chart")
-			# 	.append("svg")
-
-			# line.append "path"
-			# 	.attr "d", svg $scope.chart.data
-
 			chart.dimension dimension
 			chart.group group
 
 			ordinals = []
 			ordinals.push d.key for d in group.all() when d not in ordinals
 
-			chart.colorAccessor (d, i) ->
-				parseInt(d.y) % ordinals.length
+			chart.colorAccessor (d, i) -> parseInt(d.y) % ordinals.length
 
-			xScale = switch $scope.chart.patterns[$scope.params.x].valuePattern
-				# TODO: handle more patterns here .....
-				when 'label'
-					d3.scale.ordinal()
-						.domain ordinals
-						.rangeBands [0, $scope.width]
-				when 'date'
-					d3.time.scale()
-						.domain d3.extent(group.all(), (d) -> d.key)
-						.range [0, $scope.width]
-				else
-					d3.scale.linear()
-						.domain d3.extent(group.all(), (d) -> parseInt(d.key))
-						.range [0, $scope.width]
-
-			chart.x xScale
-
-			vis = d3.select "#chart"
-				.append "svg:svg"
-
-			vis.selectAll "axis.x"
+			chart.x $scope.getXScale ordinals, group
 
 			return
 
-		$scope.barChartPostSetup = (chart) ->
+		$scope.rowChartPostSetup = (chart) ->
 			chart.colorAccessor (d, i) -> i + 1
 
 			entry = crossfilter $scope.chart.data
@@ -185,7 +153,31 @@ angular.module('dataplayApp')
 			ordinals = []
 			ordinals.push d.key for d in group.all() when d not in ordinals
 
-			chart.x $scope.getXScale ordinals
+			chart.x $scope.getXScale ordinals, group
+
+			if ordinals? and ordinals.length > 0
+				chart.xUnits switch $scope.chart.patterns[$scope.params.x].valuePattern
+					when 'date' then d3.time.years
+					when 'intNumber' then dc.units.integers
+					when 'label', 'text' then dc.units.ordinal
+					else dc.units.ordinal
+
+			return
+
+		$scope.columnChartPostSetup = (chart) ->
+			chart.colorAccessor (d, i) -> i + 1
+
+			entry = crossfilter $scope.chart.data
+			dimension = entry.dimension (d) -> d[0]
+			group = dimension.group().reduceSum (d) -> d[1]
+
+			chart.dimension dimension
+			chart.group group
+
+			ordinals = []
+			ordinals.push d.key for d in group.all() when d not in ordinals
+
+			chart.x $scope.getXScale ordinals, group
 
 			if ordinals? and ordinals.length > 0
 				chart.xUnits switch $scope.chart.patterns[$scope.params.x].valuePattern

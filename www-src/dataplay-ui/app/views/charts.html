@@ -33,6 +33,30 @@
 
 			<div
 				id="chart"
+				ng-switch-when="row"
+
+				dc-chart="barChart"
+
+				dc-width="{{width}}"
+				dc-height="{{height}}"
+				dc-margins="{{margin}}"
+				dc-mouse-zoomable="false"
+				dc-brush-on="false"
+
+				dc-elastic-y="true"
+				dc-transition-duration="500"
+				dc-colors="d3.scale.category20()"
+
+				dc-x-axis-label="params.x"
+				dc-y-axis-label="params.y"
+
+				dc-gap="20"
+
+				dc-post-setup-chart="rowChartPostSetup"
+			></div>
+
+			<div
+				id="chart"
 				ng-switch-when="bar"
 
 				dc-chart="barChart"
@@ -52,14 +76,14 @@
 
 				dc-gap="20"
 
-				dc-post-setup-chart="barChartPostSetup"
+				dc-post-setup-chart="rowChartPostSetup"
 			></div>
 
-			<!-- <div
+			<div
 				id="chart"
-				ng-switch-when="row"
+				ng-switch-when="column"
 
-				dc-chart="rowChart"
+				dc-chart="barChart"
 
 				dc-width="{{width}}"
 				dc-height="{{height}}"
@@ -70,18 +94,14 @@
 				dc-elastic-y="true"
 				dc-transition-duration="500"
 				dc-colors="d3.scale.category20()"
-				dc-color-accessor="chart.colorAccessor"
 
-				dc-elastic-x="true"
-				dc-label-offset-y="chart.labelOffsetY"
-				dc-label="chart.label"
-				dc-gap="1"
-				dc-tick-format="chart.tickFormat"
-				dc-dimension="chart.entry.dimension"
-				dc-group="chart.entry.group"
-				dc-title="chart.title"
-				dc-ticks="2"
-			></div> -->
+				dc-x-axis-label="params.x"
+				dc-y-axis-label="params.y"
+
+				dc-gap="20"
+
+				dc-post-setup-chart="columnChartPostSetup"
+			></div>
 
 			<div
 				id="chart"
