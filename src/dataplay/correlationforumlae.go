@@ -117,6 +117,37 @@ func Spearman(x []float64, y []float64) float64 {
 	return p
 }
 
+func Visual(xBuckets []float64, yBuckets []float64, bucketRange []FromTo) float64 {
+	n := len(xBuckets)
+	var high []float64
+	var low []float64
+
+	for i, v := range xBuckets {
+		if v > yBuckets[i] {
+			high = append(high, v)
+			low = append(low, yBuckets[i])
+		} else {
+			high = append(high, yBuckets[i])
+			low = append(low, v)
+		}
+	}
+
+	highTotal, lowTotal := 0, 0
+
+	for i := 0; i < n; i++ {
+		days := dayNum(bucketRange[i].To) - dayNum(bucketRange[i].From)
+		highTotal = highTotal + days*int(high[i])
+		lowTotal = lowTotal + days*int(low[i])
+	}
+
+	if highTotal == 0 || lowTotal == 0 {
+		return 0
+	}
+
+	cf := 1.0 / (float64(highTotal) / float64(lowTotal))
+	return cf
+}
+
 /**
  * @brief calculates the coeficient of variation
  * @details calculates the relative variability (the ratio of the standard deviation to the mean)
