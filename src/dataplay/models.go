@@ -55,6 +55,7 @@ type Correlation struct {
 	Rating  float64
 	Valid   int
 	Invalid int
+	Abscoef float64
 }
 
 func (c Correlation) TableName() string {

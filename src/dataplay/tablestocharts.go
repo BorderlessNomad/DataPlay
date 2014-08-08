@@ -15,6 +15,11 @@ type RelatedCharts struct {
 	Count  int
 }
 
+type RelatedCorrelatedCharts struct {
+	Charts []CorrelationData
+	Count  int
+}
+
 // generate all the potentially valid charts that relate to a single tablename
 func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *appError) {
 	columns := FetchTableCols(tableName) //array column names
@@ -70,47 +75,139 @@ func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *
 	return RelatedCharts{charts, totalCharts}, nil
 }
 
-func GetNewCorrelatedCharts(tableName string, searchDepth int, offset int, count int) (RelatedCharts, *appError) {
-	charts := make([]TableData, 0) ///empty slice for adding all possible charts
+func GetNewCorrelatedCharts(tableName string, searchDepth int, offset int, count int) (RelatedCorrelatedCharts, *appError) {
+	charts := make([]CorrelationData, 0) ///empty slice for adding all possible charts
+	GenerateCorrelations(tableName, searchDepth)
+	sql := fmt.Sprintf("SELECT method, json, abscoef FROM priv_correlation WHERE tbl1 = %s AND rating = 0 ORDER BY coef DESC", tableName)
+	var meth string
+	var js []byte
+	var acoef float64
+	var cd CorrelationData
 
-	/// inject chart type for each, intelligent but random - if 3 then use bubble
+	rows, _ := DB.Raw(sql).Rows()
+	defer rows.Close()
+
+	for rows.Next() {
+		rows.Scan(&meth, &js, &acoef)
+		err := json.Unmarshal(js, &cd)
+		check(err)
+
+		if meth == "Pearson" {
+			cd.Chart = "bar"
+			charts = append(charts, cd)
+			cd.Chart = "column"
+			charts = append(charts, cd)
+			cd.Chart = "line"
+			charts = append(charts, cd)
+			cd.Chart = "scatter"
+			charts = append(charts, cd)
+
+		} else if meth == "Spurious" {
+			cd.Chart = "bubble"
+			charts = append(charts, cd)
+			cd.Chart = "line"
+			charts = append(charts, cd)
+			cd.Chart = "scatter"
+			charts = append(charts, cd)
+			cd.Chart = "stacked"
+			charts = append(charts, cd)
+
+		} else if meth == "Visual" {
+			cd.Chart = "bar"
+			charts = append(charts, cd)
+			cd.Chart = "column"
+			charts = append(charts, cd)
+			cd.Chart = "line"
+			charts = append(charts, cd)
+			cd.Chart = "scatter"
+			charts = append(charts, cd)
+		} else {
+			cd.Chart = "unknown"
+			charts = append(charts, cd)
+		}
+	}
 
 	totalCharts := len(charts)
 	if offset > totalCharts {
-		return RelatedCharts{nil, 0}, &appError{nil, fmt.Sprintf("Offset value out of bounds (Max: %d)", totalCharts), http.StatusBadRequest}
+		return RelatedCorrelatedCharts{nil, 0}, &appError{nil, fmt.Sprintf("Offset value out of bounds (Max: %d)", totalCharts), http.StatusBadRequest}
 	}
 
 	last := offset + count
 	if offset != 0 && last > totalCharts {
-		return RelatedCharts{nil, 0}, &appError{nil, fmt.Sprintf("Count value out of bounds (Max: %d)", totalCharts-offset), http.StatusBadRequest}
+		return RelatedCorrelatedCharts{nil, 0}, &appError{nil, fmt.Sprintf("Count value out of bounds (Max: %d)", totalCharts-offset), http.StatusBadRequest}
 	} else if offset == 0 && last > totalCharts {
 		last = totalCharts
 	}
 
 	charts = charts[offset:last] // return marshalled slice
-	return RelatedCharts{charts, totalCharts}, nil
+	return RelatedCorrelatedCharts{charts, totalCharts}, nil
 }
 
-func GetValidatedCorrelatedCharts(tableName string, offset int, count int) (RelatedCharts, *appError) {
-	charts := make([]TableData, 0) ///empty slice for adding all possible charts
+func GetValidatedCorrelatedCharts(tableName string, offset int, count int) (RelatedCorrelatedCharts, *appError) {
+	charts := make([]CorrelationData, 0) ///empty slice for adding all possible charts
+	sql := fmt.Sprintf("SELECT method, json, abscoef FROM priv_correlation WHERE tbl1 = %s AND rating != 0 ORDER BY coef DESC", tableName)
+	var meth string
+	var js []byte
+	var acoef float64
+	var cd CorrelationData
 
-	//where table 1 is the same, highest user rating
-	/// inject chart type for each, intelligent but random - if 3 then use bubble
+	rows, _ := DB.Raw(sql).Rows()
+	defer rows.Close()
+
+	for rows.Next() {
+		rows.Scan(&meth, &js, &acoef)
+		err := json.Unmarshal(js, &cd)
+		check(err)
+
+		if meth == "Pearson" {
+			cd.Chart = "bar"
+			charts = append(charts, cd)
+			cd.Chart = "column"
+			charts = append(charts, cd)
+			cd.Chart = "line"
+			charts = append(charts, cd)
+			cd.Chart = "scatter"
+			charts = append(charts, cd)
+
+		} else if meth == "Spurious" {
+			cd.Chart = "bubble"
+			charts = append(charts, cd)
+			cd.Chart = "line"
+			charts = append(charts, cd)
+			cd.Chart = "scatter"
+			charts = append(charts, cd)
+			cd.Chart = "stacked"
+			charts = append(charts, cd)
+
+		} else if meth == "Visual" {
+			cd.Chart = "bar"
+			charts = append(charts, cd)
+			cd.Chart = "column"
+			charts = append(charts, cd)
+			cd.Chart = "line"
+			charts = append(charts, cd)
+			cd.Chart = "scatter"
+			charts = append(charts, cd)
+		} else {
+			cd.Chart = "unknown"
+			charts = append(charts, cd)
+		}
+	}
 
 	totalCharts := len(charts)
 	if offset > totalCharts {
-		return RelatedCharts{nil, 0}, &appError{nil, fmt.Sprintf("Offset value out of bounds (Max: %d)", totalCharts), http.StatusBadRequest}
+		return RelatedCorrelatedCharts{nil, 0}, &appError{nil, fmt.Sprintf("Offset value out of bounds (Max: %d)", totalCharts), http.StatusBadRequest}
 	}
 
 	last := offset + count
 	if offset != 0 && last > totalCharts {
-		return RelatedCharts{nil, 0}, &appError{nil, fmt.Sprintf("Count value out of bounds (Max: %d)", totalCharts-offset), http.StatusBadRequest}
+		return RelatedCorrelatedCharts{nil, 0}, &appError{nil, fmt.Sprintf("Count value out of bounds (Max: %d)", totalCharts-offset), http.StatusBadRequest}
 	} else if offset == 0 && last > totalCharts {
 		last = totalCharts
 	}
 
 	charts = charts[offset:last] // return marshalled slice
-	return RelatedCharts{charts, totalCharts}, nil
+	return RelatedCorrelatedCharts{charts, totalCharts}, nil
 }
 
 // Generate all possible permutations of xy columns
@@ -147,7 +244,6 @@ func GetChartData(chartType string, sql string, names XYVal, charts *[]TableData
 	pieSlices := 0
 
 	rows, _ := DB.Raw(sql).Rows()
-
 	defer rows.Close()
 
 	if chartType == "pie" { // single column pie chart x = type, y = count

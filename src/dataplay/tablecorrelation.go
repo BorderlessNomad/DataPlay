@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"math"
 	"time"
 )
 
@@ -15,13 +16,14 @@ const ( //go version of enum
 
 type CorrelationData struct {
 	Method string    `json:"method"`
+	Chart  string    `json:"type, omitempty"`
 	Table1 TableData `json:"table1"`
 	Table2 TableData `json:"table2"`
 	Table3 TableData `json:"table3, omitempty"`
 }
 
 type TableData struct {
-	ChartType string  `json:"chart"`
+	ChartType string  `json:"type, omitempty"`
 	Title     string  `json:"title"`
 	Desc      string  `json:"desc"`
 	LabelX    string  `json:"xLabel"`
@@ -48,11 +50,12 @@ type FromTo struct {
 
 // Take in table and column names and a threshold for the looping and get correlated tables
 // Use 3:1:1 for Spurious to Pearson and Visual as Spurious less likely to find correlations
-func GetCorrelations(table1 string, searchDepth int) {
+func GenerateCorrelations(tableName string, searchDepth int) {
 	m := make(map[string]string)
-	m["table1"] = table1
+	m["table1"] = tableName
 	c := P
 
+	///Main loop to generate/check for correlations based on input table
 	for i := 0; i < searchDepth; i++ {
 		r := i % 5
 
@@ -63,20 +66,19 @@ func GetCorrelations(table1 string, searchDepth int) {
 		} else {
 			c = S
 		}
-
-		GenerateCorrelation(m, c)
+		AttemptCorrelation(m, c)
 	}
 }
 
 // Take in table and column values and a correlation type, generate some more random tables and check for a pre-existing correlation.
-// If a correlation for the generated tables combination doesn't exist, attempt to generate a new correlation and return that
-func GenerateCorrelation(m map[string]string, c cmeth) {
+// If a correlation for the generated tables combination doesn't exist, attempt to generate a new correlation
+func AttemptCorrelation(m map[string]string, c cmeth) {
 	cor := Correlation{}
 	var jsonData []string
 	cd := new(CorrelationData)
 	nameChk := GetRandomNameMap(m, c)
 
-	if nameChk {
+	if nameChk { // if all table and columns names are present in name map
 		if c == P {
 			err := DB.Model(&cor).Where("tbl1 = ?", m["table1"]).Where("col1 = ?", m["valCol1"]).Where("tbl2 = ?", m["table2"]).Where("col2 = ?", m["valCol2"]).Where("method = ?", "Pearson").Pluck("json", &jsonData).Error
 			check(err)
@@ -88,7 +90,7 @@ func GenerateCorrelation(m map[string]string, c cmeth) {
 			check(err)
 		}
 
-		if jsonData == nil {
+		if jsonData == nil { // if no correlation exists then generate one
 			cf := CalculateCoefficient(m, c, cd)
 			if cf != 0 { //Save the correlation if one is generated
 				SaveCorrelation(m, c, cf, cd)
@@ -97,7 +99,7 @@ func GenerateCorrelation(m map[string]string, c cmeth) {
 	}
 }
 
-// Determine if two sets of dates overlap - X values are referenced so they can be altered and passed back again for Spurious correlation
+// Determine if two sets of dates overlap - X values are referenced so they can be altered in place and passed back again when used with Spurious correlation
 func GetIntersect(pFromX *time.Time, pToX *time.Time, pRngX *int, fromY time.Time, toY time.Time, rngY int) []FromTo {
 	var bucketRange []FromTo
 	fromX, toX, rngX := *pFromX, *pToX, *pRngX
@@ -248,6 +250,7 @@ func SaveCorrelation(m map[string]string, c cmeth, cf float64, cd *CorrelationDa
 		Rating:  0,
 		Valid:   0,
 		Invalid: 0,
+		Abscoef: math.Abs(cf), //absolute value for ranking as highly negative correlation is interesting
 	}
 
 	err3 := DB.Save(&correlation).Error
