@@ -13,19 +13,6 @@ angular.module('dataplayApp')
 		$scope.chartsInfo = []
 		$scope.chartRegistryOffset = 0
 
-		$scope.guid = null
-		$scope.data = null
-		$scope.keys = []
-		$scope.cfdata = null
-		$scope.dimensions = []
-		$scope.groups = []
-		$scope.charts = [
-			{ id: 'row', maxEntries: 15 }
-			{ id: 'bar', maxEntries: 30 }
-			{ id: 'pie', maxEntries: 45 }
-			{ id: 'bubble', maxEntries: 60 }
-			{ id: 'line' }
-		]
 		$scope.xTicks = 6
 		$scope.width = 350
 		$scope.height = 200
@@ -76,7 +63,6 @@ angular.module('dataplayApp')
 
 		$scope.getXScale = (data) ->
 			xScale = switch data.patterns[data.xLabel].valuePattern
-				# TODO: handle more patterns here .....
 				when 'label'
 					d3.scale.ordinal()
 						.domain data.ordinals
@@ -136,6 +122,68 @@ angular.module('dataplayApp')
 					when 'intNumber' then dc.units.integers
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
+
+			return
+
+		$scope.pieChartPostSetup = (chart) ->
+			data = $scope.chartsInfo[$scope.getChartOffset chart]
+
+			data.entry = crossfilter data.values
+			data.dimension = data.entry.dimension (d) -> d.x
+			data.groupSum = 0
+			data.group = data.dimension.group().reduceSum (d) ->
+				groupTotal += d.y
+				d.y
+
+			chart.dimension data.dimension
+			chart.group data.group
+
+			chart.colorAccessor (d, i) -> i + 1
+
+			chart.innerRadius 100
+
+			chart.label (d) -> "#{d.key} (#{Math.floor d.value / data.groupSum * 100}%)"
+
+			chart.title (d) -> "#{d.key}: #{d.value} [#{Math.floor d.value / data.groupSum * 100}%]"
+
+			chart.legend dc.legend()
+
+			chart.minAngleForLabel 0
+
+			return
+
+		$scope.bubbleChartPostSetup = (chart) ->
+			data = $scope.chartsInfo[$scope.getChartOffset chart]
+
+			data.entry = crossfilter data.values
+			data.dimension = data.entry.dimension (d) -> d.x
+			data.group = data.dimension.group().reduceSum (d) -> d.y
+
+			chart.dimension data.dimension
+			chart.group data.group
+
+			svg = d3.select("#chart")
+				.append 'svg'
+				.attr 'width', $scope.width
+				.attr 'height', $scope.height
+
+			chart.svg svg
+			chart.keyAccessor (d) -> "KEY_#{d.key}".replace(/\W+/g, "")
+			chart.radiusValueAccessor (d) -> d.value
+			chart.r d3.scale.linear().domain(d3.extent(data.group.all(), (d) -> parseInt(d.value)))
+			chart.label (d) -> d.value
+			chart.title (d) -> d.value
+
+			ordinals = []
+			ordinals.push d.key for d in data.group.all() when d not in ordinals
+			xScale = $scope.getXScale ordinals
+
+			for d in data.group.all()
+				key = "KEY_#{d.key}".replace(/\W+/g, "")
+				x = 0.1 * $scope.width + 0.8 * xScale d.key
+				y = 0.2 * $scope.height + 0.6 * $scope.height * Math.random()
+
+				chart.point key, x, y
 
 			return
 
