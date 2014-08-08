@@ -3,10 +3,11 @@
 
 	<a class="btn btn-warning pull-right reset" ng-click="resetAll()">Reset all</a>
 
-	<div class="row" ng-init="getCharts()">
-		<div class="col-md-4" ng-repeat="chart in chartsInfo" id="{{chart.id}}" ng-switch="chart.plot">
-			<a ng-href="/charts/{{guid}}/{{chart.plot}}/{{chart.x}}/{{chart.y}}">
-				<h4>{{chart.x}}-{{chart.y}} ({{chart.type}})</h4>
+	<div class="row" ng-init="getRelatedCharts()">
+		<div class="col-md-4" ng-repeat="chart in chartsInfo" id="{{chart.id}}" ng-switch="chart.chart">
+			<a ng-href="/charts/{{params.id}}/{{chart.chart}}/{{chart.xLabel}}/{{chart.yLabel}}">
+				<span ng-show="chart.xLabel && chart.yLabel"><h4>{{chart.xLabel}}</h4> <h5>vs</h5> <h4>{{chart.yLabel}}</h4></span>
+				<span ng-show="chart.xLabel && !chart.yLabel"><h4>{{chart.xLabel}}</h4></span>
 			</a>
 			<div class="chartSwitch"
 				ng-switch-when="line"
@@ -23,15 +24,16 @@
 				dc-transition-duration="500"
 				dc-colors="d3.scale.category20()"
 
+				dc-x-axis-label="chart.xLabel"
+				dc-y-axis-label="chart.yLabel"
+
 				dc-render-data-points="true"
 				dc-render-area="true"
-				dc-dimension="chart.entry.dimension"
-				dc-group="chart.entry.group"
-				dc-x="chart.xScale"
+
 				dc-post-setup-chart="lineChartPostSetup"
 			></div>
 
-			<div class="chartSwitch"
+			<!-- <div class="chartSwitch"
 				ng-switch-when="bar"
 
 				dc-chart="barChart"
@@ -52,9 +54,9 @@
 				dc-group="chart.entry.group"
 				dc-x="chart.xScale"
 				dc-post-setup-chart="barChartPostSetup"
-			></div>
+			></div> -->
 
-			<div class="chartSwitch"
+			<!-- <div class="chartSwitch"
 				ng-switch-when="row"
 
 				dc-chart="rowChart"
@@ -79,9 +81,9 @@
 				dc-group="chart.entry.group"
 				dc-title="chart.title"
 				dc-ticks="2"
-			></div>
+			></div> -->
 
-			<div class="chartSwitch"
+			<!-- <div class="chartSwitch"
 				ng-switch-when="pie"
 
 				dc-chart="pieChart"
@@ -102,9 +104,9 @@
 				dc-min-angle-for-label="0.1"
 				dc-title="chart.title"
 				dc-slices-cap="6"
-			></div>
+			></div> -->
 
-			<div class="chartSwitch"
+			<!-- <div class="chartSwitch"
 				ng-switch-when="bubble"
 
 				dc-chart="bubbleOverlay"
@@ -124,7 +126,7 @@
 				dc-max-bubble-relative-size="0.1"
 				dc-min-radis-with-label="5"
 				dc-post-setup-chart="bubbleChartPostSetup"
-			></div>
+			></div> -->
 
 			<div class="chartSwitch" ng-switch-default>Oops! nothing to plot.</div>
 		</div>

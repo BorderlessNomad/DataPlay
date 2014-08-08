@@ -711,12 +711,18 @@ func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *
 	// 	charts[i], charts[j] = charts[j], charts[i]
 	// }
 
-	chartLength := len(charts)
-	if count+offset > chartLength {
-		return RelatedCharts{nil, 0}, &appError{err, "Out of range", http.StatusBadRequest}
+	totalCharts := len(charts)
+	if offset > totalCharts {
+		return RelatedCharts{nil, 0}, &appError{nil, fmt.Sprintf("Offset value out of bounds (Max: %d)", totalCharts), http.StatusBadRequest}
 	}
-	charts = charts[offset : offset+count]
-	return RelatedCharts{charts, chartLength}, nil // return slice and length
+
+	if offset+count > totalCharts {
+		return RelatedCharts{nil, 0}, &appError{nil, fmt.Sprintf("Count value out of bounds (Max: %d)", totalCharts-offset), http.StatusBadRequest}
+	}
+
+	charts = charts[offset : offset+count] // return marshalled slice
+
+	return RelatedCharts{charts, totalCharts}, nil
 }
 
 func GetChartData(chartType string, sql string, names XYVal, charts *[]TableData, ind Index) {
