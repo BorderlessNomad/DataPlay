@@ -20,6 +20,41 @@ type RelatedCorrelatedCharts struct {
 	Count  int
 }
 
+func GetChart(tableName string, chartType string, x string, y string) (TableData, *appError) {
+	guid, _ := GetRealTableName(tableName)
+	index := Index{}
+	chart := make([]TableData, 0)
+	sql := ""
+	xy := XYVal{X: x, Xtype: "", Y: y, Ytype: ""}
+
+	err := DB.Where("guid = ?", tableName).Find(&index).Error
+	if err != nil && err != gorm.RecordNotFound {
+		return chart[0], &appError{err, "Database query failed", http.StatusInternalServerError}
+	} else if err == gorm.RecordNotFound {
+		return chart[0], &appError{err, "No related chart found", http.StatusNotFound}
+	}
+
+	columns := FetchTableCols(tableName)
+	for _, v := range columns {
+		if v.Name == x {
+			xy.Xtype = v.Sqltype
+		}
+		if v.Name == y {
+			xy.Ytype = v.Sqltype
+		}
+	}
+
+	if chartType == "pie" {
+		sql = fmt.Sprintf("SELECT %s AS x, COUNT(%s) AS y FROM %s GROUP BY %s", x, x, guid, x)
+	} else {
+		sql = fmt.Sprintf("SELECT %s AS x, %s AS y FROM  %s", x, y, guid)
+	}
+
+	GetChartData(chartType, sql, xy, &chart, index)
+	result := chart[0]
+	return result, nil
+}
+
 // generate all the potentially valid charts that relate to a single tablename, add apt charting types, and return them along with their total count
 func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *appError) {
 	columns := FetchTableCols(tableName) //array column names
@@ -339,6 +374,48 @@ func GetChartData(chartType string, sql string, names XYVal, charts *[]TableData
 //////////// HTTP AND QUEUE FUNCTIONS TO CALL ABOVE METHODS///////////////
 //////////////////////////////////////////////////////////////////////////
 
+func GetChartHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+		return ""
+	}
+
+	if params["tablename"] == "" {
+		http.Error(res, "Invalid tablename.", http.StatusBadRequest)
+		return ""
+	}
+
+	if params["type"] == "" {
+		http.Error(res, "Invalid chart type.", http.StatusBadRequest)
+		return ""
+	}
+
+	if params["x"] == "" {
+		http.Error(res, "Invalid x label.", http.StatusBadRequest)
+		return ""
+	}
+
+	if params["y"] == "" {
+		http.Error(res, "Invalid y label.", http.StatusBadRequest)
+		return ""
+	}
+
+	result, error := GetChart(params["tablename"], params["type"], params["x"], params["y"])
+	if error != nil {
+		http.Error(res, error.Message, error.Code)
+		return ""
+	}
+
+	r, err1 := json.Marshal(result)
+	if err1 != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return ""
+	}
+
+	return string(r)
+}
+
 func GetRelatedChartsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
@@ -478,6 +555,36 @@ func GetValidatedCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request
 	r, err1 := json.Marshal(result)
 	if err1 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return ""
+	}
+
+	return string(r)
+}
+
+func GetChartQ(params map[string]string) string {
+	if params["tablename"] == "" {
+		return ""
+	}
+
+	if params["type"] == "" {
+		return ""
+	}
+
+	if params["x"] == "" {
+		return ""
+	}
+
+	if params["y"] == "" {
+		return ""
+	}
+
+	result, err := GetChart(params["tablename"], params["type"], params["x"], params["y"])
+	if err != nil {
+		return ""
+	}
+
+	r, e := json.Marshal(result)
+	if e != nil {
 		return ""
 	}
 

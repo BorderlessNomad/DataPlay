@@ -179,6 +179,7 @@ func initClassicMode() {
 	// API v1.1
 	m.Get("/api/related/:tablename", GetRelatedChartsHttp)
 	m.Get("/api/related/:tablename/:offset/:count", GetRelatedChartsHttp)
+	m.Get("/api/chart/:tablename/:type/:x/:y", GetChartHttp)
 
 	m.Use(JsonApiHandler)
 
