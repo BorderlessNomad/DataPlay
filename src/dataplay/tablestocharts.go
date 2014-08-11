@@ -20,7 +20,7 @@ type RelatedCorrelatedCharts struct {
 	Count  int
 }
 
-// generate all the potentially valid charts that relate to a single tablename
+// generate all the potentially valid charts that relate to a single tablename, add apt charting types, and return them along with their total count
 func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *appError) {
 	columns := FetchTableCols(tableName) //array column names
 	guid, _ := GetRealTableName(tableName)
@@ -75,10 +75,11 @@ func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *
 	return RelatedCharts{charts, totalCharts}, nil
 }
 
+// Look for new correlated charts, take the correlations and break them down into charting types, and return them along with their total count
 func GetNewCorrelatedCharts(tableName string, searchDepth int, offset int, count int) (RelatedCorrelatedCharts, *appError) {
 	charts := make([]CorrelationData, 0) ///empty slice for adding all possible charts
 	GenerateCorrelations(tableName, searchDepth)
-	sql := fmt.Sprintf("SELECT method, json, abscoef FROM priv_correlation WHERE tbl1 = %s AND rating = 0 ORDER BY coef DESC", tableName)
+	sql := fmt.Sprintf("SELECT method, json, abscoef FROM priv_correlation WHERE tbl1 = %s AND rating = 0 ORDER BY abscoef DESC", tableName)
 	var meth string
 	var js []byte
 	var acoef float64
@@ -143,9 +144,10 @@ func GetNewCorrelatedCharts(tableName string, searchDepth int, offset int, count
 	return RelatedCorrelatedCharts{charts, totalCharts}, nil
 }
 
+// As GetNew but get charts users have already voted on and return in an order based upon their absoulte ranking value
 func GetValidatedCorrelatedCharts(tableName string, offset int, count int) (RelatedCorrelatedCharts, *appError) {
 	charts := make([]CorrelationData, 0) ///empty slice for adding all possible charts
-	sql := fmt.Sprintf("SELECT method, json, abscoef FROM priv_correlation WHERE tbl1 = %s AND rating != 0 ORDER BY coef DESC", tableName)
+	sql := fmt.Sprintf("SELECT method, json, abscoef FROM priv_correlation WHERE tbl1 = %s AND rating != 0 ORDER BY abscoef DESC", tableName)
 	var meth string
 	var js []byte
 	var acoef float64
@@ -230,7 +232,7 @@ func XYPermutations(columns []ColType) []XYVal {
 	return xyNames
 }
 
-// Get arrays of data for the types of charts requested
+// Get arrays of data for the types of charts requested (titles, descriptions, all the xy values etc)
 func GetChartData(chartType string, sql string, names XYVal, charts *[]TableData, ind Index) {
 	var tmpTD TableData
 	var tmpXY XYVal

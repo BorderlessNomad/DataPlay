@@ -48,7 +48,7 @@ type FromTo struct {
 	To   time.Time
 }
 
-// Take in table and column names and a threshold for the looping and get correlated tables
+// Take in table name and a threshold for the looping and attempt to get correlated tables through a variety of correlation methods
 // Use 3:1:1 for Spurious to Pearson and Visual as Spurious less likely to find correlations
 func GenerateCorrelations(tableName string, searchDepth int) {
 	m := make(map[string]string)
@@ -70,8 +70,8 @@ func GenerateCorrelations(tableName string, searchDepth int) {
 	}
 }
 
-// Take in table and column values and a correlation type, generate some more random tables and check for a pre-existing correlation.
-// If a correlation for the generated tables combination doesn't exist, attempt to generate a new correlation
+// Take in table name and a correlation type, then get some random apt columns from it and generate more random tables and columns and check for any  pre-existing correlations on that combination.
+// If a correlation for the generated tables combination doesn't exist, attempt to calculate a new correlation coefficient and if one is generated save the new correlation.
 func AttemptCorrelation(m map[string]string, c cmeth) {
 	cor := Correlation{}
 	var jsonData []string
@@ -99,7 +99,7 @@ func AttemptCorrelation(m map[string]string, c cmeth) {
 	}
 }
 
-// Determine if two sets of dates overlap - X values are referenced so they can be altered in place and passed back again when used with Spurious correlation
+// Determine if two sets of dates overlap - X values are referenced so they can be altered in place and passed back again when used with Spurious correlation which covers the intersect between three data sets
 func GetIntersect(pFromX *time.Time, pToX *time.Time, pRngX *int, fromY time.Time, toY time.Time, rngY int) []FromTo {
 	var bucketRange []FromTo
 	fromX, toX, rngX := *pFromX, *pToX, *pRngX
@@ -128,7 +128,7 @@ func GetIntersect(pFromX *time.Time, pToX *time.Time, pRngX *int, fromY time.Tim
 	return bucketRange
 }
 
-// Generate a coefficient (if data allows), based on requested correlation type
+// Generate a correlation coefficient (if data allows), based on the requested correlation type
 func CalculateCoefficient(m map[string]string, c cmeth, cd *CorrelationData) float64 {
 	if len(m) == 0 {
 		return 0.0
@@ -250,7 +250,7 @@ func SaveCorrelation(m map[string]string, c cmeth, cf float64, cd *CorrelationDa
 		Rating:  0,
 		Valid:   0,
 		Invalid: 0,
-		Abscoef: math.Abs(cf), //absolute value for ranking as highly negative correlation is interesting
+		Abscoef: math.Abs(cf), //absolute value for ranking as highly negative correlations are also interesting
 	}
 
 	err3 := DB.Save(&correlation).Error
