@@ -28,22 +28,27 @@ angular.module('dataplayApp')
 		$scope.getRelatedCharts = () ->
 			$scope.chartRegistryOffset = dc.chartRegistry.list().length
 
-			allowed = ['line', 'column', 'row']
+			allowed = ['line', 'bar', 'column', 'pie']
 
 			Overview.related $scope.params.id
 				.success (data) ->
 					if data? and data.Charts? and data.Charts.length > 0
 						for key, chart of data.Charts
-							if chart.chart not in allowed
-								console.log "continue", chart.chart
+							chart.type = chart.chart
+							if chart.type not in allowed
+								console.log "continue", chart.type
 								continue
-							console.log "ok", chart.chart
-							chart.id = "#{$scope.params.id}-#{chart.xLabel}-#{chart.yLabel}-#{chart.chart}"
+							console.log "ok", chart.type
+							chart.id = "#{$scope.params.id}-#{chart.xLabel}-#{chart.yLabel}-#{chart.type}"
 
 							chart.patterns = []
 							chart.patterns[chart.xLabel] =
 								valuePattern: PatternMatcher.getPattern chart.values[0]['x']
 								keyPattern: PatternMatcher.getKeyPattern chart.values[0]['x']
+
+							if chart.patterns[chart.xLabel].valuePattern is 'date'
+								for value, key in chart.values
+									chart.values[key].x = new Date(value.x)
 
 							if chart.yLabel?
 								chart.patterns[chart.yLabel] =
@@ -69,12 +74,30 @@ angular.module('dataplayApp')
 						.rangeBands [0, $scope.width]
 				when 'date'
 					d3.time.scale()
-						.domain d3.extent(data.group.all(), (d) -> d.key)
+						.domain d3.extent data.group.all(), (d) -> d.key
 						.range [0, $scope.width]
 				else
 					d3.scale.linear()
-						.domain d3.extent(data.group.all(), (d) -> parseInt(d.key))
+						.domain d3.extent data.group.all(), (d) -> parseInt(d.key)
 						.range [0, $scope.width]
+
+			xScale
+
+		$scope.getYScale = (data) ->
+			xScale = switch data.patterns[data.yLabel].valuePattern
+				when 'label'
+					d3.scale.ordinal()
+						.domain data.ordinals
+						.rangeBands [0, $scope.height]
+				when 'date'
+					d3.time.scale()
+						.domain d3.extent data.group.all(), (d) -> d.key
+						.range [0, $scope.height]
+				else
+					d3.scale.linear()
+						.domain d3.extent data.group.all(), (d) -> parseInt(d.key)
+						.range [0, $scope.height]
+
 			xScale
 
 		$scope.lineChartPostSetup = (chart) ->
@@ -99,7 +122,38 @@ angular.module('dataplayApp')
 
 			return
 
-		$scope.barChartPostSetup = (chart) ->
+		$scope.rowChartPostSetup = (chart) ->
+			data = $scope.chartsInfo[$scope.getChartOffset chart]
+
+			data.entry = crossfilter data.values
+			data.dimension = data.entry.dimension (d) -> d.y
+			data.group = data.dimension.group().reduceSum (d) ->
+				console.log "group", d
+				d.x
+
+			chart.dimension data.dimension
+			chart.group data.group
+
+			data.ordinals = []
+			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
+
+			chart.colorAccessor (d, i) -> i + 1
+
+			chart.xAxis()
+				.ticks $scope.xTicks
+
+			chart.x $scope.getXScale data
+
+			# if ordinals? and ordinals.length > 0
+			# 	chart.xUnits switch data.patterns[data.xLabel].valuePattern
+			# 		when 'date' then d3.time.years
+			# 		when 'intNumber' then dc.units.integers
+			# 		when 'label', 'text' then dc.units.ordinal
+			# 		else dc.units.ordinal
+
+			return
+
+		$scope.columnChartPostSetup = (chart) ->
 			data = $scope.chartsInfo[$scope.getChartOffset chart]
 
 			data.entry = crossfilter data.values
@@ -132,7 +186,7 @@ angular.module('dataplayApp')
 			data.dimension = data.entry.dimension (d) -> d.x
 			data.groupSum = 0
 			data.group = data.dimension.group().reduceSum (d) ->
-				groupTotal += d.y
+				data.groupSum += parseFloat(d.y)
 				d.y
 
 			chart.dimension data.dimension
@@ -140,15 +194,17 @@ angular.module('dataplayApp')
 
 			chart.colorAccessor (d, i) -> i + 1
 
-			chart.innerRadius 100
+			# chart.innerRadius 100
 
+			chart.renderLabel false
 			chart.label (d) -> "#{d.key} (#{Math.floor d.value / data.groupSum * 100}%)"
 
+			chart.renderTitle false
 			chart.title (d) -> "#{d.key}: #{d.value} [#{Math.floor d.value / data.groupSum * 100}%]"
 
-			chart.legend dc.legend()
+			# chart.legend dc.legend()
 
-			chart.minAngleForLabel 0
+			# chart.minAngleForLabel 0
 
 			return
 
