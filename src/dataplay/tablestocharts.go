@@ -501,10 +501,10 @@ func GetNewCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, para
 		}
 	}
 
-	if params["searchDepth"] == "" {
+	if params["searchdepth"] == "" {
 		searchDepth = 1000
 	} else {
-		searchDepth, err = strconv.Atoi(params["searchDepth"])
+		searchDepth, err = strconv.Atoi(params["searchdepth"])
 		if err != nil {
 			http.Error(res, "Invalid searchDepth parameter.", http.StatusBadRequest)
 			return ""
@@ -644,7 +644,7 @@ func GetNewCorrelatedChartsQ(params map[string]string) string {
 		return ""
 	}
 
-	searchDepth, e := strconv.Atoi(params["searchDepth"])
+	searchDepth, e := strconv.Atoi(params["searchdepth"])
 	if e != nil {
 		return ""
 	}

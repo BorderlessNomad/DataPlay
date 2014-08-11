@@ -177,9 +177,13 @@ func initClassicMode() {
 	m.Get("/api/relatedstrings/:guid", GetRelatedDatasetByStrings)
 
 	// API v1.1
+	m.Get("/api/chart/:tablename/:type/:x/:y", GetChartHttp)
 	m.Get("/api/related/:tablename", GetRelatedChartsHttp)
 	m.Get("/api/related/:tablename/:offset/:count", GetRelatedChartsHttp)
-	m.Get("/api/chart/:tablename/:type/:x/:y", GetChartHttp)
+	m.Get("/api/related/:tablename", GetNewCorrelatedChartsHttp)
+	m.Get("/api/related/:tablename/:offset/:count/:searchdepth", GetNewCorrelatedChartsHttp)
+	m.Get("/api/related/:tablename", GetValidatedCorrelatedChartsHttp)
+	m.Get("/api/related/:tablename/:offset/:count", GetValidatedCorrelatedChartsHttp)
 
 	m.Use(JsonApiHandler)
 
