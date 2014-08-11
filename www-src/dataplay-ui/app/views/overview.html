@@ -110,7 +110,7 @@
 				dc-post-setup-chart="bubbleChartPostSetup"
 			></div>
 
-			<div class="chartSwitch" >
+			<div class="chartSwitch" ng-if="!isPlotAllowed(chart.type)">
 				<div class="well text-center">Oops! nothing to plot.</div>
 			</div>
 		</div>

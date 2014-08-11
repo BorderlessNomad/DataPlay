@@ -17,146 +17,109 @@ angular.module('dataplayApp')
 			right: 10
 			bottom: 50
 			left: 100
-		$scope.info = {}
 		$scope.chart =
+			title: ""
+			description: "N/A"
 			data: null
 		$scope.cfdata = null
 
 		$scope.init = () ->
-			$scope.getInfo()
-			$scope.getData()
-			return
-
-		$scope.getInfo = () ->
 			# Track
 			Tracker.visited $scope.params.id, $scope.params.type, $scope.params.x, $scope.params.y
 
-			Charts.info $scope.params.id
+			Charts.info $scope.params.id, $scope.params.type, $scope.params.x, $scope.params.y
 				.success (data) ->
 					if data?
-						$scope.info = data
-						$scope.info.Notes = $scope.info.Notes.replace /(h1>|h2>|h3>)/ig, 'h4>' if $scope.info.Notes?
+						$scope.chart = data
+
+						if data.desc? and data.desc.length > 0
+							description = data.desc.replace /(h1>|h2>|h3>)/ig, 'h4>'
+							description = description.replace /\n/ig, ''
+							$scope.chart.description = description
+
+						$scope.reduceData()
+
+					console.log "Chart", $scope.chart
+
 					return
-				.error (data) ->
+				.error (data, status) ->
 					console.log "Charts::getInfo::Error:", status
 					return
 
-		$scope.getData = () ->
-			Charts.reducedData $scope.params.id, $scope.params.x, $scope.params.y, 10, 100
-				.then (results) ->
-					$scope.reduceData results.data if results.data?
-
-					Charts.identifyData $scope.params.id
-				.then (results) ->
-					$scope.identifyData results.data if results.data?
-
-					if $scope.params.type in ['bar', 'pie', 'bubble']
-						Charts.groupedData $scope.params.id, $scope.params.x, $scope.params.y
-							.then (results) ->
-								data = if results.data? then results.data else []
-					else
-						$scope.chart.dataset
-				.then (data) ->
-					$scope.chart.type = $scope.params.type
-					$scope.chart.data = $scope.parseResults $scope.params.x, $scope.params.y, data
-
-		$scope.reduceData = (data) ->
-			$scope.chart.dataset = data
-			$scope.chart.keys = []
+		$scope.reduceData = () ->
+			$scope.chart.data = $scope.chart.values
 			$scope.chart.patterns = {}
+			$scope.chart.patterns[$scope.chart.xLabel] =
+				valuePattern: PatternMatcher.getPattern $scope.chart.values[0]['x']
+				keyPattern: PatternMatcher.getKeyPattern $scope.chart.values[0]['x']
 
-			for key of data[0]
-				do (key) ->
-					$scope.chart.keys.push key
-					$scope.chart.patterns[key] =
-						valuePattern: PatternMatcher.getPattern data[0][key]
-						keyPattern: PatternMatcher.getKeyPattern data[0][key]
+			if $scope.chart.patterns[$scope.chart.xLabel].valuePattern is 'date'
+				for value, key in $scope.chart.values
+					$scope.chart.values[key].x = new Date(value.x)
 
-		$scope.identifyData = (data) ->
-			for col in data.Cols
-				do (col) ->
-					switch col.Sqltype
-						when "int", "bigint"
-							$scope.chart.patterns[col.Name].valuePattern = 'intNumber' if $scope.chart.patterns?[col.Name]?.valuePattern?
-						when "float"
-							$scope.chart.patterns[col.Name].valuePattern = 'floatNumber' if $scope.chart.patterns?[col.Name]?.valuePattern?
+			if $scope.chart.yLabel?
+				$scope.chart.patterns[$scope.chart.yLabel] =
+					valuePattern: PatternMatcher.getPattern $scope.chart.values[0]['y']
+					keyPattern: PatternMatcher.getKeyPattern $scope.chart.values[0]['y']
 
-		$scope.parseResults = (xAxis, yAxis, results) ->
-			datapool = []
-			x =
-				key: xAxis
-				pattern: $scope.chart.patterns[xAxis]
-			y =
-				key: yAxis
-				pattern: $scope.chart.patterns[yAxis]
-
-			xData = $scope.parseAxisData results, x
-			yData = $scope.parseAxisData results, y
-
-			datapool.push [xData[i] , yData[i]] for i in [0..results.length - 1]
-
-			datapool
-
-		$scope.parseAxisData = (results, axis) ->
-			data = []
-			valuePattern = PatternMatcher.getPattern results[0][axis.key]
-			for item in results
-				do (item) =>
-					data.push PatternMatcher.parse item[axis.key], valuePattern
-
-			data
-
-		$scope.getXScale = (ordinals, group) ->
-			xScale = switch $scope.chart.patterns[$scope.params.x].valuePattern
+		$scope.getXScale = (data) ->
+			xScale = switch data.patterns[data.xLabel].valuePattern
 				when 'label'
 					d3.scale.ordinal()
-						.domain ordinals
+						.domain data.ordinals
 						.rangeBands [0, $scope.width]
 				when 'date'
 					d3.time.scale()
-						.domain d3.extent(group.all(), (d) -> d.key)
+						.domain d3.extent data.group.all(), (d) -> d.key
 						.range [0, $scope.width]
 				else
 					d3.scale.linear()
-						.domain d3.extent(group.all(), (d) -> d.key)
+						.domain d3.extent data.group.all(), (d) -> parseInt(d.key)
 						.range [0, $scope.width]
 
 			xScale
 
 		$scope.lineChartPostSetup = (chart) ->
-			entry = crossfilter $scope.chart.data
-			dimension = entry.dimension (d) -> d[0]
-			group = dimension.group().reduceSum (d) -> d[1]
+			data = $scope.chart
 
-			chart.dimension dimension
-			chart.group group
+			data.entry = crossfilter data.values
+			data.dimension = data.entry.dimension (d) -> d.x
+			data.group = data.dimension.group().reduceSum (d) -> d.y
 
-			ordinals = []
-			ordinals.push d.key for d in group.all() when d not in ordinals
+			chart.dimension data.dimension
+			chart.group data.group
 
-			chart.colorAccessor (d, i) -> parseInt(d.y) % ordinals.length
+			data.ordinals = []
+			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
 
-			chart.x $scope.getXScale ordinals, group
+			chart.colorAccessor (d, i) -> parseInt(d.y) % data.ordinals.length
+
+			chart.x $scope.getXScale data
 
 			return
 
 		$scope.rowChartPostSetup = (chart) ->
+			data = $scope.chart
+
+			data.entry = crossfilter data.values
+			data.dimension = data.entry.dimension (d) -> d.y
+			data.group = data.dimension.group().reduceSum (d) -> d.x
+
+			chart.dimension data.dimension
+			chart.group data.group
+
+			data.ordinals = []
+			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
+
 			chart.colorAccessor (d, i) -> i + 1
 
-			entry = crossfilter $scope.chart.data
-			dimension = entry.dimension (d) -> d[0]
-			group = dimension.group().reduceSum (d) -> d[1]
+			chart.xAxis()
+				.ticks $scope.xTicks
 
-			chart.dimension dimension
-			chart.group group
-
-			ordinals = []
-			ordinals.push d.key for d in group.all() when d not in ordinals
-
-			chart.x $scope.getXScale ordinals, group
+			chart.x $scope.getXScale data
 
 			if ordinals? and ordinals.length > 0
-				chart.xUnits switch $scope.chart.patterns[$scope.params.x].valuePattern
+				chart.xUnits switch data.patterns[data.xLabel].valuePattern
 					when 'date' then d3.time.years
 					when 'intNumber' then dc.units.integers
 					when 'label', 'text' then dc.units.ordinal
@@ -165,22 +128,24 @@ angular.module('dataplayApp')
 			return
 
 		$scope.columnChartPostSetup = (chart) ->
+			data = $scope.chart
+
+			data.entry = crossfilter data.values
+			data.dimension = data.entry.dimension (d) -> d.x
+			data.group = data.dimension.group().reduceSum (d) -> d.y
+
+			chart.dimension data.dimension
+			chart.group data.group
+
+			data.ordinals = []
+			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
+
 			chart.colorAccessor (d, i) -> i + 1
 
-			entry = crossfilter $scope.chart.data
-			dimension = entry.dimension (d) -> d[0]
-			group = dimension.group().reduceSum (d) -> d[1]
-
-			chart.dimension dimension
-			chart.group group
-
-			ordinals = []
-			ordinals.push d.key for d in group.all() when d not in ordinals
-
-			chart.x $scope.getXScale ordinals, group
+			chart.x $scope.getXScale data
 
 			if ordinals? and ordinals.length > 0
-				chart.xUnits switch $scope.chart.patterns[$scope.params.x].valuePattern
+				chart.xUnits switch data.patterns[data.xLabel].valuePattern
 					when 'date' then d3.time.years
 					when 'intNumber' then dc.units.integers
 					when 'label', 'text' then dc.units.ordinal
@@ -189,26 +154,27 @@ angular.module('dataplayApp')
 			return
 
 		$scope.pieChartPostSetup = (chart) ->
+			data = $scope.chart
+
+			data.entry = crossfilter data.values
+			data.dimension = data.entry.dimension (d) -> d.x
+			data.groupSum = 0
+			data.group = data.dimension.group().reduceSum (d) ->
+				data.groupSum += parseFloat(d.y)
+				d.y
+
+			chart.dimension data.dimension
+			chart.group data.group
+
 			chart.colorAccessor (d, i) -> i + 1
 
 			chart.innerRadius 100
 
-			entry = crossfilter $scope.chart.data
-			dimension = entry.dimension (d) -> d[0]
-
-			groupTotal = 0
-			group = dimension.group().reduceSum (d) ->
-				groupTotal += d[1]
-				d[1]
-
-			chart.dimension dimension
-			chart.group group
-
-			# chart.renderLabel false
-			chart.label (d) -> "#{d.key} (#{Math.floor d.value / groupTotal * 100}%)"
+			chart.renderLabel false
+			chart.label (d) -> "#{d.key} (#{Math.floor d.value / data.groupSum * 100}%)"
 
 			chart.renderTitle false
-			chart.title (d) -> "#{d.key}: #{d.value} [#{Math.floor d.value / groupTotal * 100}%]"
+			chart.title (d) -> "#{d.key}: #{d.value} [#{Math.floor d.value / data.groupSum * 100}%]"
 
 			chart.legend dc.legend()
 
