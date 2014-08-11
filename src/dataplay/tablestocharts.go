@@ -24,7 +24,6 @@ func GetChart(tableName string, chartType string, x string, y string) (TableData
 	guid, _ := GetRealTableName(tableName)
 	index := Index{}
 	chart := make([]TableData, 0)
-	sql := ""
 	xy := XYVal{X: x, Xtype: "", Y: y, Ytype: ""}
 
 	err := DB.Where("guid = ?", tableName).Find(&index).Error
@@ -44,13 +43,7 @@ func GetChart(tableName string, chartType string, x string, y string) (TableData
 		}
 	}
 
-	if chartType == "pie" {
-		sql = fmt.Sprintf("SELECT %s AS x, COUNT(%s) AS y FROM %s GROUP BY %s", x, x, guid, x)
-	} else {
-		sql = fmt.Sprintf("SELECT %s AS x, %s AS y FROM  %s", x, y, guid)
-	}
-
-	GetChartData(chartType, sql, xy, &chart, index)
+	GetChartData(chartType, guid, xy, &chart, index)
 	result := chart[0]
 	return result, nil
 }
@@ -75,18 +68,22 @@ func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *
 	for _, v := range columns { // create single column pie charts
 		xyPie.X = v.Name
 		xyPie.Xtype = v.Sqltype
-		pieSQL := fmt.Sprintf("SELECT %s AS x, COUNT(%s) AS y FROM %s GROUP BY %s", v.Name, v.Name, guid, v.Name)
-		GetChartData("pie", pieSQL, xyPie, &charts, index)
+		GetChartData("pie", guid, xyPie, &charts, index)
 	}
 
-	for _, v := range xyNames { /// create column and line charts, stacked column if plotting varchar against varchar
-		sql := fmt.Sprintf("SELECT %s AS x, %s AS y FROM  %s", v.X, v.Y, guid)
-		if v.Xtype == "varchar" && v.Ytype == "varchar" {
-			GetChartData("stacked column", sql, v, &charts, index)
+	for _, v := range xyNames { /// create all other types of chart
+
+		if v.Xtype == "varchar" && v.Ytype == "varchar" { // stacked or scatter charts if string v string values
+			GetChartData("stacked column", guid, v, &charts, index)
+			GetChartData("scatter", guid, v, &charts, index)
+		} else { // column and row charts for all that are not string v string values
+			GetChartData("column", guid, v, &charts, index)
+			GetChartData("row", guid, v, &charts, index)
 		}
-		GetChartData("column", sql, v, &charts, index)
-		GetChartData("line", sql, v, &charts, index)
-		GetChartData("row", sql, v, &charts, index)
+
+		if v.Xtype == "date" || v.Xtype == "float" { // line chart only where x is a date or number value
+			GetChartData("line", guid, v, &charts, index)
+		}
 	}
 
 	// for i := range charts { // shuffle charts into random order
@@ -247,28 +244,8 @@ func GetValidatedCorrelatedCharts(tableName string, offset int, count int) (Rela
 	return RelatedCorrelatedCharts{charts, totalCharts}, nil
 }
 
-// Generate all possible permutations of xy columns
-func XYPermutations(columns []ColType) []XYVal {
-	length := len(columns)
-	var xyNames []XYVal
-	var tmpXY XYVal
-
-	for i := 0; i < length; i++ {
-		for j := 0; j < length; j++ {
-			if columns[i] != columns[j] {
-				tmpXY.X = columns[i].Name
-				tmpXY.Y = columns[j].Name
-				tmpXY.Xtype = columns[i].Sqltype
-				tmpXY.Ytype = columns[j].Sqltype
-				xyNames = append(xyNames, tmpXY)
-			}
-		}
-	}
-	return xyNames
-}
-
 // Get arrays of data for the types of charts requested (titles, descriptions, all the xy values etc)
-func GetChartData(chartType string, sql string, names XYVal, charts *[]TableData, ind Index) {
+func GetChartData(chartType string, guid string, names XYVal, charts *[]TableData, ind Index) {
 	var tmpTD TableData
 	var tmpXY XYVal
 	tmpTD.ChartType = chartType
@@ -279,6 +256,19 @@ func GetChartData(chartType string, sql string, names XYVal, charts *[]TableData
 	var fx, fy float64
 	var vx, vy string
 	pieSlices := 0
+	sql := ""
+
+	if chartType == "pie" {
+		if names.Xtype == "float" {
+			sql = fmt.Sprintf("SELECT %s AS x, SUM(%s) AS y FROM %s GROUP BY %s", names.X, names.X, guid, names.X)
+			tmpTD.LabelY = "sum"
+		} else {
+			sql = fmt.Sprintf("SELECT %s AS x, COUNT(%s) AS y FROM %s GROUP BY %s", names.X, names.X, guid, names.X)
+			tmpTD.LabelY = "count"
+		}
+	} else {
+		sql = fmt.Sprintf("SELECT %s AS x, %s AS y FROM  %s", names.X, names.Y, guid)
+	}
 
 	rows, _ := DB.Raw(sql).Rows()
 	defer rows.Close()
@@ -368,6 +358,26 @@ func GetChartData(chartType string, sql string, names XYVal, charts *[]TableData
 
 		*charts = append(*charts, tmpTD)
 	}
+}
+
+// Generate all possible permutations of xy columns
+func XYPermutations(columns []ColType) []XYVal {
+	length := len(columns)
+	var xyNames []XYVal
+	var tmpXY XYVal
+
+	for i := 0; i < length; i++ {
+		for j := 0; j < length; j++ {
+			if columns[i] != columns[j] {
+				tmpXY.X = columns[i].Name
+				tmpXY.Y = columns[j].Name
+				tmpXY.Xtype = columns[i].Sqltype
+				tmpXY.Ytype = columns[j].Sqltype
+				xyNames = append(xyNames, tmpXY)
+			}
+		}
+	}
+	return xyNames
 }
 
 //////////////////////////////////////////////////////////////////////////
