@@ -9,6 +9,7 @@
 ###
 angular.module('dataplayApp')
 	.controller 'OverviewCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', ($scope, $routeParams, Overview, PatternMatcher) ->
+		$scope.allowed = ['line', 'bar', 'row', 'column', 'pie', 'bubble']
 		$scope.params = $routeParams
 		$scope.chartsInfo = []
 		$scope.chartRegistryOffset = 0
@@ -25,17 +26,17 @@ angular.module('dataplayApp')
 		$scope.getChartOffset = (chart) ->
 			chart.__dc_flag__ - $scope.chartRegistryOffset - 1
 
+		$scope.isPlotAllowed = (type) ->
+			if type in $scope.allowed then true else false
+
 		$scope.getRelatedCharts = () ->
 			$scope.chartRegistryOffset = dc.chartRegistry.list().length
-
-			allowed = ['line', 'bar', 'row', 'column', 'pie', 'bubble']
 
 			Overview.related $scope.params.id
 				.success (data) ->
 					if data? and data.Charts? and data.Charts.length > 0
 						for key, chart of data.Charts
-							if chart.type not in allowed
-								continue
+							continue unless $scope.isPlotAllowed chart.type
 
 							chart.id = "#{$scope.params.id}-#{chart.xLabel}-#{chart.yLabel}-#{chart.type}"
 
