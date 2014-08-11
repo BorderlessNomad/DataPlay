@@ -28,17 +28,15 @@ angular.module('dataplayApp')
 		$scope.getRelatedCharts = () ->
 			$scope.chartRegistryOffset = dc.chartRegistry.list().length
 
-			allowed = ['line', 'bar', 'column', 'pie']
+			allowed = ['line', 'bar', 'row', 'column', 'pie', 'bubble']
 
 			Overview.related $scope.params.id
 				.success (data) ->
 					if data? and data.Charts? and data.Charts.length > 0
 						for key, chart of data.Charts
-							chart.type = chart.chart
 							if chart.type not in allowed
-								console.log "continue", chart.type
 								continue
-							console.log "ok", chart.type
+
 							chart.id = "#{$scope.params.id}-#{chart.xLabel}-#{chart.yLabel}-#{chart.type}"
 
 							chart.patterns = []
@@ -55,9 +53,10 @@ angular.module('dataplayApp')
 									valuePattern: PatternMatcher.getPattern chart.values[0]['y']
 									keyPattern: PatternMatcher.getKeyPattern chart.values[0]['y']
 
-							$scope.chartsInfo.push chart
+							if $scope.includePattern chart
+								$scope.chartsInfo.push chart
 
-						console.log "getRelatedCharts", $scope.chartsInfo
+						console.log "getRelatedCharts", $scope.chartsInfo, $scope.chartsInfo.length
 
 					return
 				.error (data, status) ->
@@ -65,6 +64,21 @@ angular.module('dataplayApp')
 					return
 
 			return
+
+		$scope.includePattern = (data) ->
+			xPattern = data.patterns[data.xLabel].valuePattern
+			xKeyPattern = data.patterns[data.xLabel].keyPattern
+
+			useGroup = switch xPattern
+				when 'excluded' then false
+				when 'label', 'date', 'postCode', 'creditCard', 'currency' then true
+				when 'intNumber', 'floatNumber' then switch xKeyPattern
+					when 'date', 'coefficient' then true
+					when null then true
+					else false
+				else false
+
+			useGroup
 
 		$scope.getXScale = (data) ->
 			xScale = switch data.patterns[data.xLabel].valuePattern
@@ -127,9 +141,7 @@ angular.module('dataplayApp')
 
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) -> d.y
-			data.group = data.dimension.group().reduceSum (d) ->
-				console.log "group", d
-				d.x
+			data.group = data.dimension.group().reduceSum (d) -> d.x
 
 			chart.dimension data.dimension
 			chart.group data.group
@@ -144,12 +156,12 @@ angular.module('dataplayApp')
 
 			chart.x $scope.getXScale data
 
-			# if ordinals? and ordinals.length > 0
-			# 	chart.xUnits switch data.patterns[data.xLabel].valuePattern
-			# 		when 'date' then d3.time.years
-			# 		when 'intNumber' then dc.units.integers
-			# 		when 'label', 'text' then dc.units.ordinal
-			# 		else dc.units.ordinal
+			if ordinals? and ordinals.length > 0
+				chart.xUnits switch data.patterns[data.xLabel].valuePattern
+					when 'date' then d3.time.years
+					when 'intNumber' then dc.units.integers
+					when 'label', 'text' then dc.units.ordinal
+					else dc.units.ordinal
 
 			return
 

@@ -303,8 +303,7 @@ angular.module('dataplayApp')
 										match = handler.pattern.exec src
 										if match
 											pattern = entity.name
-											console.log "Value Pattern --> #{pattern}: #{src}"
-											#console.log match
+
 				pattern
 
 			getKeyPattern: (src) ->
@@ -315,8 +314,7 @@ angular.module('dataplayApp')
 							match = key.pattern.exec src
 							if match
 								pattern = key.name
-								console.log "Key Pattern --> #{pattern}: #{src}"
-								#console.log match
+
 				pattern
 
 			parse: (src, pattern) ->
@@ -329,7 +327,6 @@ angular.module('dataplayApp')
 									match = handler.pattern.exec src
 									if match
 										parsed = if handler.parse then handler.parse match else src
-									#console.log match
-									#console.log parsed
+
 				parsed
 		}

@@ -67,7 +67,7 @@ func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *
 	last := offset + count
 	if offset != 0 && last > totalCharts {
 		return RelatedCharts{nil, 0}, &appError{nil, fmt.Sprintf("Count value out of bounds (Max: %d)", totalCharts-offset), http.StatusBadRequest}
-	} else if offset == 0 && last > totalCharts {
+	} else if offset == 0 && (last > totalCharts || count == 0) {
 		last = totalCharts
 	}
 
