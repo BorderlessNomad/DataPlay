@@ -8,7 +8,7 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'OverviewCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', ($scope, $routeParams, Overview, PatternMatcher) ->
+	.controller 'OverviewCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', 'cfpLoadingBar', ($scope, $routeParams, Overview, PatternMatcher, Loader) ->
 		$scope.allowed = ['line', 'bar', 'row', 'column', 'pie', 'bubble']
 		$scope.params = $routeParams
 		$scope.chartsInfo = []
@@ -22,6 +22,20 @@ angular.module('dataplayApp')
 			right: 10
 			bottom: 30
 			left: 70
+		$scope.monthNames = [
+			"Jan"
+			"Feb"
+			"Mar"
+			"Apr"
+			"May"
+			"Jun"
+			"Jul"
+			"Aug"
+			"Sep"
+			"Oct"
+			"Nov"
+			"Dec"
+		]
 
 		$scope.getChartOffset = (chart) ->
 			chart.__dc_flag__ - $scope.chartRegistryOffset - 1
@@ -31,6 +45,8 @@ angular.module('dataplayApp')
 
 		$scope.getRelatedCharts = () ->
 			$scope.chartRegistryOffset = dc.chartRegistry.list().length
+
+			Loader.start()
 
 			Overview.related $scope.params.id
 				.success (data) ->
@@ -58,6 +74,8 @@ angular.module('dataplayApp')
 								$scope.chartsInfo.push chart
 
 						console.log "getRelatedCharts", $scope.chartsInfo, $scope.chartsInfo.length
+
+						Loader.complete()
 
 					return
 				.error (data, status) ->
@@ -196,11 +214,15 @@ angular.module('dataplayApp')
 			data = $scope.chartsInfo[$scope.getChartOffset chart]
 
 			data.entry = crossfilter data.values
-			data.dimension = data.entry.dimension (d) -> d.x
+			data.dimension = data.entry.dimension (d) ->
+				if data.patterns[data.xLabel].valuePattern is 'date'
+					return "#{d.x.getDate()} #{$scope.monthNames[d.x.getMonth()]} #{d.x.getFullYear()}"
+				x = if d.x? and (d.x.length > 0 || data.patterns[data.xLabel].valuePattern is 'date') then d.x else "N/A"
 			data.groupSum = 0
 			data.group = data.dimension.group().reduceSum (d) ->
-				data.groupSum += parseFloat(d.y)
-				d.y
+				y = Math.abs parseFloat d.y
+				data.groupSum += y
+				y
 
 			chart.dimension data.dimension
 			chart.group data.group
@@ -210,10 +232,14 @@ angular.module('dataplayApp')
 			# chart.innerRadius 100
 
 			chart.renderLabel false
-			chart.label (d) -> "#{d.key} (#{Math.floor d.value / data.groupSum * 100}%)"
+			chart.label (d) ->
+				percent = d.value / data.groupSum * 100
+				"#{d.key} (#{Math.floor percent}%)"
 
 			chart.renderTitle false
-			chart.title (d) -> "#{d.key}: #{d.value} [#{Math.floor d.value / data.groupSum * 100}%]"
+			chart.title (d) ->
+				percent = d.value / data.groupSum * 100
+				"#{d.key}: #{d.value} [#{Math.floor percent}%]"
 
 			# chart.legend dc.legend()
 

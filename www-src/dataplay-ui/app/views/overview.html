@@ -6,8 +6,7 @@
 	<div class="row" ng-init="getRelatedCharts()">
 		<div class="col-md-4" ng-repeat="chart in chartsInfo" id="{{chart.id}}">
 			<a ng-href="/charts/{{params.id}}/{{chart.type}}/{{chart.xLabel}}/{{chart.yLabel}}">
-				<span ng-show="chart.xLabel && chart.yLabel"><h4>{{chart.xLabel}}</h4> <h5>vs</h5> <h4>{{chart.yLabel}}</h4></span>
-				<span ng-show="chart.xLabel && !chart.yLabel"><h4>{{chart.xLabel}}</h4></span>
+				<span><h4>{{chart.xLabel}}</h4> <h5>vs</h5> <h4>{{chart.yLabel}}</h4></span>
 			</a>
 
 			<div class="chartSwitch"

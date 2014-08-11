@@ -18,7 +18,8 @@
     "crossfilter": "^1.3.7",
     "d3": "^3.4.11",
     "dcjs": "master",
-    "angular-dc": "master"
+    "angular-dc": "master",
+    "angular-loading-bar": "master"
   },
   "devDependencies": {
     "angular-mocks": "^1.2",
