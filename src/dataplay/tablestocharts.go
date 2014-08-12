@@ -89,7 +89,7 @@ func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *
 			GetChartData("row", guid, v, &charts, index)
 		}
 
-		if v.Xtype == "date" || (v.Xtype == "float" || v.Xtype == "integer") { // line chart only where x is a date or number value
+		if v.Xtype != "varchar" && v.Ytype != "date" { // line chart only where x is a date or number value
 			GetChartData("line", guid, v, &charts, index)
 		}
 	}
