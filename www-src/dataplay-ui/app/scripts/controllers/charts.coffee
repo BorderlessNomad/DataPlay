@@ -10,8 +10,8 @@
 angular.module('dataplayApp')
 	.controller 'ChartsCtrl', ['$scope', '$routeParams', 'PatternMatcher', 'Charts', 'Tracker', ($scope, $routeParams, PatternMatcher, Charts, Tracker) ->
 		$scope.params = $routeParams
-		$scope.width = 1170 - (15 + 15);
-		$scope.height = $scope.width * 9 / 16
+		$scope.width = 1170;
+		$scope.height = $scope.width * 9 / 16 # 16:9
 		$scope.margin =
 			top: 50
 			right: 10
@@ -94,22 +94,22 @@ angular.module('dataplayApp')
 			xScale
 
 		$scope.getYScale = (data) ->
-			xScale = switch data.patterns[data.xLabel].valuePattern
+			yScale = switch data.patterns[data.yLabel].valuePattern
 				when 'label'
 					d3.scale.ordinal()
 						.domain data.ordinals
-						.rangeBands [0, $scope.width]
+						.rangeBands [0, $scope.height]
 				when 'date'
 					d3.time.scale()
 						.domain d3.extent data.group.all(), (d) -> d.value
-						.range [0, $scope.width]
+						.range [0, $scope.height]
 				else
 					d3.scale.linear()
 						.domain d3.extent data.group.all(), (d) -> parseInt d.value
-						.range [0, $scope.width]
+						.range [0, $scope.height]
 						.nice()
 
-			xScale
+			yScale
 
 		$scope.lineChartPostSetup = (chart) ->
 			data = $scope.chart
@@ -143,7 +143,7 @@ angular.module('dataplayApp')
 			data.ordinals = []
 			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
 
-			chart.colorAccessor (d, i) -> i + 1
+			chart.colorAccessor (d, i) -> (i + 1) % 20
 
 			chart.xAxis()
 				.ticks $scope.xTicks
