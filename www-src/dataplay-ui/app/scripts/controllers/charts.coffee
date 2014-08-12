@@ -225,45 +225,25 @@ angular.module('dataplayApp')
 		$scope.bubbleChartPostSetup = (chart) ->
 			data = $scope.chart
 
+			tempData = []
+
 			data.entry = crossfilter data.values
-
-			xMax = 0
 			data.dimension = data.entry.dimension (d) ->
-				if xMax is 0 or d.x > xMax
-					xMax = d.x
+				tempData["#{d.x}_#{d.y}"] = d.z
 				d.x
-
-			yMax = 0
-			data.group = data.dimension.group().reduceSum (d) ->
-				if yMax is 0 or d.y > yMax
-					yMax = d.y
-				d.y
+			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
 			chart.group data.group
 
-			chart.colorAccessor (d) -> d.key.x
+			data.ordinals = []
+			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
 
 			chart.keyAccessor (d) -> d.key
 			chart.valueAccessor (d) -> d.value
-			chart.radiusValueAccessor (d) -> d.value
+			chart.radiusValueAccessor (d) -> tempData["#{d.key}_#{d.value}"]
 
-			xScale = d3.scale.linear()
-				.domain [-xMax, xMax]
-				.range [0, $scope.width]
-
-			y0 = Math.min -d3.min(data.group.all()).value, d3.max(data.group.all()).value
-			console.log "y0", y0
-			yScale = d3.scale.linear()
-				.domain [-yMax, yMax]
-				.range [0, $scope.height]
-
-			chart.x xScale
-			chart.y yScale
-			chart.r d3.scale.linear().domain d3.extent data.group.all(), (d) -> parseInt d.value
-
-			chart.label (d) -> d.value
-			chart.title (d) -> d.value
+			chart.x $scope.getXScale data
 
 			return
 

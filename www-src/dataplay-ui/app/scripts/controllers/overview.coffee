@@ -242,23 +242,25 @@ angular.module('dataplayApp')
 		$scope.bubbleChartPostSetup = (chart) ->
 			data = $scope.chartsInfo[$scope.getChartOffset chart]
 
+			tempData = []
+
 			data.entry = crossfilter data.values
-			data.dimension = data.entry.dimension (d) -> d
+			data.dimension = data.entry.dimension (d) ->
+				tempData["#{d.x}_#{d.y}"] = d.z
+				d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
 			chart.group data.group
 
-			chart.colorAccessor (d) -> d.key.x
+			data.ordinals = []
+			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
 
-			chart.keyAccessor (d) -> d.key.x
-			chart.valueAccessor (d) -> d.key.y
-			chart.radiusValueAccessor (d) -> d.key.z
+			chart.keyAccessor (d) -> d.key
+			chart.valueAccessor (d) -> d.value
+			chart.radiusValueAccessor (d) -> tempData["#{d.key}_#{d.value}"]
 
-			chart.x d3.scale.linear().domain(d3.extent(data.group.all(), (d) -> parseInt(d.value)))
-			chart.r d3.scale.linear().domain(d3.extent(data.group.all(), (d) -> parseInt(d.value)))
-			chart.label (d) -> d.value
-			chart.title (d) -> d.value
+			chart.x $scope.getXScale data
 
 			return
 
