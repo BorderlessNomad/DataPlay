@@ -88,8 +88,26 @@ angular.module('dataplayApp')
 						.range [0, $scope.width]
 				else
 					d3.scale.linear()
-						.domain d3.extent data.group.all(), (d) -> parseInt(d.key)
+						.domain d3.extent data.group.all(), (d) -> parseInt d.key
 						.range [0, $scope.width]
+
+			xScale
+
+		$scope.getYScale = (data) ->
+			xScale = switch data.patterns[data.xLabel].valuePattern
+				when 'label'
+					d3.scale.ordinal()
+						.domain data.ordinals
+						.rangeBands [0, $scope.width]
+				when 'date'
+					d3.time.scale()
+						.domain d3.extent data.group.all(), (d) -> d.value
+						.range [0, $scope.width]
+				else
+					d3.scale.linear()
+						.domain d3.extent data.group.all(), (d) -> parseInt d.value
+						.range [0, $scope.width]
+						.nice()
 
 			xScale
 
@@ -116,8 +134,8 @@ angular.module('dataplayApp')
 			data = $scope.chart
 
 			data.entry = crossfilter data.values
-			data.dimension = data.entry.dimension (d) -> d.y
-			data.group = data.dimension.group().reduceSum (d) -> d.x
+			data.dimension = data.entry.dimension (d) -> d.x
+			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
 			chart.group data.group
@@ -130,7 +148,7 @@ angular.module('dataplayApp')
 			chart.xAxis()
 				.ticks $scope.xTicks
 
-			chart.x $scope.getXScale data
+			chart.x $scope.getYScale data
 
 			if ordinals? and ordinals.length > 0
 				chart.xUnits switch data.patterns[data.xLabel].valuePattern

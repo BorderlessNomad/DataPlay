@@ -8,7 +8,7 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'OverviewCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', 'cfpLoadingBar', ($scope, $routeParams, Overview, PatternMatcher, Loader) ->
+	.controller 'OverviewCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', ($scope, $routeParams, Overview, PatternMatcher) ->
 		$scope.allowed = ['line', 'bar', 'row', 'column', 'pie', 'bubble']
 		$scope.params = $routeParams
 		$scope.chartsInfo = []
@@ -46,8 +46,6 @@ angular.module('dataplayApp')
 		$scope.getRelatedCharts = () ->
 			$scope.chartRegistryOffset = dc.chartRegistry.list().length
 
-			Loader.start()
-
 			Overview.related $scope.params.id
 				.success (data) ->
 					if data? and data.Charts? and data.Charts.length > 0
@@ -74,8 +72,6 @@ angular.module('dataplayApp')
 								$scope.chartsInfo.push chart
 
 						console.log "getRelatedCharts", $scope.chartsInfo, $scope.chartsInfo.length
-
-						Loader.complete()
 
 					return
 				.error (data, status) ->
@@ -111,25 +107,26 @@ angular.module('dataplayApp')
 						.range [0, $scope.width]
 				else
 					d3.scale.linear()
-						.domain d3.extent data.group.all(), (d) -> parseInt(d.key)
+						.domain d3.extent data.group.all(), (d) -> parseInt d.key
 						.range [0, $scope.width]
 
 			xScale
 
 		$scope.getYScale = (data) ->
-			xScale = switch data.patterns[data.yLabel].valuePattern
+			xScale = switch data.patterns[data.xLabel].valuePattern
 				when 'label'
 					d3.scale.ordinal()
 						.domain data.ordinals
-						.rangeBands [0, $scope.height]
+						.rangeBands [0, $scope.width]
 				when 'date'
 					d3.time.scale()
-						.domain d3.extent data.group.all(), (d) -> d.key
-						.range [0, $scope.height]
+						.domain d3.extent data.group.all(), (d) -> d.value
+						.range [0, $scope.width]
 				else
 					d3.scale.linear()
-						.domain d3.extent data.group.all(), (d) -> parseInt(d.key)
-						.range [0, $scope.height]
+						.domain d3.extent data.group.all(), (d) -> parseInt d.value
+						.range [0, $scope.width]
+						.nice()
 
 			xScale
 
@@ -159,8 +156,8 @@ angular.module('dataplayApp')
 			data = $scope.chartsInfo[$scope.getChartOffset chart]
 
 			data.entry = crossfilter data.values
-			data.dimension = data.entry.dimension (d) -> d.y
-			data.group = data.dimension.group().reduceSum (d) -> d.x
+			data.dimension = data.entry.dimension (d) -> d.x
+			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
 			chart.group data.group
@@ -173,7 +170,7 @@ angular.module('dataplayApp')
 			chart.xAxis()
 				.ticks $scope.xTicks
 
-			chart.x $scope.getXScale data
+			chart.x $scope.getYScale data
 
 			if ordinals? and ordinals.length > 0
 				chart.xUnits switch data.patterns[data.xLabel].valuePattern
@@ -229,8 +226,6 @@ angular.module('dataplayApp')
 
 			chart.colorAccessor (d, i) -> i + 1
 
-			# chart.innerRadius 100
-
 			chart.renderLabel false
 			chart.label (d) ->
 				percent = d.value / data.groupSum * 100
@@ -240,10 +235,6 @@ angular.module('dataplayApp')
 			chart.title (d) ->
 				percent = d.value / data.groupSum * 100
 				"#{d.key}: #{d.value} [#{Math.floor percent}%]"
-
-			# chart.legend dc.legend()
-
-			# chart.minAngleForLabel 0
 
 			return
 
