@@ -266,7 +266,7 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 	var dx, dy time.Time
 	var fx, fy, fz float64
 	var vx, vy string
-	pieSlices := 0
+	pieSlices, rowAmt := 0, 0
 	sql := ""
 
 	if chartType == "pie" {
@@ -352,13 +352,16 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 			}
 		}
 
-		if pieSlices < 20 && pieSlices > 1 { // reject pies with too many slices or not enough
+		if pieSlices <= 20 && pieSlices > 1 { // reject pies with too many slices or not enough
 			*charts = append(*charts, tmpTD)
 		}
 
 	} else { // for all other types of chart
 		tmpTD.LabelY = names.Y
 		for rows.Next() {
+			if chartType == "row" {
+				rowAmt++
+			}
 			if names.Xtype == "date" && names.Ytype == "date" {
 				rows.Scan(&dx, &dy)
 				tmpXY.X = (dx.String()[0:10])
@@ -411,7 +414,13 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 			}
 		}
 
-		*charts = append(*charts, tmpTD)
+		if chartType == "row" {
+			if rowAmt <= 20 && rowAmt > 1 {
+				*charts = append(*charts, tmpTD)
+			}
+		} else {
+			*charts = append(*charts, tmpTD)
+		}
 	}
 }
 
