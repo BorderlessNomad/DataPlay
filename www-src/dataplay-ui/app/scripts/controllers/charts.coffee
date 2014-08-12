@@ -22,6 +22,20 @@ angular.module('dataplayApp')
 			description: "N/A"
 			data: null
 		$scope.cfdata = null
+		$scope.monthNames = [
+			"Jan"
+			"Feb"
+			"Mar"
+			"Apr"
+			"May"
+			"Jun"
+			"Jul"
+			"Aug"
+			"Sep"
+			"Oct"
+			"Nov"
+			"Dec"
+		]
 
 		$scope.init = () ->
 			# Track
@@ -74,8 +88,26 @@ angular.module('dataplayApp')
 						.range [0, $scope.width]
 				else
 					d3.scale.linear()
-						.domain d3.extent data.group.all(), (d) -> parseInt(d.key)
+						.domain d3.extent data.group.all(), (d) -> parseInt d.key
 						.range [0, $scope.width]
+
+			xScale
+
+		$scope.getYScale = (data) ->
+			xScale = switch data.patterns[data.xLabel].valuePattern
+				when 'label'
+					d3.scale.ordinal()
+						.domain data.ordinals
+						.rangeBands [0, $scope.width]
+				when 'date'
+					d3.time.scale()
+						.domain d3.extent data.group.all(), (d) -> d.value
+						.range [0, $scope.width]
+				else
+					d3.scale.linear()
+						.domain d3.extent data.group.all(), (d) -> parseInt d.value
+						.range [0, $scope.width]
+						.nice()
 
 			xScale
 
@@ -102,8 +134,8 @@ angular.module('dataplayApp')
 			data = $scope.chart
 
 			data.entry = crossfilter data.values
-			data.dimension = data.entry.dimension (d) -> d.y
-			data.group = data.dimension.group().reduceSum (d) -> d.x
+			data.dimension = data.entry.dimension (d) -> d.x
+			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
 			chart.group data.group
@@ -116,7 +148,7 @@ angular.module('dataplayApp')
 			chart.xAxis()
 				.ticks $scope.xTicks
 
-			chart.x $scope.getXScale data
+			chart.x $scope.getYScale data
 
 			if ordinals? and ordinals.length > 0
 				chart.xUnits switch data.patterns[data.xLabel].valuePattern
@@ -157,11 +189,15 @@ angular.module('dataplayApp')
 			data = $scope.chart
 
 			data.entry = crossfilter data.values
-			data.dimension = data.entry.dimension (d) -> d.x
+			data.dimension = data.entry.dimension (d) ->
+				if data.patterns[data.xLabel].valuePattern is 'date'
+					return "#{d.x.getDate()} #{$scope.monthNames[d.x.getMonth()]} #{d.x.getFullYear()}"
+				x = if d.x? and (d.x.length > 0 || data.patterns[data.xLabel].valuePattern is 'date') then d.x else "N/A"
 			data.groupSum = 0
 			data.group = data.dimension.group().reduceSum (d) ->
-				data.groupSum += parseFloat(d.y)
-				d.y
+				y = Math.abs parseFloat d.y
+				data.groupSum += y
+				y
 
 			chart.dimension data.dimension
 			chart.group data.group
@@ -171,10 +207,14 @@ angular.module('dataplayApp')
 			chart.innerRadius 100
 
 			chart.renderLabel false
-			chart.label (d) -> "#{d.key} (#{Math.floor d.value / data.groupSum * 100}%)"
+			chart.label (d) ->
+				percent = d.value / data.groupSum * 100
+				"#{d.key} (#{Math.floor percent}%)"
 
 			chart.renderTitle false
-			chart.title (d) -> "#{d.key}: #{d.value} [#{Math.floor d.value / data.groupSum * 100}%]"
+			chart.title (d) ->
+				percent = d.value / data.groupSum * 100
+				"#{d.key}: #{d.value} [#{Math.floor percent}%]"
 
 			chart.legend dc.legend()
 
