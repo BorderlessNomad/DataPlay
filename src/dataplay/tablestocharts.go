@@ -341,7 +341,7 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 				tmpXY.X = (dx.String()[0:10])
 				tmpXY.Y = FloatToString(fy)
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if names.Xtype == "float" {
+			} else if names.Xtype == "float" || names.Xtype == "integer" {
 				rows.Scan(&fx, &fy)
 				tmpXY.X = FloatToString(fx)
 				tmpXY.Y = FloatToString(fy)
