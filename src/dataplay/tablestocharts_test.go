@@ -20,22 +20,6 @@ func TestGetRelatedCharts(t *testing.T) {
 	})
 }
 
-// func TestGetRelatedChartsHttp(t *testing.T) {
-// 	req, _ := http.NewRequest("GET", "/", nil)
-// 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
-// 	res := httptest.NewRecorder()
-// 	params := map[string]string{
-// 		"user":      "1",
-// 		"offset":    "0",
-// 		"count":     "10",
-// 		"tablename": "fe5e88f1c898b2ea870c928a3b94d5a1bf219d057e68010a018a73634dd",
-// 	}
-// 	Convey("Should return chartlist", t, func() {
-// 		result := GetRelatedChartsHttp(res, req, params)
-// 		So(result, ShouldEqual, "")
-// 	})
-// }
-
 func TestGetRelatedChartsHttp(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
@@ -43,12 +27,12 @@ func TestGetRelatedChartsHttp(t *testing.T) {
 	params := map[string]string{
 		"user":      "1",
 		"offset":    "0",
-		"count":     "6",
-		"tablename": "gold",
+		"count":     "60",
+		"tablename": "gdp",
 	}
 	Convey("Should return chartlist", t, func() {
 		result := GetRelatedChartsHttp(res, req, params)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 }
 
@@ -63,7 +47,18 @@ func TestGetChart(t *testing.T) {
 		"x":         "price",
 		"y":         "date",
 	}
-	Convey("Should return chartlist", t, func() {
+	Convey("Should return xy chartlist", t, func() {
+		result := GetChartHttp(res, req, params)
+		So(result, ShouldNotBeNil)
+	})
+
+	params["tablename"] = "gdp"
+	params["type"] = "bubble"
+	params["x"] = "year"
+	params["y"] = "gdp"
+	params["z"] = "change"
+
+	Convey("Should return xyz chartlist", t, func() {
 		result := GetChartHttp(res, req, params)
 		So(result, ShouldNotBeNil)
 	})

@@ -3,6 +3,7 @@ package main
 import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+	"time"
 )
 
 func TestPearson(t *testing.T) {
@@ -64,6 +65,38 @@ func TestSpearman(t *testing.T) {
 	Convey("Should return valid correlation coefficient for sets of equal size with tied data", t, func() {
 		result := Spearman(tiedData1, tiedData2)
 		So(result, ShouldEqual, 0.5957474328064633)
+	})
+}
+
+func TestVisual(t *testing.T) {
+	t1 := time.Date(2014, 1, 1, 0, 0, 0, 0, time.UTC)
+	t2 := time.Date(2014, 1, 2, 0, 0, 0, 0, time.UTC)
+	t3 := time.Date(2014, 1, 3, 0, 0, 0, 0, time.UTC)
+	t4 := time.Date(2014, 1, 4, 0, 0, 0, 0, time.UTC)
+	t5 := time.Date(2014, 1, 5, 0, 0, 0, 0, time.UTC)
+	t6 := time.Date(2014, 1, 6, 0, 0, 0, 0, time.UTC)
+	t7 := time.Date(2014, 1, 7, 0, 0, 0, 0, time.UTC)
+
+	ft := make([]FromTo, 6)
+	ft[0].From = t1
+	ft[0].To = t2
+	ft[1].From = t2
+	ft[1].To = t3
+	ft[2].From = t3
+	ft[2].To = t4
+	ft[3].From = t4
+	ft[3].To = t5
+	ft[4].From = t5
+	ft[4].To = t6
+	ft[5].From = t6
+	ft[5].To = t7
+
+	var data1 = []float64{65, 70, 40, 60, 65, 56}
+	var data2 = []float64{66, 70, 40, 60, 65, 56}
+
+	Convey("Should return valid correlation coefficient for sets of equal size with tied data", t, func() {
+		result := Visual(data1, data2, ft)
+		So(result, ShouldEqual, 0.9971988795518206)
 	})
 }
 
