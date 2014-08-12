@@ -51,8 +51,8 @@ func GetChart(tableName string, chartType string, coords ...string) (TableData, 
 	}
 
 	GetChartData(chartType, guid, xyz, &chart, index)
-	result := chart[0]
-	return result, nil
+	fmt.Println("ROBOCOP", chart[0])
+	return chart[0], nil
 }
 
 // generate all the potentially valid charts that relate to a single tablename, add apt charting types, and return them along with their total count
@@ -313,11 +313,13 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 				tmpXY.Y = (dx.String()[0:10])
 				tmpXY.Y = FloatToString(fy)
 				tmpXY.Z = FloatToString(fz)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			} else if names.Xtype == "varchar" && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
 				rows.Scan(&vx, &fy, &fz)
 				tmpXY.Y = vx
 				tmpXY.Y = FloatToString(fy)
 				tmpXY.Z = FloatToString(fz)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			} else {
 				tmpXY.X = ""
 				tmpXY.Y = ""
@@ -325,8 +327,9 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			}
 		}
-
-		*charts = append(*charts, tmpTD)
+		if ValueCheck(tmpTD) {
+			*charts = append(*charts, tmpTD)
+		}
 
 	} else if chartType == "pie" { // single column pie chart x = type, y = count
 		for rows.Next() {
@@ -353,7 +356,9 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 		}
 
 		if pieSlices <= 20 && pieSlices > 1 { // reject pies with too many slices or not enough
-			*charts = append(*charts, tmpTD)
+			if ValueCheck(tmpTD) {
+				*charts = append(*charts, tmpTD)
+			}
 		}
 
 	} else { // for all other types of chart
@@ -416,10 +421,14 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 
 		if chartType == "row" {
 			if rowAmt <= 20 && rowAmt > 1 {
-				*charts = append(*charts, tmpTD)
+				if ValueCheck(tmpTD) {
+					*charts = append(*charts, tmpTD)
+				}
 			}
 		} else {
-			*charts = append(*charts, tmpTD)
+			if ValueCheck(tmpTD) {
+				*charts = append(*charts, tmpTD)
+			}
 		}
 	}
 }
@@ -461,6 +470,27 @@ func XYPermutations(columns []ColType, bubble bool) []XYVal {
 	}
 
 	return xyNames
+}
+
+func ValueCheck(t TableData) bool {
+	lastXval, lastYval := t.Values[0].X, t.Values[0].Y
+	xChk, yChk := false, false
+
+	for _, v := range t.Values {
+		if lastXval != v.X {
+			xChk = true
+		}
+		if lastYval != v.Y {
+			yChk = true
+		}
+	}
+
+	if xChk && yChk {
+		return true
+	} else {
+		return false
+	}
+
 }
 
 //////////////////////////////////////////////////////////////////////////
