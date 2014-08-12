@@ -51,7 +51,6 @@ func GetChart(tableName string, chartType string, coords ...string) (TableData, 
 	}
 
 	GetChartData(chartType, guid, xyz, &chart, index)
-	fmt.Println("ROBOCOP", chart[0])
 	return chart[0], nil
 }
 
@@ -89,7 +88,7 @@ func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *
 			GetChartData("row", guid, v, &charts, index)
 		}
 
-		if v.Xtype != "varchar" && v.Ytype != "date" { // line chart only where x is a date or number value
+		if v.Xtype != "varchar" && (v.Ytype != "date" || v.Ytype != "varchar") { // line chart cannot be based on strings or have date on the Y axis
 			GetChartData("line", guid, v, &charts, index)
 		}
 	}
@@ -451,7 +450,7 @@ func XYPermutations(columns []ColType, bubble bool) []XYVal {
 			}
 		}
 	}
-
+	// if bubble chart add xyz permutations
 	if bubble {
 		for _, v := range xyNames {
 			for k := 0; k < length; k++ {
@@ -472,6 +471,7 @@ func XYPermutations(columns []ColType, bubble bool) []XYVal {
 	return xyNames
 }
 
+// checks whether data values for x or y are singular and if so returns false so that the corresponding chart is not added
 func ValueCheck(t TableData) bool {
 	lastXval, lastYval := t.Values[0].X, t.Values[0].Y
 	xChk, yChk := false, false
