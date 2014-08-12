@@ -39,9 +39,9 @@ angular.module('dataplayApp')
 
 		$scope.init = () ->
 			# Track
-			Tracker.visited $scope.params.id, $scope.params.type, $scope.params.x, $scope.params.y
+			Tracker.visited $scope.params.id, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
 
-			Charts.info $scope.params.id, $scope.params.type, $scope.params.x, $scope.params.y
+			Charts.info $scope.params.id, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
 				.success (data) ->
 					if data?
 						$scope.chart = data
@@ -223,37 +223,47 @@ angular.module('dataplayApp')
 			return
 
 		$scope.bubbleChartPostSetup = (chart) ->
-			# chart.colorAccessor (d, i) -> i + 1
+			data = $scope.chart
 
-			entry = crossfilter $scope.chart.data
-			dimension = entry.dimension (d) -> d[0]
-			group = dimension.group().reduceSum (d) -> d[1]
+			data.entry = crossfilter data.values
 
-			chart.dimension dimension
-			chart.group group
+			xMax = 0
+			data.dimension = data.entry.dimension (d) ->
+				if xMax is 0 or d.x > xMax
+					xMax = d.x
+				d.x
 
-			svg = d3.select("#chart")
-				.append 'svg'
-				.attr 'width', $scope.width
-				.attr 'height', $scope.height
+			yMax = 0
+			data.group = data.dimension.group().reduceSum (d) ->
+				if yMax is 0 or d.y > yMax
+					yMax = d.y
+				d.y
 
-			chart.svg svg
-			chart.keyAccessor (d) -> "KEY_#{d.key}".replace(/\W+/g, "")
+			chart.dimension data.dimension
+			chart.group data.group
+
+			chart.colorAccessor (d) -> d.key.x
+
+			chart.keyAccessor (d) -> d.key
+			chart.valueAccessor (d) -> d.value
 			chart.radiusValueAccessor (d) -> d.value
-			chart.r d3.scale.linear().domain(d3.extent(group.all(), (d) -> parseInt(d.value)))
+
+			xScale = d3.scale.linear()
+				.domain [-xMax, xMax]
+				.range [0, $scope.width]
+
+			y0 = Math.min -d3.min(data.group.all()).value, d3.max(data.group.all()).value
+			console.log "y0", y0
+			yScale = d3.scale.linear()
+				.domain [-yMax, yMax]
+				.range [0, $scope.height]
+
+			chart.x xScale
+			chart.y yScale
+			chart.r d3.scale.linear().domain d3.extent data.group.all(), (d) -> parseInt d.value
+
 			chart.label (d) -> d.value
 			chart.title (d) -> d.value
-
-			ordinals = []
-			ordinals.push d.key for d in group.all() when d not in ordinals
-			xScale = $scope.getXScale ordinals
-
-			for d in group.all()
-				key = "KEY_#{d.key}".replace(/\W+/g, "")
-				x = 0.1 * $scope.width + 0.8 * xScale d.key
-				y = 0.2 * $scope.height + 0.6 * $scope.height * Math.random()
-
-				chart.point key, x, y
 
 			return
 

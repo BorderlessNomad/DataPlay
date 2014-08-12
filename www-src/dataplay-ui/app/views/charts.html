@@ -92,7 +92,7 @@
 			<div class="chartSwitch"
 				ng-if="chart.type == 'bubble'"
 
-				dc-chart="bubbleOverlay"
+				dc-chart="bubbleChart"
 
 				dc-width="{{width}}"
 				dc-height="{{height}}"
@@ -100,6 +100,8 @@
 				dc-mouse-zoomable="false"
 				dc-brush-on="false"
 
+				dc-elastic-y="true"
+				dc-elastic-x="true"
 				dc-transition-duration="500"
 				dc-colors="d3.scale.category20()"
 
