@@ -20,11 +20,15 @@ type RelatedCorrelatedCharts struct {
 	Count  int
 }
 
-func GetChart(tableName string, chartType string, x string, y string) (TableData, *appError) {
+func GetChart(tableName string, chartType string, coords ...string) (TableData, *appError) {
 	guid, _ := GetRealTableName(tableName)
 	index := Index{}
 	chart := make([]TableData, 0)
-	xy := XYVal{X: x, Xtype: "", Y: y, Ytype: ""}
+	x, y, z := coords[0], coords[1], ""
+	if len(coords) > 2 {
+		z = coords[2]
+	}
+	xyz := XYVal{X: x, Y: y, Z: z}
 
 	err := DB.Where("guid = ?", tableName).Find(&index).Error
 	if err != nil && err != gorm.RecordNotFound {
@@ -36,14 +40,17 @@ func GetChart(tableName string, chartType string, x string, y string) (TableData
 	columns := FetchTableCols(tableName)
 	for _, v := range columns {
 		if v.Name == x {
-			xy.Xtype = v.Sqltype
+			xyz.Xtype = v.Sqltype
 		}
 		if v.Name == y {
-			xy.Ytype = v.Sqltype
+			xyz.Ytype = v.Sqltype
+		}
+		if v.Name == z {
+			xyz.Ztype = v.Sqltype
 		}
 	}
 
-	GetChartData(chartType, guid, xy, &chart, index)
+	GetChartData(chartType, guid, xyz, &chart, index)
 	result := chart[0]
 	return result, nil
 }
@@ -54,7 +61,7 @@ func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *
 	guid, _ := GetRealTableName(tableName)
 	charts := make([]TableData, 0) ///empty slice for adding all possible charts
 	index := Index{}
-	xyNames := XYPermutations(columns) // get all possible valid permuations of columns as X & Y
+	xyNames := XYPermutations(columns, false) // get all possible valid permuations of columns as X & Y
 
 	err := DB.Where("guid = ?", tableName).Find(&index).Error
 	if err != nil && err != gorm.RecordNotFound {
@@ -76,13 +83,21 @@ func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *
 		if v.Xtype == "varchar" && v.Ytype == "varchar" { // stacked or scatter charts if string v string values
 			GetChartData("stacked column", guid, v, &charts, index)
 			GetChartData("scatter", guid, v, &charts, index)
-		} else { // column and row charts for all that are not string v string values
+			// column and row charts for all that are not string v string values and are not date v string or string v date values
+		} else if !(v.Xtype == "varchar" && v.Ytype == "date") || !(v.Xtype == "date" && v.Ytype == "varchar") {
 			GetChartData("column", guid, v, &charts, index)
 			GetChartData("row", guid, v, &charts, index)
 		}
 
-		if v.Xtype == "date" || v.Xtype == "float" { // line chart only where x is a date or number value
+		if v.Xtype == "date" || (v.Xtype == "float" || v.Xtype == "integer") { // line chart only where x is a date or number value
 			GetChartData("line", guid, v, &charts, index)
+		}
+	}
+
+	if len(columns) > 2 { // if there's more than 2 columns grab a 3rd variable for bubble charts
+		xyNames = XYPermutations(columns, true) // set z flag to true to get all possible valid permuations of columns as X, Y & Z
+		for _, v := range xyNames {
+			GetChartData("bubble", guid, v, &charts, index)
 		}
 	}
 
@@ -136,8 +151,6 @@ func GetNewCorrelatedCharts(tableName string, searchDepth int, offset int, count
 			charts = append(charts, cd)
 
 		} else if meth == "Spurious" {
-			cd.Chart = "bubble"
-			charts = append(charts, cd)
 			cd.Chart = "line"
 			charts = append(charts, cd)
 			cd.Chart = "scatter"
@@ -204,8 +217,6 @@ func GetValidatedCorrelatedCharts(tableName string, offset int, count int) (Rela
 			charts = append(charts, cd)
 
 		} else if meth == "Spurious" {
-			cd.Chart = "bubble"
-			charts = append(charts, cd)
 			cd.Chart = "line"
 			charts = append(charts, cd)
 			cd.Chart = "scatter"
@@ -253,7 +264,7 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 	tmpTD.Desc = SanitizeString(ind.Notes)
 	tmpTD.LabelX = names.X
 	var dx, dy time.Time
-	var fx, fy float64
+	var fx, fy, fz float64
 	var vx, vy string
 	pieSlices := 0
 	sql := ""
@@ -266,6 +277,8 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 			sql = fmt.Sprintf("SELECT %s AS x, COUNT(%s) AS y FROM %s GROUP BY %s", names.X, names.X, guid, names.X)
 			tmpTD.LabelY = "count"
 		}
+	} else if chartType == "bubble" {
+		sql = fmt.Sprintf("SELECT %s AS x, %s AS y, %s AS z FROM  %s", names.X, names.Y, names.Z, guid)
 	} else {
 		sql = fmt.Sprintf("SELECT %s AS x, %s AS y FROM  %s", names.X, names.Y, guid)
 	}
@@ -273,7 +286,49 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 	rows, _ := DB.Raw(sql).Rows()
 	defer rows.Close()
 
-	if chartType == "pie" { // single column pie chart x = type, y = count
+	if chartType == "bubble" {
+		tmpTD.LabelY = names.Y
+		tmpTD.LabelZ = names.Z
+		for rows.Next() {
+			if (names.Xtype == "float" || names.Xtype == "integer") && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
+				rows.Scan(&fx, &fy, &fz)
+				tmpXY.X = FloatToString(fx)
+				tmpXY.Y = FloatToString(fy)
+				tmpXY.Z = FloatToString(fz)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if (names.Xtype == "float" || names.Xtype == "integer") && names.Ytype == "date" && (names.Ztype == "float" || names.Ztype == "integer") {
+				rows.Scan(&fx, &dy, &fz)
+				tmpXY.X = FloatToString(fx)
+				tmpXY.Y = (dy.String()[0:10])
+				tmpXY.Z = FloatToString(fz)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if (names.Xtype == "float" || names.Xtype == "integer") && names.Ytype == "varchar" && (names.Ztype == "float" || names.Ztype == "integer") {
+				rows.Scan(&fx, &vy, &fz)
+				tmpXY.X = FloatToString(fx)
+				tmpXY.Y = vy
+				tmpXY.Z = FloatToString(fz)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "date" && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
+				rows.Scan(&dx, &fy, &fz)
+				tmpXY.Y = (dx.String()[0:10])
+				tmpXY.Y = FloatToString(fy)
+				tmpXY.Z = FloatToString(fz)
+			} else if names.Xtype == "varchar" && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
+				rows.Scan(&vx, &fy, &fz)
+				tmpXY.Y = vx
+				tmpXY.Y = FloatToString(fy)
+				tmpXY.Z = FloatToString(fz)
+			} else {
+				tmpXY.X = ""
+				tmpXY.Y = ""
+				tmpXY.Z = ""
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			}
+		}
+
+		*charts = append(*charts, tmpTD)
+
+	} else if chartType == "pie" { // single column pie chart x = type, y = count
 		for rows.Next() {
 			pieSlices++
 			if names.Xtype == "varchar" {
@@ -301,7 +356,7 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 			*charts = append(*charts, tmpTD)
 		}
 
-	} else {
+	} else { // for all other types of chart
 		tmpTD.LabelY = names.Y
 		for rows.Next() {
 			if names.Xtype == "date" && names.Ytype == "date" {
@@ -361,9 +416,10 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 }
 
 // Generate all possible permutations of xy columns
-func XYPermutations(columns []ColType) []XYVal {
+func XYPermutations(columns []ColType, bubble bool) []XYVal {
 	length := len(columns)
 	var xyNames []XYVal
+	var xyzNames []XYVal
 	var tmpXY XYVal
 
 	for i := 0; i < length; i++ {
@@ -377,6 +433,24 @@ func XYPermutations(columns []ColType) []XYVal {
 			}
 		}
 	}
+
+	if bubble {
+		for _, v := range xyNames {
+			for k := 0; k < length; k++ {
+				if columns[k].Name != v.X && columns[k].Name != v.Y {
+					tmpXY.X = v.X
+					tmpXY.Y = v.Y
+					tmpXY.Z = columns[k].Name
+					tmpXY.Xtype = v.Xtype
+					tmpXY.Ytype = v.Ytype
+					tmpXY.Ztype = columns[k].Sqltype
+					xyzNames = append(xyzNames, tmpXY)
+				}
+			}
+		}
+		return xyzNames
+	}
+
 	return xyNames
 }
 
@@ -411,7 +485,7 @@ func GetChartHttp(res http.ResponseWriter, req *http.Request, params martini.Par
 		return ""
 	}
 
-	result, error := GetChart(params["tablename"], params["type"], params["x"], params["y"])
+	result, error := GetChart(params["tablename"], params["type"], params["x"], params["y"], params["z"])
 	if error != nil {
 		http.Error(res, error.Message, error.Code)
 		return ""
@@ -506,7 +580,7 @@ func GetNewCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, para
 	} else {
 		searchDepth, err = strconv.Atoi(params["searchdepth"])
 		if err != nil {
-			http.Error(res, "Invalid searchDepth parameter.", http.StatusBadRequest)
+			http.Error(res, "Invalid searchdepth parameter.", http.StatusBadRequest)
 			return ""
 		}
 	}
@@ -588,7 +662,7 @@ func GetChartQ(params map[string]string) string {
 		return ""
 	}
 
-	result, err := GetChart(params["tablename"], params["type"], params["x"], params["y"])
+	result, err := GetChart(params["tablename"], params["type"], params["x"], params["y"], params["z"])
 	if err != nil {
 		return ""
 	}

@@ -28,14 +28,17 @@ type TableData struct {
 	Desc      string  `json:"desc"`
 	LabelX    string  `json:"xLabel"`
 	LabelY    string  `json:"yLabel,omitempty"`
+	LabelZ    string  `json:"zLabel,omitempty"`
 	Values    []XYVal `json:"values"`
 }
 
 type XYVal struct {
 	X     string `json:"x"`
 	Y     string `json:"y"`
+	Z     string `json:"z,omitempty"`
 	Xtype string `json:"-"`
 	Ytype string `json:"-"`
+	Ztype string `json:"-"`
 }
 
 type DateVal struct {

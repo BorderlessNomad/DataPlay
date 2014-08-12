@@ -27,8 +27,8 @@ func TestGetRelatedChartsHttp(t *testing.T) {
 	params := map[string]string{
 		"user":      "1",
 		"offset":    "0",
-		"count":     "3",
-		"tablename": "gold",
+		"count":     "60",
+		"tablename": "gdp",
 	}
 	Convey("Should return chartlist", t, func() {
 		result := GetRelatedChartsHttp(res, req, params)
@@ -47,7 +47,18 @@ func TestGetChart(t *testing.T) {
 		"x":         "price",
 		"y":         "date",
 	}
-	Convey("Should return chartlist", t, func() {
+	Convey("Should return xy chartlist", t, func() {
+		result := GetChartHttp(res, req, params)
+		So(result, ShouldNotBeNil)
+	})
+
+	params["tablename"] = "gdp"
+	params["type"] = "bubble"
+	params["x"] = "year"
+	params["y"] = "gdp"
+	params["z"] = "change"
+
+	Convey("Should return xyz chartlist", t, func() {
 		result := GetChartHttp(res, req, params)
 		So(result, ShouldNotBeNil)
 	})
