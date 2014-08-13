@@ -309,13 +309,13 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			} else if names.Xtype == "date" && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
 				rows.Scan(&dx, &fy, &fz)
-				tmpXY.Y = (dx.String()[0:10])
+				tmpXY.X = (dx.String()[0:10])
 				tmpXY.Y = FloatToString(fy)
 				tmpXY.Z = FloatToString(fz)
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			} else if names.Xtype == "varchar" && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
 				rows.Scan(&vx, &fy, &fz)
-				tmpXY.Y = vx
+				tmpXY.X = vx
 				tmpXY.Y = FloatToString(fy)
 				tmpXY.Z = FloatToString(fz)
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
@@ -350,6 +350,7 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			} else {
 				tmpXY.X = ""
+				tmpXY.Y = ""
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			}
 		}
@@ -490,7 +491,6 @@ func ValueCheck(t TableData) bool {
 	} else {
 		return false
 	}
-
 }
 
 //////////////////////////////////////////////////////////////////////////
