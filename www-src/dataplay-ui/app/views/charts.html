@@ -102,7 +102,6 @@
 				dc-width="{{width}}"
 				dc-height="{{height}}"
 				dc-margins="{{margin}}"
-				dc-mouse-zoomable="false"
 				dc-brush-on="false"
 
 				dc-transition-duration="500"
@@ -112,6 +111,11 @@
 				dc-render-vertical-grid-lines="true"
 				dc-render-label="true"
 				dc-render-title="true"
+				dc-zoom-out-restrict="true"
+				dc-mouse-zoomable="true"
+
+				dc-x-axis-label="chart.xLabel"
+				dc-y-axis-label="chart.yLabel"
 
 				dc-post-setup-chart="bubbleChartPostSetup"
 			></div>

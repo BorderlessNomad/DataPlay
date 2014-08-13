@@ -226,11 +226,24 @@ angular.module('dataplayApp')
 			data = $scope.chart
 
 			tempData = []
+			minR = null
+			maxR = null
 
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) ->
-				tempData["#{d.x}_#{d.y}"] = d.z
+				z = Math.abs parseInt d.z
+
+				tempData["#{d.x}_#{d.y}"] = z
+
+				if minR is null or minR > z
+					minR = if z is 0 then 1 else z
+
+				if maxR is null or maxR <= z
+					maxR = if z is 0 then 1 else z
+
 				d.x
+
+			console.log data.dimension
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
@@ -241,9 +254,29 @@ angular.module('dataplayApp')
 
 			chart.keyAccessor (d) -> d.key
 			chart.valueAccessor (d) -> d.value
-			chart.radiusValueAccessor (d) -> tempData["#{d.key}_#{d.value}"]
+			chart.radiusValueAccessor (d) ->
+				console.log d.key
+				r = tempData["#{d.key}_#{d.value}"]
+				if r? then r else minR
 
 			chart.x $scope.getXScale data
+
+			chart.title (d) ->
+				r = tempData["#{d.key}_#{d.value}"]
+				"#{data.xLabel}: #{d.key}\n#{data.yLabel}: #{d.value}\n#{data.zLabel}: #{r}"
+
+			minRL = Math.log minR
+			maxRL = Math.log maxR
+
+			scale = (maxRL - minRL) / (maxR - minR)
+			scaleR = scale
+
+			if scale <= 0.0006
+				scale += 0.009545
+
+			console.log minR, maxR, minRL, maxRL, scale, (maxR + minR) / 2
+
+			chart.maxBubbleRelativeSize scale
 
 			return
 
