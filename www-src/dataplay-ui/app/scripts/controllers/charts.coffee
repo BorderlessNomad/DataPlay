@@ -39,9 +39,9 @@ angular.module('dataplayApp')
 
 		$scope.init = () ->
 			# Track
-			Tracker.visited $scope.params.id, $scope.params.type, $scope.params.x, $scope.params.y
+			Tracker.visited $scope.params.id, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
 
-			Charts.info $scope.params.id, $scope.params.type, $scope.params.x, $scope.params.y
+			Charts.info $scope.params.id, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
 				.success (data) ->
 					if data?
 						$scope.chart = data
@@ -223,37 +223,27 @@ angular.module('dataplayApp')
 			return
 
 		$scope.bubbleChartPostSetup = (chart) ->
-			# chart.colorAccessor (d, i) -> i + 1
+			data = $scope.chart
 
-			entry = crossfilter $scope.chart.data
-			dimension = entry.dimension (d) -> d[0]
-			group = dimension.group().reduceSum (d) -> d[1]
+			tempData = []
 
-			chart.dimension dimension
-			chart.group group
+			data.entry = crossfilter data.values
+			data.dimension = data.entry.dimension (d) ->
+				tempData["#{d.x}_#{d.y}"] = d.z
+				d.x
+			data.group = data.dimension.group().reduceSum (d) -> d.y
 
-			svg = d3.select("#chart")
-				.append 'svg'
-				.attr 'width', $scope.width
-				.attr 'height', $scope.height
+			chart.dimension data.dimension
+			chart.group data.group
 
-			chart.svg svg
-			chart.keyAccessor (d) -> "KEY_#{d.key}".replace(/\W+/g, "")
-			chart.radiusValueAccessor (d) -> d.value
-			chart.r d3.scale.linear().domain(d3.extent(group.all(), (d) -> parseInt(d.value)))
-			chart.label (d) -> d.value
-			chart.title (d) -> d.value
+			data.ordinals = []
+			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
 
-			ordinals = []
-			ordinals.push d.key for d in group.all() when d not in ordinals
-			xScale = $scope.getXScale ordinals
+			chart.keyAccessor (d) -> d.key
+			chart.valueAccessor (d) -> d.value
+			chart.radiusValueAccessor (d) -> tempData["#{d.key}_#{d.value}"]
 
-			for d in group.all()
-				key = "KEY_#{d.key}".replace(/\W+/g, "")
-				x = 0.1 * $scope.width + 0.8 * xScale d.key
-				y = 0.2 * $scope.height + 0.6 * $scope.height * Math.random()
-
-				chart.point key, x, y
+			chart.x $scope.getXScale data
 
 			return
 

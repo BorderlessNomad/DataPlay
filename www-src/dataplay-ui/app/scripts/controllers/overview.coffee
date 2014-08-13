@@ -10,6 +10,7 @@
 angular.module('dataplayApp')
 	.controller 'OverviewCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', ($scope, $routeParams, Overview, PatternMatcher) ->
 		$scope.allowed = ['line', 'bar', 'row', 'column', 'pie', 'bubble']
+		# $scope.allowed = ['bubble']
 		$scope.params = $routeParams
 		$scope.chartsInfo = []
 		$scope.chartRegistryOffset = 0
@@ -54,7 +55,7 @@ angular.module('dataplayApp')
 
 							chart.id = "#{$scope.params.id}-#{chart.xLabel}-#{chart.yLabel}-#{chart.type}"
 
-							chart.patterns = []
+							chart.patterns = {}
 							chart.patterns[chart.xLabel] =
 								valuePattern: PatternMatcher.getPattern chart.values[0]['x']
 								keyPattern: PatternMatcher.getKeyPattern chart.values[0]['x']
@@ -113,22 +114,22 @@ angular.module('dataplayApp')
 			xScale
 
 		$scope.getYScale = (data) ->
-			xScale = switch data.patterns[data.xLabel].valuePattern
+			yScale = switch data.patterns[data.yLabel].valuePattern
 				when 'label'
 					d3.scale.ordinal()
 						.domain data.ordinals
-						.rangeBands [0, $scope.width]
+						.rangeBands [0, $scope.height]
 				when 'date'
 					d3.time.scale()
 						.domain d3.extent data.group.all(), (d) -> d.value
-						.range [0, $scope.width]
+						.range [0, $scope.height]
 				else
 					d3.scale.linear()
 						.domain d3.extent data.group.all(), (d) -> parseInt d.value
-						.range [0, $scope.width]
+						.range [0, $scope.height]
 						.nice()
 
-			xScale
+			yScale
 
 		$scope.lineChartPostSetup = (chart) ->
 			data = $scope.chartsInfo[$scope.getChartOffset chart]
@@ -241,35 +242,25 @@ angular.module('dataplayApp')
 		$scope.bubbleChartPostSetup = (chart) ->
 			data = $scope.chartsInfo[$scope.getChartOffset chart]
 
+			tempData = []
+
 			data.entry = crossfilter data.values
-			data.dimension = data.entry.dimension (d) -> d.x
+			data.dimension = data.entry.dimension (d) ->
+				tempData["#{d.x}_#{d.y}"] = d.z
+				d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
 			chart.group data.group
 
-			svg = d3.select("#chart")
-				.append 'svg'
-				.attr 'width', $scope.width
-				.attr 'height', $scope.height
+			data.ordinals = []
+			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
 
-			chart.svg svg
-			chart.keyAccessor (d) -> "KEY_#{d.key}".replace(/\W+/g, "")
-			chart.radiusValueAccessor (d) -> d.value
-			chart.r d3.scale.linear().domain(d3.extent(data.group.all(), (d) -> parseInt(d.value)))
-			chart.label (d) -> d.value
-			chart.title (d) -> d.value
+			chart.keyAccessor (d) -> d.key
+			chart.valueAccessor (d) -> d.value
+			chart.radiusValueAccessor (d) -> tempData["#{d.key}_#{d.value}"]
 
-			ordinals = []
-			ordinals.push d.key for d in data.group.all() when d not in ordinals
-			xScale = $scope.getXScale ordinals
-
-			for d in data.group.all()
-				key = "KEY_#{d.key}".replace(/\W+/g, "")
-				x = 0.1 * $scope.width + 0.8 * xScale d.key
-				y = 0.2 * $scope.height + 0.6 * $scope.height * Math.random()
-
-				chart.point key, x, y
+			chart.x $scope.getXScale data
 
 			return
 

@@ -36,6 +36,10 @@ angular.module('dataplayApp')
 				templateUrl: 'views/charts.html'
 				controller: 'ChartsCtrl'
 				login: true
+			.when '/charts/:id/:type/:x/:y/:z',
+				templateUrl: 'views/charts.html'
+				controller: 'ChartsCtrl'
+				login: true
 			.when '/map/:id',
 				templateUrl: 'views/map.html'
 				controller: 'MapCtrl'

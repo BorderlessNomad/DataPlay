@@ -17,8 +17,11 @@
 
 	<div class="row" ng-init="getRelatedCharts()" ng-show="chartsInfo.length > 0">
 		<div class="col-md-4" ng-repeat="chart in chartsInfo" id="{{chart.id}}">
-			<a ng-href="/charts/{{params.id}}/{{chart.type}}/{{chart.xLabel}}/{{chart.yLabel}}">
+			<a ng-href="/charts/{{params.id}}/{{chart.type}}/{{chart.xLabel}}/{{chart.yLabel}}" ng-hide="chart.type == 'bubble'">
 				<span><h4>{{chart.xLabel}}</h4> <h5>vs</h5> <h4>{{chart.yLabel}}</h4></span>
+			</a>
+			<a ng-href="/charts/{{params.id}}/{{chart.type}}/{{chart.xLabel}}/{{chart.yLabel}}/{{chart.zLabel}}" ng-show="chart.type == 'bubble'">
+				<span><h4>{{chart.xLabel}}</h4> <h5>vs</h5> <h4>{{chart.yLabel}}</h4> <h5>vs</h5> <h4>{{chart.zLabel}}</h4></span>
 			</a>
 
 			<div class="chartSwitch"
@@ -107,7 +110,7 @@
 			<div class="chartSwitch"
 				ng-if="chart.type == 'bubble'"
 
-				dc-chart="bubbleOverlay"
+				dc-chart="bubbleChart"
 
 				dc-width="{{width}}"
 				dc-height="{{height}}"
@@ -117,6 +120,11 @@
 
 				dc-transition-duration="500"
 				dc-colors="d3.scale.category20()"
+
+				dc-render-horizontal-grid-lines="true"
+				dc-render-vertical-grid-lines="true"
+				dc-render-label="true"
+				dc-render-title="true"
 
 				dc-post-setup-chart="bubbleChartPostSetup"
 			></div>
