@@ -9,8 +9,8 @@
 ###
 angular.module('dataplayApp')
 	.controller 'OverviewCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', ($scope, $routeParams, Overview, PatternMatcher) ->
-		$scope.allowed = ['line', 'bar', 'row', 'column', 'pie', 'bubble']
-		# $scope.allowed = ['bubble']
+		# $scope.allowed = ['line', 'bar', 'row', 'column', 'pie', 'bubble']
+		$scope.allowed = ['bubble']
 		$scope.params = $routeParams
 		$scope.chartsInfo = []
 		$scope.chartRegistryOffset = 0
@@ -242,7 +242,6 @@ angular.module('dataplayApp')
 		$scope.bubbleChartPostSetup = (chart) ->
 			data = $scope.chartsInfo[$scope.getChartOffset chart]
 
-			tempData = []
 			minR = null
 			maxR = null
 
@@ -250,15 +249,14 @@ angular.module('dataplayApp')
 			data.dimension = data.entry.dimension (d) ->
 				z = Math.abs parseInt d.z
 
-				tempData["#{d.x}_#{d.y}"] = z
-
-				if minR is null or minR > z
+				if not minR? or minR > z
 					minR = if z is 0 then 1 else z
 
-				if maxR is null or maxR <= z
+				if not maxR? or maxR <= z
 					maxR = if z is 0 then 1 else z
 
-				d.x
+				"#{d.x}|#{d.y}|#{d.z}"
+
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
@@ -266,29 +264,51 @@ angular.module('dataplayApp')
 
 			data.ordinals = []
 			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
+			console.log ordinals
 
-			chart.keyAccessor (d) -> d.key
-			chart.valueAccessor (d) -> d.value
-			chart.radiusValueAccessor (d) -> tempData["#{d.key}_#{d.value}"]
+			chart.keyAccessor (d) -> d.key.split("|")[0]
+			chart.valueAccessor (d) -> d.key.split("|")[1]
+			chart.radiusValueAccessor (d) ->
+				r = Math.abs parseInt d.key.split("|")[2]
+				if r >= minR then r else minR
 
-			chart.x $scope.getXScale data
+			xScale = switch data.patterns[data.xLabel].valuePattern
+				when 'label'
+					d3.scale.ordinal()
+						.domain data.ordinals
+						.rangeBands [0, $scope.width]
+				when 'date'
+					d3.time.scale()
+						.domain d3.extent data.group.all(), (d) -> d.key.split("|")[0]
+						.range [0, $scope.width]
+				else
+					d3.scale.linear()
+						.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[0]
+						.range [0, $scope.width]
+			chart.x xScale
+
+			yScale = d3.scale.linear()
+				.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[1]
+				.range [0, $scope.height]
+			chart.y yScale
+
+			rScale = d3.scale.linear()
+				.domain d3.extent data.group.all(), (d) -> Math.abs parseInt d.key.split("|")[2]
+			chart.r rScale
+
+			chart.label (d) -> x = d.key.split("|")[0]
 
 			chart.title (d) ->
-				r = tempData["#{d.key}_#{d.value}"]
-				"#{data.xLabel}: #{d.key}\n#{data.yLabel}: #{d.value}\n#{data.zLabel}: #{r}"
+				x = d.key.split("|")[0]
+				y = d.key.split("|")[1]
+				z = d.key.split("|")[2]
+				"#{data.xLabel}: #{x}\n#{data.yLabel}: #{y}\n#{data.zLabel}: #{z}"
 
 			minRL = Math.log minR
 			maxRL = Math.log maxR
+			scale = Math.abs Math.log (maxRL - minRL) / (maxR - minR)
 
-			scale = (maxRL - minRL) / (maxR - minR)
-			scaleR = scale
-
-			if scale <= 0.0006
-				scale += 0.009545
-
-			console.log minR, maxR, minRL, maxRL, scale
-
-			chart.maxBubbleRelativeSize scale
+			chart.maxBubbleRelativeSize scale / 100
 
 			return
 

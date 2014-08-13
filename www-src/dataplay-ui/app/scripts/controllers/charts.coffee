@@ -225,7 +225,6 @@ angular.module('dataplayApp')
 		$scope.bubbleChartPostSetup = (chart) ->
 			data = $scope.chart
 
-			tempData = []
 			minR = null
 			maxR = null
 
@@ -233,50 +232,66 @@ angular.module('dataplayApp')
 			data.dimension = data.entry.dimension (d) ->
 				z = Math.abs parseInt d.z
 
-				tempData["#{d.x}_#{d.y}"] = z
-
-				if minR is null or minR > z
+				if not minR? or minR > z
 					minR = if z is 0 then 1 else z
 
-				if maxR is null or maxR <= z
+				if not maxR? or maxR <= z
 					maxR = if z is 0 then 1 else z
 
-				d.x
+				"#{d.x}|#{d.y}|#{d.z}"
 
-			console.log data.dimension
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
 			chart.group data.group
 
 			data.ordinals = []
-			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
+			data.ordinals.push d.key.split("|")[0] for d in data.group.all() when d not in data.ordinals
+			console.log data.ordinals
 
-			chart.keyAccessor (d) -> d.key
-			chart.valueAccessor (d) -> d.value
+			chart.keyAccessor (d) -> d.key.split("|")[0]
+			chart.valueAccessor (d) -> d.key.split("|")[1]
 			chart.radiusValueAccessor (d) ->
-				console.log d.key
-				r = tempData["#{d.key}_#{d.value}"]
-				if r? then r else minR
+				r = Math.abs d.key.split("|")[2]
+				if r >= minR then r else minR
 
-			chart.x $scope.getXScale data
+			xScale = d3.scale.linear()
+				.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[0]
+				.range [0, $scope.width]
+			chart.x xScale
+
+			yScale = d3.scale.linear()
+				.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[1]
+				.range [0, $scope.height]
+			chart.y yScale
+
+			rScale = d3.scale.linear()
+				.domain d3.extent data.group.all(), (d) -> Math.abs parseInt d.key.split("|")[2]
+			chart.r rScale
+
+			chart.label (d) -> x = d.key.split("|")[0]
 
 			chart.title (d) ->
-				r = tempData["#{d.key}_#{d.value}"]
-				"#{data.xLabel}: #{d.key}\n#{data.yLabel}: #{d.value}\n#{data.zLabel}: #{r}"
+				x = d.key.split("|")[0]
+				y = d.key.split("|")[1]
+				z = d.key.split("|")[2]
+				"#{data.xLabel}: #{x}\n#{data.yLabel}: #{y}\n#{data.zLabel}: #{z}"
 
 			minRL = Math.log minR
 			maxRL = Math.log maxR
+			scale = Math.abs Math.log (maxRL - minRL) / (maxR - minR)
 
-			scale = (maxRL - minRL) / (maxR - minR)
-			scaleR = scale
+			console.log minR, maxR, (maxR - minR), minRL, maxRL, (maxRL - minRL), scale, scale / 100
 
-			if scale <= 0.0006
-				scale += 0.009545
+			chart.maxBubbleRelativeSize scale / 100
 
-			console.log minR, maxR, minRL, maxRL, scale, (maxR + minR) / 2
-
-			chart.maxBubbleRelativeSize scale
+			# chart.renderlet (c) ->
+			# 	circles = c.svg().selectAll('g.chart-body').selectAll('g circle')
+			# 	for circle in circles[0]
+			# 		r = circle.r
+			# 		if r.baseVal.value < 0
+			# 			r.baseVal.value = Math.abs r.baseVal.value
+			# 			r.animVal = r.baseVal
 
 			return
 
