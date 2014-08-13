@@ -204,8 +204,6 @@ angular.module('dataplayApp')
 
 			chart.colorAccessor (d, i) -> i + 1
 
-			chart.innerRadius 100
-
 			chart.renderLabel false
 			chart.label (d) ->
 				percent = d.value / data.groupSum * 100
@@ -227,6 +225,12 @@ angular.module('dataplayApp')
 
 			minR = null
 			maxR = null
+
+			###
+			# TODO: when X/Y is String group all similar X/Y and SUM Y/X.
+			# if Z is 'transaction_number' or 'invoice_number' ignore it
+			# and replace radius with count of X/Y
+			###
 
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) ->
@@ -255,15 +259,33 @@ angular.module('dataplayApp')
 				r = Math.abs d.key.split("|")[2]
 				if r >= minR then r else minR
 
-			xScale = d3.scale.linear()
-				.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[0]
-				.range [0, $scope.width]
-			chart.x xScale
+			chart.x switch data.patterns[data.xLabel].valuePattern
+				when 'label'
+					d3.scale.ordinal()
+						.domain data.ordinals
+						.rangeBands [0, $scope.width]
+				when 'date'
+					d3.time.scale()
+						.domain d3.extent data.group.all(), (d) -> d.key.split("|")[0]
+						.range [0, $scope.width]
+				else
+					d3.scale.linear()
+						.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[0]
+						.range [0, $scope.width]
 
-			yScale = d3.scale.linear()
-				.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[1]
-				.range [0, $scope.height]
-			chart.y yScale
+			chart.y switch data.patterns[data.xLabel].valuePattern
+				when 'label'
+					d3.scale.ordinal()
+						.domain data.ordinals
+						.rangeBands [0, $scope.height]
+				when 'date'
+					d3.time.scale()
+						.domain d3.extent data.group.all(), (d) -> d.key.split("|")[1]
+						.range [0, $scope.height]
+				else
+					d3.scale.linear()
+						.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[1]
+						.range [0, $scope.height]
 
 			rScale = d3.scale.linear()
 				.domain d3.extent data.group.all(), (d) -> Math.abs parseInt d.key.split("|")[2]

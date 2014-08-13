@@ -9,9 +9,19 @@
 ###
 angular.module('dataplayApp')
 	.controller 'OverviewCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', ($scope, $routeParams, Overview, PatternMatcher) ->
-		# $scope.allowed = ['line', 'bar', 'row', 'column', 'pie', 'bubble']
-		$scope.allowed = ['bubble']
+		$scope.allowed = ['line', 'bar', 'row', 'column', 'pie', 'bubble']
+		# $scope.allowed = ['bubble']
 		$scope.params = $routeParams
+		$scope.count = 3
+		$scope.offset =
+			related: 0
+			correlated: 0
+		$scope.limit =
+			related: false
+			correlated: false
+		$scope.max =
+			related: 0
+			correlated: 0
 		$scope.chartsInfo = []
 		$scope.chartRegistryOffset = 0
 
@@ -47,9 +57,19 @@ angular.module('dataplayApp')
 		$scope.getRelatedCharts = () ->
 			$scope.chartRegistryOffset = dc.chartRegistry.list().length
 
-			Overview.related $scope.params.id
+			$scope.getRelated()
+
+			return
+
+		$scope.getRelated = () ->
+			count = $scope.max.related - $scope.offset.related
+			count = if $scope.max.related and count < $scope.count then count else $scope.count
+
+			Overview.related $scope.params.id, $scope.offset.related, count
 				.success (data) ->
 					if data? and data.Charts? and data.Charts.length > 0
+						$scope.max.related = data.Count
+
 						for key, chart of data.Charts
 							continue unless $scope.isPlotAllowed chart.type
 
@@ -72,7 +92,9 @@ angular.module('dataplayApp')
 							if $scope.includePattern chart
 								$scope.chartsInfo.push chart
 
-						console.log "getRelatedCharts", $scope.chartsInfo, $scope.chartsInfo.length
+						$scope.offset.related += $scope.count
+						if $scope.offset.related >= $scope.max.related
+							$scope.limit.related = true
 
 					return
 				.error (data, status) ->
@@ -263,8 +285,8 @@ angular.module('dataplayApp')
 			chart.group data.group
 
 			data.ordinals = []
-			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
-			console.log ordinals
+			for d in data.group.all() when d not in data.ordinals
+				data.ordinals.push d.key.split("|")[0]
 
 			chart.keyAccessor (d) -> d.key.split("|")[0]
 			chart.valueAccessor (d) -> d.key.split("|")[1]
@@ -272,7 +294,7 @@ angular.module('dataplayApp')
 				r = Math.abs parseInt d.key.split("|")[2]
 				if r >= minR then r else minR
 
-			xScale = switch data.patterns[data.xLabel].valuePattern
+			chart.x switch data.patterns[data.xLabel].valuePattern
 				when 'label'
 					d3.scale.ordinal()
 						.domain data.ordinals
@@ -285,18 +307,26 @@ angular.module('dataplayApp')
 					d3.scale.linear()
 						.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[0]
 						.range [0, $scope.width]
-			chart.x xScale
 
-			yScale = d3.scale.linear()
-				.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[1]
-				.range [0, $scope.height]
-			chart.y yScale
+			chart.y switch data.patterns[data.xLabel].valuePattern
+				when 'label'
+					d3.scale.ordinal()
+						.domain data.ordinals
+						.rangeBands [0, $scope.height]
+				when 'date'
+					d3.time.scale()
+						.domain d3.extent data.group.all(), (d) -> d.key.split("|")[1]
+						.range [0, $scope.height]
+				else
+					d3.scale.linear()
+						.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[1]
+						.range [0, $scope.height]
 
 			rScale = d3.scale.linear()
 				.domain d3.extent data.group.all(), (d) -> Math.abs parseInt d.key.split("|")[2]
 			chart.r rScale
 
-			chart.label (d) -> x = d.key.split("|")[0]
+			# chart.label (d) -> x = d.key.split("|")[0]
 
 			chart.title (d) ->
 				x = d.key.split("|")[0]
