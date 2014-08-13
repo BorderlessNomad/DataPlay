@@ -326,7 +326,7 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			}
 		}
-		if ValueCheck(tmpTD) {
+		if ValueCheck(tmpTD) && NegCheck(tmpTD) {
 			*charts = append(*charts, tmpTD)
 		}
 
@@ -491,6 +491,17 @@ func ValueCheck(t TableData) bool {
 	} else {
 		return false
 	}
+}
+
+// checks whether any X axis values are negative as bubble won't plot if they are
+func NegCheck(t TableData) bool {
+	for _, v := range t.Values {
+		x, _ := strconv.Atoi(v.X)
+		if x < 0 {
+			return false
+		}
+	}
+	return true
 }
 
 //////////////////////////////////////////////////////////////////////////
