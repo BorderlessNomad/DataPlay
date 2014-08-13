@@ -309,13 +309,13 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			} else if names.Xtype == "date" && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
 				rows.Scan(&dx, &fy, &fz)
-				tmpXY.Y = (dx.String()[0:10])
+				tmpXY.X = (dx.String()[0:10])
 				tmpXY.Y = FloatToString(fy)
 				tmpXY.Z = FloatToString(fz)
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			} else if names.Xtype == "varchar" && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
 				rows.Scan(&vx, &fy, &fz)
-				tmpXY.Y = vx
+				tmpXY.X = vx
 				tmpXY.Y = FloatToString(fy)
 				tmpXY.Z = FloatToString(fz)
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
@@ -326,7 +326,7 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			}
 		}
-		if ValueCheck(tmpTD) {
+		if ValueCheck(tmpTD) && NegCheck(tmpTD) {
 			*charts = append(*charts, tmpTD)
 		}
 
@@ -350,6 +350,7 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			} else {
 				tmpXY.X = ""
+				tmpXY.Y = ""
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			}
 		}
@@ -490,7 +491,17 @@ func ValueCheck(t TableData) bool {
 	} else {
 		return false
 	}
+}
 
+// checks whether any X axis values are negative as bubble won't plot if they are
+func NegCheck(t TableData) bool {
+	for _, v := range t.Values {
+		x, _ := strconv.Atoi(v.X)
+		if x < 0 {
+			return false
+		}
+	}
+	return true
 }
 
 //////////////////////////////////////////////////////////////////////////
