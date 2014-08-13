@@ -84,8 +84,10 @@ func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *
 			GetChartData("scatter", guid, v, &charts, index)
 			// column and row charts for all that are not string v string values and are not date v string or string v date values
 		} else if !(v.Xtype == "varchar" && v.Ytype == "date") || !(v.Xtype == "date" && v.Ytype == "varchar") {
-			GetChartData("column", guid, v, &charts, index)
 			GetChartData("row", guid, v, &charts, index)
+			if v.Ytype != "varchar" {
+				GetChartData("column", guid, v, &charts, index)
+			}
 		}
 
 		if v.Xtype != "varchar" && (v.Ytype != "date" || v.Ytype != "varchar") { // line chart cannot be based on strings or have date on the Y axis
