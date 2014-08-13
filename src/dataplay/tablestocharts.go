@@ -295,24 +295,24 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 				tmpXY.Y = FloatToString(fy)
 				tmpXY.Z = FloatToString(fz)
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if (names.Xtype == "float" || names.Xtype == "integer") && names.Ytype == "date" && (names.Ztype == "float" || names.Ztype == "integer") {
-				rows.Scan(&fx, &dy, &fz)
-				tmpXY.X = FloatToString(fx)
-				tmpXY.Y = (dy.String()[0:10])
-				tmpXY.Z = FloatToString(fz)
-				tmpTD.Values = append(tmpTD.Values, tmpXY)
+				// } else if (names.Xtype == "float" || names.Xtype == "integer") && names.Ytype == "date" && (names.Ztype == "float" || names.Ztype == "integer") {
+				// 	rows.Scan(&fx, &dy, &fz)
+				// 	tmpXY.X = FloatToString(fx)
+				// 	tmpXY.Y = (dy.String()[0:10])
+				// 	tmpXY.Z = FloatToString(fz)
+				// 	tmpTD.Values = append(tmpTD.Values, tmpXY)
 			} else if (names.Xtype == "float" || names.Xtype == "integer") && names.Ytype == "varchar" && (names.Ztype == "float" || names.Ztype == "integer") {
 				rows.Scan(&fx, &vy, &fz)
 				tmpXY.X = FloatToString(fx)
 				tmpXY.Y = vy
 				tmpXY.Z = FloatToString(fz)
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if names.Xtype == "date" && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
-				rows.Scan(&dx, &fy, &fz)
-				tmpXY.X = (dx.String()[0:10])
-				tmpXY.Y = FloatToString(fy)
-				tmpXY.Z = FloatToString(fz)
-				tmpTD.Values = append(tmpTD.Values, tmpXY)
+				// } else if names.Xtype == "date" && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
+				// 	rows.Scan(&dx, &fy, &fz)
+				// 	tmpXY.X = (dx.String()[0:10])
+				// 	tmpXY.Y = FloatToString(fy)
+				// 	tmpXY.Z = FloatToString(fz)
+				// 	tmpTD.Values = append(tmpTD.Values, tmpXY)
 			} else if names.Xtype == "varchar" && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
 				rows.Scan(&vx, &fy, &fz)
 				tmpXY.X = vx
