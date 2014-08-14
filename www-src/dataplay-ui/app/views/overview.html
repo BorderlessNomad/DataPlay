@@ -10,20 +10,8 @@
 
 	<a class="btn btn-warning pull-right reset" ng-click="resetAll()">Reset all</a>
 
-	<div class="row" ng-show="chartsInfo.length <= 0">
-		<div class="col-md-12">
-			<div class="spinner">
-				<div class="rect1"></div>
-				<div class="rect2"></div>
-				<div class="rect3"></div>
-				<div class="rect4"></div>
-				<div class="rect5"></div>
-			</div>
-		</div>
-	</div>
-
-	<div class="row" ng-init="getRelatedCharts()" ng-show="chartsInfo.length > 0">
-		<div class="col-md-4" ng-repeat="chart in chartsInfo" id="{{chart.id}}">
+	<div class="row" ng-init="getRelatedCharts()">
+		<div class="col-md-4" ng-repeat="chart in chartsRelated" id="{{chart.id}}" ng-show="chartsRelated.length > 0">
 			<a ng-href="/charts/{{params.id}}/{{chart.type}}/{{chart.xLabel}}/{{chart.yLabel}}" ng-hide="chart.type == 'bubble'">
 				<span><h4>{{chart.xLabel}}</h4> <h5>vs</h5> <h4>{{chart.yLabel}}</h4></span>
 			</a>
@@ -42,8 +30,12 @@
 			</div>
 		</div>
 
+		<div class="col-md-12" ng-show="loading.related" ng-include="'views/loader.html'"></div>
+
 		<div class="col-md-12">
 			<a id="getRelated" href="#" class="btn btn-default btn-block" ng-click="getRelated()" ng-hide="limit.related">Show more ({{max.related - offset.related}}) <span class="caret"></span></a>
 		</div>
 	</div>
+
+	<div class="row" ng-init="getCorrelatedCharts()"></div>
 </div>
