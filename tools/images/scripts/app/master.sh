@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -ex
+
 # This is setup script for App (Go server)
 # 1. Install Ubuntu base image or dataplay-ubuntu-base (recommended)
 # 2. Run this script as 'sudo'
@@ -155,4 +157,4 @@ export -f run_master
 su ubuntu -c 'run_master'
 
 echo "---- Completed ----"
-exit 1
+exit 0

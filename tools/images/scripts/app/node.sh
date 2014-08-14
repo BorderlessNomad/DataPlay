@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -ex
+
 # This is setup script for App (Go server)
 # 1. Install Ubuntu base image or dataplay-ubuntu-base (recommended)
 # 2. Run this script as 'sudo'
@@ -71,7 +73,7 @@ export_variables () {
 	source $HOME/.profile
 }
 
-run_master () {
+run_node () {
 	APP="dataplay"
 	REPO="DataPlay"
 	SOURCE="https://github.com/playgenhub/$REPO/archive/"
@@ -150,9 +152,9 @@ echo "7. ---- Export Variables ----"
 export -f export_variables
 su ubuntu -c 'export_variables'
 
-echo "8. ---- Run Master ----"
-export -f run_master
-su ubuntu -c 'run_master'
+echo "8. ---- Run Node ----"
+export -f run_node
+su ubuntu -c 'run_node'
 
 echo "---- Completed ----"
-exit 1
+exit 0

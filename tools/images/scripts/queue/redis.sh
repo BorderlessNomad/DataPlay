@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -ex
+
 # This is setup script for Queue (RabbitMQ) + Non-persistent DV (Redis)
 # 1. Install Ubuntu base image or dataplay-ubuntu-base (recommended)
 # 2. Run this script as 'sudo'
@@ -85,3 +87,5 @@ echo "5. ---- Update IPTables rules ----"
 update_iptables
 
 echo "---- Completed ----"
+
+exit 0

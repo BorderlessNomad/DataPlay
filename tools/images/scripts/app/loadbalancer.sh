@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -ex
+
 # This is setup script for App Master Load Balancer
 # 1. Install Ubuntu base image or dataplay-ubuntu-base (recommended)
 # 2. Run this script as 'sudo'
@@ -22,3 +24,4 @@ apt-get update
 apt-get install -y haproxy
 
 # *:1936 playgen:D@taP1aY
+exit 0
