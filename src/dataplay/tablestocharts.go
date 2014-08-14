@@ -121,11 +121,12 @@ func GetNewRelatedCharts(tableName string, offset int, count int) (RelatedCharts
 }
 
 // Look for new correlated charts, take the correlations and break them down into charting types, and return them along with their total count
-func GetNewCorrelatedCharts(tableName string, searchDepth int, offset int, count int) (RelatedCorrelatedCharts, *appError) {
+func GetNewCorrelatedCharts(tableName string, offset int, count int, searchDepth int) (RelatedCorrelatedCharts, *appError) {
 	corData := make([]Correlation, 0)
 	charts := make([]CorrelationData, 0) ///empty slice for adding all possible charts
 	var cd CorrelationData
 
+	GenerateCorrelations(tableName, searchDepth)
 	err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Find(&corData).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return RelatedCorrelatedCharts{nil, 0}, &appError{nil, "Database query failed", http.StatusInternalServerError}
