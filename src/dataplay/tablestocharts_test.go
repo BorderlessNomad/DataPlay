@@ -15,7 +15,17 @@ func TestGetRelatedCharts(t *testing.T) {
 		"tablename": "gold",
 	}
 	Convey("Should return chartlist", t, func() {
-		result := GetNewRelatedChartsQ(m)
+		result := GetRelatedChartsQ(m)
+		So(result, ShouldNotBeNil)
+	})
+}
+
+func TestGetCorrelatedChart(t *testing.T) {
+	m := map[string]string{
+		"id": "113255",
+	}
+	Convey("Should return chartlist", t, func() {
+		result := GetCorrelatedChartQ(m)
 		So(result, ShouldNotBeNil)
 	})
 }
@@ -31,7 +41,7 @@ func TestGetRelatedChartsHttp(t *testing.T) {
 		"tablename": "gdp",
 	}
 	Convey("Should return chartlist", t, func() {
-		result := GetNewRelatedChartsHttp(res, req, params)
+		result := GetRelatedChartsHttp(res, req, params)
 		So(result, ShouldNotBeNil)
 	})
 }

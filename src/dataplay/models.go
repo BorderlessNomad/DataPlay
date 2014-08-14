@@ -35,7 +35,7 @@ type Correlation struct {
 }
 
 func (c Correlation) TableName() string {
-	return "priv_correlated"
+	return "priv_correlation"
 }
 
 type Index struct {
@@ -164,8 +164,6 @@ type Validated struct {
 	Rating         float64
 	Valid          int
 	Invalid        int
-	DataHash       string
-	IdentifierHash string
 	Json           []byte
 	OriginId       int
 }

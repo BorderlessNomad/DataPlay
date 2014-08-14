@@ -15,6 +15,7 @@ const ( //go version of enum
 )
 
 type CorrelationData struct {
+	Id     int       `json:"method, omitempty"`
 	Method string    `json:"method"`
 	Chart  string    `json:"type, omitempty"`
 	Table1 TableData `json:"table1"`

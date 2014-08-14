@@ -179,13 +179,13 @@ func initClassicMode() {
 	// API v1.1
 	m.Get("/api/chart/:tablename/:type/:x/:y", GetChartHttp)
 	m.Get("/api/chart/:tablename/:type/:x/:y/:z", GetChartHttp)
-	m.Get("/api/related/:tablename", GetNewRelatedChartsHttp)
-	m.Get("/api/related/:tablename/:offset/:count", GetNewRelatedChartsHttp)
-	m.Get("/api/correlated/:tablename", GetNewCorrelatedChartsHttp)
-	m.Get("/api/correlated/:tablename/:offset/:count", GetNewCorrelatedChartsHttp)
-	m.Get("/api/correlated/:tablename/:offset/:count/:searchdepth", GetNewCorrelatedChartsHttp)
-	// m.Get("/api/related/:tablename", GetValidatedCorrelatedChartsHttp)
-	// m.Get("/api/related/:tablename/:offset/:count", GetValidatedCorrelatedChartsHttp)
+	m.Get("/api/related/:tablename", GetRelatedChartsHttp)
+	m.Get("/api/related/:tablename/:offset/:count", GetRelatedChartsHttp)
+	m.Get("/api/correlated/:tablename", GetCorrelatedChartsHttp)
+	m.Get("/api/correlated/:tablename/:offset/:count", GetCorrelatedChartsHttp)
+	m.Get("/api/correlated/:tablename/:offset/:count/:searchdepth", GetCorrelatedChartsHttp)
+	m.Get("/api/related/:tablename/:correlated", GetValidatedChartsHttp)
+	m.Get("/api/related/:tablename/:correlated/:offset/:count", GetValidatedChartsHttp)
 
 	m.Use(JsonApiHandler)
 
