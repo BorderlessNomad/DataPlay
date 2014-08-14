@@ -1,4 +1,4 @@
-<div class="chartSwitch"
+<div class="chartSwitch line"
 	ng-if="chart.type == 'line'"
 
 	dc-chart="lineChart"
@@ -13,11 +13,29 @@
 	dc-transition-duration="500"
 	dc-colors="d3.scale.category20()"
 
-	dc-x-axis-label="chart.xLabel"
 	dc-y-axis-label="chart.yLabel"
 
 	dc-render-data-points="true"
 	dc-render-area="true"
 
 	dc-post-setup-chart="lineChartPostSetup"
+></div>
+
+<div class="chartSwitch range"
+	id="lineChartRange"
+	ng-if="chart.type == 'line'"
+
+	dc-chart="barChart"
+
+	dc-width="{{width}}"
+	dc-height="100"
+	dc-margins="{{marginAlt}}"
+	dc-mouse-zoomable="false"
+
+	dc-elastic-y="true"
+	dc-transition-duration="500"
+
+	dc-x-axis-label="chart.xLabel"
+
+	dc-post-setup-chart="rangeChartPostSetup"
 ></div>

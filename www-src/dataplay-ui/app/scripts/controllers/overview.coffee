@@ -97,8 +97,10 @@ angular.module('dataplayApp')
 									valuePattern: PatternMatcher.getPattern chart.values[0]['y']
 									keyPattern: PatternMatcher.getKeyPattern chart.values[0]['y']
 
-							if PatternMatcher.includePattern chart
-								$scope.chartsRelated.push chart
+							$scope.chartsRelated.push chart if PatternMatcher.includePattern(
+								chart.patterns[chart.xLabel].valuePattern,
+								chart.patterns[chart.xLabel].keyPattern
+							)
 
 						$scope.offset.related += count
 						if $scope.offset.related >= $scope.max.related
@@ -134,32 +136,40 @@ angular.module('dataplayApp')
 						$scope.max.correlated = data.Count
 
 						for key, chart of data.Charts
-							continue unless $scope.isPlotAllowed chart.type
+							continue unless chart.type is 'line'
 
-							chart.id = "correlated-#{$scope.params.id}-#{chart.xLabel}-#{chart.yLabel}-#{chart.type}"
+							chart.id = "correlated-#{$scope.params.id}-#{chart.table1.xLabel}-#{chart.table1.yLabel}-#{chart.type}"
+
+							console.log chart.table1
 
 							chart.patterns = {}
-							chart.patterns[chart.xLabel] =
-								valuePattern: PatternMatcher.getPattern chart.values[0]['x']
-								keyPattern: PatternMatcher.getKeyPattern chart.values[0]['x']
+							chart.patterns[chart.table1.xLabel] =
+								valuePattern: PatternMatcher.getPattern chart.table1.values[0]['x']
+								keyPattern: PatternMatcher.getKeyPattern chart.table1.values[0]['x']
 
-							if chart.patterns[chart.xLabel].valuePattern is 'date'
-								for value, key in chart.values
-									chart.values[key].x = new Date(value.x)
+							if chart.patterns[chart.table1.xLabel].valuePattern is 'date'
+								for value, key in chart.table1.values
+									chart.table1.values[key].x = new Date(value.x)
+								for value, key in chart.table2.values
+									chart.table2.values[key].x = new Date(value.x)
 
-							if chart.yLabel?
-								chart.patterns[chart.yLabel] =
-									valuePattern: PatternMatcher.getPattern chart.values[0]['y']
-									keyPattern: PatternMatcher.getKeyPattern chart.values[0]['y']
+							if chart.table1.yLabel?
+								chart.patterns[chart.table1.yLabel] =
+									valuePattern: PatternMatcher.getPattern chart.table1.values[0]['y']
+									keyPattern: PatternMatcher.getKeyPattern chart.table1.values[0]['y']
 
-							if PatternMatcher.includePattern chart
-								$scope.chartsCorrelated.push chart
+							$scope.chartsCorrelated.push chart if PatternMatcher.includePattern(
+								chart.patterns[chart.table1.xLabel].valuePattern,
+								chart.patterns[chart.table1.xLabel].keyPattern
+							)
 
 						$scope.offset.correlated += count
 						if $scope.offset.correlated >= $scope.max.correlated
 							$scope.limit.correlated = true
 
 						Overview.charts 'correlated', $scope.offset.correlated
+
+						console.log $scope.chartsCorrelated
 					return
 				.error (data, status) ->
 					console.log "Overview::getCorrelated::Error:", status
