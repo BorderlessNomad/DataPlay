@@ -16,6 +16,10 @@ angular.module('dataplayApp')
 			offset = if offset? then offset else 0
 			count = if count? then count else 3
 			$http.get config.api.base_url + "/related/#{guid}/#{offset}/#{count}"
+		correlated: (guid, offset, count) ->
+			offset = if offset? then offset else 0
+			count = if count? then count else 3
+			$http.get config.api.base_url + "/correlated/#{guid}/#{offset}/#{count}"
 		charts: (key, value) ->
 			unless key?
 				chart = {}
