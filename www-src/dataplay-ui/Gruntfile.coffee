@@ -31,11 +31,11 @@ module.exports = (grunt) ->
 				files: ["bower.json"]
 
 			coffee:
-				files: ["<%= yeoman.app %>/scripts/{,*/}*.{coffee,litcoffee,coffee.md}"]
+				files: ["<%= yeoman.app %>/scripts/**/*.{coffee,litcoffee,coffee.md}"]
 				tasks: ["newer:coffee:dist"]
 
 			coffeeTest:
-				files: ["test/spec/{,*/}*.{coffee,litcoffee,coffee.md}"]
+				files: ["test/spec/**/*.{coffee,litcoffee,coffee.md}"]
 				tasks: [
 					"newer:coffee:test"
 					"karma"
