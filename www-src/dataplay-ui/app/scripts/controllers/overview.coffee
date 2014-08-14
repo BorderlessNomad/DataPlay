@@ -57,13 +57,14 @@ angular.module('dataplayApp')
 		$scope.getRelatedCharts = () ->
 			$scope.chartRegistryOffset = dc.chartRegistry.list().length
 
-			$scope.getRelated()
+			$scope.getRelated Overview.charts 'related'
 
 			return
 
-		$scope.getRelated = () ->
-			count = $scope.max.related - $scope.offset.related
-			count = if $scope.max.related and count < $scope.count then count else $scope.count
+		$scope.getRelated = (count) ->
+			if not count?
+				count = $scope.max.related - $scope.offset.related
+				count = if $scope.max.related and count < $scope.count then count else $scope.count
 
 			Overview.related $scope.params.id, $scope.offset.related, count
 				.success (data) ->
@@ -89,34 +90,20 @@ angular.module('dataplayApp')
 									valuePattern: PatternMatcher.getPattern chart.values[0]['y']
 									keyPattern: PatternMatcher.getKeyPattern chart.values[0]['y']
 
-							if $scope.includePattern chart
+							if PatternMatcher.includePattern chart
 								$scope.chartsInfo.push chart
 
-						$scope.offset.related += $scope.count
+						$scope.offset.related += count
 						if $scope.offset.related >= $scope.max.related
 							$scope.limit.related = true
 
+						Overview.charts 'related', $scope.offset.related
 					return
 				.error (data, status) ->
 					console.log "Overview::getRelatedCharts::Error:", status
 					return
 
 			return
-
-		$scope.includePattern = (data) ->
-			xPattern = data.patterns[data.xLabel].valuePattern
-			xKeyPattern = data.patterns[data.xLabel].keyPattern
-
-			useGroup = switch xPattern
-				when 'excluded' then false
-				when 'label', 'date', 'postCode', 'creditCard', 'currency' then true
-				when 'intNumber', 'floatNumber' then switch xKeyPattern
-					when 'date', 'coefficient' then true
-					when null then true
-					else false
-				else false
-
-			useGroup
 
 		$scope.getXScale = (data) ->
 			xScale = switch data.patterns[data.xLabel].valuePattern

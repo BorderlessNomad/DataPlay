@@ -217,6 +217,7 @@ angular.module('dataplayApp')
 			chart.legend dc.legend()
 
 			chart.minAngleForLabel 0
+			chart.innerRadius 150
 
 			return
 
@@ -306,6 +307,9 @@ angular.module('dataplayApp')
 			console.log minR, maxR, (maxR - minR), minRL, maxRL, (maxRL - minRL), scale, scale / 100
 
 			chart.maxBubbleRelativeSize scale / 100
+
+			chart.zoomOutRestrict true
+			chart.mouseZoomable true
 
 			# chart.renderlet (c) ->
 			# 	circles = c.svg().selectAll('g.chart-body').selectAll('g circle')

@@ -1,3 +1,10 @@
+<!-- Smart Caching -->
+<span ng-include="'views/charts/line.html'"></span>
+<span ng-include="'views/charts/row.html'"></span>
+<span ng-include="'views/charts/column.html'"></span>
+<span ng-include="'views/charts/pie.html'"></span>
+<span ng-include="'views/charts/bubble.html'"></span>
+
 <div class="overview">
 	<h1>Overview</h1> <em>of</em> <h4>"{{params.id}}"</h4>
 
@@ -24,111 +31,11 @@
 				<span><h4>{{chart.xLabel}}</h4> <h5>vs</h5> <h4>{{chart.yLabel}}</h4> <h5>vs</h5> <h4>{{chart.zLabel}}</h4></span>
 			</a>
 
-			<div class="chartSwitch"
-				ng-if="chart.type == 'line'"
-
-				dc-chart="lineChart"
-
-				dc-width="{{width}}"
-				dc-height="{{height}}"
-				dc-margins="{{margin}}"
-				dc-mouse-zoomable="false"
-				dc-brush-on="false"
-
-				dc-elastic-y="true"
-				dc-transition-duration="500"
-				dc-colors="d3.scale.category20()"
-
-				dc-x-axis-label="chart.xLabel"
-				dc-y-axis-label="chart.yLabel"
-
-				dc-render-data-points="true"
-				dc-render-area="true"
-
-				dc-post-setup-chart="lineChartPostSetup"
-			></div>
-
-			<div class="chartSwitch"
-				ng-if="chart.type == 'row' || chart.type == 'bar'"
-
-				dc-chart="rowChart"
-
-				dc-width="{{width}}"
-				dc-height="{{height}}"
-				dc-margins="{{margin}}"
-				dc-mouse-zoomable="false"
-				dc-brush-on="false"
-
-				dc-elastic-x="true"
-				dc-transition-duration="500"
-				dc-colors="d3.scale.category20()"
-
-				dc-x-axis-label="chart.xLabel"
-				dc-y-axis-label="chart.yLabel"
-
-				dc-post-setup-chart="rowChartPostSetup"
-			></div>
-
-			<div class="chartSwitch"
-				ng-if="chart.type == 'column'"
-
-				dc-chart="barChart"
-
-				dc-width="{{width}}"
-				dc-height="{{height}}"
-				dc-margins="{{margin}}"
-				dc-mouse-zoomable="false"
-				dc-brush-on="false"
-
-				dc-elastic-y="true"
-				dc-transition-duration="500"
-				dc-colors="d3.scale.category20()"
-
-				dc-x-axis-label="chart.xLabel"
-				dc-y-axis-label="chart.yLabel"
-
-				dc-post-setup-chart="columnChartPostSetup"
-			></div>
-
-			<div class="chartSwitch"
-				ng-if="chart.type == 'pie'"
-
-				dc-chart="pieChart"
-
-				dc-width="{{width}}"
-				dc-height="{{height}}"
-				dc-margins="{{margin}}"
-				dc-mouse-zoomable="false"
-				dc-brush-on="false"
-
-				dc-transition-duration="500"
-				dc-colors="d3.scale.category20()"
-				dc-inner-radius="50"
-
-				dc-post-setup-chart="pieChartPostSetup"
-			></div>
-
-			<div class="chartSwitch"
-				ng-if="chart.type == 'bubble'"
-
-				dc-chart="bubbleChart"
-
-				dc-width="{{width}}"
-				dc-height="{{height}}"
-				dc-margins="{{margin}}"
-				dc-brush-on="true"
-
-				dc-transition-duration="500"
-				dc-colors="d3.scale.category20()"
-
-				dc-render-label="false"
-				dc-render-title="true"
-
-				dc-x-axis-label="chart.xLabel"
-				dc-y-axis-label="chart.yLabel"
-
-				dc-post-setup-chart="bubbleChartPostSetup"
-			></div>
+			<span ng-include="'views/charts/line.html'"></span>
+			<span ng-include="'views/charts/row.html'"></span>
+			<span ng-include="'views/charts/column.html'"></span>
+			<span ng-include="'views/charts/pie.html'"></span>
+			<span ng-include="'views/charts/bubble.html'"></span>
 
 			<div class="chartSwitch" ng-if="!isPlotAllowed(chart.type)">
 				<div class="well text-center">Oops! nothing to plot.</div>

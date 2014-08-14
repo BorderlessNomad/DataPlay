@@ -329,4 +329,19 @@ angular.module('dataplayApp')
 										parsed = if handler.parse then handler.parse match else src
 
 				parsed
+
+			includePattern: (data) ->
+				xPattern = data.patterns[data.xLabel].valuePattern
+				xKeyPattern = data.patterns[data.xLabel].keyPattern
+
+				useGroup = switch xPattern
+					when 'excluded' then false
+					when 'label', 'date', 'postCode', 'creditCard', 'currency' then true
+					when 'intNumber', 'floatNumber' then switch xKeyPattern
+						when 'date', 'coefficient' then true
+						when null then true
+						else false
+					else false
+
+				useGroup
 		}
