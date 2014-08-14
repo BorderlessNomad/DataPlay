@@ -8,7 +8,7 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'HomeCtrl', ['$scope', '$location', 'User', 'Auth', 'config', ($scope, $location, User, Auth, config) ->
+	.controller 'HomeCtrl', ['$scope', '$location', 'User', 'Auth', 'Overview', 'config', ($scope, $location, User, Auth, Overview, config) ->
 		$scope.Auth = Auth
 		$scope.username = Auth.get config.userName
 		$scope.config = config
@@ -18,6 +18,9 @@ angular.module('dataplayApp')
 			$location.path().substr(0, path.length) is path
 
 		$scope.getLastVisited = () ->
+			# Reset Overview cache
+			Overview.charts null
+
 			unless Auth.isAuthenticated()
 				$scope.lastVisited = []
 				return
