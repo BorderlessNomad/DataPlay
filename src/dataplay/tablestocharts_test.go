@@ -15,7 +15,7 @@ func TestGetRelatedCharts(t *testing.T) {
 		"tablename": "gold",
 	}
 	Convey("Should return chartlist", t, func() {
-		result := GetRelatedChartsQ(m)
+		result := GetNewRelatedChartsQ(m)
 		So(result, ShouldNotBeNil)
 	})
 }
@@ -31,7 +31,7 @@ func TestGetRelatedChartsHttp(t *testing.T) {
 		"tablename": "gdp",
 	}
 	Convey("Should return chartlist", t, func() {
-		result := GetRelatedChartsHttp(res, req, params)
+		result := GetNewRelatedChartsHttp(res, req, params)
 		So(result, ShouldNotBeNil)
 	})
 }

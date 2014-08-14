@@ -249,10 +249,7 @@ func SaveCorrelation(m map[string]string, c cmeth, cf float64, cd *CorrelationDa
 		Col3:    m["valCol3"],
 		Method:  m["method"],
 		Coef:    cf,
-		Json:    string(jv),
-		Rating:  0,
-		Valid:   0,
-		Invalid: 0,
+		Json:    jv,
 		Abscoef: math.Abs(cf), //absolute value for ranking as highly negative correlations are also interesting
 	}
 

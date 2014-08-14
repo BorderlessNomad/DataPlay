@@ -20,6 +20,7 @@ type RelatedCorrelatedCharts struct {
 	Count  int
 }
 
+// Get all data for single selected chart
 func GetChart(tableName string, chartType string, coords ...string) (TableData, *appError) {
 	guid, _ := GetRealTableName(tableName)
 	index := Index{}
@@ -50,12 +51,12 @@ func GetChart(tableName string, chartType string, coords ...string) (TableData, 
 		}
 	}
 
-	GetChartData(chartType, guid, xyz, &chart, index)
+	GenerateChartData(chartType, guid, xyz, &chart, index)
 	return chart[0], nil
 }
 
 // generate all the potentially valid charts that relate to a single tablename, add apt charting types, and return them along with their total count
-func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *appError) {
+func GetNewRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *appError) {
 	columns := FetchTableCols(tableName) //array column names
 	guid, _ := GetRealTableName(tableName)
 	charts := make([]TableData, 0) ///empty slice for adding all possible charts
@@ -74,38 +75,34 @@ func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *
 	for _, v := range columns { // create single column pie charts
 		xyPie.X = v.Name
 		xyPie.Xtype = v.Sqltype
-		GetChartData("pie", guid, xyPie, &charts, index)
+		GenerateChartData("pie", guid, xyPie, &charts, index)
 	}
 
 	for _, v := range xyNames { /// create all other types of chart
 
 		if v.Xtype == "varchar" && v.Ytype == "varchar" { // stacked or scatter charts if string v string values
-			GetChartData("stacked column", guid, v, &charts, index)
-			GetChartData("scatter", guid, v, &charts, index)
+			GenerateChartData("stacked column", guid, v, &charts, index)
+			GenerateChartData("scatter", guid, v, &charts, index)
 			// column and row charts for all that are not string v string values and are not date v string or string v date values
 		} else if !(v.Xtype == "varchar" && v.Ytype == "date") || !(v.Xtype == "date" && v.Ytype == "varchar") {
-			GetChartData("row", guid, v, &charts, index)
+			GenerateChartData("row", guid, v, &charts, index)
+			// no string values for y axis on column charts
 			if v.Ytype != "varchar" {
-				GetChartData("column", guid, v, &charts, index)
+				GenerateChartData("column", guid, v, &charts, index)
 			}
 		}
 
 		if v.Xtype != "varchar" && (v.Ytype != "date" || v.Ytype != "varchar") { // line chart cannot be based on strings or have date on the Y axis
-			GetChartData("line", guid, v, &charts, index)
+			GenerateChartData("line", guid, v, &charts, index)
 		}
 	}
 
 	if len(columns) > 2 { // if there's more than 2 columns grab a 3rd variable for bubble charts
 		xyNames = XYPermutations(columns, true) // set z flag to true to get all possible valid permuations of columns as X, Y & Z
 		for _, v := range xyNames {
-			GetChartData("bubble", guid, v, &charts, index)
+			GenerateChartData("bubble", guid, v, &charts, index)
 		}
 	}
-
-	// for i := range charts { // shuffle charts into random order
-	// 	j := rand.Intn(i + 1)
-	// 	charts[i], charts[j] = charts[j], charts[i]
-	// }
 
 	totalCharts := len(charts)
 	if offset > totalCharts {
@@ -125,23 +122,22 @@ func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *
 
 // Look for new correlated charts, take the correlations and break them down into charting types, and return them along with their total count
 func GetNewCorrelatedCharts(tableName string, searchDepth int, offset int, count int) (RelatedCorrelatedCharts, *appError) {
+	corData := make([]Correlation, 0)
 	charts := make([]CorrelationData, 0) ///empty slice for adding all possible charts
-	GenerateCorrelations(tableName, searchDepth)
-	sql := fmt.Sprintf("SELECT method, json, abscoef FROM priv_correlation WHERE tbl1 = %s AND rating = 0 ORDER BY abscoef DESC", tableName)
-	var meth string
-	var js []byte
-	var acoef float64
 	var cd CorrelationData
 
-	rows, _ := DB.Raw(sql).Rows()
-	defer rows.Close()
+	err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Find(&corData).Error
+	if err != nil && err != gorm.RecordNotFound {
+		return RelatedCorrelatedCharts{nil, 0}, &appError{nil, "Database query failed", http.StatusInternalServerError}
+	} else if err == gorm.RecordNotFound {
+		return RelatedCorrelatedCharts{nil, 0}, &appError{nil, "Database query failed", http.StatusNotFound}
+	}
 
-	for rows.Next() {
-		rows.Scan(&meth, &js, &acoef)
-		err := json.Unmarshal(js, &cd)
+	for _, c := range corData {
+		err := json.Unmarshal(c.Json, &cd)
 		check(err)
 
-		if meth == "Pearson" {
+		if c.Method == "Pearson" {
 			cd.Chart = "bar"
 			charts = append(charts, cd)
 			cd.Chart = "column"
@@ -151,7 +147,7 @@ func GetNewCorrelatedCharts(tableName string, searchDepth int, offset int, count
 			cd.Chart = "scatter"
 			charts = append(charts, cd)
 
-		} else if meth == "Spurious" {
+		} else if c.Method == "Spurious" {
 			cd.Chart = "line"
 			charts = append(charts, cd)
 			cd.Chart = "scatter"
@@ -159,7 +155,7 @@ func GetNewCorrelatedCharts(tableName string, searchDepth int, offset int, count
 			cd.Chart = "stacked"
 			charts = append(charts, cd)
 
-		} else if meth == "Visual" {
+		} else if c.Method == "Visual" {
 			cd.Chart = "bar"
 			charts = append(charts, cd)
 			cd.Chart = "column"
@@ -190,74 +186,22 @@ func GetNewCorrelatedCharts(tableName string, searchDepth int, offset int, count
 	return RelatedCorrelatedCharts{charts, totalCharts}, nil
 }
 
-// As GetNew but get charts users have already voted on and return in an order based upon their absoulte ranking value
-func GetValidatedCorrelatedCharts(tableName string, offset int, count int) (RelatedCorrelatedCharts, *appError) {
-	charts := make([]CorrelationData, 0) ///empty slice for adding all possible charts
-	sql := fmt.Sprintf("SELECT method, json, abscoef FROM priv_correlation WHERE tbl1 = %s AND rating != 0 ORDER BY abscoef DESC", tableName)
-	var meth string
-	var js []byte
-	var acoef float64
-	var cd CorrelationData
+// // As GetNew but get charts users have already voted on and return in an order based upon their absoulte ranking value
+// func GetValidatedCorrelatedCharts(tableName string, offset int, count int) (RelatedCorrelatedCharts, *appError) {
+// 	// return from validated where flag correlated
 
-	rows, _ := DB.Raw(sql).Rows()
-	defer rows.Close()
+// }
 
-	for rows.Next() {
-		rows.Scan(&meth, &js, &acoef)
-		err := json.Unmarshal(js, &cd)
-		check(err)
+// func GetValidatedRelatedCharts(tableName string, offset int, count int) (RelatedCorrelatedCharts, *appError) {
+// 	// return from validated where flag not correlated
+// }
 
-		if meth == "Pearson" {
-			cd.Chart = "bar"
-			charts = append(charts, cd)
-			cd.Chart = "column"
-			charts = append(charts, cd)
-			cd.Chart = "line"
-			charts = append(charts, cd)
-			cd.Chart = "scatter"
-			charts = append(charts, cd)
-
-		} else if meth == "Spurious" {
-			cd.Chart = "line"
-			charts = append(charts, cd)
-			cd.Chart = "scatter"
-			charts = append(charts, cd)
-			cd.Chart = "stacked"
-			charts = append(charts, cd)
-
-		} else if meth == "Visual" {
-			cd.Chart = "bar"
-			charts = append(charts, cd)
-			cd.Chart = "column"
-			charts = append(charts, cd)
-			cd.Chart = "line"
-			charts = append(charts, cd)
-			cd.Chart = "scatter"
-			charts = append(charts, cd)
-		} else {
-			cd.Chart = "unknown"
-			charts = append(charts, cd)
-		}
-	}
-
-	totalCharts := len(charts)
-	if offset > totalCharts {
-		return RelatedCorrelatedCharts{nil, 0}, &appError{nil, fmt.Sprintf("Offset value out of bounds (Max: %d)", totalCharts), http.StatusBadRequest}
-	}
-
-	last := offset + count
-	if offset != 0 && last > totalCharts {
-		return RelatedCorrelatedCharts{nil, 0}, &appError{nil, fmt.Sprintf("Count value out of bounds (Max: %d)", totalCharts-offset), http.StatusBadRequest}
-	} else if offset == 0 && last > totalCharts {
-		last = totalCharts
-	}
-
-	charts = charts[offset:last] // return marshalled slice
-	return RelatedCorrelatedCharts{charts, totalCharts}, nil
-}
+// func GetCorrelatedChart(tableName string, offset int, count int) (RelatedCorrelatedCharts, *appError) {
+// 	//get single correlated
+// }
 
 // Get arrays of data for the types of charts requested (titles, descriptions, all the xy values etc)
-func GetChartData(chartType string, guid string, names XYVal, charts *[]TableData, ind Index) {
+func GenerateChartData(chartType string, guid string, names XYVal, charts *[]TableData, ind Index) {
 	var tmpTD TableData
 	var tmpXY XYVal
 	tmpTD.ChartType = chartType
@@ -297,24 +241,12 @@ func GetChartData(chartType string, guid string, names XYVal, charts *[]TableDat
 				tmpXY.Y = FloatToString(fy)
 				tmpXY.Z = FloatToString(fz)
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-				// } else if (names.Xtype == "float" || names.Xtype == "integer") && names.Ytype == "date" && (names.Ztype == "float" || names.Ztype == "integer") {
-				// 	rows.Scan(&fx, &dy, &fz)
-				// 	tmpXY.X = FloatToString(fx)
-				// 	tmpXY.Y = (dy.String()[0:10])
-				// 	tmpXY.Z = FloatToString(fz)
-				// 	tmpTD.Values = append(tmpTD.Values, tmpXY)
 			} else if (names.Xtype == "float" || names.Xtype == "integer") && names.Ytype == "varchar" && (names.Ztype == "float" || names.Ztype == "integer") {
 				rows.Scan(&fx, &vy, &fz)
 				tmpXY.X = FloatToString(fx)
 				tmpXY.Y = vy
 				tmpXY.Z = FloatToString(fz)
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-				// } else if names.Xtype == "date" && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
-				// 	rows.Scan(&dx, &fy, &fz)
-				// 	tmpXY.X = (dx.String()[0:10])
-				// 	tmpXY.Y = FloatToString(fy)
-				// 	tmpXY.Z = FloatToString(fz)
-				// 	tmpTD.Values = append(tmpTD.Values, tmpXY)
 			} else if names.Xtype == "varchar" && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
 				rows.Scan(&vx, &fy, &fz)
 				tmpXY.X = vx
@@ -552,7 +484,7 @@ func GetChartHttp(res http.ResponseWriter, req *http.Request, params martini.Par
 	return string(r)
 }
 
-func GetRelatedChartsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+func GetNewRelatedChartsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
@@ -582,7 +514,7 @@ func GetRelatedChartsHttp(res http.ResponseWriter, req *http.Request, params mar
 		}
 	}
 
-	result, error := GetRelatedCharts(params["tablename"], offset, count)
+	result, error := GetNewRelatedCharts(params["tablename"], offset, count)
 	if error != nil {
 		http.Error(res, error.Message, error.Code)
 		return ""
@@ -652,50 +584,50 @@ func GetNewCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, para
 	return string(r)
 }
 
-func GetValidatedCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	session := req.Header.Get("X-API-SESSION")
-	if len(session) <= 0 {
-		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
-		return ""
-	}
+// func GetValidatedCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+// 	session := req.Header.Get("X-API-SESSION")
+// 	if len(session) <= 0 {
+// 		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+// 		return ""
+// 	}
 
-	var offset, count int
-	var err error
+// 	var offset, count int
+// 	var err error
 
-	if params["offset"] == "" {
-		offset = 0
-	} else {
-		offset, err = strconv.Atoi(params["offset"])
-		if err != nil {
-			http.Error(res, "Invalid offset parameter.", http.StatusBadRequest)
-			return ""
-		}
-	}
+// 	if params["offset"] == "" {
+// 		offset = 0
+// 	} else {
+// 		offset, err = strconv.Atoi(params["offset"])
+// 		if err != nil {
+// 			http.Error(res, "Invalid offset parameter.", http.StatusBadRequest)
+// 			return ""
+// 		}
+// 	}
 
-	if params["count"] == "" {
-		count = 3
-	} else {
-		count, err = strconv.Atoi(params["count"])
-		if err != nil {
-			http.Error(res, "Invalid count parameter.", http.StatusBadRequest)
-			return ""
-		}
-	}
+// 	if params["count"] == "" {
+// 		count = 3
+// 	} else {
+// 		count, err = strconv.Atoi(params["count"])
+// 		if err != nil {
+// 			http.Error(res, "Invalid count parameter.", http.StatusBadRequest)
+// 			return ""
+// 		}
+// 	}
 
-	result, error := GetValidatedCorrelatedCharts(params["tablename"], offset, count)
-	if error != nil {
-		http.Error(res, error.Message, error.Code)
-		return ""
-	}
+// 	result, error := GetValidatedCorrelatedCharts(params["tablename"], offset, count)
+// 	if error != nil {
+// 		http.Error(res, error.Message, error.Code)
+// 		return ""
+// 	}
 
-	r, err1 := json.Marshal(result)
-	if err1 != nil {
-		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return ""
-	}
+// 	r, err1 := json.Marshal(result)
+// 	if err1 != nil {
+// 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+// 		return ""
+// 	}
 
-	return string(r)
-}
+// 	return string(r)
+// }
 
 func GetChartQ(params map[string]string) string {
 	if params["tablename"] == "" {
@@ -727,7 +659,7 @@ func GetChartQ(params map[string]string) string {
 	return string(r)
 }
 
-func GetRelatedChartsQ(params map[string]string) string {
+func GetNewRelatedChartsQ(params map[string]string) string {
 	if params["user"] == "" {
 		return ""
 	}
@@ -742,7 +674,7 @@ func GetRelatedChartsQ(params map[string]string) string {
 		return ""
 	}
 
-	result, err := GetRelatedCharts(params["tablename"], offset, count)
+	result, err := GetNewRelatedCharts(params["tablename"], offset, count)
 	if err != nil {
 		return ""
 	}
@@ -788,30 +720,30 @@ func GetNewCorrelatedChartsQ(params map[string]string) string {
 	return string(r)
 }
 
-func GetValidatedCorrelatedChartsQ(params map[string]string) string {
-	if params["user"] == "" {
-		return ""
-	}
+// func GetValidatedCorrelatedChartsQ(params map[string]string) string {
+// 	if params["user"] == "" {
+// 		return ""
+// 	}
 
-	offset, e := strconv.Atoi(params["offset"])
-	if e != nil {
-		return ""
-	}
+// 	offset, e := strconv.Atoi(params["offset"])
+// 	if e != nil {
+// 		return ""
+// 	}
 
-	count, e := strconv.Atoi(params["count"])
-	if e != nil {
-		return ""
-	}
+// 	count, e := strconv.Atoi(params["count"])
+// 	if e != nil {
+// 		return ""
+// 	}
 
-	result, err := GetValidatedCorrelatedCharts(params["tablename"], offset, count)
-	if err != nil {
-		return ""
-	}
+// 	result, err := GetValidatedCorrelatedCharts(params["tablename"], offset, count)
+// 	if err != nil {
+// 		return ""
+// 	}
 
-	r, e := json.Marshal(result)
-	if e != nil {
-		return ""
-	}
+// 	r, e := json.Marshal(result)
+// 	if e != nil {
+// 		return ""
+// 	}
 
-	return string(r)
-}
+// 	return string(r)
+// }
