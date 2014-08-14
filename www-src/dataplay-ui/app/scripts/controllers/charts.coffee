@@ -17,6 +17,12 @@ angular.module('dataplayApp')
 			right: 10
 			bottom: 50
 			left: 100
+		$scope.marginAlt =
+			top: 0
+			right: 10
+			bottom: 50
+			left: 110
+
 		$scope.chart =
 			title: ""
 			description: "N/A"
@@ -119,14 +125,40 @@ angular.module('dataplayApp')
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
-			chart.group data.group
+			chart.group data.group, data.title
 
 			data.ordinals = []
 			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
 
 			chart.colorAccessor (d, i) -> parseInt(d.y) % data.ordinals.length
+			chart.valueAccessor (d) -> d.value
+			chart.title (d) -> "#{data.xLabel}: #{d.key}\n#{data.yLabel}: #{d.value}"
 
 			chart.x $scope.getXScale data
+
+			return
+
+		$scope.rangeChartPostSetup = (chart) ->
+			data = $scope.chart
+
+			data.entry = crossfilter data.values
+			data.dimension = data.entry.dimension (d) -> d.x
+			data.group = data.dimension.group().reduceSum (d) -> d.y
+
+			chart.dimension data.dimension
+			chart.group data.group
+
+			data.ordinals = []
+			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
+
+			chart.x $scope.getXScale data
+
+			if ordinals? and ordinals.length > 0
+			chart.xUnits switch data.patterns[data.xLabel].valuePattern
+				when 'date' then d3.time.years
+				when 'intNumber' then dc.units.integers
+				when 'label', 'text' then dc.units.ordinal
+				else dc.units.ordinal
 
 			return
 

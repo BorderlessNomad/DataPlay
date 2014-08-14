@@ -8,10 +8,6 @@
 	}
 
 	.chartSwitch {
-	// 	height: 205px;
-	// 	min-height: 205px;
-	// 	max-height: 205px;
-
 		.well {
 			height: 200px;
 			min-height: 200px;
@@ -42,5 +38,16 @@
 	// 	.dc-legend {
 	// 		// fill: #ffffff;
 	// 	}
+	}
+}
+
+.charts {
+	.dc-chart {
+		&.line g.x {
+			// display: none
+		}
+		&.range g.y {
+			display: none
+		}
 	}
 }
