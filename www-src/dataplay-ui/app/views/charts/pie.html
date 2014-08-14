@@ -1,0 +1,17 @@
+<div class="chartSwitch"
+	ng-if="chart.type == 'pie'"
+
+	dc-chart="pieChart"
+
+	dc-width="{{width}}"
+	dc-height="{{height}}"
+	dc-margins="{{margin}}"
+	dc-mouse-zoomable="false"
+	dc-brush-on="false"
+
+	dc-transition-duration="500"
+	dc-colors="d3.scale.category20()"
+	dc-inner-radius="50"
+
+	dc-post-setup-chart="pieChartPostSetup"
+></div>
