@@ -103,6 +103,7 @@
 
 				dc-transition-duration="500"
 				dc-colors="d3.scale.category20()"
+				dc-inner-radius="50"
 
 				dc-post-setup-chart="pieChartPostSetup"
 			></div>
@@ -115,13 +116,12 @@
 				dc-width="{{width}}"
 				dc-height="{{height}}"
 				dc-margins="{{margin}}"
-				dc-brush-on="false"
+				dc-brush-on="true"
 
-				dc-elastic-y="true"
 				dc-transition-duration="500"
 				dc-colors="d3.scale.category20()"
 
-				dc-render-label="true"
+				dc-render-label="false"
 				dc-render-title="true"
 
 				dc-x-axis-label="chart.xLabel"
@@ -133,6 +133,10 @@
 			<div class="chartSwitch" ng-if="!isPlotAllowed(chart.type)">
 				<div class="well text-center">Oops! nothing to plot.</div>
 			</div>
+		</div>
+
+		<div class="col-md-12">
+			<a id="getRelated" href="#" class="btn btn-default btn-block" ng-click="getRelated()" ng-hide="limit.related">Show more ({{max.related - offset.related}}) <span class="caret"></span></a>
 		</div>
 	</div>
 </div>

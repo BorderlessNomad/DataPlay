@@ -12,6 +12,16 @@ angular.module('dataplayApp')
 		$scope.allowed = ['line', 'bar', 'row', 'column', 'pie', 'bubble']
 		# $scope.allowed = ['bubble']
 		$scope.params = $routeParams
+		$scope.count = 3
+		$scope.offset =
+			related: 0
+			correlated: 0
+		$scope.limit =
+			related: false
+			correlated: false
+		$scope.max =
+			related: 0
+			correlated: 0
 		$scope.chartsInfo = []
 		$scope.chartRegistryOffset = 0
 
@@ -47,9 +57,19 @@ angular.module('dataplayApp')
 		$scope.getRelatedCharts = () ->
 			$scope.chartRegistryOffset = dc.chartRegistry.list().length
 
-			Overview.related $scope.params.id
+			$scope.getRelated()
+
+			return
+
+		$scope.getRelated = () ->
+			count = $scope.max.related - $scope.offset.related
+			count = if $scope.max.related and count < $scope.count then count else $scope.count
+
+			Overview.related $scope.params.id, $scope.offset.related, count
 				.success (data) ->
 					if data? and data.Charts? and data.Charts.length > 0
+						$scope.max.related = data.Count
+
 						for key, chart of data.Charts
 							continue unless $scope.isPlotAllowed chart.type
 
@@ -72,7 +92,9 @@ angular.module('dataplayApp')
 							if $scope.includePattern chart
 								$scope.chartsInfo.push chart
 
-						console.log "getRelatedCharts", $scope.chartsInfo, $scope.chartsInfo.length
+						$scope.offset.related += $scope.count
+						if $scope.offset.related >= $scope.max.related
+							$scope.limit.related = true
 
 					return
 				.error (data, status) ->
@@ -242,7 +264,6 @@ angular.module('dataplayApp')
 		$scope.bubbleChartPostSetup = (chart) ->
 			data = $scope.chartsInfo[$scope.getChartOffset chart]
 
-			tempData = []
 			minR = null
 			maxR = null
 
@@ -250,45 +271,74 @@ angular.module('dataplayApp')
 			data.dimension = data.entry.dimension (d) ->
 				z = Math.abs parseInt d.z
 
-				tempData["#{d.x}_#{d.y}"] = z
-
-				if minR is null or minR > z
+				if not minR? or minR > z
 					minR = if z is 0 then 1 else z
 
-				if maxR is null or maxR <= z
+				if not maxR? or maxR <= z
 					maxR = if z is 0 then 1 else z
 
-				d.x
+				"#{d.x}|#{d.y}|#{d.z}"
+
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
 			chart.group data.group
 
 			data.ordinals = []
-			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
+			for d in data.group.all() when d not in data.ordinals
+				data.ordinals.push d.key.split("|")[0]
 
-			chart.keyAccessor (d) -> d.key
-			chart.valueAccessor (d) -> d.value
-			chart.radiusValueAccessor (d) -> tempData["#{d.key}_#{d.value}"]
+			chart.keyAccessor (d) -> d.key.split("|")[0]
+			chart.valueAccessor (d) -> d.key.split("|")[1]
+			chart.radiusValueAccessor (d) ->
+				r = Math.abs parseInt d.key.split("|")[2]
+				if r >= minR then r else minR
 
-			chart.x $scope.getXScale data
+			chart.x switch data.patterns[data.xLabel].valuePattern
+				when 'label'
+					d3.scale.ordinal()
+						.domain data.ordinals
+						.rangeBands [0, $scope.width]
+				when 'date'
+					d3.time.scale()
+						.domain d3.extent data.group.all(), (d) -> d.key.split("|")[0]
+						.range [0, $scope.width]
+				else
+					d3.scale.linear()
+						.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[0]
+						.range [0, $scope.width]
+
+			chart.y switch data.patterns[data.xLabel].valuePattern
+				when 'label'
+					d3.scale.ordinal()
+						.domain data.ordinals
+						.rangeBands [0, $scope.height]
+				when 'date'
+					d3.time.scale()
+						.domain d3.extent data.group.all(), (d) -> d.key.split("|")[1]
+						.range [0, $scope.height]
+				else
+					d3.scale.linear()
+						.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[1]
+						.range [0, $scope.height]
+
+			rScale = d3.scale.linear()
+				.domain d3.extent data.group.all(), (d) -> Math.abs parseInt d.key.split("|")[2]
+			chart.r rScale
+
+			# chart.label (d) -> x = d.key.split("|")[0]
 
 			chart.title (d) ->
-				r = tempData["#{d.key}_#{d.value}"]
-				"#{data.xLabel}: #{d.key}\n#{data.yLabel}: #{d.value}\n#{data.zLabel}: #{r}"
+				x = d.key.split("|")[0]
+				y = d.key.split("|")[1]
+				z = d.key.split("|")[2]
+				"#{data.xLabel}: #{x}\n#{data.yLabel}: #{y}\n#{data.zLabel}: #{z}"
 
 			minRL = Math.log minR
 			maxRL = Math.log maxR
+			scale = Math.abs Math.log (maxRL - minRL) / (maxR - minR)
 
-			scale = (maxRL - minRL) / (maxR - minR)
-			scaleR = scale
-
-			if scale <= 0.0006
-				scale += 0.009545
-
-			console.log minR, maxR, minRL, maxRL, scale
-
-			chart.maxBubbleRelativeSize scale
+			chart.maxBubbleRelativeSize scale / 100
 
 			return
 

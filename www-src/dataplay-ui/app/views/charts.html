@@ -89,6 +89,7 @@
 
 				dc-transition-duration="500"
 				dc-colors="d3.scale.category20()"
+				dc-inner-radius="100"
 
 				dc-post-setup-chart="pieChartPostSetup"
 			></div>
@@ -102,13 +103,11 @@
 				dc-width="{{width}}"
 				dc-height="{{height}}"
 				dc-margins="{{margin}}"
-				dc-brush-on="false"
+				dc-brush-on="true"
 
 				dc-transition-duration="500"
 				dc-colors="d3.scale.category20()"
 
-				dc-render-horizontal-grid-lines="true"
-				dc-render-vertical-grid-lines="true"
 				dc-render-label="true"
 				dc-render-title="true"
 				dc-zoom-out-restrict="true"
