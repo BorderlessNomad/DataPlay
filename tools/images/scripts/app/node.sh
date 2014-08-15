@@ -10,6 +10,10 @@ set -ex
 #	e.g.
 #		dataplay-go-master for Master/Producer instance
 
+timestamp () {
+	date +"%F %T,%3N"
+}
+
 setuphost () {
 	HOSTNAME=$(hostname)
 	HOSTLOCAL="127.0.1.1"
@@ -79,7 +83,7 @@ export_variables () {
 	. /home/ubuntu/.profile
 }
 
-run_master () {
+run_node () {
 	APP="dataplay"
 	REPO="DataPlay"
 	SOURCE="https://github.com/playgenhub/$REPO/archive/"
@@ -135,31 +139,42 @@ fi
 
 # As root
 echo "---- Running as Root ----"
+timestamp
 
 echo "1. ---- Setup Host ----"
+timestamp
 setuphost
 
 echo "2. ---- Update system ----"
+timestamp
 update
 
 echo "3. ---- Install essential packages ----"
+timestamp
 install_essentials
 
 echo "4. ---- Install Node.js ----"
+timestamp
 install_nodejs
 
 echo "5. ---- Update IPTables rules ----"
+timestamp
 update_iptables
 
 echo "6. ---- Install GO ----"
+timestamp
 install_go
 
 echo "7. ---- Export Variables ----"
+timestamp
 export_variables
 
 echo "8. ---- Run Master ----"
-run_master
+timestamp
+run_node
 
 echo "---- Completed ----"
+
+timestamp
 
 exit 0
