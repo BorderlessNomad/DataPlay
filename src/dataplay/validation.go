@@ -22,10 +22,11 @@ func RankValidations(valid int, invalid int) float64 {
 }
 
 // increment user validated total for chart and rerank, id = 0 for new validation
-func ValidateChart(id int, correlated bool, json []byte, originid int, uid int) {
+func ValidateChart(chartid int, correlated bool, json []byte, originid int, uid int) {
 	val := Validated{}
+	vld := Validation{}
 
-	if id == 0 {
+	if chartid == 0 {
 		val.DiscoveredBy = uid
 		val.DateDiscovered = time.Now()
 		val.Correlated = correlated
@@ -39,21 +40,30 @@ func ValidateChart(id int, correlated bool, json []byte, originid int, uid int) 
 		check(err)
 
 	} else {
-		err := DB.Where("patternid= ?", id).Find(&val).Error
+		err := DB.Where("patternid= ?", chartid).Find(&val).Error
 		check(err)
-		val.Rating = RankValidations(val.Valid+1, val.Invalid)
-		err = DB.Model(&val).Update("valid", val.Valid+1).Error
-		check(err)
+
+		val.Valid++
+		val.Rating = RankValidations(val.Valid, val.Invalid)
+
 		err = DB.Save(&val).Error
+		check(err)
+
+		vld.PatternId = chartid
+		vld.ValidatedBy = uid
+		vld.ValidationType = "chart"
+
+		err = DB.Save(&vld).Error
 		check(err)
 	}
 }
 
 // increment user invalidated total for chart and rerank, id = 0 for new validation
-func InvalidateChart(id int, correlated bool, json []byte, originid int, uid int) {
+func InvalidateChart(chartid int, correlated bool, json []byte, originid int, uid int) {
 	val := Validated{}
+	vld := Validation{}
 
-	if id == 0 {
+	if chartid == 0 {
 		val.DiscoveredBy = uid
 		val.DateDiscovered = time.Now()
 		val.Correlated = correlated
@@ -67,21 +77,30 @@ func InvalidateChart(id int, correlated bool, json []byte, originid int, uid int
 		check(err)
 
 	} else {
-		err := DB.Where("patternid= ?", id).Find(&val).Error
+		err := DB.Where("patternid= ?", chartid).Find(&val).Error
 		check(err)
-		val.Rating = RankValidations(val.Valid, val.Invalid+1)
-		err = DB.Model(&val).Update("valid", val.Invalid+1).Error
-		check(err)
+
+		val.Invalid++
+		val.Rating = RankValidations(val.Valid, val.Invalid)
+
 		err = DB.Save(&val).Error
+		check(err)
+
+		vld.PatternId = chartid
+		vld.ValidatedBy = uid
+		vld.ValidationType = "chart"
+
+		err = DB.Save(&vld).Error
 		check(err)
 	}
 }
 
 // increment user validated total for observation and rerank, id = 0 for new observation
-func ValidateObservation(id int, text string, patternid int, uid int, coordinates string) {
+func ValidateObservation(obsid int, text string, patternid int, uid int, coordinates string) {
 	obs := Observation{}
+	vld := Validation{}
 
-	if id == 0 {
+	if obsid == 0 {
 		obs.Text = text
 		obs.PatternId = patternid
 		obs.DiscoveredBy = uid
@@ -95,21 +114,30 @@ func ValidateObservation(id int, text string, patternid int, uid int, coordinate
 		check(err)
 
 	} else {
-		err := DB.Where("patternid= ?", id).Find(&obs).Error
+		err := DB.Where("patternid= ?", obsid).Find(&obs).Error
 		check(err)
-		obs.Rating = RankValidations(obs.Valid+1, obs.Invalid)
-		err = DB.Model(&obs).Update("valid", obs.Valid+1).Error
-		check(err)
+
+		obs.Valid++
+		obs.Rating = RankValidations(obs.Valid, obs.Invalid)
+
 		err = DB.Save(&obs).Error
+		check(err)
+
+		vld.PatternId = obsid
+		vld.ValidatedBy = uid
+		vld.ValidationType = "observation"
+
+		err = DB.Save(&vld).Error
 		check(err)
 	}
 }
 
-// increment user Invalided total for correlation, id = 0 for new observation
-func InvalidateObservation(id int, text string, patternid int, uid int, coordinates string) {
+// increment user Invalidated total for correlation, id = 0 for new observation
+func InvalidateObservation(obsid int, text string, patternid int, uid int, coordinates string) {
 	obs := Observation{}
+	vld := Validation{}
 
-	if id == 0 {
+	if obsid == 0 {
 		obs.Text = text
 		obs.PatternId = patternid
 		obs.DiscoveredBy = uid
@@ -123,12 +151,20 @@ func InvalidateObservation(id int, text string, patternid int, uid int, coordina
 		check(err)
 
 	} else {
-		err := DB.Where("patternid= ?", id).Find(&obs).Error
+		err := DB.Where("patternid= ?", obsid).Find(&obs).Error
 		check(err)
-		obs.Rating = RankValidations(obs.Valid, obs.Invalid+1)
-		err = DB.Model(&obs).Update("valid", obs.Invalid+1).Error
-		check(err)
+
+		obs.Invalid++
+		obs.Rating = RankValidations(obs.Valid, obs.Invalid)
+
 		err = DB.Save(&obs).Error
+		check(err)
+
+		vld.PatternId = obsid
+		vld.ValidatedBy = uid
+		vld.ValidationType = "observation"
+
+		err = DB.Save(&vld).Error
 		check(err)
 	}
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "fmt"
 	"github.com/jinzhu/gorm"
 	"math"
 	"math/rand"
@@ -236,7 +235,7 @@ func FillBuckets(dateVal []DateVal, bucketRange []FromTo) []float64 {
 
 // return true if date is between 2 other dates (from inclusive, up to exclusive)
 func (d DateVal) Between(from time.Time, to time.Time) bool {
-	if d.Date == from || (d.Date.After(from) && d.Date.Before(to)) {
+	if d.Date.Equal(from) || d.Date.After(from) && d.Date.Before(to) {
 		return true
 	}
 	return false
@@ -247,21 +246,6 @@ func Steps(a int, b int) (int, int) {
 	stepNum := math.Ceil(float64(a) / float64(b))
 	bucketNum := a / int(stepNum)
 	return int(stepNum), bucketNum
-}
-
-// generates array of labels based on from and to dates
-func LabelGen(dv []FromTo) []string {
-	result := make([]string, len(dv))
-
-	for i, v := range dv {
-		if v.From != v.To {
-			result[i] = strconv.Itoa(v.From.Day()) + " " + strings.ToUpper(v.From.Month().String()[0:3]) + " " + strconv.Itoa(v.From.Year()) + " to " + strconv.Itoa(v.To.Day()) + " " + strings.ToUpper(v.To.Month().String()[0:3]) + " " + strconv.Itoa(v.To.Year())
-		} else {
-			result[i] = strconv.Itoa(v.From.Day()) + " " + strings.ToUpper(v.From.Month().String()[0:3]) + " " + strconv.Itoa(v.From.Year())
-		}
-	}
-
-	return result
 }
 
 // convert data values of type float to strings
@@ -293,4 +277,21 @@ func dayNum(d time.Time) int {
 
 	days += d.YearDay()
 	return days
+}
+
+func GetValues(vals []DateVal, from time.Time, to time.Time) ([]XYVal, bool) {
+	values := make([]XYVal, 0)
+	var tmpXY XYVal
+	hasVals := false
+
+	for _, v := range vals {
+		if v.Between(from, to) {
+			hasVals = true // at least 1 value within range exists
+			tmpXY.X = (v.Date.String()[0:10])
+			tmpXY.Y = FloatToString(v.Value)
+			values = append(values, tmpXY)
+		}
+	}
+
+	return values, hasVals
 }

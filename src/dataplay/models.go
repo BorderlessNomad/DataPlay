@@ -11,9 +11,10 @@ type appError struct {
 }
 
 type Activity struct {
-	ActivityName string
-	Date         time.Time
-	Uid          int
+	Activityid int `primaryKey:"yes"`
+	Type       string
+	Created    time.Time
+	Uid        int
 }
 
 func (a Activity) TableName() string {
@@ -173,8 +174,9 @@ func (v Validated) TableName() string {
 }
 
 type Validation struct {
-	PatternId   int
-	ValidatedBy int
+	PatternId      int
+	ValidatedBy    int
+	ValidationType string
 }
 
 func (vn Validation) TableName() string {

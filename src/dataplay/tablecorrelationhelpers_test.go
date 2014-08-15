@@ -207,25 +207,3 @@ func TestDayNum(t *testing.T) {
 		So(result, ShouldEqual, 42004)
 	})
 }
-
-func TestLabelGen(t *testing.T) {
-	date1 := time.Date(2001, 1, 1, 0, 0, 0, 0, time.UTC)
-	date2 := time.Date(2001, 1, 1, 0, 0, 0, 0, time.UTC)
-	date3 := time.Date(2001, 12, 31, 0, 0, 0, 0, time.UTC)
-	test := make([]FromTo, 1)
-	test[0].From = date1
-	test[0].To = date2
-	check := make([]string, 1)
-	check[0] = "1 JAN 2001"
-
-	Convey("Should return label", t, func() {
-		result := LabelGen(test)
-		So(result, ShouldResemble, check)
-	})
-	Convey("Should return label", t, func() {
-		test[0].To = date3
-		check[0] = "1 JAN 2001 to 31 DEC 2001"
-		result := LabelGen(test)
-		So(result, ShouldResemble, check)
-	})
-}

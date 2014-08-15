@@ -106,7 +106,7 @@ func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *
 		} else if !(v.Xtype == "varchar" && v.Ytype == "date") || !(v.Xtype == "date" && v.Ytype == "varchar") {
 			GenerateChartData("row", guid, v, &charts, index)
 			// no string values for y axis on column charts
-			if v.Ytype != "varchar" {
+			if v.Ytype != "varchar" && v.Ytype != "date" {
 				GenerateChartData("column", guid, v, &charts, index)
 			}
 		}

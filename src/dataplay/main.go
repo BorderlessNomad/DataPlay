@@ -186,6 +186,7 @@ func initClassicMode() {
 	m.Get("/api/correlated/:tablename/:offset/:count/:searchdepth", GetCorrelatedChartsHttp)
 	m.Get("/api/related/:tablename/:correlated", GetValidatedChartsHttp)
 	m.Get("/api/related/:tablename/:correlated/:offset/:count", GetValidatedChartsHttp)
+	m.Get("/api/activity/:uid/:type", AddActivityHttp)
 
 	m.Use(JsonApiHandler)
 
