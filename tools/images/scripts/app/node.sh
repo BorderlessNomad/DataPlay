@@ -22,7 +22,7 @@ update () {
 }
 
 install_essentials () {
-	apt-get install -y build-essential sudo openssh-server screen gcc curl git mercurial bzr make binutils bison wget python-software-properties xclip htop zip
+	apt-get install -y build-essential sudo openssh-server screen gcc curl git mercurial bzr make binutils bison wget python-software-properties htop zip
 }
 
 # Node.js
@@ -56,27 +56,29 @@ update_iptables () {
 install_go () {
 	wget http://golang.org/dl/go1.3.linux-amd64.tar.gz
 	tar xf go1.3.linux-amd64.tar.gz
-	echo "export GOROOT=\$HOME/go" >> $HOME/.profile
-	echo "PATH=$PATH:\$GOROOT/bin" >> $HOME/.profile
-	source $HOME/.profile
-	mkdir $HOME/gocode
-	echo "export GOPATH=\$HOME/gocode" >> $HOME/.profile
-	echo "PATH=\$PATH:\$GOPATH/bin" >> $HOME/.profile
-	source $HOME/.profile
-	mkdir $HOME/www
+	echo "export GOROOT=/home/ubuntu/go" >> /home/ubuntu/.profile
+	echo "PATH=$PATH:\$GOROOT/bin" >> /home/ubuntu/.profile
+	. /home/ubuntu/.profile
+	mkdir /home/ubuntu/gocode
+	echo "export GOPATH=/home/ubuntu/gocode" >> /home/ubuntu/.profile
+	echo "PATH=\$PATH:\$GOPATH/bin" >> /home/ubuntu/.profile
+	. /home/ubuntu/.profile
+	if [ ! -d /home/ubuntu/www ]; then
+		mkdir /home/ubuntu/www
+	fi
 }
 
 export_variables () {
 	# @todo make POSTGRES & REDIS dynamic
-	HOST_POSTGRES="109.231.121.12"
+	HOST_POSTGRES=$(ss-get --timeout 360 postgres.hostname)
 	HOST_REDIS="109.231.121.13:6379"
 
-	echo "export DATABASE=$HOST_POSTGRES" >> $HOME/.profile
-	echo "export redishost=$HOST_REDIS" >> $HOME/.profile
-	source $HOME/.profile
+	echo "export DATABASE=$HOST_POSTGRES" >> /home/ubuntu/.profile
+	echo "export redishost=$HOST_REDIS" >> /home/ubuntu/.profile
+	. /home/ubuntu/.profile
 }
 
-run_node () {
+run_master () {
 	APP="dataplay"
 	REPO="DataPlay"
 	SOURCE="https://github.com/playgenhub/$REPO/archive/"
@@ -99,11 +101,13 @@ run_node () {
 	RESPONSE_KEY="api-response-prod"
 	RESPONSE_TAG="consumer-response-prod"
 
-	MODE="1" # Master mode
+	MODE="1" # Node mode
 
 	# Kill any running process
-	echo "SHUTDOWN RUNING APP.."
-	killall -9 $APP
+	if ps ax | grep -v grep | grep $APP > /dev/null; then
+		echo "SHUTDOWN RUNING APP..."
+		killall -9 $APP
+	fi
 
 	cd $DEST
 	echo "Fetching latest ZIP"
@@ -119,9 +123,8 @@ run_node () {
 	cd $APP
 	chmod u+x $START
 	echo "Starting $START in Mode=$MODE"
-	nohup sh $START --mode=$MODE --uri="$QUEUE_ADDRESS" --exchange="$QUEUE_EXCHANGE" --requestqueue="$REQUEST_QUEUE" --requestkey="$REQUEST_KEY" --reqtag="$REQUEST_TAG" --responsequeue="$RESPONSE_QUEUE" --responsekey="$RESPONSE_KEY" --restag="$RESPONSE_TAG" &> $LOG &
-	echo "Done!"
-	echo "(Note: tail -f $DEST/$APP/$LOG for more details)"
+	nohup sh $START --mode=$MODE --uri="$QUEUE_ADDRESS" --exchange="$QUEUE_EXCHANGE" --requestqueue="$REQUEST_QUEUE" --requestkey="$REQUEST_KEY" --reqtag="$REQUEST_TAG" --responsequeue="$RESPONSE_QUEUE" --responsekey="$RESPONSE_KEY" --restag="$RESPONSE_TAG" > $LOG 2>&1&
+	echo "Done! $ sudo tail -f $DEST/$APP/$LOG for more details"
 }
 
 if [ "$(id -u)" != "0" ]; then
@@ -148,16 +151,14 @@ echo "5. ---- Update IPTables rules ----"
 update_iptables
 
 echo "6. ---- Install GO ----"
-export -f install_go
-su ubuntu -c 'install_go'
+install_go
 
 echo "7. ---- Export Variables ----"
-export -f export_variables
-su ubuntu -c 'export_variables'
+export_variables
 
-echo "8. ---- Run Node ----"
-export -f run_node
-su ubuntu -c 'run_node'
+echo "8. ---- Run Master ----"
+run_master
 
 echo "---- Completed ----"
+
 exit 0
