@@ -43,8 +43,14 @@
 
 .charts {
 	.dc-chart {
-		&.line g.x {
-			// display: none
+		&.line {
+			g.x {
+				// display: none
+			}
+			circle.dot {
+				cursor: pointer;
+				cursor: hand;
+			}
 		}
 		&.range g.y {
 			display: none

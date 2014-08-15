@@ -127,14 +127,17 @@ angular.module('dataplayApp')
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) -> d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
+			# data.group1 = data.dimension.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
 			chart.group data.group, data.title
+			# chart.stack data.group1, "Test"
 
 			data.ordinals = []
 			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
 
-			chart.colorAccessor (d, i) -> parseInt(d.y) % data.ordinals.length
+			# chart.colorAccessor (d, i) -> parseInt(d.y) % data.ordinals.length
+			chart.keyAccessor (d) -> d.key
 			chart.valueAccessor (d) -> d.value
 			chart.title (d) ->
 				x = d.key
@@ -151,6 +154,11 @@ angular.module('dataplayApp')
 					when 'intNumber' then dc.units.integers
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
+
+			chart.renderlet (c) ->
+				circles = c.svg().selectAll 'circle.dot'
+				circles.on 'click', (d) ->
+					console.log "point", d
 
 			return
 
