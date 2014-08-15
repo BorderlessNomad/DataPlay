@@ -17,10 +17,17 @@ angular.module('dataplayApp')
 			right: 10
 			bottom: 50
 			left: 100
+		$scope.marginAlt =
+			top: 0
+			right: 10
+			bottom: 50
+			left: 110
+
 		$scope.chart =
 			title: ""
 			description: "N/A"
 			data: null
+			values: []
 		$scope.cfdata = null
 		$scope.monthNames = [
 			"Jan"
@@ -76,6 +83,9 @@ angular.module('dataplayApp')
 					valuePattern: PatternMatcher.getPattern $scope.chart.values[0]['y']
 					keyPattern: PatternMatcher.getKeyPattern $scope.chart.values[0]['y']
 
+		$scope.humanDate = (date) ->
+			"#{date.getDate()} #{$scope.monthNames[date.getMonth()]}, #{date.getFullYear()}"
+
 		$scope.getXScale = (data) ->
 			xScale = switch data.patterns[data.xLabel].valuePattern
 				when 'label'
@@ -119,14 +129,52 @@ angular.module('dataplayApp')
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
-			chart.group data.group
+			chart.group data.group, data.title
 
 			data.ordinals = []
 			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
 
 			chart.colorAccessor (d, i) -> parseInt(d.y) % data.ordinals.length
+			chart.valueAccessor (d) -> d.value
+			chart.title (d) ->
+				x = d.key
+				if $scope.chart.patterns[$scope.chart.xLabel].valuePattern is 'date'
+					x = $scope.humanDate d.key
+				"#{$scope.chart.xLabel}: #{x}\n#{$scope.chart.yLabel}: #{d.value}"
+			chart.legend dc.legend().itemHeight(13).gap(5)
 
 			chart.x $scope.getXScale data
+
+			if data.ordinals.length > 0
+				chart.xUnits switch data.patterns[data.xLabel].valuePattern
+					when 'date' then d3.time.years
+					when 'intNumber' then dc.units.integers
+					when 'label', 'text' then dc.units.ordinal
+					else dc.units.ordinal
+
+			return
+
+		$scope.rangeChartPostSetup = (chart) ->
+			data = $scope.chart
+
+			data.entry = crossfilter data.values
+			data.dimension = data.entry.dimension (d) -> d.x
+			data.group = data.dimension.group().reduceSum (d) -> d.y
+
+			chart.dimension data.dimension
+			chart.group data.group
+
+			data.ordinals = []
+			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
+
+			chart.x $scope.getXScale data
+
+			if data.ordinals.length > 0
+				chart.xUnits switch data.patterns[data.xLabel].valuePattern
+					when 'date' then d3.time.years
+					when 'intNumber' then dc.units.integers
+					when 'label', 'text' then dc.units.ordinal
+					else dc.units.ordinal
 
 			return
 
@@ -320,6 +368,10 @@ angular.module('dataplayApp')
 			# 			r.animVal = r.baseVal
 
 			return
+
+		$scope.resetAll = ->
+			dc.filterAll()
+			dc.redrawAll()
 
 		return
 	]

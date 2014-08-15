@@ -31,11 +31,11 @@ module.exports = (grunt) ->
 				files: ["bower.json"]
 
 			coffee:
-				files: ["<%= yeoman.app %>/scripts/{,*/}*.{coffee,litcoffee,coffee.md}"]
+				files: ["<%= yeoman.app %>/scripts/**/*.{coffee,litcoffee,coffee.md}"]
 				tasks: ["newer:coffee:dist"]
 
 			coffeeTest:
-				files: ["test/spec/{,*/}*.{coffee,litcoffee,coffee.md}"]
+				files: ["test/spec/**/*.{coffee,litcoffee,coffee.md}"]
 				tasks: [
 					"newer:coffee:test"
 					"karma"
@@ -57,7 +57,7 @@ module.exports = (grunt) ->
 					livereload: "<%= connect.options.livereload %>"
 
 				files: [
-					"<%= yeoman.app %>/{,*/}*.html"
+					"<%= yeoman.app %>/**/*.html"
 					"<%= yeoman.app %>/styles/{,*/}*.less"
 					"<%= yeoman.app %>/scripts/{,*/}*.js"
 					"<%= yeoman.app %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}"

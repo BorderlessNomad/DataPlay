@@ -18,5 +18,27 @@
 	dc-render-data-points="true"
 	dc-render-area="true"
 
+	dc-range-chart="lineChartRange"
+
 	dc-post-setup-chart="lineChartPostSetup"
+></div>
+
+<div class="dc-chart chartSwitch range"
+	ng-show="chart.type == 'line'"
+
+	dc-chart="barChart"
+
+	dc-name="'lineChartRange'"
+
+	dc-width="{{width}}"
+	dc-height="100"
+	dc-margins="{{marginAlt}}"
+
+	dc-always-use-rounding="true"
+	dc-center-bar="true"
+	dc-transition-duration="0"
+
+	dc-x-axis-label="chart.xLabel"
+
+	dc-post-setup-chart="rangeChartPostSetup"
 ></div>

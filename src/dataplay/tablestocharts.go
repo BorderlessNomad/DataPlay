@@ -198,7 +198,7 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 	last := offset + count
 	if offset != 0 && last > totalCharts {
 		return RelatedCorrelatedCharts{nil, 0}, &appError{nil, fmt.Sprintf("Count value out of bounds (Max: %d)", totalCharts-offset), http.StatusBadRequest}
-	} else if offset == 0 && last > totalCharts {
+	} else if offset == 0 && (last > totalCharts || count == 0) {
 		last = totalCharts
 	}
 
@@ -625,7 +625,7 @@ func GetCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, params 
 	}
 
 	if params["searchdepth"] == "" {
-		searchDepth = 1000
+		searchDepth = 20
 	} else {
 		searchDepth, err = strconv.Atoi(params["searchdepth"])
 		if err != nil {
@@ -634,7 +634,7 @@ func GetCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, params 
 		}
 	}
 
-	result, error := GetCorrelatedCharts(params["tablename"], searchDepth, offset, count)
+	result, error := GetCorrelatedCharts(params["tablename"], offset, count, searchDepth)
 	if error != nil {
 		http.Error(res, error.Message, error.Code)
 		return ""
@@ -789,7 +789,7 @@ func GetCorrelatedChartsQ(params map[string]string) string {
 		return ""
 	}
 
-	result, err := GetCorrelatedCharts(params["tablename"], searchDepth, offset, count)
+	result, err := GetCorrelatedCharts(params["tablename"], offset, count, searchDepth)
 	if err != nil {
 		return ""
 	}
