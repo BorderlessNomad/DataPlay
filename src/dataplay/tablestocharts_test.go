@@ -22,7 +22,7 @@ func TestGetRelatedCharts(t *testing.T) {
 
 func TestGetCorrelatedChart(t *testing.T) {
 	m := map[string]string{
-		"id": "113255",
+		"id": "113799",
 	}
 	Convey("Should return chartlist", t, func() {
 		result := GetCorrelatedChartQ(m)

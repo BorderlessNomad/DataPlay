@@ -5,12 +5,6 @@ import (
 	"testing"
 )
 
-func TestGenerateCorrelations(t *testing.T) {
-	Convey("Should run 10 loops correlation types", t, func() {
-		GenerateCorrelations("gold", 10)
-	})
-}
-
 func TestCalculateCoefficient(t *testing.T) {
 	tstM := make(map[string]string)
 	tstCd := new(CorrelationData)
@@ -29,7 +23,7 @@ func TestCalculateCoefficient(t *testing.T) {
 
 	Convey("Should return coefficient value of approx 1 when passed same map for table 1 and 2", t, func() {
 		result := CalculateCoefficient(tstM, P, tstCd)
-		So(result, ShouldEqual, 0.9999999259611582)
+		So(result, ShouldEqual, 1)
 	})
 
 	tstM["table3"] = "gold"
@@ -37,7 +31,7 @@ func TestCalculateCoefficient(t *testing.T) {
 	tstM["dateCol3"] = "date"
 	Convey("Should return coefficient value of approx 1 when passed same map for table 1, 2 and 3", t, func() {
 		result := CalculateCoefficient(tstM, S, tstCd)
-		So(result, ShouldEqual, 0.2962824301652298)
+		So(result, ShouldEqual, 0.29639139506866363)
 	})
 }
 
@@ -87,21 +81,4 @@ func TestSpuriousCorrelation(t *testing.T) {
 			AttemptCorrelation(tstM, V)
 		})
 	}
-}
-
-func TestSaveCorrelation(t *testing.T) {
-	tstM := make(map[string]string)
-	tstCd := new(CorrelationData)
-	tstM["guid1"] = "gold"
-	tstM["guid2"] = "gold"
-	tstM["valCol1"] = "price"
-	tstM["valCol2"] = "price"
-	tstM["dateCol1"] = "date"
-	tstM["dateCol2"] = "date"
-	tstM["method"] = "test"
-
-	Convey("Should return coefficient value of approx 1 when passed same map for table 1 and 2", t, func() {
-		SaveCorrelation(tstM, P, 0.1, tstCd)
-	})
-
 }

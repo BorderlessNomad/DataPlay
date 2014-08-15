@@ -117,6 +117,7 @@ func Spearman(x []float64, y []float64) float64 {
 	return p
 }
 
+// Method imagines what the viewer would see and integrates the the overlapping chart areas and returns a visual correlation value of 0 - 1
 func Visual(xBuckets []float64, yBuckets []float64, bucketRange []FromTo) float64 {
 	n := len(xBuckets)
 	var high []float64

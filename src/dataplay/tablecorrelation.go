@@ -30,7 +30,7 @@ type TableData struct {
 	LabelX    string  `json:"xLabel"`
 	LabelY    string  `json:"yLabel,omitempty"`
 	LabelZ    string  `json:"zLabel,omitempty"`
-	Values    []XYVal `json:"values"`
+	Values    []XYVal `json:"values,omitempty"`
 }
 
 type XYVal struct {
@@ -97,7 +97,7 @@ func AttemptCorrelation(m map[string]string, c cmeth) {
 		if jsonData == nil { // if no correlation exists then generate one
 			cf := CalculateCoefficient(m, c, cd)
 			if cf != 0 { //Save the correlation if one is generated
-				SaveCorrelation(m, c, cf, cd)
+				SaveCorrelation(m, c, cf, cd) // save everything to the correlation table
 			}
 		}
 	}
@@ -133,11 +133,12 @@ func GetIntersect(pFromX *time.Time, pToX *time.Time, pRngX *int, fromY time.Tim
 }
 
 // Generate a correlation coefficient (if data allows), based on the requested correlation type
+// Uses discrete buckets in order to normalise data for calculating coefficient but stores the entire range of x,y,z values in the correlation data struct
 func CalculateCoefficient(m map[string]string, c cmeth, cd *CorrelationData) float64 {
 	if len(m) == 0 {
 		return 0.0
 	}
-
+	var hasVals bool
 	var bucketRange []FromTo
 	var xBuckets, yBuckets, zBuckets []float64
 	var cf float64
@@ -151,59 +152,63 @@ func CalculateCoefficient(m map[string]string, c cmeth, cd *CorrelationData) flo
 	}
 
 	bucketRange = GetIntersect(&fromX, &toX, &rngX, fromY, toY, rngY)
+	if bucketRange == nil {
+		return 0
+	}
+
 	xBuckets = FillBuckets(x, bucketRange)
 	yBuckets = FillBuckets(y, bucketRange)
+	l := len(bucketRange) - 1
+
+	(*cd).Table1.Values, hasVals = GetValues(x, bucketRange[0].From, bucketRange[l].To)
+	if !hasVals {
+		return 0
+	}
+	(*cd).Table2.Values, hasVals = GetValues(y, bucketRange[0].From, bucketRange[l].To)
+	if !hasVals {
+		return 0
+	}
 
 	if c == P {
 		cf = Pearson(xBuckets, yBuckets)
 	} else if c == V {
 		cf = Visual(xBuckets, yBuckets, bucketRange)
 	} else if c == S {
-		z := x
-		x = y
-		y = ExtractDateVal(m["table3"], m["dateCol3"], m["valCol3"])
-		fromX, toX, rngX = DetermineRange(x)
-		fromY, toY, rngY = DetermineRange(y)
+		z := ExtractDateVal(m["table3"], m["dateCol3"], m["valCol3"])
 		fromZ, toZ, rngZ := DetermineRange(z)
 
 		if rngZ == 0 {
 			return 0
 		}
 
-		GetIntersect(&fromX, &toX, &rngX, fromY, toY, rngY)
+		//from X, toX and rngX now equal full from, to and rng of x and y from last iteration so just get intersect of those with Z
 		bucketRange = GetIntersect(&fromX, &toX, &rngX, fromZ, toZ, rngZ)
+		if bucketRange == nil {
+			return 0
+		}
+
+		l := len(bucketRange) - 1
 		xBuckets = FillBuckets(x, bucketRange)
 		yBuckets = FillBuckets(y, bucketRange)
 		zBuckets = FillBuckets(z, bucketRange)
-		cf = Spurious(xBuckets, yBuckets, zBuckets)
+
+		(*cd).Table1.Values, hasVals = GetValues(x, bucketRange[0].From, bucketRange[l].To)
+		if !hasVals {
+			return 0
+		} else {
+			(*cd).Table2.Values, hasVals = GetValues(y, bucketRange[0].From, bucketRange[l].To)
+		}
+		if !hasVals {
+			return 0
+		}
+		(*cd).Table3.Values, hasVals = GetValues(z, bucketRange[0].From, bucketRange[l].To)
+		if !hasVals {
+			return 0
+		}
+		cf = Spurious(yBuckets, zBuckets, xBuckets) // order is table2 = x arg , table3 = y arg, table1 = z arg so that we get correlation of 2 random tables against underlying table
 	} else {
 		return 0
 	}
-
-	labels := LabelGen(bucketRange)
-	n := len(bucketRange)
-	values1 := make([]XYVal, n)
-	values2 := make([]XYVal, n)
-	values3 := make([]XYVal, n)
-
-	for i, v := range labels {
-		values1[i].X = v
-		values2[i].X = v
-		values1[i].Y = FloatToString(xBuckets[i])
-		values2[i].Y = FloatToString(yBuckets[i])
-		if c == S {
-			values3[i].X = v
-			values3[i].Y = FloatToString(zBuckets[i])
-		}
-	}
-
-	(*cd).Table1.Values = values1
-	(*cd).Table2.Values = values2
-
-	if c == S {
-		(*cd).Table3.Values = values3
-	}
-
 	return cf
 }
 
