@@ -54,7 +54,8 @@ update_iptables () {
 }
 
 install_go () {
-	wget http://golang.org/dl/go1.3.linux-amd64.tar.gz
+	cd /home/ubuntu
+	wget -Nq http://golang.org/dl/go1.3.linux-amd64.tar.gz
 	tar xf go1.3.linux-amd64.tar.gz
 	echo "export GOROOT=/home/ubuntu/go" >> /home/ubuntu/.profile
 	echo "PATH=$PATH:\$GOROOT/bin" >> /home/ubuntu/.profile
