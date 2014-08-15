@@ -634,7 +634,7 @@ func GetCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, params 
 		}
 	}
 
-	result, error := GetNewCorrelatedCharts(params["tablename"], offset, count, searchDepth)
+	result, error := GetCorrelatedCharts(params["tablename"], offset, count, searchDepth)
 	if error != nil {
 		http.Error(res, error.Message, error.Code)
 		return ""
@@ -789,7 +789,7 @@ func GetCorrelatedChartsQ(params map[string]string) string {
 		return ""
 	}
 
-	result, err := GetNewCorrelatedCharts(params["tablename"], offset, count, searchDepth)
+	result, err := GetCorrelatedCharts(params["tablename"], offset, count, searchDepth)
 	if err != nil {
 		return ""
 	}
