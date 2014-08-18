@@ -53,15 +53,15 @@ func (i Index) TableName() string {
 }
 
 type Observation struct {
-	Text           string
-	PatternId      int
-	DiscoveredBy   int
-	Coordinates    string
-	Rating         float64
-	Valid          int
-	Invalid        int
-	ObservationId  int `primaryKey:"yes"`
-	DateDiscovered time.Time
+	Text          string
+	PatternId     int
+	Discoverer    int
+	Coordinates   string
+	Rating        float64
+	Valid         int
+	Invalid       int
+	ObservationId int `primaryKey:"yes"`
+	Created       time.Time
 }
 
 func (ob Observation) TableName() string {
@@ -158,15 +158,15 @@ func (u User) TableName() string {
 }
 
 type Validated struct {
-	PatternId      int `primaryKey:"yes"`
-	DiscoveredBy   int
-	DateDiscovered time.Time
-	Correlated     bool
-	Rating         float64
-	Valid          int
-	Invalid        int
-	Json           []byte
-	OriginId       int
+	PatternId  int `primaryKey:"yes"`
+	Discoverer int
+	Created    time.Time
+	Correlated bool
+	Rating     float64
+	Valid      int
+	Invalid    int
+	Json       []byte
+	OriginId   int
 }
 
 func (v Validated) TableName() string {
@@ -175,8 +175,9 @@ func (v Validated) TableName() string {
 
 type Validation struct {
 	PatternId      int
-	ValidatedBy    int
+	Validator      int
 	ValidationType string
+	Created        time.Time
 }
 
 func (vn Validation) TableName() string {
