@@ -5,7 +5,7 @@
 	</div>
 
 	<div class="row">
-		<div class="col-md-12"><a class="btn btn-warning pull-right reset" ng-click="resetAll()">Reset all</a></div>
+		<div class="col-md-12"><a class="btn btn-warning pull-right" ng-click="resetAll()">Reset all</a></div>
 		<div class="col-md-12" ng-switch="chart.type">
 			<span ng-include="'views/charts/lineRanged.html'"></span>
 			<span ng-include="'views/charts/row.html'"></span>
