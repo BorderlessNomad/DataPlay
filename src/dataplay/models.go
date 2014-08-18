@@ -107,7 +107,8 @@ func (ss StringSearch) TableName() string {
 }
 
 type SearchTerm struct {
-	Term  string `primaryKey:"yes"`
+	Id    int `primaryKey:"yes"`
+	Term  string
 	Count int
 }
 
@@ -175,6 +176,7 @@ func (v Validated) TableName() string {
 
 type Validation struct {
 	PatternId      int
+	ObservationId  int
 	Validator      int
 	ValidationType string
 	Created        time.Time

@@ -118,6 +118,8 @@ func SearchForData(str string, uid int) ([]SearchResult, *appError) {
 		return nil, &appError{nil, "There was no search request", http.StatusBadRequest}
 	}
 
+	AddSearchTerm(str) // add to search term count
+
 	Indices := []Index{}
 
 	term := str + "%" // e.g. "nhs" => "nhs%" (What about "%nhs"?)
@@ -949,4 +951,19 @@ func ConvertToFloat(val interface{}) (float64, error) {
 	default:
 		return math.NaN(), errors.New("ConvertToFloat: Unknown value is of incompatible type")
 	}
+}
+
+func AddSearchTerm(str string) {
+	searchterm := SearchTerm{}
+
+	err := DB.Where("term = ?", str).Find(&searchterm).Error
+	if err != nil && err != gorm.RecordNotFound {
+		panic(err)
+	} else if err == gorm.RecordNotFound {
+		searchterm.Count = 0
+		searchterm.Term = str
+	}
+
+	searchterm.Count++
+	err = DB.Save(&searchterm).Error
 }

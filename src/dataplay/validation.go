@@ -66,6 +66,7 @@ func ValidateChart(valflag bool, patternid int, correlated bool, json []byte, or
 		check(err)
 
 		vld.PatternId = patternid
+		vld.ObservationId = 0
 		vld.Validator = uid
 		vld.ValidationType = "chart"
 		vld.Created = time.Now()
@@ -119,7 +120,8 @@ func ValidateObservation(valflag bool, obsid int, text string, patternid int, ui
 		err = DB.Save(&obs).Error
 		check(err)
 
-		vld.PatternId = obsid
+		vld.PatternId = 0
+		vld.ObservationId = obsid
 		vld.Validator = uid
 		vld.ValidationType = "observation"
 		vld.Created = time.Now()

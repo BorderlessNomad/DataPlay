@@ -508,3 +508,10 @@ func TestConvertToFloat(t *testing.T) {
 		So(err.Error(), ShouldEqual, "ConvertToFloat: Unknown value is of incompatible type")
 	})
 }
+
+func TestAddSearchTerm(t *testing.T) {
+
+	Convey("Add search term", t, func() {
+		AddSearchTerm("hello")
+	})
+}
