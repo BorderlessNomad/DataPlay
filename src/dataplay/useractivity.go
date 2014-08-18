@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "fmt"
 	"github.com/codegangsta/martini"
 	"net/http"
 	"strconv"
@@ -44,19 +43,19 @@ func AddActivityHttp(res http.ResponseWriter, req *http.Request, params martini.
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
-		return ""
+		return "Missing session parameter."
 	}
 
 	u, err := strconv.Atoi(params["uid"])
 	if err != nil {
 		http.Error(res, "Invalid uid.", http.StatusBadRequest)
-		return ""
+		return "Invalid uid"
 	}
 
 	a := ActivityCheck(params["type"])
 	if a == "Unknown" {
 		http.Error(res, "Unknown activity type.", http.StatusBadRequest)
-		return ""
+		return "Unknown activity type"
 	}
 
 	t := time.Now()
@@ -64,17 +63,17 @@ func AddActivityHttp(res http.ResponseWriter, req *http.Request, params martini.
 	err2 := AddActivity(u, a, t)
 	if err2 != nil {
 		http.Error(res, err2.Message, err2.Code)
-		return ""
+		return err2.Message
 	}
 
-	var actid int
-	err = DB.Table("priv_activities").Where("date = ?", t).Where("uid = ?", u).Where("type = ?", a).Pluck("activityid", &actid).Error
+	var id []int
+	err = DB.Table("priv_activity").Where("created = ?", t).Where("uid = ?", u).Where("type = ?", a).Pluck("id", &id).Error
 	if err != nil {
 		http.Error(res, "No activity found", http.StatusBadRequest)
-		return ""
+		return "No activity found"
 	}
 
-	activityStr := strconv.Itoa(actid)
+	activityStr := strconv.Itoa(id[0])
 	return "Activity " + activityStr + " added successfully"
 }
 

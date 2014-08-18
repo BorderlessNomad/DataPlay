@@ -11,14 +11,14 @@ type appError struct {
 }
 
 type Activity struct {
-	Activityid int `primaryKey:"yes"`
-	Type       string
-	Created    time.Time
-	Uid        int
+	Id      int `primaryKey:"yes"`
+	Type    string
+	Created time.Time
+	Uid     int
 }
 
 func (a Activity) TableName() string {
-	return "priv_activities"
+	return "priv_activity"
 }
 
 type Correlation struct {
