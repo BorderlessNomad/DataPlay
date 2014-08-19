@@ -103,21 +103,39 @@ angular.module('dataplayApp')
 
 			xScale
 
-		$scope.getYScale = (data) ->
+		$scope.sortY = (a, b) ->
+			if $scope.chart.patterns[$scope.chart.yLabel].valuePattern is 'date'
+				a.value = a.value.getTime()
+				b.value = b.value.getTime()
+
+			a.value - b.value
+
+		$scope.getYScale = (data, group) ->
 			yScale = switch data.patterns[data.yLabel].valuePattern
 				when 'label'
+					unless group?
+						group = data.ordinals
+
 					d3.scale.ordinal()
-						.domain data.ordinals
-						.rangeBands [0, $scope.height]
+						.domain group
+						.rangeBands [$scope.height, 0]
 				when 'date'
+					unless group?
+						group = data.group.all()
+
+					if sort? and sort is true
+						group = Array.prototype.slice.call(group).sort(compare)
+
 					d3.time.scale()
-						.domain d3.extent data.group.all(), (d) -> d.value
-						.range [0, $scope.height]
+						.domain d3.extent group, (d) -> d.value
+						.range [$scope.height, 0]
 				else
+					unless group?
+						group = data.group.all()
+
 					d3.scale.linear()
-						.domain d3.extent data.group.all(), (d) -> parseInt d.value
-						.range [0, $scope.height]
-						.nice()
+						.domain d3.extent group, (d) -> parseInt d.value
+						.range [$scope.height, 0]
 
 			yScale
 
@@ -146,7 +164,11 @@ angular.module('dataplayApp')
 				"#{$scope.chart.xLabel}: #{x}\n#{$scope.chart.yLabel}: #{d.value}"
 			chart.legend dc.legend().itemHeight(13).gap(5)
 
-			chart.x $scope.getXScale data
+			xScale = $scope.getXScale data
+			chart.x xScale
+
+			yScaleGroup = Array.prototype.slice.call(data.group.all()).sort($scope.sortY)
+			yScale = $scope.getYScale data
 
 			if data.ordinals.length > 0
 				chart.xUnits switch data.patterns[data.xLabel].valuePattern
@@ -156,9 +178,88 @@ angular.module('dataplayApp')
 					else dc.units.ordinal
 
 			chart.renderlet (c) ->
+				console.log 'renderlet'
+
+				svg = d3.select 'svg'
+				stack = d3.select('g.stack-list').node()
+				box = stack.getBBox()
+
+				area = d3.select 'g.stack-list'
+					.append 'g'
+					.attr 'class', 'stack _1' # change
+
 				circles = c.svg().selectAll 'circle.dot'
+				circleTitles = c.svg().selectAll 'circle.dot > title'
+				yDomain = []
+				for cr, i in circles[0]
+					yDomain[i] =
+						cy: cr.cy.animVal.value
+						y: null
+
+				for crt, i in circleTitles[0]
+					html = crt.innerHTML.split('\n')
+					yDomain[i].y = html[1].split(': ')[1]
+
+				yDomain.sort (a, b) -> a.cy - b.cy
+
+				datum = null
 				circles.on 'click', (d) ->
-					console.log "point", d
+					console.log 'POINT', 'Datum:', d
+					datum = d
+
+				svg.on 'click', () ->
+					space = d3.mouse(stack)
+
+					# Clicking out-side box is now allowed
+					if space[0] < 0 or space[1] < 0 or space[0] > box.width or space[1] > box.height
+						return
+
+					color = '#2ca02c'
+					if datum?
+						color = '#d62728'
+						x = datum.x
+						y = datum.y
+						datum = null
+					else
+						x = xScale.invert space[0]
+						y = yScale.invert space[1]
+
+					for k, v of yDomain
+						if v.cy <= space[1]
+							y = v.y
+
+					drawCircle x, y, space, color
+
+				drawCircle = (x, y, plot, color) ->
+					#@TODO d3.bisector(comparator)
+
+					for val, key in data.group.all()
+						# X
+						if data.patterns[data.xLabel].valuePattern is 'date'
+							if x.getTime() >= val.key.getTime()
+								i = key
+						else if x >= val.key
+							i = key
+
+					for val, key in yScaleGroup
+						# Y
+						if y >= val.value
+							j = key
+
+					area.append 'circle'
+						.attr 'cx', plot[0]
+						.attr 'cy', plot[1]
+						.attr 'r', 5
+						.style 'fill', color
+						.append 'svg:title'
+						.text (d) ->
+							x = data.group.all()[i].key
+							y = yScaleGroup[j].value
+
+							if data.patterns[data.xLabel].valuePattern is 'date'
+								x = $scope.humanDate x
+
+							"#{$scope.chart.xLabel}: #{x}\n#{$scope.chart.yLabel}: #{y}"
 
 			return
 
