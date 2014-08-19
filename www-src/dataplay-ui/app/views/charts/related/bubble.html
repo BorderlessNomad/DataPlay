@@ -1,0 +1,21 @@
+<div class="chartSwitch"
+	ng-if="chart.type == 'bubble'"
+
+	dc-chart="bubbleChart"
+
+	dc-width="{{width}}"
+	dc-height="{{height}}"
+	dc-margins="{{margin}}"
+	dc-brush-on="true"
+
+	dc-transition-duration="500"
+	dc-colors="d3.scale.category20()"
+
+	dc-render-label="false"
+	dc-render-title="true"
+
+	dc-x-axis-label="chart.xLabel"
+	dc-y-axis-label="chart.yLabel"
+
+	dc-post-setup-chart="bubbleChartPostSetup"
+></div>

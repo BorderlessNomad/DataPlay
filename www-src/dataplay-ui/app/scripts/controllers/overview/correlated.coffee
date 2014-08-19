@@ -77,7 +77,7 @@ angular.module('dataplayApp')
 						for key, chart of data.Charts
 							continue unless chart.type is 'line'
 
-							chart.id = "correlated-#{$scope.params.id}-#{chart.table1.xLabel}-#{chart.table1.yLabel}-#{chart.type}"
+							chart.id = "correlated-#{$scope.params.id}-#{chart.table1.xLabel}-#{chart.table1.yLabel}-#{chart.table2.xLabel}-#{chart.table2.yLabel}-#{chart.type}"
 
 							console.log chart.table1
 
@@ -117,7 +117,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.getXScale = (data) ->
-			xScale = switch data.patterns[data.xLabel].valuePattern
+			xScale = switch data.patterns[data.table1.xLabel].valuePattern
 				when 'label'
 					d3.scale.ordinal()
 						.domain data.ordinals
@@ -134,7 +134,7 @@ angular.module('dataplayApp')
 			xScale
 
 		$scope.getYScale = (data) ->
-			yScale = switch data.patterns[data.yLabel].valuePattern
+			yScale = switch data.patterns[data.table1.xLabel].valuePattern
 				when 'label'
 					d3.scale.ordinal()
 						.domain data.ordinals
@@ -152,14 +152,20 @@ angular.module('dataplayApp')
 			yScale
 
 		$scope.lineChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[$scope.getChartOffset chart]
+			data = $scope.chartsCorrelated[$scope.getChartOffset chart]
 
-			data.entry = crossfilter data.values
+			console.log data.table1.values
+			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
+			# data.entry2 = crossfilter data.table2.values
+			# data.dimension2 = data.entry2.dimension (d) -> d.x
+			# data.group2 = data.dimension2.group().reduceSum (d) -> d.y
+
 			chart.dimension data.dimension
-			chart.group data.group
+			chart.group data.group, data.table1.title
+			# chart.stack data.group2, data.table2.title
 
 			data.ordinals = []
 			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
@@ -174,7 +180,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.rowChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[$scope.getChartOffset chart]
+			data = $scope.chartsCorrelated[$scope.getChartOffset chart]
 
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) -> d.x
@@ -203,7 +209,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.columnChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[$scope.getChartOffset chart]
+			data = $scope.chartsCorrelated[$scope.getChartOffset chart]
 
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) -> d.x
@@ -229,7 +235,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.pieChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[$scope.getChartOffset chart]
+			data = $scope.chartsCorrelated[$scope.getChartOffset chart]
 
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) ->
@@ -260,7 +266,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.bubbleChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[$scope.getChartOffset chart]
+			data = $scope.chartsCorrelated[$scope.getChartOffset chart]
 
 			minR = null
 			maxR = null
