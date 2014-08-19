@@ -19,6 +19,11 @@ type Authresponse struct {
 	UserID   int
 }
 
+type mainDateVal struct {
+	DateString string
+	Count      int
+}
+
 //This function is used to gather what is the username is
 // This used to be used on the front page but now it is mainly used as a "noop" call to check if the user is logged in or not.
 func CheckAuth(res http.ResponseWriter, req *http.Request, params martini.Params) string {
@@ -966,4 +971,98 @@ func AddSearchTerm(str string) {
 
 	searchterm.Count++
 	err = DB.Save(&searchterm).Error
+}
+
+func PrimaryDate() {
+	var names []string
+
+	DB.Table("priv_onlinedata").Pluck("guid", &names)
+
+	for _, v := range names {
+		cols := FetchTableCols(v)
+		dateCol := RandomDateColumn(cols)
+		table, _ := GetRealTableName(v)
+		d := "DELETE FROM " + table + " WHERE " + dateCol + " = '0001-01-01 BC'" ////////TEMP FIX TO GET RID OF INVALID VALUES IN GOV DATA
+		DB.Exec(d)
+		if dateCol != "" {
+			var dates []time.Time
+			err := DB.Table(table).Pluck(dateCol, &dates).Error
+			if err == nil {
+				dv := make([]DateVal, 0)
+				var d DateVal
+				for _, v := range dates {
+
+					d.Date = v
+					dv = append(dv, d)
+				}
+				primaryDate := MainDate(dv)
+				err := DB.Table("priv_onlinedata").Where("tablename = ?", table).Update("primarydate", primaryDate).Error
+				check(err)
+			}
+		}
+	}
+}
+
+func MainDate(d []DateVal) string {
+	from, to, rng := DetermineRange(d)
+	start, end, n := 0, 0, 0
+
+	if rng > 366 { // get most popular year
+		start = from.Year()
+		end = to.Year()
+		n = end - start
+	} else { // get most popular month
+		start = DayNum(from)
+		end = DayNum(to)
+		n = ((end - start) / 31) + 1
+	}
+
+	fmt.Println("xxx", n)
+	dv := make([]mainDateVal, n) // use date value for date and count
+
+	if n > 0 {
+		for _, v := range d {
+			if rng > 366 {
+				isit, i := stringInSlice(strconv.Itoa(v.Date.Year()), dv)
+				if isit {
+					dv[i].Count++
+				} else {
+					tmpdv := mainDateVal{DateString: strconv.Itoa(v.Date.Year()), Count: 1}
+					dv = append(dv, tmpdv)
+				}
+			} else {
+				isit, i := stringInSlice(v.Date.Month().String()+" "+strconv.Itoa(v.Date.Year()), dv)
+				if isit {
+					dv[i].Count++
+				} else {
+					str := v.Date.Month().String() + " " + strconv.Itoa(v.Date.Year())
+					tmpdv := mainDateVal{DateString: str, Count: 1}
+					dv = append(dv, tmpdv)
+				}
+			}
+		}
+	} else {
+		return from.Month().String() + " " + strconv.Itoa(from.Year())
+	}
+
+	highest := 0
+	maindate := ""
+
+	for _, v := range dv {
+		if v.Count > highest {
+			highest = v.Count
+			maindate = v.DateString
+		}
+	}
+
+	return maindate
+}
+
+func stringInSlice(dateString string, list []mainDateVal) (bool, int) {
+	for i, j := range list {
+		if j.DateString == dateString {
+			return true, i
+		}
+	}
+	return false, 0
 }

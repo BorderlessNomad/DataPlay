@@ -515,3 +515,33 @@ func TestAddSearchTerm(t *testing.T) {
 		AddSearchTerm("hello")
 	})
 }
+
+func TestMainDate(t *testing.T) {
+	t1 := time.Date(2012, 3, 1, 0, 0, 0, 0, time.UTC)
+	t2 := time.Date(2012, 5, 2, 0, 0, 0, 0, time.UTC)
+	t3 := time.Date(2012, 3, 3, 0, 0, 0, 0, time.UTC)
+	t4 := time.Date(2012, 2, 4, 0, 0, 0, 0, time.UTC)
+	t5 := time.Date(2012, 3, 5, 0, 0, 0, 0, time.UTC)
+	t6 := time.Date(2012, 2, 6, 0, 0, 0, 0, time.UTC)
+	t7 := time.Date(2012, 5, 7, 0, 0, 0, 0, time.UTC)
+
+	dv := make([]DateVal, 7)
+	dv[0].Date = t1
+	dv[1].Date = t2
+	dv[2].Date = t3
+	dv[3].Date = t4
+	dv[4].Date = t5
+	dv[5].Date = t6
+	dv[6].Date = t7
+
+	Convey("Get main date", t, func() {
+		result := MainDate(dv)
+		So(result, ShouldEqual, "March 2012")
+	})
+}
+
+// func TestPrimaryDate(t *testing.T) {
+// 	Convey("Get main dates", t, func() {
+// 		PrimaryDate()
+// 	})
+// }

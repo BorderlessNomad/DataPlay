@@ -203,7 +203,7 @@ func TestBetween(t *testing.T) {
 func TestDayNum(t *testing.T) {
 	Convey("Should return date as day number since 01/01/1900", t, func() {
 		date := time.Date(2015, 1, 1, 0, 0, 0, 0, time.UTC)
-		result := dayNum(date)
+		result := DayNum(date)
 		So(result, ShouldEqual, 42004)
 	})
 }

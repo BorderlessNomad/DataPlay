@@ -73,6 +73,7 @@ type OnlineData struct {
 	Datasetguid string
 	Tablename   string
 	Defaults    string
+	PrimaryDate string
 }
 
 func (od OnlineData) TableName() string {

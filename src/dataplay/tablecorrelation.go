@@ -118,12 +118,12 @@ func GetIntersect(pFromX *time.Time, pToX *time.Time, pRngX *int, fromY time.Tim
 	} else if fromX.Before(fromY) && toX.Before(fromY) || fromX.After(toY) && toX.After(toY) {
 		return nil
 	} else if fromX.Before(fromY) {
-		rngYX := dayNum(toX) - dayNum(fromY)
+		rngYX := DayNum(toX) - DayNum(fromY)
 		bucketRange = CreateBuckets(fromY, toX, rngYX)
 		*pFromX = fromY
 		*pRngX = rngYX
 	} else {
-		rngXY := dayNum(toY) - dayNum(fromX)
+		rngXY := DayNum(toY) - DayNum(fromX)
 		bucketRange = CreateBuckets(fromX, toY, rngXY)
 		*pToX = toY
 		*pRngX = rngXY

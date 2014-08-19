@@ -19,9 +19,9 @@ func GetRandomNameMap(m map[string]string, c cmeth) bool {
 	cols1 := FetchTableCols(m["guid1"])
 	cols2 := FetchTableCols(m["guid2"])
 	m["dateCol1"] = RandomDateColumn(cols1)
-	m["valCol2"] = RandomValueColumn(cols2)
 	m["valCol1"] = RandomValueColumn(cols1)
 	m["dateCol2"] = RandomDateColumn(cols2)
+	m["valCol2"] = RandomValueColumn(cols2)
 	allNames := true
 
 	if m["table1"] == "" || m["table2"] == "" || m["valCol1"] == "" || m["valCol2"] == "" || m["dateCol1"] == "" || m["dateCol2"] == "" {
@@ -127,9 +127,6 @@ func ExtractDateVal(tablename string, dateCol string, valCol string) []DateVal {
 	var dates []time.Time
 	var amounts []float64
 
-	// d := "DELETE FROM " + tablename + " WHERE " + dateCol + " = '0001-01-01 BC'" ////////TEMP FIX TO GET RID OF INVALID VALUES IN GOV DATA
-	// DB.Exec(d)
-
 	err = DB.Table(tablename).Pluck(dateCol, &dates).Error
 	if err != nil && err != gorm.RecordNotFound {
 		check(err)
@@ -165,7 +162,7 @@ func DetermineRange(Dates []DateVal) (time.Time, time.Time, int) {
 	dVal, high, low := 0, 0, 100000000
 
 	for _, v := range Dates {
-		dVal = dayNum(v.Date)
+		dVal = DayNum(v.Date)
 		if dVal > high {
 			high = dVal
 			toDate = v.Date
@@ -176,7 +173,7 @@ func DetermineRange(Dates []DateVal) (time.Time, time.Time, int) {
 		}
 	}
 
-	rng := dayNum(toDate) - dayNum(fromDate)
+	rng := DayNum(toDate) - DayNum(fromDate)
 	return fromDate, toDate, rng
 }
 
@@ -266,7 +263,7 @@ func daysInYear(y int) int {
 }
 
 // transform date into day number (since 1900)
-func dayNum(d time.Time) int {
+func DayNum(d time.Time) int {
 	var date time.Time
 	var days int
 

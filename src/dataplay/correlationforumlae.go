@@ -136,7 +136,7 @@ func Visual(xBuckets []float64, yBuckets []float64, bucketRange []FromTo) float6
 	highTotal, lowTotal := 0, 0
 
 	for i := 0; i < n; i++ {
-		days := dayNum(bucketRange[i].To) - dayNum(bucketRange[i].From)
+		days := DayNum(bucketRange[i].To) - DayNum(bucketRange[i].From)
 		highTotal = highTotal + days*int(high[i])
 		lowTotal = lowTotal + days*int(low[i])
 	}
