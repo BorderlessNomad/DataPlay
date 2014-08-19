@@ -146,7 +146,8 @@ angular.module('dataplayApp')
 				"#{$scope.chart.xLabel}: #{x}\n#{$scope.chart.yLabel}: #{d.value}"
 			chart.legend dc.legend().itemHeight(13).gap(5)
 
-			chart.x $scope.getXScale data
+			xScale = $scope.getXScale data
+			chart.x xScale
 
 			if data.ordinals.length > 0
 				chart.xUnits switch data.patterns[data.xLabel].valuePattern
@@ -155,10 +156,64 @@ angular.module('dataplayApp')
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
 
+			body = (d3.select 'g.chart-body')[0][0]
+			bodyTransform = body.transform.animVal[0].matrix
+
+			points = [
+				[604.5, 296.5, '#1f77b4']
+				[827.5, 384.5, '#2ca02c']
+				[1039.5, 295.5, '#9467bd']
+				[1068.5, 203.5, '#8c564b']
+			]
+
 			chart.renderlet (c) ->
+				console.log 'renderlet'
+
+				svg = d3.select 'svg'
+
+				body = d3.select('g.stack-list').node().getBBox()
+				body.width += $scope.margin.left + $scope.margin.right
+				slider = d3.select('rect.extent').node().getBBox()
+
+				# console.log body, slider
+
+				# d3.selectAll('circle.annotate').remove()
+				# for point in points
+				# 	x = (point[0] - slider.x - body.x) * (body.width / body.width)
+				# 	if slider.width > 0
+				# 		x = (point[0] - slider.x - body.x) * (body.width / slider.width)
+				# 		console.log "x", point[0], "slider.x", slider.x, "body.width", body.width, "slider.width", slider.width, 'X', x
+
+				# 	if x >= body.x and x <= body.width + 100
+				# 		svg.append 'circle'
+				# 			.attr 'class', (d) -> 'annotate'
+				# 			.attr 'cx', x
+				# 			.attr 'cy', point[1]
+				# 			.attr 'r', 5
+				# 			.style 'fill', point[2]
+
+				svg.on 'click', () ->
+					space = d3.mouse(@)
+					svg.append 'circle'
+						.attr 'cx', space[0]
+						.attr 'cy', space[1]
+						.attr 'r', 5
+						.style 'fill', '#ff0000'
+
+					x = xScale.invert space[0]
+					# i = do -> return key for val, key in data.group.all() when val['key'] is x
+					for val, key in data.group.all()
+						if data.patterns[data.xLabel].valuePattern is 'date'
+							if x.getTime() <= val.key.getTime()
+								console.log key, x, val.key, x.getTime(), val.key.getTime()
+						else if x <= val.key
+							console.log key, x, val.key
+
+					console.log 'SVG', space, x
+
 				circles = c.svg().selectAll 'circle.dot'
 				circles.on 'click', (d) ->
-					console.log "point", d
+					console.log 'POINT', 'Datum:', d
 
 			return
 
