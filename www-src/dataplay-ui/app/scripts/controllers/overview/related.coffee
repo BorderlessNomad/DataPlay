@@ -2,31 +2,26 @@
 
 ###*
  # @ngdoc function
- # @name dataplayApp.controller:OverviewCtrl
+ # @name dataplayApp.controller:OverviewRelatedCtrl
  # @description
  # # OverviewCtrl
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'OverviewCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', ($scope, $routeParams, Overview, PatternMatcher) ->
+	.controller 'OverviewRelatedCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', ($scope, $routeParams, Overview, PatternMatcher) ->
 		$scope.allowed = ['line', 'bar', 'row', 'column', 'pie', 'bubble']
 		# $scope.allowed = ['bubble']
 		$scope.params = $routeParams
 		$scope.count = 3
 		$scope.loading =
 			related: false
-			correlated: false
 		$scope.offset =
 			related: 0
-			correlated: 0
 		$scope.limit =
 			related: false
-			correlated: false
 		$scope.max =
 			related: 0
-			correlated: 0
 		$scope.chartsRelated = []
-		$scope.chartsCorrelated = []
 		$scope.chartRegistryOffset = 0
 
 		$scope.xTicks = 6
@@ -111,69 +106,6 @@ angular.module('dataplayApp')
 					return
 				.error (data, status) ->
 					console.log "Overview::getRelated::Error:", status
-					return
-
-			return
-
-		$scope.getCorrelatedCharts = () ->
-			$scope.chartRegistryOffset = dc.chartRegistry.list().length
-
-			$scope.getCorrelated Overview.charts 'correlated'
-
-			return
-
-		$scope.getCorrelated = (count) ->
-			$scope.loading.correlated = true
-
-			if not count?
-				count = $scope.max.correlated - $scope.offset.correlated
-				count = if $scope.max.correlated and count < $scope.count then count else $scope.count
-
-			Overview.correlated $scope.params.id, $scope.offset.correlated, count
-				.success (data) ->
-					if data? and data.Charts? and data.Charts.length > 0
-						$scope.loading.correlated = false
-
-						$scope.max.correlated = data.Count
-
-						for key, chart of data.Charts
-							continue unless chart.type is 'line'
-
-							chart.id = "correlated-#{$scope.params.id}-#{chart.table1.xLabel}-#{chart.table1.yLabel}-#{chart.type}"
-
-							console.log chart.table1
-
-							chart.patterns = {}
-							chart.patterns[chart.table1.xLabel] =
-								valuePattern: PatternMatcher.getPattern chart.table1.values[0]['x']
-								keyPattern: PatternMatcher.getKeyPattern chart.table1.values[0]['x']
-
-							if chart.patterns[chart.table1.xLabel].valuePattern is 'date'
-								for value, key in chart.table1.values
-									chart.table1.values[key].x = new Date(value.x)
-								for value, key in chart.table2.values
-									chart.table2.values[key].x = new Date(value.x)
-
-							if chart.table1.yLabel?
-								chart.patterns[chart.table1.yLabel] =
-									valuePattern: PatternMatcher.getPattern chart.table1.values[0]['y']
-									keyPattern: PatternMatcher.getKeyPattern chart.table1.values[0]['y']
-
-							$scope.chartsCorrelated.push chart if PatternMatcher.includePattern(
-								chart.patterns[chart.table1.xLabel].valuePattern,
-								chart.patterns[chart.table1.xLabel].keyPattern
-							)
-
-						$scope.offset.correlated += count
-						if $scope.offset.correlated >= $scope.max.correlated
-							$scope.limit.correlated = true
-
-						Overview.charts 'correlated', $scope.offset.correlated
-
-						console.log $scope.chartsCorrelated
-					return
-				.error (data, status) ->
-					console.log "Overview::getCorrelated::Error:", status
 					return
 
 			return
