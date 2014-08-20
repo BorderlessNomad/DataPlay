@@ -142,8 +142,8 @@ angular.module('dataplayApp')
 		$scope.nearestNeighbour = (index, data, key) ->
 			index = parseInt index
 			curr = data[index][key]
-			next = data[index + 1][key]
-			prev = data[index - 1][key]
+			next = if data[index + 1]? then data[index + 1][key] else 0
+			prev = if data[index - 1]? then data[index - 1][key] else 0
 
 			closest = curr
 			if curr is next
@@ -221,9 +221,12 @@ angular.module('dataplayApp')
 				stack = d3.select('g.stack-list').node()
 				box = stack.getBBox()
 
-				area = d3.select 'g.stack-list'
-					.append 'g'
-					.attr 'class', 'stack _1' # change
+				stackList = d3.select 'g.stack-list'
+				existingObservations = stackList.append 'g'
+					.attr 'class', 'stack _1 observations existing'
+
+				newObservations = stackList.append 'g'
+					.attr 'class', 'stack _2 observations new'
 
 				circles = c.svg().selectAll 'circle.dot'
 				circleTitles = c.svg().selectAll 'circle.dot > title'
@@ -242,17 +245,22 @@ angular.module('dataplayApp')
 				# Exisiting observations
 				for p in points
 					x = p[0]
-					y = p[1]
-					plot = [xScale(x), yScale(y)]
-					color = '#ff7f0e'
-					console.log x, y, plot, color
 
-					$scope.drawCircle area, data, x, y, plot, color
+					# Y
+					for k, v of yDomain
+						if v.y >= p[1]
+							j = k
+
+					y = yDomain[j].y
+
+					plot = [xScale(x), yDomain[j].cy]
+					color = '#ff7f0e'
+
+					$scope.drawCircle existingObservations, data, x, y, plot, color
 
 				# New observations
 				datum = null
 				circles.on 'click', (d) ->
-					console.log 'POINT', 'Datum:', d
 					datum = d
 
 				svg.on 'click', () ->
@@ -291,13 +299,9 @@ angular.module('dataplayApp')
 					y = yDomain[j].y
 					$scope.nearestNeighbour j, yDomain, 'y'
 
-					$scope.observations.push
-						x: x
-						y: y
-						space: space
-						color: color
+					$scope.addObservation x, y, space
 
-					$scope.drawCircle area, data, x, y, space, color
+					$scope.drawCircle newObservations, data, x, y, space, color
 
 			return
 
@@ -447,7 +451,6 @@ angular.module('dataplayApp')
 
 			data.ordinals = []
 			data.ordinals.push d.key.split("|")[0] for d in data.group.all() when d not in data.ordinals
-			console.log data.ordinals
 
 			chart.keyAccessor (d) -> d.key.split("|")[0]
 			chart.valueAccessor (d) -> d.key.split("|")[1]
@@ -500,7 +503,6 @@ angular.module('dataplayApp')
 			scale = Math.abs Math.log (maxRL - minRL) / (maxR - minR)
 
 			console.log minR, maxR, (maxR - minR), minRL, maxRL, (maxRL - minRL), scale, scale / 100
-
 			chart.maxBubbleRelativeSize scale / 100
 
 			chart.zoomOutRestrict true
@@ -516,9 +518,29 @@ angular.module('dataplayApp')
 
 			return
 
+		$scope.addObservation = (x, y, space, comment) ->
+			$scope.observations.push
+				x: x
+				y: y
+				space: space
+				comment: if comment? and comment.length > 0 then comment else ""
+				timestamp: Date.now()
+
+			$scope.$apply()
+
+		$scope.saveObservations = ->
+			console.log "saveObservations", $scope.observations
+
+		$scope.resetObservations = ->
+			$scope.observations = []
+			d3.select 'g.stack-list > g.observations.new'
+				.remove()
+
 		$scope.resetAll = ->
 			dc.filterAll()
 			dc.redrawAll()
+
+			$scope.resetObservations()
 
 		return
 	]
