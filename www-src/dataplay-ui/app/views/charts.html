@@ -1,11 +1,21 @@
 <div class="charts" ng-init="init()">
 	<div class="row">
 		<div class="col-md-6 chart-title"><h1>{{chart.title}}</h1></div>
-		<div class="col-md-6 chart-info pull-right well well-sm"><h5 ng-bind-html="chart.description"></h5></div>
+		<div class="col-md-6 chart-info pull-right">
+			<div class="well well-sm">
+				<h5 ng-bind-html="chart.description"></h5>
+			</div>
+		</div>
 	</div>
 
 	<div class="row">
-		<div class="col-md-12"><a class="btn btn-warning pull-right" ng-click="resetAll()">Reset all</a></div>
+		<div class="col-md-12">
+			<div class="pull-right">
+				<a href="#" class="btn btn-success" ng-show="observations.length > 0" ng-click="saveObservations()">Save observations</a>
+				<a href="#" class="btn btn-warning" ng-click="resetAll()">Reset changes</a>
+			</div>
+		</div>
+
 		<div class="col-md-12" ng-switch="chart.type">
 			<span ng-include="'views/charts/related/lineRanged.html'"></span>
 			<span ng-include="'views/charts/related/row.html'"></span>

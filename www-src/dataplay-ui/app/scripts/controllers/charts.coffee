@@ -10,7 +10,7 @@
 angular.module('dataplayApp')
 	.controller 'ChartsCtrl', ['$scope', '$routeParams', 'PatternMatcher', 'Charts', 'Tracker', ($scope, $routeParams, PatternMatcher, Charts, Tracker) ->
 		$scope.params = $routeParams
-		$scope.width = 1170;
+		$scope.width = 1140;
 		$scope.height = $scope.width * 9 / 16 # 16:9
 		$scope.margin =
 			top: 50
@@ -28,7 +28,6 @@ angular.module('dataplayApp')
 			description: "N/A"
 			data: null
 			values: []
-		$scope.cfdata = null
 		$scope.monthNames = [
 			"Jan"
 			"Feb"
@@ -43,6 +42,7 @@ angular.module('dataplayApp')
 			"Nov"
 			"Dec"
 		]
+		$scope.observations = []
 
 		$scope.init = () ->
 			# Track
@@ -139,6 +139,37 @@ angular.module('dataplayApp')
 
 			yScale
 
+		$scope.nearestNeighbour = (index, data, key) ->
+			index = parseInt index
+			curr = data[index][key]
+			next = data[index + 1][key]
+			prev = data[index - 1][key]
+
+			closest = curr
+			if curr is next
+				closest = next
+			else if curr is prev
+				closest = prev
+			else if Math.abs(curr - next) >= Math.abs(curr - prev)
+				closest = prev
+			else if Math.abs(curr - next) <= Math.abs(curr - prev)
+				closest = next
+
+			closest
+
+		$scope.drawCircle = (area, data, x, y, plot, color) ->
+			area.append 'circle'
+				.attr 'cx', plot[0]
+				.attr 'cy', plot[1]
+				.attr 'r', 5
+				.style 'fill', color
+				.append 'svg:title'
+				.text (d) ->
+					if data.patterns[data.xLabel].valuePattern is 'date'
+						x = $scope.humanDate x
+
+					"#{$scope.chart.xLabel}: #{x}\n#{$scope.chart.yLabel}: #{y}"
+
 		$scope.lineChartPostSetup = (chart) ->
 			data = $scope.chart
 
@@ -177,6 +208,12 @@ angular.module('dataplayApp')
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
 
+			points = [
+				[1950, 600000]
+				[1960, 800000]
+				[1970, 700000]
+			]
+
 			chart.renderlet (c) ->
 				console.log 'renderlet'
 
@@ -202,6 +239,17 @@ angular.module('dataplayApp')
 
 				yDomain.sort (a, b) -> a.cy - b.cy
 
+				# Exisiting observations
+				for p in points
+					x = p[0]
+					y = p[1]
+					plot = [xScale(x), yScale(y)]
+					color = '#ff7f0e'
+					console.log x, y, plot, color
+
+					$scope.drawCircle area, data, x, y, plot, color
+
+				# New observations
 				datum = null
 				circles.on 'click', (d) ->
 					console.log 'POINT', 'Datum:', d
@@ -224,42 +272,32 @@ angular.module('dataplayApp')
 						x = xScale.invert space[0]
 						y = yScale.invert space[1]
 
-					for k, v of yDomain
-						if v.cy <= space[1]
-							y = v.y
-
-					drawCircle x, y, space, color
-
-				drawCircle = (x, y, plot, color) ->
-					#@TODO d3.bisector(comparator)
-
+					# X
 					for val, key in data.group.all()
-						# X
 						if data.patterns[data.xLabel].valuePattern is 'date'
 							if x.getTime() >= val.key.getTime()
 								i = key
 						else if x >= val.key
 							i = key
 
-					for val, key in yScaleGroup
-						# Y
-						if y >= val.value
-							j = key
+					x = data.group.all()[i].key
+					$scope.nearestNeighbour i, data.group.all(), 'key'
 
-					area.append 'circle'
-						.attr 'cx', plot[0]
-						.attr 'cy', plot[1]
-						.attr 'r', 5
-						.style 'fill', color
-						.append 'svg:title'
-						.text (d) ->
-							x = data.group.all()[i].key
-							y = yScaleGroup[j].value
+					# Y
+					for k, v of yDomain
+						if v.cy <= space[1]
+							j = k
 
-							if data.patterns[data.xLabel].valuePattern is 'date'
-								x = $scope.humanDate x
+					y = yDomain[j].y
+					$scope.nearestNeighbour j, yDomain, 'y'
 
-							"#{$scope.chart.xLabel}: #{x}\n#{$scope.chart.yLabel}: #{y}"
+					$scope.observations.push
+						x: x
+						y: y
+						space: space
+						color: color
+
+					$scope.drawCircle area, data, x, y, space, color
 
 			return
 
