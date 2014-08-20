@@ -20,15 +20,15 @@ func TestGetRelatedCharts(t *testing.T) {
 	})
 }
 
-func TestGetCorrelatedChart(t *testing.T) {
-	m := map[string]string{
-		"id": "113799",
-	}
-	Convey("Should return chartlist", t, func() {
-		result := GetCorrelatedChartQ(m)
-		So(result, ShouldNotBeNil)
-	})
-}
+// func TestGetCorrelatedChart(t *testing.T) {
+// 	m := map[string]string{
+// 		"id": "113799",
+// 	}
+// 	Convey("Should return chartlist", t, func() {
+// 		result := GetCorrelatedChartQ(m)
+// 		So(result, ShouldNotBeNil)
+// 	})
+// }
 
 func TestGetRelatedChartsHttp(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)

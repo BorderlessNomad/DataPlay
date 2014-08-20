@@ -18,6 +18,8 @@ type CorrelationData struct {
 	Id     int       `json:"method, omitempty"`
 	Method string    `json:"method"`
 	Chart  string    `json:"type, omitempty"`
+	From   string    `json:"from"`
+	To     string    `json:"from"`
 	Table1 TableData `json:"table1"`
 	Table2 TableData `json:"table2"`
 	Table3 TableData `json:"table3, omitempty"`
@@ -174,6 +176,9 @@ func CalculateCoefficient(m map[string]string, c cmeth, cd *CorrelationData) flo
 		return 0.0
 	}
 
+	(*cd).From = (bucketRange[0].From.String()[0:10])
+	(*cd).To = (bucketRange[l].To.String()[0:10])
+
 	if c == P {
 		cf = Pearson(xBuckets, yBuckets)
 	} else if c == V {
@@ -214,6 +219,10 @@ func CalculateCoefficient(m map[string]string, c cmeth, cd *CorrelationData) flo
 		if !hasVals {
 			return 0.0
 		}
+
+		(*cd).From = (bucketRange[0].From.String()[0:10])
+		(*cd).To = (bucketRange[l].To.String()[0:10])
+
 		cf = Spurious(yBuckets, zBuckets, xBuckets) // order is table2 = x arg , table3 = y arg, table1 = z arg so that we get correlation of 2 random tables against underlying table
 	} else {
 		return 0.0
