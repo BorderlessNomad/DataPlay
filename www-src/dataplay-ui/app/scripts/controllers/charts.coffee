@@ -223,10 +223,10 @@ angular.module('dataplayApp')
 
 				stackList = d3.select 'g.stack-list'
 				existingObservations = stackList.append 'g'
-					.attr 'class', 'stack _1 observations existing'
+					.attr 'class', "stack _#{stackList.length + 0} observations existing"
 
 				newObservations = stackList.append 'g'
-					.attr 'class', 'stack _2 observations new'
+					.attr 'class', "stack _#{stackList.length + 1} observations new"
 
 				circles = c.svg().selectAll 'circle.dot'
 				circleTitles = c.svg().selectAll 'circle.dot > title'
@@ -502,7 +502,6 @@ angular.module('dataplayApp')
 			maxRL = Math.log maxR
 			scale = Math.abs Math.log (maxRL - minRL) / (maxR - minR)
 
-			console.log minR, maxR, (maxR - minR), minRL, maxRL, (maxRL - minRL), scale, scale / 100
 			chart.maxBubbleRelativeSize scale / 100
 
 			chart.zoomOutRestrict true

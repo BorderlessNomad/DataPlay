@@ -186,9 +186,16 @@ func initClassicMode() {
 	m.Get("/api/correlated/:tablename/:offset/:count/:searchdepth", GetCorrelatedChartsHttp)
 	m.Get("/api/related/:tablename/:correlated", GetValidatedChartsHttp)
 	m.Get("/api/related/:tablename/:correlated/:offset/:count", GetValidatedChartsHttp)
-	m.Get("/api/activity/:uid/:type", AddActivityHttp)
-	m.Get("/api/validate/:valflag/:patternid/:correlated/:json/:originid/:uid", ValidateChartHttp)
-	m.Get("/api/validate/:valflag/:obsid/:text/:patternid/:uid/:coordinates", ValidateObservationHttp)
+	m.Post("/api/activity/:uid/:type", AddActivityHttp)
+	m.Post("/api/validate/:valflag/:patternid/:correlated/:json/:originid/:uid", ValidateChartHttp)
+	m.Post("/api/validate/:valflag/:obsid/:text/:patternid/:uid/:coordinates", ValidateObservationHttp)
+
+	// m.Post("/api/chart") // POST body will have Table1, Table2, Table3 data for both Related & Correlated [Return PATTERNID] -> Discovery
+	// m.Put("/api/chart")  // Validate/Invalidate
+
+	// m.Get("/api/observations/:patternId")                // Get all observations for a Pattern
+	// m.Post("/api/observations/:patternId")               // Add new observation(s) for a Pattern
+	// m.Put("/api/observations/:patternId/:observationId") // Validate/Invalidate an Observation
 
 	m.Use(JsonApiHandler)
 
