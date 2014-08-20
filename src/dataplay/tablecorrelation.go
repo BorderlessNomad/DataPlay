@@ -148,7 +148,7 @@ func CalculateCoefficient(m map[string]string, c cmeth, cd *CorrelationData) flo
 	fromY, toY, rngY := DetermineRange(y)
 
 	if rngX == 0 || rngY == 0 {
-		return 0
+		return 0.0
 	}
 
 	bucketRange = GetIntersect(&fromX, &toX, &rngX, fromY, toY, rngY)
@@ -158,15 +158,20 @@ func CalculateCoefficient(m map[string]string, c cmeth, cd *CorrelationData) flo
 
 	xBuckets = FillBuckets(x, bucketRange)
 	yBuckets = FillBuckets(y, bucketRange)
+
+	if MostlyEmpty(xBuckets) || MostlyEmpty(yBuckets) {
+		return 0.0
+	}
+
 	l := len(bucketRange) - 1
 
 	(*cd).Table1.Values, hasVals = GetValues(x, bucketRange[0].From, bucketRange[l].To)
 	if !hasVals {
-		return 0
+		return 0.0
 	}
 	(*cd).Table2.Values, hasVals = GetValues(y, bucketRange[0].From, bucketRange[l].To)
 	if !hasVals {
-		return 0
+		return 0.0
 	}
 
 	if c == P {
@@ -178,13 +183,13 @@ func CalculateCoefficient(m map[string]string, c cmeth, cd *CorrelationData) flo
 		fromZ, toZ, rngZ := DetermineRange(z)
 
 		if rngZ == 0 {
-			return 0
+			return 0.0
 		}
 
 		//from X, toX and rngX now equal full from, to and rng of x and y from last iteration so just get intersect of those with Z
 		bucketRange = GetIntersect(&fromX, &toX, &rngX, fromZ, toZ, rngZ)
 		if bucketRange == nil {
-			return 0
+			return 0.0
 		}
 
 		l := len(bucketRange) - 1
@@ -192,22 +197,26 @@ func CalculateCoefficient(m map[string]string, c cmeth, cd *CorrelationData) flo
 		yBuckets = FillBuckets(y, bucketRange)
 		zBuckets = FillBuckets(z, bucketRange)
 
+		if MostlyEmpty(xBuckets) || MostlyEmpty(yBuckets) || MostlyEmpty(zBuckets) {
+			return 0.0
+		}
+
 		(*cd).Table1.Values, hasVals = GetValues(x, bucketRange[0].From, bucketRange[l].To)
 		if !hasVals {
-			return 0
+			return 0.0
 		} else {
 			(*cd).Table2.Values, hasVals = GetValues(y, bucketRange[0].From, bucketRange[l].To)
 		}
 		if !hasVals {
-			return 0
+			return 0.0
 		}
 		(*cd).Table3.Values, hasVals = GetValues(z, bucketRange[0].From, bucketRange[l].To)
 		if !hasVals {
-			return 0
+			return 0.0
 		}
 		cf = Spurious(yBuckets, zBuckets, xBuckets) // order is table2 = x arg , table3 = y arg, table1 = z arg so that we get correlation of 2 random tables against underlying table
 	} else {
-		return 0
+		return 0.0
 	}
 	return cf
 }
