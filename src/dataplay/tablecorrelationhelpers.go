@@ -292,3 +292,20 @@ func GetValues(vals []DateVal, from time.Time, to time.Time) ([]XYVal, bool) {
 
 	return values, hasVals
 }
+
+/// return true if there are too many zero values
+func MostlyEmpty(slice []float64) bool {
+	ct := 0
+
+	for _, v := range slice {
+		if v == 0.0 {
+			ct++
+		}
+	}
+
+	if ct > 5 {
+		return true
+	} else {
+		return false
+	}
+}
