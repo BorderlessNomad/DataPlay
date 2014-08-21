@@ -46,7 +46,7 @@ func TestVisualCorrelation(t *testing.T) {
 				"valCol1":  RandomValueColumn(colNames),
 				"dateCol1": RandomDateColumn(colNames),
 			}
-			AttemptCorrelation(tstM, P)
+			AttemptCorrelation(tstM, V)
 		})
 	}
 }
@@ -62,7 +62,7 @@ func TestPearsonCorrelation(t *testing.T) {
 				"valCol1":  RandomValueColumn(colNames),
 				"dateCol1": RandomDateColumn(colNames),
 			}
-			AttemptCorrelation(tstM, S)
+			AttemptCorrelation(tstM, P)
 		})
 	}
 }
@@ -78,7 +78,7 @@ func TestSpuriousCorrelation(t *testing.T) {
 				"valCol1":  RandomValueColumn(colNames),
 				"dateCol1": RandomDateColumn(colNames),
 			}
-			AttemptCorrelation(tstM, V)
+			AttemptCorrelation(tstM, S)
 		})
 	}
 }
