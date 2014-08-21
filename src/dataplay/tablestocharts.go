@@ -38,7 +38,7 @@ func GetChart(tableName string, chartType string, coords ...string) (TableData, 
 
 	err := DB.Where("guid = ?", tableName).Find(&index).Error
 	if err != nil && err != gorm.RecordNotFound {
-		return chart[0], &appError{err, "Database query failed", http.StatusInternalServerError}
+		return chart[0], &appError{err, "Database query failed (GUID)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
 		return chart[0], &appError{err, "No related chart found", http.StatusNotFound}
 	}
@@ -66,7 +66,7 @@ func GetCorrelatedChart(id int) (string, *appError) {
 	err := DB.Table("priv_correlation").Where("id = ?", id).Pluck("json", &chart).Error
 
 	if err != nil && err != gorm.RecordNotFound {
-		return chart[0], &appError{err, "Database query failed", http.StatusInternalServerError}
+		return chart[0], &appError{err, "Database query failed (ID)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
 		return chart[0], &appError{err, "No related chart found", http.StatusNotFound}
 	}
@@ -84,7 +84,7 @@ func GetRelatedCharts(tableName string, offset int, count int) (RelatedCharts, *
 
 	err := DB.Where("guid = ?", tableName).Find(&index).Error
 	if err != nil && err != gorm.RecordNotFound {
-		return RelatedCharts{nil, 0}, &appError{err, "Database query failed", http.StatusInternalServerError}
+		return RelatedCharts{nil, 0}, &appError{err, "Database query failed (GUID)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
 		return RelatedCharts{nil, 0}, &appError{err, "No related chart found", http.StatusNotFound}
 	}
@@ -148,9 +148,9 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 	GenerateCorrelations(tableName, searchDepth)
 	err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Find(&corData).Error
 	if err != nil && err != gorm.RecordNotFound {
-		return RelatedCorrelatedCharts{nil, 0}, &appError{nil, "Database query failed", http.StatusInternalServerError}
+		return RelatedCorrelatedCharts{nil, 0}, &appError{nil, "Database query failed (TBL1)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
-		return RelatedCorrelatedCharts{nil, 0}, &appError{nil, "Database query failed", http.StatusNotFound}
+		return RelatedCorrelatedCharts{nil, 0}, &appError{nil, "No correlated chart found", http.StatusNotFound}
 	}
 
 	for _, c := range corData {
@@ -215,9 +215,9 @@ func GetValidatedCharts(tableName string, correlated bool, offset int, count int
 	err := DB.Select("priv_validated.json").Joins("LEFT JOIN priv_correlation ON priv_validated.originid = priv_correlation.id").Where("priv_correlation.tbl1 = ?", tableName).Where("priv_validated.correlated = ?", correlated).Order("priv_validated.rating DESC").Find(&validated).Error
 
 	if err != nil && err != gorm.RecordNotFound {
-		return ValidatedCharts{nil, 0}, &appError{nil, "Database query failed", http.StatusInternalServerError}
+		return ValidatedCharts{nil, 0}, &appError{nil, "Database query failed (JOIN)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
-		return ValidatedCharts{nil, 0}, &appError{nil, "Database query failed", http.StatusNotFound}
+		return ValidatedCharts{nil, 0}, &appError{nil, "No valid chart found", http.StatusNotFound}
 	}
 
 	for _, v := range validated {

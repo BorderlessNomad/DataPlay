@@ -22,7 +22,6 @@ angular.module('dataplayApp')
 		$scope.max =
 			correlated: 0
 		$scope.chartsCorrelated = []
-		$scope.chartRegistryOffset = 0
 
 		$scope.xTicks = 6
 		$scope.width = 350
@@ -32,29 +31,13 @@ angular.module('dataplayApp')
 			right: 10
 			bottom: 30
 			left: 70
-		$scope.monthNames = [
-			"Jan"
-			"Feb"
-			"Mar"
-			"Apr"
-			"May"
-			"Jun"
-			"Jul"
-			"Aug"
-			"Sep"
-			"Oct"
-			"Nov"
-			"Dec"
-		]
-
-		$scope.getChartOffset = (chart) ->
-			chart.__dc_flag__ - $scope.chartRegistryOffset - 1
 
 		$scope.isPlotAllowed = (type) ->
 			if type in $scope.allowed then true else false
 
 		$scope.getCorrelatedCharts = () ->
-			$scope.chartRegistryOffset = dc.chartRegistry.list().length
+			console.log "getCorrelatedCharts", dc.chartRegistry.list().length
+			Overview.updateChartRegistry dc.chartRegistry.list().length
 
 			$scope.getCorrelated Overview.charts 'correlated'
 
@@ -75,7 +58,7 @@ angular.module('dataplayApp')
 						$scope.max.correlated = data.Count
 
 						for key, chart of data.Charts
-							continue unless chart.type is 'line'
+							continue unless $scope.isPlotAllowed chart.type
 
 							chart.id = "correlated-#{$scope.params.id}-#{chart.table1.xLabel}-#{chart.table1.yLabel}-#{chart.table2.xLabel}-#{chart.table2.yLabel}-#{chart.type}"
 
@@ -108,7 +91,7 @@ angular.module('dataplayApp')
 
 						Overview.charts 'correlated', $scope.offset.correlated
 
-						console.log $scope.chartsCorrelated
+						console.log "$scope.chartsCorrelated", $scope.chartsCorrelated
 					return
 				.error (data, status) ->
 					console.log "Overview::getCorrelated::Error:", status
@@ -133,6 +116,15 @@ angular.module('dataplayApp')
 
 			xScale
 
+		$scope.getXUnits = (data) ->
+			xUnits = switch data.patterns[data.table1.xLabel].valuePattern
+				when 'date' then d3.time.years
+				when 'intNumber' then dc.units.integers
+				when 'label', 'text' then dc.units.ordinal
+				else dc.units.ordinal
+
+			xUnits
+
 		$scope.getYScale = (data) ->
 			yScale = switch data.patterns[data.table1.xLabel].valuePattern
 				when 'label'
@@ -152,9 +144,8 @@ angular.module('dataplayApp')
 			yScale
 
 		$scope.lineChartPostSetup = (chart) ->
-			data = $scope.chartsCorrelated[$scope.getChartOffset chart]
+			data = $scope.chartsCorrelated[Overview.getChartOffset chart]
 
-			console.log data.table1.values
 			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
@@ -172,17 +163,16 @@ angular.module('dataplayApp')
 
 			chart.colorAccessor (d, i) -> parseInt(d.y) % data.ordinals.length
 
-			chart.xAxis()
-				.ticks $scope.xTicks
+			chart.xAxis().ticks $scope.xTicks
 
 			chart.x $scope.getXScale data
 
 			return
 
 		$scope.rowChartPostSetup = (chart) ->
-			data = $scope.chartsCorrelated[$scope.getChartOffset chart]
+			data = $scope.chartsCorrelated[Overview.getChartOffset chart]
 
-			data.entry = crossfilter data.values
+			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
@@ -194,24 +184,19 @@ angular.module('dataplayApp')
 
 			chart.colorAccessor (d, i) -> i + 1
 
-			chart.xAxis()
-				.ticks $scope.xTicks
+			chart.xAxis().ticks $scope.xTicks
 
 			chart.x $scope.getYScale data
 
-			if ordinals? and ordinals.length > 0
-				chart.xUnits switch data.patterns[data.xLabel].valuePattern
-					when 'date' then d3.time.years
-					when 'intNumber' then dc.units.integers
-					when 'label', 'text' then dc.units.ordinal
-					else dc.units.ordinal
+			# chart.xUnits $scope.getXUnits data if data.ordinals?.length > 0
 
 			return
 
 		$scope.columnChartPostSetup = (chart) ->
-			data = $scope.chartsCorrelated[$scope.getChartOffset chart]
+			data = $scope.chartsCorrelated[Overview.getChartOffset chart]
+			console.log "columnChartPostSetup", data, Overview.getChartOffset chart
 
-			data.entry = crossfilter data.values
+			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
@@ -225,23 +210,18 @@ angular.module('dataplayApp')
 
 			chart.x $scope.getXScale data
 
-			if ordinals? and ordinals.length > 0
-				chart.xUnits switch data.patterns[data.xLabel].valuePattern
-					when 'date' then d3.time.years
-					when 'intNumber' then dc.units.integers
-					when 'label', 'text' then dc.units.ordinal
-					else dc.units.ordinal
+			chart.xUnits $scope.getXUnits data if data.ordinals?.length > 0
 
 			return
 
 		$scope.pieChartPostSetup = (chart) ->
-			data = $scope.chartsCorrelated[$scope.getChartOffset chart]
+			data = $scope.chartsCorrelated[Overview.getChartOffset chart]
 
-			data.entry = crossfilter data.values
+			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) ->
-				if data.patterns[data.xLabel].valuePattern is 'date'
-					return "#{d.x.getDate()} #{$scope.monthNames[d.x.getMonth()]} #{d.x.getFullYear()}"
-				x = if d.x? and (d.x.length > 0 || data.patterns[data.xLabel].valuePattern is 'date') then d.x else "N/A"
+				if data.patterns[data.table1.xLabel].valuePattern is 'date'
+					return "#{d.x.getDate()} #{Overview.monthNames[d.x.getMonth()]} #{d.x.getFullYear()}"
+				x = if d.x? and (d.x.length > 0 || data.patterns[data.table1.xLabel].valuePattern is 'date') then d.x else "N/A"
 			data.groupSum = 0
 			data.group = data.dimension.group().reduceSum (d) ->
 				y = Math.abs parseFloat d.y
@@ -266,12 +246,12 @@ angular.module('dataplayApp')
 			return
 
 		$scope.bubbleChartPostSetup = (chart) ->
-			data = $scope.chartsCorrelated[$scope.getChartOffset chart]
+			data = $scope.chartsCorrelated[Overview.getChartOffset chart]
 
 			minR = null
 			maxR = null
 
-			data.entry = crossfilter data.values
+			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) ->
 				z = Math.abs parseInt d.z
 
@@ -298,7 +278,7 @@ angular.module('dataplayApp')
 				r = Math.abs parseInt d.key.split("|")[2]
 				if r >= minR then r else minR
 
-			chart.x switch data.patterns[data.xLabel].valuePattern
+			chart.x switch data.patterns[data.table1.xLabel].valuePattern
 				when 'label'
 					d3.scale.ordinal()
 						.domain data.ordinals
@@ -312,7 +292,7 @@ angular.module('dataplayApp')
 						.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[0]
 						.range [0, $scope.width]
 
-			chart.y switch data.patterns[data.xLabel].valuePattern
+			chart.y switch data.patterns[data.table1.xLabel].valuePattern
 				when 'label'
 					d3.scale.ordinal()
 						.domain data.ordinals
@@ -336,7 +316,7 @@ angular.module('dataplayApp')
 				x = d.key.split("|")[0]
 				y = d.key.split("|")[1]
 				z = d.key.split("|")[2]
-				"#{data.xLabel}: #{x}\n#{data.yLabel}: #{y}\n#{data.zLabel}: #{z}"
+				"#{data.table1.xLabel}: #{x}\n#{data.table1.yLabel}: #{y}\n#{data.table1.zLabel}: #{z}"
 
 			minRL = Math.log minR
 			maxRL = Math.log maxR

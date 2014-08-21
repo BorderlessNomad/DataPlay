@@ -113,10 +113,10 @@ func SearchForDataQ(params map[string]string) string {
 /**
  * @brief Search a given term in database
  * @details This method searches for a matching title with following conditions,
- * 		Postfix wildcard
- * 		Prefix & postfix wildcard
- * 		Prefix, postfix & trimmed spaces with wildcard
- * 		Prefix & postfix on previously searched terms
+ * 		Suffix wildcard
+ * 		Prefix & suffix wildcard
+ * 		Prefix, suffix & trimmed spaces with wildcard
+ * 		Prefix & suffix on previously searched terms
  */
 func SearchForData(str string, uid int) ([]SearchResult, *appError) {
 	if str == "" {
@@ -129,40 +129,40 @@ func SearchForData(str string, uid int) ([]SearchResult, *appError) {
 
 	term := str + "%" // e.g. "nhs" => "nhs%" (What about "%nhs"?)
 
-	Logger.Println("Searching with Postfix Wildcard", term)
+	Logger.Println("Searching with Suffix Wildcard", term)
 
 	err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&Indices).Error
 	if err != nil && err != gorm.RecordNotFound {
-		return nil, &appError{err, "Database query failed", http.StatusServiceUnavailable}
+		return nil, &appError{err, "Database query failed (SUFFIX)", http.StatusServiceUnavailable}
 	}
 
 	Results := ProcessSearchResults(Indices, err)
 	if len(Results) == 0 {
 		term := "%" + str + "%" // e.g. "nhs" => "%nhs%"
 
-		Logger.Println("Searching with Prefix + Postfix Wildcard", term)
+		Logger.Println("Searching with Prefix + Suffix Wildcard", term)
 
 		err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&Indices).Error
 		if err != nil && err != gorm.RecordNotFound {
-			return nil, &appError{err, "Database query failed", http.StatusServiceUnavailable}
+			return nil, &appError{err, "Database query failed (PREFIX + SUFFIX)", http.StatusServiceUnavailable}
 		}
 
 		Results = ProcessSearchResults(Indices, err)
 		if len(Results) == 0 {
 			term := "%" + strings.Replace(str, " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
 
-			Logger.Println("Searching with Prefix + Postfix + Trim Wildcard", term)
+			Logger.Println("Searching with Prefix + Suffix + Trim Wildcard", term)
 
 			err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&Indices).Error
 			if err != nil && err != gorm.RecordNotFound {
-				return nil, &appError{err, "Database query failed", http.StatusServiceUnavailable}
+				return nil, &appError{err, "Database query failed (PREFIX + SUFFIX + TRIM)", http.StatusServiceUnavailable}
 			}
 
 			Results = ProcessSearchResults(Indices, err)
 			if len(Results) == 0 && (len(str) >= 3 && len(str) < 20) {
 				term := "%" + str + "%" // e.g. "nhs" => "%nhs%"
 
-				Logger.Println("Searching with Prefix + Postfix Wildcard in String Table", term)
+				Logger.Println("Searching with Prefix + Suffix Wildcard in String Table", term)
 
 				query := DB.Table("priv_stringsearch, priv_onlinedata, index")
 				query = query.Select("DISTINCT ON (priv_onlinedata.guid) priv_onlinedata.guid, index.title")
@@ -176,7 +176,7 @@ func SearchForData(str string, uid int) ([]SearchResult, *appError) {
 				err := query.Find(&Indices).Error
 
 				if err != nil && err != gorm.RecordNotFound {
-					return nil, &appError{err, "Database query failed", http.StatusInternalServerError}
+					return nil, &appError{err, "Database query failed (PREFIX + SUFFIX + STRING)", http.StatusInternalServerError}
 				}
 
 				Results = ProcessSearchResults(Indices, err)

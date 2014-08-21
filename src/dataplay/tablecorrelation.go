@@ -19,7 +19,7 @@ type CorrelationData struct {
 	Method string    `json:"method"`
 	Chart  string    `json:"type, omitempty"`
 	From   string    `json:"from"`
-	To     string    `json:"from"`
+	To     string    `json:"to"`
 	Table1 TableData `json:"table1"`
 	Table2 TableData `json:"table2"`
 	Table3 TableData `json:"table3, omitempty"`

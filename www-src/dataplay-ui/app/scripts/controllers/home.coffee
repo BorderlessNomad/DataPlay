@@ -21,6 +21,10 @@ angular.module('dataplayApp')
 			# Reset Overview cache
 			Overview.charts null
 
+			# Reset all cahced charts
+			console.log "home", Overview.chartRegistryOffset, dc.chartRegistry.list().length
+			Overview.updateChartRegistry dc.chartRegistry.list().length
+
 			unless Auth.isAuthenticated()
 				$scope.lastVisited = []
 				return
