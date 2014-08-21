@@ -103,38 +103,19 @@ angular.module('dataplayApp')
 
 			xScale
 
-		$scope.sortY = (a, b) ->
-			if $scope.chart.patterns[$scope.chart.yLabel].valuePattern is 'date'
-				a.value = a.value.getTime()
-				b.value = b.value.getTime()
-
-			a.value - b.value
-
-		$scope.getYScale = (data, group) ->
+		$scope.getYScale = (data) ->
 			yScale = switch data.patterns[data.yLabel].valuePattern
 				when 'label'
-					unless group?
-						group = data.ordinals
-
 					d3.scale.ordinal()
-						.domain group
+						.domain data.ordinals
 						.rangeBands [$scope.height, 0]
 				when 'date'
-					unless group?
-						group = data.group.all()
-
-					if sort? and sort is true
-						group = Array.prototype.slice.call(group).sort(compare)
-
 					d3.time.scale()
-						.domain d3.extent group, (d) -> d.value
+						.domain d3.extent data.group.all(), (d) -> d.value
 						.range [$scope.height, 0]
 				else
-					unless group?
-						group = data.group.all()
-
 					d3.scale.linear()
-						.domain d3.extent group, (d) -> parseInt d.value
+						.domain d3.extent data.group.all(), (d) -> parseInt d.value
 						.range [$scope.height, 0]
 
 			yScale
@@ -142,17 +123,17 @@ angular.module('dataplayApp')
 		$scope.nearestNeighbour = (index, data, key) ->
 			index = parseInt index
 			curr = data[index][key]
-			next = if data[index + 1]? then data[index + 1][key] else 0
-			prev = if data[index - 1]? then data[index - 1][key] else 0
+			next = if data[index + 1]? then data[index + 1][key] else null
+			prev = if data[index - 1]? then data[index - 1][key] else null
 
 			closest = curr
 			if curr is next
 				closest = next
 			else if curr is prev
 				closest = prev
-			else if Math.abs(curr - next) >= Math.abs(curr - prev)
+			else if not next? or Math.abs(curr - next) >= Math.abs(curr - prev)
 				closest = prev
-			else if Math.abs(curr - next) <= Math.abs(curr - prev)
+			else if not prev? or Math.abs(curr - next) <= Math.abs(curr - prev)
 				closest = next
 
 			closest
@@ -198,7 +179,6 @@ angular.module('dataplayApp')
 			xScale = $scope.getXScale data
 			chart.x xScale
 
-			yScaleGroup = Array.prototype.slice.call(data.group.all()).sort($scope.sortY)
 			yScale = $scope.getYScale data
 
 			if data.ordinals.length > 0
@@ -209,10 +189,12 @@ angular.module('dataplayApp')
 					else dc.units.ordinal
 
 			points = [
-				[1950, 600000]
-				[1960, 800000]
-				[1970, 700000]
+				[new Date("Feb 01 1975 00:00:00 GMT+0000 (GMT Standard Time)"), 600]
+				[new Date("Jan 04 2000 00:00:00 GMT+0000 (GMT Standard Time)"), 400]
 			]
+
+			existingObservations = null
+			newObservations = null
 
 			chart.renderlet (c) ->
 				console.log 'renderlet'
@@ -222,11 +204,16 @@ angular.module('dataplayApp')
 				box = stack.getBBox()
 
 				stackList = d3.select 'g.stack-list'
-				existingObservations = stackList.append 'g'
-					.attr 'class', "stack _#{stackList.length + 0} observations existing"
+				if not existingObservations?
+					existingObservations = stackList.append 'g'
+						.attr 'class', "stack _#{stackList.length + 0} observations existing"
 
-				newObservations = stackList.append 'g'
-					.attr 'class', "stack _#{stackList.length + 1} observations new"
+				if not newObservations?
+					newObservations = stackList.append 'g'
+						.attr 'class', "stack _#{stackList.length + 1} observations new"
+
+				# Clean observation points and re-render
+				d3.selectAll('g.observations > circle').remove()
 
 				circles = c.svg().selectAll 'circle.dot'
 				circleTitles = c.svg().selectAll 'circle.dot > title'
@@ -248,8 +235,15 @@ angular.module('dataplayApp')
 
 					# Y
 					for k, v of yDomain
-						if v.y >= p[1]
+						if v.y is p[1]
 							j = k
+							break
+						else if parseInt(v.y) > parseInt(p[1])
+							j = k
+
+					# Do not consider points which are beyond visible Y-axis
+					if not yDomain? or not yDomain[j]? or not yDomain[j].y?
+						continue
 
 					y = yDomain[j].y
 
@@ -283,9 +277,15 @@ angular.module('dataplayApp')
 					# X
 					for val, key in data.group.all()
 						if data.patterns[data.xLabel].valuePattern is 'date'
-							if x.getTime() >= val.key.getTime()
+							if x.getTime() is val.key.getTime()
 								i = key
-						else if x >= val.key
+								break
+							else if x.getTime() > val.key.getTime()
+								i = key
+						else if x is val.key
+							i = key
+							break
+						else if x > val.key
 							i = key
 
 					x = data.group.all()[i].key
@@ -293,7 +293,10 @@ angular.module('dataplayApp')
 
 					# Y
 					for k, v of yDomain
-						if v.cy <= space[1]
+						if v.cy is space[1]
+							j = k
+							break
+						else if v.cy <= space[1]
 							j = k
 
 					y = yDomain[j].y
@@ -302,6 +305,28 @@ angular.module('dataplayApp')
 					$scope.addObservation x, y, space
 
 					$scope.drawCircle newObservations, data, x, y, space, color
+
+				for p in $scope.observations
+					x = p.x
+
+					# Y
+					for k, v of yDomain
+						if v.y is p.y
+							j = k
+							break
+						else if parseInt(v.y) > parseInt(p.y)
+							j = k
+
+					# Do not consider points which are beyond visible Y-axis
+					if not yDomain? or not yDomain[j]? or not yDomain[j].y?
+						continue
+
+					y = yDomain[j].y
+
+					plot = [xScale(x), yDomain[j].cy]
+					color = '#2ca02c'
+
+					$scope.drawCircle newObservations, data, x, y, plot, color
 
 			return
 
@@ -532,8 +557,8 @@ angular.module('dataplayApp')
 
 		$scope.resetObservations = ->
 			$scope.observations = []
-			d3.select 'g.stack-list > g.observations.new'
-				.remove()
+
+			d3.selectAll('g.observations.new > circle').remove()
 
 		$scope.resetAll = ->
 			dc.filterAll()

@@ -41,9 +41,20 @@
 	<hr/>
 
 	<!-- Correlated -->
-	<!-- <div class="row" ng-controller="OverviewCorrelatedCtrl" ng-init="getCorrelatedCharts()">
+	<div class="row" ng-controller="OverviewCorrelatedCtrl" ng-init="getCorrelatedCharts()">
 		<div class="col-md-4" ng-repeat="chart in chartsCorrelated" id="{{chart.id}}" ng-show="chartsCorrelated.length > 0">
+		<a ng-href="/charts/correlated/{{params.id}}/{{chart.type}}/{{chart.table1.xLabel}}/{{chart.table1.yLabel}}" ng-hide="chart.type == 'bubble'">
+				<span><h4>{{chart.table1.xLabel}}</h4> <h5>vs</h5> <h4>{{chart.table1.yLabel}}</h4></span>
+			</a>
+			<a ng-href="/charts/correlated/{{params.id}}/{{chart.type}}/{{chart.table1.xLabel}}/{{chart.table1.yLabel}}/{{chart.table1.zLabel}}" ng-show="chart.type == 'bubble'">
+				<span><h4>{{chart.table1.xLabel}}</h4> <h5>vs</h5> <h4>{{chart.table1.yLabel}}</h4> <h5>vs</h5> <h4>{{chart.table1.zLabel}}</h4></span>
+			</a>
+
 			<span ng-include="'views/charts/correlated/line.html'"></span>
+			<span ng-include="'views/charts/correlated/row.html'"></span>
+			<span ng-include="'views/charts/correlated/column.html'"></span>
+			<span ng-include="'views/charts/correlated/pie.html'"></span>
+			<span ng-include="'views/charts/correlated/bubble.html'"></span>
 		</div>
 
 		<div class="col-md-12" ng-show="loading.correlated" ng-include="'views/loader.html'"></div>
@@ -51,5 +62,5 @@
 		<div class="col-md-12">
 			<a id="getCorrelated" href="#" class="btn btn-default btn-block" ng-click="getCorrelated()" ng-hide="limit.correlated">Show more ({{max.correlated - offset.correlated}}) <span class="caret"></span></a>
 		</div>
-	</div> -->
+	</div>
 </div>

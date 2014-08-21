@@ -22,7 +22,6 @@ angular.module('dataplayApp')
 		$scope.max =
 			related: 0
 		$scope.chartsRelated = []
-		$scope.chartRegistryOffset = 0
 
 		$scope.xTicks = 6
 		$scope.width = 350
@@ -32,29 +31,13 @@ angular.module('dataplayApp')
 			right: 10
 			bottom: 30
 			left: 70
-		$scope.monthNames = [
-			"Jan"
-			"Feb"
-			"Mar"
-			"Apr"
-			"May"
-			"Jun"
-			"Jul"
-			"Aug"
-			"Sep"
-			"Oct"
-			"Nov"
-			"Dec"
-		]
-
-		$scope.getChartOffset = (chart) ->
-			chart.__dc_flag__ - $scope.chartRegistryOffset - 1
 
 		$scope.isPlotAllowed = (type) ->
 			if type in $scope.allowed then true else false
 
 		$scope.getRelatedCharts = () ->
-			$scope.chartRegistryOffset = dc.chartRegistry.list().length
+			console.log "getRelatedCharts", dc.chartRegistry.list().length
+			Overview.updateChartRegistry dc.chartRegistry.list().length
 
 			$scope.getRelated Overview.charts 'related'
 
@@ -127,6 +110,15 @@ angular.module('dataplayApp')
 
 			xScale
 
+		$scope.getXUnits = (data) ->
+			xUnits = switch data.patterns[data.xLabel].valuePattern
+				when 'date' then d3.time.years
+				when 'intNumber' then dc.units.integers
+				when 'label', 'text' then dc.units.ordinal
+				else dc.units.ordinal
+
+			xUnits
+
 		$scope.getYScale = (data) ->
 			yScale = switch data.patterns[data.yLabel].valuePattern
 				when 'label'
@@ -146,7 +138,7 @@ angular.module('dataplayApp')
 			yScale
 
 		$scope.lineChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[$scope.getChartOffset chart]
+			data = $scope.chartsRelated[Overview.getChartOffset chart]
 
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) -> d.x
@@ -160,15 +152,14 @@ angular.module('dataplayApp')
 
 			chart.colorAccessor (d, i) -> parseInt(d.y) % data.ordinals.length
 
-			chart.xAxis()
-				.ticks $scope.xTicks
+			chart.xAxis().ticks $scope.xTicks
 
 			chart.x $scope.getXScale data
 
 			return
 
 		$scope.rowChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[$scope.getChartOffset chart]
+			data = $scope.chartsRelated[Overview.getChartOffset chart]
 
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) -> d.x
@@ -182,22 +173,16 @@ angular.module('dataplayApp')
 
 			chart.colorAccessor (d, i) -> i + 1
 
-			chart.xAxis()
-				.ticks $scope.xTicks
+			chart.xAxis().ticks $scope.xTicks
 
 			chart.x $scope.getYScale data
 
-			if ordinals? and ordinals.length > 0
-				chart.xUnits switch data.patterns[data.xLabel].valuePattern
-					when 'date' then d3.time.years
-					when 'intNumber' then dc.units.integers
-					when 'label', 'text' then dc.units.ordinal
-					else dc.units.ordinal
+			chart.xUnits $scope.getXUnits data if data.ordinals?.length > 0
 
 			return
 
 		$scope.columnChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[$scope.getChartOffset chart]
+			data = $scope.chartsRelated[Overview.getChartOffset chart]
 
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) -> d.x
@@ -213,22 +198,17 @@ angular.module('dataplayApp')
 
 			chart.x $scope.getXScale data
 
-			if ordinals? and ordinals.length > 0
-				chart.xUnits switch data.patterns[data.xLabel].valuePattern
-					when 'date' then d3.time.years
-					when 'intNumber' then dc.units.integers
-					when 'label', 'text' then dc.units.ordinal
-					else dc.units.ordinal
+			chart.xUnits $scope.getXUnits data if data.ordinals?.length > 0
 
 			return
 
 		$scope.pieChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[$scope.getChartOffset chart]
+			data = $scope.chartsRelated[Overview.getChartOffset chart]
 
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) ->
 				if data.patterns[data.xLabel].valuePattern is 'date'
-					return "#{d.x.getDate()} #{$scope.monthNames[d.x.getMonth()]} #{d.x.getFullYear()}"
+					return "#{d.x.getDate()} #{Overview.monthNames[d.x.getMonth()]} #{d.x.getFullYear()}"
 				x = if d.x? and (d.x.length > 0 || data.patterns[data.xLabel].valuePattern is 'date') then d.x else "N/A"
 			data.groupSum = 0
 			data.group = data.dimension.group().reduceSum (d) ->
@@ -254,7 +234,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.bubbleChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[$scope.getChartOffset chart]
+			data = $scope.chartsRelated[Overview.getChartOffset chart]
 
 			minR = null
 			maxR = null
