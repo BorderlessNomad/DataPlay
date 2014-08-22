@@ -10,7 +10,6 @@
 angular.module('dataplayApp')
 	.controller 'OverviewRelatedCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', ($scope, $routeParams, Overview, PatternMatcher) ->
 		$scope.allowed = ['line', 'bar', 'row', 'column', 'pie', 'bubble']
-		# $scope.allowed = ['bubble']
 		$scope.params = $routeParams
 		$scope.count = 3
 		$scope.loading =
@@ -21,7 +20,7 @@ angular.module('dataplayApp')
 			related: false
 		$scope.max =
 			related: 0
-		$scope.chartsRelated = []
+		$scope.chartsRelated = {}
 
 		$scope.xTicks = 6
 		$scope.width = 350
@@ -36,12 +35,12 @@ angular.module('dataplayApp')
 			if type in $scope.allowed then true else false
 
 		$scope.getRelatedCharts = () ->
-			console.log "getRelatedCharts", dc.chartRegistry.list().length
-			Overview.updateChartRegistry dc.chartRegistry.list().length
-
 			$scope.getRelated Overview.charts 'related'
 
 			return
+
+		$scope.hasRelatedCharts = () ->
+			Object.keys($scope.chartsRelated).length
 
 		$scope.getRelated = (count) ->
 			$scope.loading.related = true
@@ -76,7 +75,7 @@ angular.module('dataplayApp')
 									valuePattern: PatternMatcher.getPattern chart.values[0]['y']
 									keyPattern: PatternMatcher.getKeyPattern chart.values[0]['y']
 
-							$scope.chartsRelated.push chart if PatternMatcher.includePattern(
+							$scope.chartsRelated[chart.id] = chart if PatternMatcher.includePattern(
 								chart.patterns[chart.xLabel].valuePattern,
 								chart.patterns[chart.xLabel].keyPattern
 							)
@@ -138,7 +137,7 @@ angular.module('dataplayApp')
 			yScale
 
 		$scope.lineChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[Overview.getChartOffset chart]
+			data = $scope.chartsRelated[chart.anchorName()]
 
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) -> d.x
@@ -159,7 +158,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.rowChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[Overview.getChartOffset chart]
+			data = $scope.chartsRelated[chart.anchorName()]
 
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) -> d.x
@@ -182,7 +181,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.columnChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[Overview.getChartOffset chart]
+			data = $scope.chartsRelated[chart.anchorName()]
 
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) -> d.x
@@ -203,7 +202,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.pieChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[Overview.getChartOffset chart]
+			data = $scope.chartsRelated[chart.anchorName()]
 
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) ->
@@ -234,7 +233,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.bubbleChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[Overview.getChartOffset chart]
+			data = $scope.chartsRelated[chart.anchorName()]
 
 			minR = null
 			maxR = null

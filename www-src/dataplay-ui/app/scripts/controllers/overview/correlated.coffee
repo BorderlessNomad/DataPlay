@@ -10,7 +10,6 @@
 angular.module('dataplayApp')
 	.controller 'OverviewCorrelatedCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', ($scope, $routeParams, Overview, PatternMatcher) ->
 		$scope.allowed = ['line', 'bar', 'row', 'column', 'pie', 'bubble']
-		# $scope.allowed = ['bubble']
 		$scope.params = $routeParams
 		$scope.count = 3
 		$scope.loading =
@@ -21,7 +20,7 @@ angular.module('dataplayApp')
 			correlated: false
 		$scope.max =
 			correlated: 0
-		$scope.chartsCorrelated = []
+		$scope.chartsCorrelated = {}
 
 		$scope.xTicks = 6
 		$scope.width = 350
@@ -36,12 +35,12 @@ angular.module('dataplayApp')
 			if type in $scope.allowed then true else false
 
 		$scope.getCorrelatedCharts = () ->
-			console.log "getCorrelatedCharts", dc.chartRegistry.list().length
-			Overview.updateChartRegistry dc.chartRegistry.list().length
-
 			$scope.getCorrelated Overview.charts 'correlated'
 
 			return
+
+		$scope.hasCorrelatedCharts = () ->
+			Object.keys($scope.chartsCorrelated).length
 
 		$scope.getCorrelated = (count) ->
 			$scope.loading.correlated = true
@@ -62,8 +61,6 @@ angular.module('dataplayApp')
 
 							chart.id = "correlated-#{$scope.params.id}-#{chart.table1.xLabel}-#{chart.table1.yLabel}-#{chart.table2.xLabel}-#{chart.table2.yLabel}-#{chart.type}"
 
-							console.log chart.table1
-
 							chart.patterns = {}
 							chart.patterns[chart.table1.xLabel] =
 								valuePattern: PatternMatcher.getPattern chart.table1.values[0]['x']
@@ -80,7 +77,7 @@ angular.module('dataplayApp')
 									valuePattern: PatternMatcher.getPattern chart.table1.values[0]['y']
 									keyPattern: PatternMatcher.getKeyPattern chart.table1.values[0]['y']
 
-							$scope.chartsCorrelated.push chart if PatternMatcher.includePattern(
+							$scope.chartsCorrelated[chart.id] = chart if PatternMatcher.includePattern(
 								chart.patterns[chart.table1.xLabel].valuePattern,
 								chart.patterns[chart.table1.xLabel].keyPattern
 							)
@@ -144,7 +141,7 @@ angular.module('dataplayApp')
 			yScale
 
 		$scope.lineChartPostSetup = (chart) ->
-			data = $scope.chartsCorrelated[Overview.getChartOffset chart]
+			data = $scope.chartsCorrelated[chart.anchorName()]
 
 			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> d.x
@@ -170,7 +167,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.rowChartPostSetup = (chart) ->
-			data = $scope.chartsCorrelated[Overview.getChartOffset chart]
+			data = $scope.chartsCorrelated[chart.anchorName()]
 
 			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> d.x
@@ -193,8 +190,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.columnChartPostSetup = (chart) ->
-			data = $scope.chartsCorrelated[Overview.getChartOffset chart]
-			console.log "columnChartPostSetup", data, Overview.getChartOffset chart
+			data = $scope.chartsCorrelated[chart.anchorName()]
 
 			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> d.x
@@ -215,7 +211,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.pieChartPostSetup = (chart) ->
-			data = $scope.chartsCorrelated[Overview.getChartOffset chart]
+			data = $scope.chartsCorrelated[chart.anchorName()]
 
 			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) ->
@@ -246,7 +242,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.bubbleChartPostSetup = (chart) ->
-			data = $scope.chartsCorrelated[Overview.getChartOffset chart]
+			data = $scope.chartsCorrelated[chart.anchorName()]
 
 			minR = null
 			maxR = null

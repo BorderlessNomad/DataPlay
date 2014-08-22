@@ -10,7 +10,6 @@
 angular.module('dataplayApp')
 	.factory 'Overview', ['$http', 'config', ($http, config) ->
 		chart = {}
-		chartRegistryOffset = 0
 		monthNames = [
 			"Jan"
 			"Feb"
@@ -42,11 +41,4 @@ angular.module('dataplayApp')
 			chart[key] = value if value?
 			return chart[key] if chart[key]?
 			null
-		getChartOffset: (chart) ->
-			flag = if chart.__dc_flag__? then chart.__dc_flag__ else 0
-			console.log "getChartOffset", flag, chartRegistryOffset, dc.chartRegistry.list().length, flag - chartRegistryOffset - 1
-			flag - chartRegistryOffset - 1
-		updateChartRegistry: (offset) ->
-			chartRegistryOffset = offset
-
 	]

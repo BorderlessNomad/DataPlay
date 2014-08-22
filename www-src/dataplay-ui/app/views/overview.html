@@ -12,7 +12,7 @@
 
 	<!-- Related -->
 	<div class="row" ng-init="getRelatedCharts()">
-		<div class="col-md-4" ng-repeat="chart in chartsRelated" id="{{chart.id}}" ng-show="chartsRelated.length > 0">
+		<div class="col-md-4" ng-repeat="chart in chartsRelated" id="{{chart.id}}" ng-show="hasRelatedCharts() > 0">
 			<a ng-href="/charts/{{params.id}}/{{chart.type}}/{{chart.xLabel}}/{{chart.yLabel}}" ng-hide="chart.type == 'bubble'">
 				<span><h4>{{chart.xLabel}}</h4> <h5>vs</h5> <h4>{{chart.yLabel}}</h4></span>
 			</a>
@@ -42,7 +42,7 @@
 
 	<!-- Correlated -->
 	<div class="row" ng-controller="OverviewCorrelatedCtrl" ng-init="getCorrelatedCharts()">
-		<div class="col-md-4" ng-repeat="chart in chartsCorrelated" id="{{chart.id}}" ng-show="chartsCorrelated.length > 0">
+		<div class="col-md-4" ng-repeat="chart in chartsCorrelated" id="{{chart.id}}" ng-show="hasCorrelatedCharts() > 0">
 		<a ng-href="/charts/correlated/{{params.id}}/{{chart.type}}/{{chart.table1.xLabel}}/{{chart.table1.yLabel}}" ng-hide="chart.type == 'bubble'">
 				<span><h4>{{chart.table1.xLabel}}</h4> <h5>vs</h5> <h4>{{chart.table1.yLabel}}</h4></span>
 			</a>

@@ -158,6 +158,7 @@ module.exports = (grunt) ->
 
 		uglify:
 			options:
+				report: 'min'
 				mangle: false # AngularJS is not very happy about mangling globals e.g. $scope
 				beautify: false # Debug
 
