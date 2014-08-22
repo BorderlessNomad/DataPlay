@@ -147,12 +147,14 @@ angular.module('dataplayApp')
 			data.dimension = data.entry.dimension (d) -> d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
-			# data.entry2 = crossfilter data.table2.values
-			# data.dimension2 = data.entry2.dimension (d) -> d.x
-			# data.group2 = data.dimension2.group().reduceSum (d) -> d.y
+			data.entry2 = crossfilter data.table2.values
+			data.dimension2 = data.entry2.dimension (d) -> d.x
+			data.group2 = data.dimension2.group().reduceSum (d) ->
+				console.log d
+				d.y
 
-			chart.dimension data.dimension
-			chart.group data.group, data.table1.title
+			# chart.dimension data.dimension
+			# chart.group data.group, data.table1.title
 			# chart.stack data.group2, data.table2.title
 
 			data.ordinals = []
@@ -162,7 +164,10 @@ angular.module('dataplayApp')
 
 			chart.xAxis().ticks $scope.xTicks
 
-			chart.x $scope.getXScale data
+			xScale = d3.time.scale()
+				.domain [new Date(data.from), new Date(data.to)]
+				.range [0, $scope.width]
+			chart.x xScale
 
 			return
 
