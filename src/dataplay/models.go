@@ -53,15 +53,16 @@ func (i Index) TableName() string {
 }
 
 type Observation struct {
-	Text          string
+	Comment       string
 	PatternId     int
 	Discoverer    int
-	Coordinates   string
 	Rating        float64
 	Valid         int
 	Invalid       int
 	ObservationId int `primaryKey:"yes"`
 	Created       time.Time
+	X             string
+	Y             string
 }
 
 func (ob Observation) TableName() string {
@@ -163,12 +164,11 @@ type Validated struct {
 	PatternId  int `primaryKey:"yes"`
 	Discoverer int
 	Created    time.Time
-	Correlated bool
 	Rating     float64
 	Valid      int
 	Invalid    int
-	Json       []byte
-	OriginId   int
+	Json       []byte `json:",string"`
+	OriginId   string
 }
 
 func (v Validated) TableName() string {
@@ -176,11 +176,11 @@ func (v Validated) TableName() string {
 }
 
 type Validation struct {
-	PatternId      int
-	ObservationId  int
-	Validator      int
-	ValidationType string
-	Created        time.Time
+	PatternId     int
+	Validator     int
+	ValidationId  int `primaryKey:"yes"`
+	Created       time.Time
+	ObservationId int
 }
 
 func (vn Validation) TableName() string {
