@@ -187,7 +187,7 @@ func initClassicMode() {
 	m.Get("/api/correlated/:tablename/:offset/:count/:searchdepth", GetCorrelatedChartsHttp)
 	m.Get("/api/validated/:tablename/:correlated", GetValidatedChartsHttp)
 	m.Get("/api/validated/:tablename/:correlated/:offset/:count", GetValidatedChartsHttp)
-	m.Post("/api/activity/:uid/:type", AddActivityHttp)
+	m.Post("/api/activity/:uid/:comment", AddCommentHttp)
 	m.Put("/api/chart/:patternid/:uid/:valflag", ValidateChartHttp)
 	m.Put("/api/observations/:observationid/:uid/:valflag", ValidateObservationHttp)
 	m.Post("/api/observations/:patternid/:comment/:x/:y", AddObservationHttp)

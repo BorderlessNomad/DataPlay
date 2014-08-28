@@ -39,7 +39,7 @@ func AddActivity(uid int, atype string, ts time.Time) *appError {
 	return nil
 }
 
-func AddActivityHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+func AddCommentHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
@@ -52,54 +52,63 @@ func AddActivityHttp(res http.ResponseWriter, req *http.Request, params martini.
 		return "Invalid uid"
 	}
 
-	a := ActivityCheck(params["type"])
-	if a == "Unknown" {
-		http.Error(res, "Unknown activity type.", http.StatusBadRequest)
-		return "Unknown activity type"
-	}
-
 	t := time.Now()
 
-	err2 := AddActivity(u, params["type"], t)
+	err2 := AddActivity(u, "c", t)
 	if err2 != nil {
 		http.Error(res, err2.Message, err2.Code)
 		return err2.Message
 	}
 
 	var id []int
-	err = DB.Table("priv_activity").Where("created = ?", t).Where("uid = ?", u).Where("type = ?", a).Pluck("id", &id).Error
+	err = DB.Table("priv_activity").Where("created = ?", t).Where("uid = ?", u).Where("type = ?", "Comment").Pluck("id", &id).Error
 	if err != nil {
 		http.Error(res, "No activity found", http.StatusBadRequest)
 		return "No activity found"
 	}
 
+	c := Comment{}
+	c.Comment = params["comment"]
+	c.ActivityId = id[0]
+
+	err = DB.Save(&c).Error
+	if err != nil {
+		return "Database query failed"
+	}
+
 	activityStr := strconv.Itoa(id[0])
-	return "Activity " + activityStr + " added successfully"
+	return "Comment " + activityStr + " added successfully"
 }
 
-func AddActivityQ(params map[string]string) string {
+func AddCommentQ(params map[string]string) string {
 	u, err := strconv.Atoi(params["uid"])
 	if err != nil {
 		return "bad uid"
 	}
 
-	a := ActivityCheck(params["type"])
-	if a == "Unknown" {
-		return a
-	}
 	t := time.Now()
 
-	err2 := AddActivity(u, params["type"], t)
+	err2 := AddActivity(u, "c", t)
 	if err2 != nil {
 		return err2.Message
 	}
 
-	var actid int
-	err = DB.Table("priv_activities").Where("date = ?", t).Where("uid = ?", u).Where("type = ?", a).Pluck("activityid", &actid).Error
+	var id []int
+	err = DB.Table("priv_activity").Where("created = ?", t).Where("uid = ?", u).Where("type = ?", "Comment").Pluck("id", &id).Error
 	if err != nil {
 		return "No activity found"
 	}
 
-	activityStr := strconv.Itoa(actid)
-	return "Activity " + activityStr + " added successfully"
+	c := Comment{}
+	c.Comment = params["comment"]
+	c.ActivityId = id[0]
+
+	err = DB.Save(&c).Error
+	if err != nil {
+		return "Database query failed"
+	}
+
+	activityStr := strconv.Itoa(id[0])
+	return "Comment " + activityStr + " added successfully"
+
 }

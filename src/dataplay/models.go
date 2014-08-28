@@ -21,6 +21,16 @@ func (a Activity) TableName() string {
 	return "priv_activity"
 }
 
+type Comment struct {
+	Id         int `primaryKey:"yes"`
+	Comment    string
+	ActivityId int
+}
+
+func (c Comment) TableName() string {
+	return "priv_comments"
+}
+
 type Correlation struct {
 	Tbl1    string
 	Col1    string

@@ -7,25 +7,18 @@ import (
 	"testing"
 )
 
-func TestAddActivity(t *testing.T) {
+func TestAddCommentHttp(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 	res := httptest.NewRecorder()
 	params := map[string]string{
-		"uid":  "1",
-		"type": "c",
+		"uid":     "1",
+		"comment": "TESTING TESTING 1 2 3",
 	}
 
-	Convey("Should add activity", t, func() {
-		result := AddActivityHttp(res, req, params)
+	Convey("Should add comment", t, func() {
+		result := AddCommentHttp(res, req, params)
 		So(result, ShouldNotBeNil)
-	})
-
-	params["type"] = "X"
-
-	Convey("Should fail to add activity", t, func() {
-		result := AddActivityHttp(res, req, params)
-		So(result, ShouldEqual, "Unknown activity type")
 	})
 
 }
