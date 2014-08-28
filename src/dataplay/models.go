@@ -181,6 +181,7 @@ type Validation struct {
 	ValidationId  int `primaryKey:"yes"`
 	Created       time.Time
 	ObservationId int
+	Valflag       bool
 }
 
 func (vn Validation) TableName() string {
