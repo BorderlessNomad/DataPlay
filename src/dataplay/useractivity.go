@@ -27,7 +27,7 @@ func ActivityCheck(a string) string {
 func AddActivity(uid int, atype string, ts time.Time) *appError {
 	act := Activity{
 		Uid:     uid,
-		Type:    atype,
+		Type:    ActivityCheck(atype),
 		Created: ts,
 	}
 
@@ -60,7 +60,7 @@ func AddActivityHttp(res http.ResponseWriter, req *http.Request, params martini.
 
 	t := time.Now()
 
-	err2 := AddActivity(u, a, t)
+	err2 := AddActivity(u, params["type"], t)
 	if err2 != nil {
 		http.Error(res, err2.Message, err2.Code)
 		return err2.Message
@@ -89,7 +89,7 @@ func AddActivityQ(params map[string]string) string {
 	}
 	t := time.Now()
 
-	err2 := AddActivity(u, a, t)
+	err2 := AddActivity(u, params["type"], t)
 	if err2 != nil {
 		return err2.Message
 	}
