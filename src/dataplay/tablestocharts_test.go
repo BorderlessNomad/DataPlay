@@ -103,7 +103,7 @@ func TestGetValidatedChartsHttp(t *testing.T) {
 	}
 	Convey("Should return chartlist", t, func() {
 		result := GetValidatedChartsHttp(res, req, params)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 }
 
@@ -186,6 +186,6 @@ func TestGetValidatedChartsQ(t *testing.T) {
 	}
 	Convey("Should return chartlist", t, func() {
 		result := GetValidatedChartsQ(params)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 }

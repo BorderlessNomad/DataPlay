@@ -17,7 +17,7 @@ func TestRankValidations(t *testing.T) {
 func TestValidateChartQ(t *testing.T) {
 	Convey("Should validate chart", t, func() {
 		params := map[string]string{}
-		params["id"] = "1"
+		params["id"] = "169"
 		params["uid"] = "3"
 		params["valflag"] = "true"
 		result := ValidateChartQ(params)
@@ -42,7 +42,7 @@ func TestValidateChartHttp(t *testing.T) {
 	res := httptest.NewRecorder()
 	Convey("Should validate chart", t, func() {
 		params := map[string]string{}
-		params["id"] = "1"
+		params["id"] = "169"
 		params["uid"] = "5"
 		params["valflag"] = "false"
 		result := ValidateChartHttp(res, req, params)

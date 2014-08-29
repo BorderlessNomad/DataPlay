@@ -11,18 +11,18 @@ import (
 )
 
 type RelatedCharts struct {
-	Charts []TableData
-	Count  int
+	Charts []TableData `json:"charts"`
+	Count  int         `json:"count"`
 }
 
 type RelatedCorrelatedCharts struct {
-	Charts []CorrelationData
-	Count  int
+	Charts []CorrelationData `json:"charts"`
+	Count  int               `json:"count"`
 }
 
 type ValidatedCharts struct {
-	Charts []byte
-	Count  int
+	Charts []string `json:"charts"`
+	Count  int      `json:"count"`
 }
 
 // Get all data for single selected chart
@@ -66,11 +66,11 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, discove
 
 	//if undiscovered add to the validated table as an initial discovery
 	if !discovered {
-		Discover(id, uid, j)
+		Discover(id, uid, j, false)
 	}
 
 	var patternid []int
-	err = DB.Table("priv_validated").Where("origin_id = ?", id).Pluck("pattern_id", &patternid).Error
+	err = DB.Table("priv_validated").Where("relation_id = ?", id).Pluck("pattern_id", &patternid).Error
 	check(err)
 	var result TableData
 	e := json.Unmarshal(j, &result)
@@ -93,11 +93,11 @@ func GetCorrelatedChart(id int, uid int, discovered bool) (CorrelationData, *app
 
 	//if undiscovered add to the validated table as an initial discovery
 	if !discovered {
-		Discover(strconv.Itoa(id), uid, []byte(chart[0]))
+		Discover(strconv.Itoa(id), uid, []byte(chart[0]), true)
 	}
 
 	var patternid []int
-	err = DB.Table("priv_validated").Where("origin_id = ?", id).Pluck("pattern_id", &patternid).Error
+	err = DB.Table("priv_validated").Where("correlation_id = ?", id).Pluck("pattern_id", &patternid).Error
 	check(err)
 
 	e := json.Unmarshal([]byte(chart[0]), &result)
@@ -107,10 +107,16 @@ func GetCorrelatedChart(id int, uid int, discovered bool) (CorrelationData, *app
 }
 
 // save chart to valdiated table
-func Discover(id string, uid int, json []byte) {
+func Discover(id string, uid int, json []byte, correlated bool) {
 	val := Validated{}
-	val.OriginId = id
-	val.Discoverer = uid
+
+	if correlated {
+		val.CorrelationId, _ = strconv.Atoi(id)
+	} else {
+		val.RelationId = id
+	}
+
+	val.Uid = uid
 	val.Json = json
 	val.Created = time.Now()
 	val.Rating = 0
@@ -279,22 +285,29 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 // As GetNew but get charts users have already voted on and return in an order based upon their absoulte ranking value
 func GetValidatedCharts(tableName string, correlated bool, offset int, count int) (ValidatedCharts, *appError) {
 	validated := make([]Validated, 0)
-	charts := make([]byte, 0)
-	var vd byte
+	charts := make([]string, 0)
+	var vd []byte
 
-	err := DB.Select("priv_validated.json").Joins("LEFT JOIN priv_correlation ON priv_validated.origin_id = priv_correlation.id").Where("priv_correlation.tbl1 = ?", tableName).Where("priv_validated.correlated = ?", correlated).Order("priv_validated.rating DESC").Find(&validated).Error
-
-	if err != nil && err != gorm.RecordNotFound {
-		return ValidatedCharts{nil, 0}, &appError{nil, "Database query failed (JOIN)", http.StatusInternalServerError}
-	} else if err == gorm.RecordNotFound {
-		return ValidatedCharts{nil, 0}, &appError{nil, "No valid chart found", http.StatusNotFound}
+	if correlated {
+		err := DB.Select("priv_validated.json").Joins("LEFT JOIN priv_correlation ON priv_validated.correlation_id = priv_correlation.id").Where("priv_correlation.tbl1 = ?", tableName).Order("priv_validated.rating DESC").Find(&validated).Error
+		if err != nil && err != gorm.RecordNotFound {
+			return ValidatedCharts{nil, 0}, &appError{nil, "Database query failed (JOIN)", http.StatusInternalServerError}
+		} else if err == gorm.RecordNotFound {
+			return ValidatedCharts{nil, 0}, &appError{nil, "No valid chart found", http.StatusNotFound}
+		}
+	} else {
+		tableName = tableName + "_%"
+		err := DB.Select("priv_validated.json").Where("priv_validated.relation_id LIKE ?", tableName).Order("priv_validated.rating DESC").Find(&validated).Error
+		if err != nil && err != gorm.RecordNotFound {
+			return ValidatedCharts{nil, 0}, &appError{nil, "Database query failed", http.StatusInternalServerError}
+		} else if err == gorm.RecordNotFound {
+			return ValidatedCharts{nil, 0}, &appError{nil, "No valid chart found", http.StatusNotFound}
+		}
 	}
 
 	for _, v := range validated {
-		err := json.Unmarshal(v.Json, &vd)
-		check(err)
-
-		charts = append(charts, vd)
+		vd = v.Json
+		charts = append(charts, string(vd))
 	}
 
 	totalCharts := len(charts)

@@ -171,14 +171,15 @@ func (u User) TableName() string {
 }
 
 type Validated struct {
-	PatternId  int `primaryKey:"yes"`
-	Discoverer int
-	Created    time.Time
-	Rating     float64
-	Valid      int
-	Invalid    int
-	Json       []byte `json:",string"`
-	OriginId   string
+	PatternId     int `primaryKey:"yes"`
+	Uid           int
+	Created       time.Time
+	Rating        float64
+	Valid         int
+	Invalid       int
+	Json          []byte
+	CorrelationId int
+	RelationId    string
 }
 
 func (v Validated) TableName() string {
