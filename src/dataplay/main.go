@@ -282,7 +282,7 @@ func initMasterMode() {
 
 	m.Use(JsonApiHandler)
 
-	m.Use(LogRequest)
+	// m.Use(LogRequest)
 
 	m.Use(martini.Static("../node_modules")) //Why?
 
@@ -384,29 +384,30 @@ func SessionApiHandler(res http.ResponseWriter, req *http.Request) {
  * @param martini [description]
  * @return [description]
  */
-func LogRequest(res http.ResponseWriter, req *http.Request, c martini.Context) {
-	// Do not proceed if request is not for "/api"
-	if !strings.HasPrefix(req.URL.Path, "/api") {
-		return
-	}
 
-	startTime := time.Now()
+// func LogRequest(res http.ResponseWriter, req *http.Request, c martini.Context) {
+// 	// Do not proceed if request is not for "/api"
+// 	if !strings.HasPrefix(req.URL.Path, "/api") {
+// 		return
+// 	}
 
-	rw := res.(martini.ResponseWriter)
+// 	startTime := time.Now()
 
-	// tm := TimeMachine(100, 500)
-	// time.Sleep(tm * time.Millisecond)
+// 	rw := res.(martini.ResponseWriter)
 
-	c.Next() // Execute requested method
+// 	// tm := TimeMachine(100, 500)
+// 	// time.Sleep(tm * time.Millisecond)
 
-	endTime := time.Since(startTime)
-	executionTime := endTime.Nanoseconds() / 1000 // nanoseconds/1000 = microsecond (us)
+// 	c.Next() // Execute requested method
 
-	urlData := strings.Split(req.URL.Path, "/")
+// 	endTime := time.Since(startTime)
+// 	executionTime := endTime.Nanoseconds() / 1000 // nanoseconds/1000 = microsecond (us)
 
-	// Send data for storage
-	go StoreMonitoringData(urlData[1], urlData[2], req.URL.Path, req.Method, rw.Status(), executionTime)
-}
+// 	urlData := strings.Split(req.URL.Path, "/")
+
+// 	// Send data for storage
+// 	go StoreMonitoringData(urlData[1], urlData[2], req.URL.Path, req.Method, rw.Status(), executionTime)
+// }
 
 func TimeMachine(min, max int) time.Duration {
 	return time.Duration(rand.Intn(max-min) + min)

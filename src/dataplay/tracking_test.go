@@ -36,12 +36,6 @@ func TestGetLastVisited(t *testing.T) {
 
 }
 
-// func TestTrackVisited(t *testing.T) {
-// 	Convey("Track visited", t, func() {
-// 		TrackVisited("gold", 11)
-// 	})
-// }
-
 func TestGetLastVisitedQ(t *testing.T) {
 	m := make(map[string]string)
 
@@ -54,5 +48,22 @@ func TestGetLastVisitedQ(t *testing.T) {
 		m["user"] = "11"
 		result := GetLastVisitedQ(m)
 		So(result, ShouldNotBeEmpty)
+	})
+}
+
+func TestTrackVisitedHttp(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+	res := httptest.NewRecorder()
+	var g = []byte(`[{"Guid": "gold"},{"x": "x"}]`)
+	var in = []byte(`[
+		{"Info": "test"}
+	]`)
+	v := VisitedForm{
+		Guid: g,
+		Info: in,
+	}
+	Convey("Track visited", t, func() {
+		TrackVisitedHttp(res, req, v)
 	})
 }

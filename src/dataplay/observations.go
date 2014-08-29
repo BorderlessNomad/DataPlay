@@ -25,9 +25,14 @@ func AddObservation(id int, uid int, comment string, x string, y string) *appErr
 	obs.Y = y
 	obs.Created = time.Now()
 
-	err := DB.Save(&obs).Error
+	err := AddActivity(uid, "c", obs.Created) // add to activities
 	if err != nil {
-		return &appError{err, "Database query failed (Save)", http.StatusInternalServerError}
+		return err
+	}
+
+	err2 := DB.Save(&obs).Error
+	if err2 != nil {
+		return &appError{err2, "Database query failed (Save)", http.StatusInternalServerError}
 	}
 
 	return nil

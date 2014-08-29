@@ -27,7 +27,7 @@ func TestAddObservationHttp(t *testing.T) {
 	Convey("Should add observation", t, func() {
 		params := map[string]string{}
 		params["id"] = "11"
-		params["uid"] = "23"
+		params["uid"] = "9000"
 		params["comment"] = "test comment"
 		params["x"] = "xxxxxx"
 		params["y"] = "yyyyyy"
