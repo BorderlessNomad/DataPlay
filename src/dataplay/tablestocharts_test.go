@@ -12,11 +12,13 @@ func TestGetChartHttp(t *testing.T) {
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 	res := httptest.NewRecorder()
 	params := map[string]string{
-		"user":      "1",
-		"tablename": "gold",
-		"type":      "line",
-		"x":         "price",
-		"y":         "date",
+		"uid":        "1",
+		"tablename":  "gold",
+		"tablenum":   "1",
+		"type":       "line",
+		"x":          "price",
+		"y":          "date",
+		"discovered": "false",
 	}
 	Convey("Should return xy chartlist", t, func() {
 		result := GetChartHttp(res, req, params)
@@ -40,22 +42,17 @@ func TestGetCorrelatedChartHttp(t *testing.T) {
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 	res := httptest.NewRecorder()
 	params := map[string]string{
-		"user":      "1",
-		"tablename": "gold",
-		"type":      "line",
-		"x":         "price",
-		"y":         "date",
+		"id":         "114264",
+		"uid":        "1",
+		"discovered": "false",
 	}
-	Convey("Should return xy chartlist", t, func() {
+	Convey("Should return Correlated chart", t, func() {
 		result := GetCorrelatedChartHttp(res, req, params)
 		So(result, ShouldNotBeNil)
 	})
 
-	params["tablename"] = "gdp"
-	params["type"] = "bubble"
-	params["x"] = "year"
-	params["y"] = "gdp"
-	params["z"] = "change"
+	params["uid"] = "3"
+	params["discovered"] = "true"
 
 	Convey("Should return xyz chartlist", t, func() {
 		result := GetCorrelatedChartHttp(res, req, params)
@@ -68,10 +65,9 @@ func TestGetRelatedChartsHttp(t *testing.T) {
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 	res := httptest.NewRecorder()
 	params := map[string]string{
-		"user":      "1",
+		"tablename": "gdp",
 		"offset":    "0",
 		"count":     "60",
-		"tablename": "gdp",
 	}
 	Convey("Should return chartlist", t, func() {
 		result := GetRelatedChartsHttp(res, req, params)
@@ -84,12 +80,12 @@ func TestGetCorrelatedChartsHttp(t *testing.T) {
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 	res := httptest.NewRecorder()
 	params := map[string]string{
-		"user":      "1",
-		"offset":    "0",
-		"count":     "60",
-		"tablename": "gdp",
+		"tablename":   "gold",
+		"offset":      "0",
+		"count":       "20",
+		"searchdepth": "10",
 	}
-	Convey("Should return chartlist", t, func() {
+	Convey("Should return correlated chartlist", t, func() {
 		result := GetCorrelatedChartsHttp(res, req, params)
 		So(result, ShouldNotBeNil)
 	})
@@ -100,37 +96,35 @@ func TestGetValidatedChartsHttp(t *testing.T) {
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 	res := httptest.NewRecorder()
 	params := map[string]string{
-		"user":      "1",
-		"offset":    "0",
-		"count":     "60",
-		"tablename": "gdp",
+		"tablename":  "gold",
+		"offset":     "0",
+		"count":      "5",
+		"correlated": "true",
 	}
 	Convey("Should return chartlist", t, func() {
 		result := GetValidatedChartsHttp(res, req, params)
-		So(result, ShouldNotBeNil)
+		So(result, ShouldEqual, "")
 	})
 }
 
 func TestGetChartQ(t *testing.T) {
 	params := map[string]string{
-		"user":      "1",
-		"tablename": "gold",
-		"type":      "line",
-		"x":         "price",
-		"y":         "date",
+		"uid":        "1",
+		"tablename":  "gold",
+		"tablenum":   "5",
+		"type":       "line",
+		"x":          "price",
+		"y":          "date",
+		"discovered": "false",
 	}
-	Convey("Should return xy chartlist", t, func() {
+	Convey("Should add chart discovery", t, func() {
 		result := GetChartQ(params)
 		So(result, ShouldNotBeNil)
 	})
 
-	params["tablename"] = "gdp"
-	params["type"] = "bubble"
-	params["x"] = "year"
-	params["y"] = "gdp"
-	params["z"] = "change"
+	params["discovered"] = "true"
 
-	Convey("Should return xyz chartlist", t, func() {
+	Convey("Should return chart", t, func() {
 		result := GetChartQ(params)
 		So(result, ShouldNotBeNil)
 	})
@@ -138,25 +132,20 @@ func TestGetChartQ(t *testing.T) {
 
 func TestGetCorrelatedChartQ(t *testing.T) {
 	params := map[string]string{
-		"user":      "1",
-		"tablename": "gold",
-		"type":      "line",
-		"x":         "price",
-		"y":         "date",
+		"id":         "114264",
+		"uid":        "6",
+		"discovered": "false",
 	}
 
-	Convey("Should return xy chartlist", t, func() {
+	Convey("Should discover and return correlated chart", t, func() {
 		result := GetCorrelatedChartQ(params)
 		So(result, ShouldNotBeNil)
 	})
 
-	params["tablename"] = "gdp"
-	params["type"] = "bubble"
-	params["x"] = "year"
-	params["y"] = "gdp"
-	params["z"] = "change"
+	params["uid"] = "3"
+	params["discovered"] = "true"
 
-	Convey("Should return xyz chartlist", t, func() {
+	Convey("Should return correlated chart", t, func() {
 		result := GetCorrelatedChartQ(params)
 		So(result, ShouldNotBeNil)
 	})
@@ -177,10 +166,10 @@ func TestGetRelatedChartsQ(t *testing.T) {
 
 func TestGetCorrelatedChartsQ(t *testing.T) {
 	params := map[string]string{
-		"user":      "1",
-		"offset":    "0",
-		"count":     "60",
-		"tablename": "gdp",
+		"tablename":   "gdp",
+		"offset":      "0",
+		"count":       "60",
+		"searchdepth": "10",
 	}
 	Convey("Should return chartlist", t, func() {
 		result := GetCorrelatedChartsQ(params)
@@ -190,13 +179,13 @@ func TestGetCorrelatedChartsQ(t *testing.T) {
 
 func TestGetValidatedChartsQ(t *testing.T) {
 	params := map[string]string{
-		"user":      "1",
-		"offset":    "0",
-		"count":     "60",
-		"tablename": "gdp",
+		"tablename":  "gold",
+		"offset":     "0",
+		"count":      "5",
+		"correlated": "true",
 	}
 	Convey("Should return chartlist", t, func() {
 		result := GetValidatedChartsQ(params)
-		So(result, ShouldNotBeNil)
+		So(result, ShouldEqual, "")
 	})
 }
