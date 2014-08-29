@@ -973,6 +973,7 @@ func AddSearchTerm(str string) {
 	err = DB.Save(&searchterm).Error
 }
 
+// RUN ONCE AND POPULATE PRIMARY DATE FIELD IN PRIV_ONLINEDATA WITH MAIN TABLE DATE FOR USE IN SEARCH
 func PrimaryDate() {
 	var names []string
 

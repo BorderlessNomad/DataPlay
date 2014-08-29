@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/codegangsta/martini"
 	"net/http"
 	"strconv"
@@ -8,9 +9,10 @@ import (
 )
 
 type Observations struct {
-	Comment string
-	X       string
-	Y       string
+	ObservationId int    `json:"observation_id"`
+	Comment       string `json:"comment"`
+	X             string `json:"y"`
+	Y             string `json:"y"`
 }
 
 // add observation
@@ -18,7 +20,7 @@ func AddObservation(id int, uid int, comment string, x string, y string) *appErr
 	obs := Observation{}
 	obs.Comment = comment
 	obs.PatternId = id
-	obs.Discoverer = uid
+	obs.Uid = uid
 	obs.X = x
 	obs.Y = y
 	obs.Created = time.Now()
@@ -37,15 +39,16 @@ func GetObservations(id int) ([]Observations, *appError) {
 	obsData := make([]Observations, 0)
 	var tmpOD Observations
 
-	err := DB.Where("patternid= ?", id).Find(&obs).Error
+	err := DB.Where("pattern_id= ?", id).Find(&obs).Error
 	if err != nil {
-		return obsData, &appError{err, "Database query failed (Save)", http.StatusInternalServerError}
+		return nil, &appError{err, "Database query failed (Save)", http.StatusInternalServerError}
 	}
 
 	for _, v := range obs {
 		tmpOD.Comment = v.Comment
 		tmpOD.X = v.X
 		tmpOD.Y = v.Y
+		tmpOD.ObservationId = v.ObservationId
 		obsData = append(obsData, tmpOD)
 	}
 
@@ -112,13 +115,19 @@ func GetObservationsHttp(res http.ResponseWriter, req *http.Request, params mart
 		return "bad id"
 	}
 
-	_, err := GetObservations(id)
+	obs, err := GetObservations(id)
 	if err != nil {
 		http.Error(res, "could not get observations", http.StatusBadRequest)
 		return "could not get observations"
 	}
 
-	return "observations retrieved"
+	r, err1 := json.Marshal(obs)
+	if err1 != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return ""
+	}
+
+	return string(r)
 }
 
 func AddObservationQ(params map[string]string) string {
@@ -153,19 +162,25 @@ func AddObservationQ(params map[string]string) string {
 		return "could not add observation"
 	}
 
-	return "Observations added"
-
+	return "observation added"
 }
 
 func GetObservationsQ(params map[string]string) string {
 	id, e := strconv.Atoi(params["id"])
+
 	if e != nil || id < 0 {
 		return "Observations could not be retrieved"
 	}
-	_, err := GetObservations(id)
+
+	result, err := GetObservations(id)
 	if err != nil {
 		return "Observations could not be retrieved"
 	}
 
-	return "Observations returned"
+	r, e := json.Marshal(result)
+	if e != nil {
+		return "json error"
+	}
+
+	return string(r)
 }

@@ -65,7 +65,7 @@ func (i Index) TableName() string {
 type Observation struct {
 	Comment       string
 	PatternId     int
-	Discoverer    int
+	Uid           int
 	Rating        float64
 	Valid         int
 	Invalid       int
