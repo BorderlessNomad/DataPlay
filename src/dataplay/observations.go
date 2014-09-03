@@ -25,6 +25,11 @@ func AddObservation(id int, uid int, comment string, x string, y string) *appErr
 	obs.Y = y
 	obs.Created = time.Now()
 
+	vtd := Validated{}
+	e := DB.Where("pattern_id= ?", id).First(&vtd).Error
+	check(e)
+	Reputation(vtd.Uid, discObs) // add points to rep of user who discovered chart when their discovery receives an observation
+
 	err := AddActivity(uid, "c", obs.Created) // add to activities
 	if err != nil {
 		return err

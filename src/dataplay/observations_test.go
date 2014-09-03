@@ -10,7 +10,7 @@ import (
 func TestAddObservationQ(t *testing.T) {
 	Convey("Should validate observation", t, func() {
 		params := map[string]string{}
-		params["id"] = "1"
+		params["id"] = "184"
 		params["uid"] = "1"
 		params["comment"] = "test comment Q"
 		params["x"] = "xx"
@@ -26,8 +26,8 @@ func TestAddObservationHttp(t *testing.T) {
 	res := httptest.NewRecorder()
 	Convey("Should add observation", t, func() {
 		params := map[string]string{}
-		params["id"] = "11"
-		params["uid"] = "9000"
+		params["id"] = "184"
+		params["uid"] = "1"
 		params["comment"] = "test comment"
 		params["x"] = "xxxxxx"
 		params["y"] = "yyyyyy"

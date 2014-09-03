@@ -11,16 +11,15 @@ import (
 )
 
 // REPUTATION POINTS
-const obsVal int = 5      // observation is voted up
-const discVal int = 15    // discovery is valdiated
-const discObs int = 2     // discovery receives an observation
-const rankUp int = 10     // reach new rank
-const topRank int = 100   // reach top 10 Experts rank
-const discHot int = 50    // discovery is hot
-const obsInval int = -1   // observation is voted down
-const discInval int = -2  // discovery is voted down
-const discNegObs int = -2 // discovery receives a negative observation
-const obsSpam int = -100  // observation receives spam/flagged
+const obsVal int = 5     // observation is voted up
+const discVal int = 15   // discovery is valdiated
+const discObs int = 2    // discovery receives an observation
+const rankUp int = 10    // reach new rank
+const topRank int = 100  // reach top 10 Experts rank
+const discHot int = 50   // discovery is hot
+const obsInval int = -1  // observation is voted down
+const discInval int = -2 // discovery is voted down
+const obsSpam int = -100 // observation receives spam/flagged
 
 type UserForm struct {
 	Username string `json:"username" binding:"required"`
@@ -169,12 +168,13 @@ func HandleRegister(res http.ResponseWriter, req *http.Request, register UserFor
 }
 
 func Reputation(uid int, points int) string {
-	var rep []int
-	err := DB.Table("priv_users").Where("uid = ?", uid).Pluck("reputation", &rep).Error
+	usr := User{}
+
+	err := DB.Table("priv_users").Where("uid = ?", uid).First(&usr).Error
 	if err != nil {
 		return "failed to find user"
 	}
-	r := rep[0] + points
+	r := usr.Reputation + points
 	err = DB.Table("priv_users").Where("uid = ?", uid).Update("repuation", r).Error
 	if err != nil {
 		return "failed to update reputation"
