@@ -146,7 +146,7 @@ func publishedDate(date int64, place int) time.Time {
 		t = t.AddDate(0, x, 0)                          // add number of months to base date
 
 	} else {
-		published = 1407888000000 / 1000
+		published = date / 1000
 		t = time.Unix(published, i)
 	}
 	return t
