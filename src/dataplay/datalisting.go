@@ -1018,7 +1018,6 @@ func MainDate(d []DateVal) string {
 		n = ((end - start) / 31) + 1
 	}
 
-	fmt.Println("xxx", n)
 	dv := make([]mainDateVal, n) // use date value for date and count
 
 	if n > 0 {

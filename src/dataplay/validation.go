@@ -24,7 +24,7 @@ func RankValidations(valid int, invalid int) float64 {
 	return result
 }
 
-// increment user validated total for chart and rerank, id = 0 for new validation
+// increment user validated total for chart and rerank
 func ValidateChart(id int, uid int, valflag bool) *appError {
 	t := time.Now()
 	vtd := Validated{}
@@ -35,9 +35,11 @@ func ValidateChart(id int, uid int, valflag bool) *appError {
 
 	if valflag {
 		vtd.Valid++
+		Reputation(vtd.Uid, discVal) // add points for discovery validation
 		AddActivity(uid, "vc", t)
 	} else {
 		vtd.Invalid++
+		Reputation(vtd.Uid, discInval) // remove points for discovery invalidation
 		AddActivity(uid, "ic", t)
 	}
 	vtd.Rating = RankValidations(vtd.Valid, vtd.Invalid)
@@ -58,7 +60,7 @@ func ValidateChart(id int, uid int, valflag bool) *appError {
 	return nil
 }
 
-// increment user validated total for observation and rerank, id = 0 to add new observation
+// increment user validated total for observation and rerank
 func ValidateObservation(id int, uid int, valflag bool) *appError {
 	t := time.Now()
 	obs := Observation{}
@@ -69,9 +71,11 @@ func ValidateObservation(id int, uid int, valflag bool) *appError {
 
 	if valflag {
 		obs.Valid++
+		Reputation(obs.Uid, obsVal) // add points for observation validation
 		AddActivity(uid, "vo", t)
 	} else {
 		obs.Invalid++
+		Reputation(obs.Uid, obsInval) // remove points for observation invalidation
 		AddActivity(uid, "io", t)
 	}
 

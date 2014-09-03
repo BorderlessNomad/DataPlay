@@ -76,7 +76,7 @@ func GenerateCorrelations(tableName string, searchDepth int) {
 		} else {
 			c = S
 		}
-		AttemptCorrelation(m, c)
+		go AttemptCorrelation(m, c)
 	}
 }
 
