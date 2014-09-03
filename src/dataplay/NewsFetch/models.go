@@ -31,32 +31,32 @@ type Options struct {
 }
 
 type Response struct {
-	OriginalURL string `json:"original_url"`
-	URL         string `json:"url"`
-	// Type            string    `json:"type"`
-	// ErrorMessage    string    `json:"error_message,omitempty"`
-	// ErrorCode       int       `json:"error_code"`
-	// Safe            bool      `json:"safe"`
-	// SafeType        string    `json:"safe_type,omitempty"`
-	// SafeMessage     string    `json:"safe_message,omitempty"`
-	// CacheAge        int       `json:"cache_age,omitempty"`
-	// ProviderName    string    `json:"provider_name"`
-	// ProviderURL     string    `json:"provider_url"`
-	// ProviderDisplay string    `json:"provider_display"`
-	// FaviconURL      string    `json:"favicon_url"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Date        string `json:"date"`
-	// Authors         []Author  `json:"authors"`
-	// Media           Media     `json:"media"`
-	Published int64 `json:"published,omitempty"`
-	// Offset          int64     `json:"offset"`
-	// Lead            string    `json:"lead"`
-	// Content         string    `json:"content"`
-	Keywords []Keyword `json:"keywords"`
-	Entities []Entity  `json:"entities"`
-	// RelatedArticles []Related `json:"related,omitempty"`
-	Images []Image `json:"images"`
+	OriginalURL     string    `json:"original_url"`
+	URL             string    `json:"url"`
+	Type            string    `json:"type"`
+	ErrorMessage    string    `json:"error_message,omitempty"`
+	ErrorCode       int       `json:"error_code"`
+	Safe            bool      `json:"safe"`
+	SafeType        string    `json:"safe_type,omitempty"`
+	SafeMessage     string    `json:"safe_message,omitempty"`
+	CacheAge        int       `json:"cache_age,omitempty"`
+	ProviderName    string    `json:"provider_name"`
+	ProviderURL     string    `json:"provider_url"`
+	ProviderDisplay string    `json:"provider_display"`
+	FaviconURL      string    `json:"favicon_url"`
+	Title           string    `json:"title"`
+	Description     string    `json:"description"`
+	Date            string    `json:"date"`
+	Authors         []Author  `json:"authors"`
+	Media           Media     `json:"media"`
+	Published       int64     `json:"published,omitempty"`
+	Offset          int64     `json:"offset"`
+	Lead            string    `json:"lead"`
+	Content         string    `json:"content"`
+	Keywords        []Keyword `json:"keywords"`
+	Entities        []Entity  `json:"entities"`
+	RelatedArticles []Related `json:"related,omitempty"`
+	Images          []Image   `json:"images"`
 }
 
 type Author struct {
@@ -83,13 +83,13 @@ type Entity struct {
 }
 
 type Image struct {
-	// Caption string  `json:"caption"`
-	URL    string `json:"url"`
-	Width  int    `json:"width"`
-	Height int    `json:"height"`
-	// Colors  []Color `json:"colors"`
-	// Entropy float64 `json:"entropy"`
-	// Size    int     `json:"size"`
+	Caption string  `json:"caption"`
+	URL     string  `json:"url"`
+	Width   int     `json:"width"`
+	Height  int     `json:"height"`
+	Colors  []Color `json:"colors"`
+	Entropy float64 `json:"entropy"`
+	Size    int     `json:"size"`
 }
 
 type Color struct {
@@ -98,11 +98,11 @@ type Color struct {
 }
 
 type Related struct {
-	Description     string `json:"description"`
-	Title           string `json:"title"`
-	URL             string `json:"url"`
-	ThumbnailURL    string `json:"thumbnail_url"`
-	Score           int    `json:"score"`
-	ThumbnailWidth  int    `json:"thumbnail_width"`
-	ThumbnailHeight int    `json:"thumbnail_height"`
+	Description     string  `json:"description"`
+	Title           string  `json:"title"`
+	URL             string  `json:"url"`
+	ThumbnailWidth  int     `json:"thumbnail_width"`
+	Score           float64 `json:"score"`
+	ThumbnailHeight int     `json:"thumbnail_height"`
+	ThumbnailURL    string  `json:"thumbnail_url"`
 }
