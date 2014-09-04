@@ -1,0 +1,69 @@
+DROP KEYSPACE urldata;
+
+CREATE KEYSPACE dp WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+
+USE dp;
+
+
+CREATE TABLE response (
+	id   blob, 
+	original_url     text,    
+	url             text,    
+	type            text,    
+	provider_name    text,    
+	provider_url     text,    
+	provider_display text,    
+	favicon_url      text,    
+	title           text,    
+	description     text,    
+	date            text,    
+	published       varint,    
+	lead            text,    
+	content         text,
+PRIMARY KEY (id)
+);
+ 
+ 
+CREATE TABLE author (
+	id   blob, 
+	name text, 
+	url  text, 
+PRIMARY KEY (id, name, url)
+);
+
+CREATE TABLE keyword (
+	id    blob, 
+	score int,    
+	name  text, 
+PRIMARY KEY (id, score, name)
+);
+
+CREATE TABLE entity (
+	id    blob, 
+	count int,    
+	name  text, 
+PRIMARY KEY (id, count, name)
+);
+
+CREATE TABLE image (
+	id      blob,  
+	caption text,  
+	url     text,  
+	width   int,     
+	height  int,     
+	entropy float, 
+	size    int,   
+PRIMARY KEY (id, caption, url)
+);
+
+CREATE TABLE related (
+	id              blob,  
+	description     text,  
+	title           text,  
+	url             text,  
+	thumbnail_width  int,     
+	score           float, 
+	thumbnail_height int,     
+	thumbnail_url   text,
+PRIMARY KEY (id, description, title, url)
+);

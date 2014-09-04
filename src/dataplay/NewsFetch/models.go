@@ -31,15 +31,10 @@ type Options struct {
 }
 
 type Response struct {
+	ID              []byte    `json:"id"`
 	OriginalURL     string    `json:"original_url"`
 	URL             string    `json:"url"`
 	Type            string    `json:"type"`
-	ErrorMessage    string    `json:"error_message,omitempty"`
-	ErrorCode       int       `json:"error_code"`
-	Safe            bool      `json:"safe"`
-	SafeType        string    `json:"safe_type,omitempty"`
-	SafeMessage     string    `json:"safe_message,omitempty"`
-	CacheAge        int       `json:"cache_age,omitempty"`
 	ProviderName    string    `json:"provider_name"`
 	ProviderURL     string    `json:"provider_url"`
 	ProviderDisplay string    `json:"provider_display"`
@@ -48,9 +43,7 @@ type Response struct {
 	Description     string    `json:"description"`
 	Date            string    `json:"date"`
 	Authors         []Author  `json:"authors"`
-	Media           Media     `json:"media"`
 	Published       int64     `json:"published,omitempty"`
-	Offset          int64     `json:"offset"`
 	Lead            string    `json:"lead"`
 	Content         string    `json:"content"`
 	Keywords        []Keyword `json:"keywords"`
@@ -60,49 +53,40 @@ type Response struct {
 }
 
 type Author struct {
+	ID   []byte `json:"id"`
 	Name string `json:"name"`
 	URL  string `json:"url"`
 }
 
-type Media struct {
-	Type   string `json:"type"`
-	URL    string `json:"url,omitempty"`
-	Width  int    `json:"width,omitempty"`
-	Height int    `json:"height,omitempty"`
-	HTML   int    `json:"html,omitempty"`
-}
-
 type Keyword struct {
+	ID    []byte `json:"id"`
 	Score int    `json:"score"`
 	Name  string `json:"name"`
 }
 
 type Entity struct {
+	ID    []byte `json:"id"`
 	Count int    `json:"count"`
 	Name  string `json:"name"`
 }
 
 type Image struct {
+	ID      []byte  `json:"id"`
 	Caption string  `json:"caption"`
 	URL     string  `json:"url"`
 	Width   int     `json:"width"`
 	Height  int     `json:"height"`
-	Colors  []Color `json:"colors"`
-	Entropy float64 `json:"entropy"`
+	Entropy float32 `json:"entropy"`
 	Size    int     `json:"size"`
 }
 
-type Color struct {
-	Color  []int   `json:"color"`
-	Weight float64 `json:"weight"`
-}
-
 type Related struct {
+	ID              []byte  `json:"id"`
 	Description     string  `json:"description"`
 	Title           string  `json:"title"`
 	URL             string  `json:"url"`
 	ThumbnailWidth  int     `json:"thumbnail_width"`
-	Score           float64 `json:"score"`
+	Score           float32 `json:"score"`
 	ThumbnailHeight int     `json:"thumbnail_height"`
 	ThumbnailURL    string  `json:"thumbnail_url"`
 }

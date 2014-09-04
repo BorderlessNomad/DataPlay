@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -26,10 +27,7 @@ func NewClient(key string) *Client {
 	return &Client{key}
 }
 
-// The main exported function that will extract urls.
-func (c *Client) Extract(urls []string, options Options) ([]string, error) {
-
-	responses := make([]string, len(urls))
+func (c *Client) Extract(urls []string, options Options) error {
 
 	for i := 0; i < len(urls); i += 10 {
 		to := len(urls)
@@ -39,7 +37,7 @@ func (c *Client) Extract(urls []string, options Options) ([]string, error) {
 		res, err := c.extract(urls[i:to], options, i)
 
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		reslen := to - i
@@ -48,11 +46,13 @@ func (c *Client) Extract(urls []string, options Options) ([]string, error) {
 
 		}
 		for j := 0; j < reslen; j++ {
-			responses[i+j] = res[j]
+			writeToCass(res[j])
 		}
 	}
 
-	return responses, nil
+	outputSomething()
+
+	return nil
 }
 
 // extract will call extract 10 urls at max.
@@ -103,9 +103,28 @@ func (c *Client) extract(urls []string, options Options, place int) ([]string, e
 	responses := make([]string, len(response))
 
 	for i, r := range response {
+
 		var tmpResp Response
 		tmp, _ := json.Marshal(r)
 		json.Unmarshal(tmp, &tmpResp)
+		h := Hash(tmpResp.URL)
+		tmpResp.ID = h
+
+		for i, _ := range tmpResp.Authors {
+			tmpResp.Authors[i].ID = h
+		}
+		for i, _ := range tmpResp.Keywords {
+			tmpResp.Keywords[i].ID = h
+		}
+		for i, _ := range tmpResp.Entities {
+			tmpResp.Entities[i].ID = h
+		}
+		for i, _ := range tmpResp.RelatedArticles {
+			tmpResp.RelatedArticles[i].ID = h
+		}
+		for i, _ := range tmpResp.Images {
+			tmpResp.Images[i].ID = h
+		}
 		var p int64
 		p = tmpResp.Published
 		date := publishedDate(p, place+i)
@@ -150,4 +169,88 @@ func publishedDate(date int64, place int) time.Time {
 		t = time.Unix(published, i)
 	}
 	return t
+}
+
+// return md5 hash of string
+func Hash(str string) []byte {
+	data := []byte(str)
+	hash := md5.New()
+	hash.Write(data)
+	return hash.Sum(nil)
+}
+
+// write json string to cassandra
+func writeToCass(resp string) {
+	session, _ := GetCassandraConnection("dp")
+	defer session.Close()
+
+	var r Response
+	err := json.Unmarshal([]byte(resp), &r)
+	if err != nil {
+		panic(err)
+	}
+
+	if err := session.Query(`INSERT INTO response (id, original_url, url, type, provider_name, provider_url, 
+		provider_display, favicon_url, title, description, date, published, lead, content) 
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		r.ID, r.OriginalURL, r.URL, r.Type, r.ProviderName, r.ProviderURL,
+		r.ProviderDisplay, r.FaviconURL, r.Title, r.Description, r.Date, r.Published, r.Lead, r.Content).Exec(); err != nil {
+		fmt.Println("HELP1!", err)
+	}
+
+	for _, a := range r.Authors {
+		if err := session.Query(`INSERT INTO author (id, name, url) 
+			VALUES (?, ?, ?)`,
+			a.ID, a.Name, a.URL).Exec(); err != nil {
+			fmt.Println("HELP2!", err)
+		}
+	}
+
+	for _, k := range r.Keywords {
+		if err := session.Query(`INSERT INTO keyword (id, score, name) 
+			VALUES (?, ?, ?)`,
+			k.ID, k.Score, k.Name).Exec(); err != nil {
+			fmt.Println("HELP3!", err)
+		}
+	}
+
+	for _, e := range r.Entities {
+		if err := session.Query(`INSERT INTO entity (id, count, name) 
+			VALUES (?, ?, ?)`,
+			e.ID, e.Count, e.Name).Exec(); err != nil {
+			fmt.Println("HELP4!", err)
+		}
+	}
+
+	for _, i := range r.Images {
+		if err := session.Query(`INSERT INTO image (id, caption, url, width, height, entropy, size) 
+			VALUES (?, ?, ?, ?, ?, ?, ?)`,
+			i.ID, i.Caption, i.URL, i.Width, i.Height, i.Entropy, i.Size).Exec(); err != nil {
+			fmt.Println("HELP5!", err)
+		}
+	}
+
+	for _, ra := range r.RelatedArticles {
+		if err := session.Query(`INSERT INTO related (id, description, title, url, thumbnail_width, score, thumbnail_height, thumbnail_url) 
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+			ra.ID, ra.Description, ra.Title, ra.URL, ra.ThumbnailWidth, ra.Score, ra.ThumbnailHeight, ra.ThumbnailURL).Exec(); err != nil {
+			fmt.Println("HELP6!", err)
+		}
+	}
+}
+
+func outputSomething() {
+	session, _ := GetCassandraConnection("dp")
+	defer session.Close()
+
+	var title string
+	var id []byte
+	iter := session.Query(`SELECT id, title FROM related`).Iter()
+	for iter.Scan(&id, &title) {
+		fmt.Println(id, title)
+	}
+
+	if err := iter.Close(); err != nil {
+		panic(err)
+	}
 }

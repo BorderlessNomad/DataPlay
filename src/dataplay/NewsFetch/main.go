@@ -28,6 +28,5 @@ func main() {
 
 	c := NewClient("2ba4435681034ef6b92f729d527453e3")
 	options := Options{}
-	responses, _ := c.Extract(urls, options)
-	fmt.Println(responses)
+	c.Extract(urls, options)
 }
