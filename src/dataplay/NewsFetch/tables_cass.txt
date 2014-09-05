@@ -1,4 +1,4 @@
-DROP KEYSPACE urldata;
+DROP KEYSPACE dp;
 
 CREATE KEYSPACE dp WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
 
@@ -16,11 +16,11 @@ CREATE TABLE response (
 	favicon_url      text,    
 	title           text,    
 	description     text,    
-	date            text,    
+	date            timestamp,    
 	published       varint,    
 	lead            text,    
 	content         text,
-PRIMARY KEY (id)
+PRIMARY KEY (id, date)
 );
  
  
@@ -28,21 +28,21 @@ CREATE TABLE author (
 	id   blob, 
 	name text, 
 	url  text, 
-PRIMARY KEY (id, name, url)
+PRIMARY KEY (url, id)
 );
 
 CREATE TABLE keyword (
 	id    blob, 
 	score int,    
 	name  text, 
-PRIMARY KEY (id, score, name)
+PRIMARY KEY (name, id)
 );
 
 CREATE TABLE entity (
 	id    blob, 
 	count int,    
 	name  text, 
-PRIMARY KEY (id, count, name)
+PRIMARY KEY (name, id)
 );
 
 CREATE TABLE image (
@@ -53,7 +53,7 @@ CREATE TABLE image (
 	height  int,     
 	entropy float, 
 	size    int,   
-PRIMARY KEY (id, caption, url)
+PRIMARY KEY (url, id)
 );
 
 CREATE TABLE related (
@@ -65,5 +65,5 @@ CREATE TABLE related (
 	score           float, 
 	thumbnail_height int,     
 	thumbnail_url   text,
-PRIMARY KEY (id, description, title, url)
+PRIMARY KEY (url, id)
 );

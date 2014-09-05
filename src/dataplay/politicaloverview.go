@@ -6,11 +6,21 @@ import (
 	"github.com/jinzhu/gorm"
 	"os"
 	"strconv"
+	"time"
 )
+
+const numdays = 30
+
+const layout = "2006-01-02"
 
 type OV struct {
 	Label  string
-	DayAmt [30]int
+	DayAmt [numdays]int
+}
+
+type DateID struct {
+	ID   []byte
+	Date time.Time
 }
 
 func DepartmentsOverview() []OV {
@@ -25,9 +35,35 @@ func DepartmentsOverview() []OV {
 	}
 
 	ov := make([]OV, len(dept))
+	timeFrom := time.Now().AddDate(0, 0, -numdays) // older than Years, Months, Days
+	var id []byte
+	var date time.Time
+	var ids []DateID
+	iter := session.Query(`SELECT id, date FROM response WHERE date > ?`, timeFrom).Iter()
+	for iter.Scan(&id, &date) {
+		var tmp DateID
+		tmp.ID = id
+		tmp.Date = date.Format(layout)
+		ids = append(ids, tmp)
+	}
 
-	for _, d := range dept {
-
+	for _, i := range ids {
+		for index, d := range dept {
+			ov[index].Label = d
+			s1, s2 := 0, 0
+			err := session.Query(`SELECT score FROM keyword WHERE id = ? AND name =?`, i.ID, d).Scan(&s1)
+			check(err)
+			err = session.Query(`SELECT score FROM keyword WHERE id = ? AND name =?`, i.ID, d).Scan(&s2)
+			check(err)
+			now := time.Now()
+			dayindex := (now.Round(time.Hour).Sub(i.Date.Round(time.Hour)) / 24) - 1
+			if score1 > 0 {
+				ov[index].DayAmt[dayindex]++
+			}
+			if score2 > 0 {
+				ov[index].DayAmt[dayindex]++
+			}
+		}
 	}
 
 	return ov
