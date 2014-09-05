@@ -973,6 +973,7 @@ func AddSearchTerm(str string) {
 	err = DB.Save(&searchterm).Error
 }
 
+// RUN ONCE AND POPULATE PRIMARY DATE FIELD IN PRIV_ONLINEDATA WITH MAIN TABLE DATE FOR USE IN SEARCH
 func PrimaryDate() {
 	var names []string
 
@@ -1017,7 +1018,6 @@ func MainDate(d []DateVal) string {
 		n = ((end - start) / 31) + 1
 	}
 
-	fmt.Println("xxx", n)
 	dv := make([]mainDateVal, n) // use date value for date and count
 
 	if n > 0 {

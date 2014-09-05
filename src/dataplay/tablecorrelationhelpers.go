@@ -24,7 +24,7 @@ func GetRandomNameMap(m map[string]string, c cmeth) bool {
 	m["valCol2"] = RandomValueColumn(cols2)
 	allNames := true
 
-	if m["table1"] == "" || m["table2"] == "" || m["valCol1"] == "" || m["valCol2"] == "" || m["dateCol1"] == "" || m["dateCol2"] == "" {
+	if m["table1"] == m["table2"] || m["table1"] == "" || m["table2"] == "" || m["valCol1"] == "" || m["valCol2"] == "" || m["dateCol1"] == "" || m["dateCol2"] == "" {
 		allNames = false
 	}
 	if c == P {
@@ -40,7 +40,7 @@ func GetRandomNameMap(m map[string]string, c cmeth) bool {
 		m["dateCol3"] = RandomDateColumn(cols3)
 		m["valCol3"] = RandomValueColumn(cols3)
 		m["method"] = "Spurious"
-		if m["table3"] == "" || m["valCol3"] == "" || m["dateCol3"] == "" {
+		if m["table1"] == m["table3"] || m["table2"] == m["table3"] || m["table3"] == "" || m["valCol3"] == "" || m["dateCol3"] == "" {
 			allNames = false
 		}
 	}

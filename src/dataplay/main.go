@@ -177,25 +177,21 @@ func initClassicMode() {
 	m.Get("/api/relatedstrings/:guid", GetRelatedDatasetByStrings)
 
 	// API v1.1
-	m.Get("/api/chart/:tablename/:type/:x/:y", GetChartHttp)
-	m.Get("/api/chart/:tablename/:type/:x/:y/:z", GetChartHttp)
+	m.Get("/api/chart/:tablename/:tablenum/:type/:uid/:discovered/:x/:y", GetChartHttp)
+	m.Get("/api/chart/:tablename/:tablenum/:type/:uid/:discovered/:x/:y/:z", GetChartHttp)
+	m.Get("/api/chartcorrelated/:id/:uid/:discovered", GetCorrelatedChartHttp)
 	m.Get("/api/related/:tablename", GetRelatedChartsHttp)
 	m.Get("/api/related/:tablename/:offset/:count", GetRelatedChartsHttp)
 	m.Get("/api/correlated/:tablename", GetCorrelatedChartsHttp)
 	m.Get("/api/correlated/:tablename/:offset/:count", GetCorrelatedChartsHttp)
 	m.Get("/api/correlated/:tablename/:offset/:count/:searchdepth", GetCorrelatedChartsHttp)
-	m.Get("/api/related/:tablename/:correlated", GetValidatedChartsHttp)
-	m.Get("/api/related/:tablename/:correlated/:offset/:count", GetValidatedChartsHttp)
-	m.Post("/api/activity/:uid/:type", AddActivityHttp)
-	m.Post("/api/validate/:valflag/:patternid/:correlated/:json/:originid/:uid", ValidateChartHttp)
-	m.Post("/api/validate/:valflag/:obsid/:text/:patternid/:uid/:coordinates", ValidateObservationHttp)
-
-	// m.Post("/api/chart") // POST body will have Table1, Table2, Table3 data for both Related & Correlated [Return PATTERNID] -> Discovery
-	// m.Put("/api/chart")  // Validate/Invalidate
-
-	// m.Get("/api/observations/:patternId")                // Get all observations for a Pattern
-	// m.Post("/api/observations/:patternId")               // Add new observation(s) for a Pattern
-	// m.Put("/api/observations/:patternId/:observationId") // Validate/Invalidate an Observation
+	m.Get("/api/validated/:tablename/:correlated", GetValidatedChartsHttp)
+	m.Get("/api/validated/:tablename/:correlated/:offset/:count", GetValidatedChartsHttp)
+	m.Post("/api/activity/:uid/:comment", AddCommentHttp)
+	m.Put("/api/chart/:patternid/:uid/:valflag", ValidateChartHttp)
+	m.Put("/api/observations/:observationid/:uid/:valflag", ValidateObservationHttp)
+	m.Post("/api/observations/:patternid/:comment/:x/:y", AddObservationHttp)
+	m.Get("/api/observations/:patternid", GetObservationsHttp)
 
 	m.Use(JsonApiHandler)
 
@@ -388,6 +384,7 @@ func SessionApiHandler(res http.ResponseWriter, req *http.Request) {
  * @param martini [description]
  * @return [description]
  */
+
 func LogRequest(res http.ResponseWriter, req *http.Request, c martini.Context) {
 	// Do not proceed if request is not for "/api"
 	if !strings.HasPrefix(req.URL.Path, "/api") {

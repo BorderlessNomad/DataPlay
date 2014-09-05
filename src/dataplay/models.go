@@ -21,6 +21,16 @@ func (a Activity) TableName() string {
 	return "priv_activity"
 }
 
+type Comment struct {
+	Id         int `primaryKey:"yes"`
+	Comment    string
+	ActivityId int
+}
+
+func (c Comment) TableName() string {
+	return "priv_comments"
+}
+
 type Correlation struct {
 	Tbl1    string
 	Col1    string
@@ -39,6 +49,26 @@ func (c Correlation) TableName() string {
 	return "priv_correlation"
 }
 
+type Departments struct {
+	GovDept string
+	Type    string
+	Id      int `primaryKey:"yes"`
+}
+
+func (c Departments) TableName() string {
+	return "priv_departments"
+}
+
+type Events struct {
+	Keyword string
+	Event   string
+	Id      int `primaryKey:"yes"`
+}
+
+func (c Events) TableName() string {
+	return "priv_events"
+}
+
 type Index struct {
 	Guid    string
 	Name    string
@@ -53,15 +83,16 @@ func (i Index) TableName() string {
 }
 
 type Observation struct {
-	Text          string
+	Comment       string
 	PatternId     int
-	Discoverer    int
-	Coordinates   string
+	Uid           int
 	Rating        float64
 	Valid         int
 	Invalid       int
 	ObservationId int `primaryKey:"yes"`
 	Created       time.Time
+	X             string
+	Y             string
 }
 
 func (ob Observation) TableName() string {
@@ -90,6 +121,16 @@ type StatsCheck struct {
 	P3     int
 	Xstart int
 	Xend   int
+}
+
+type Regions struct {
+	Town   string
+	County string
+	Id     int `primaryKey:"yes"`
+}
+
+func (c Regions) TableName() string {
+	return "priv_regions"
 }
 
 func (sc StatsCheck) TableName() string {
@@ -160,15 +201,15 @@ func (u User) TableName() string {
 }
 
 type Validated struct {
-	PatternId  int `primaryKey:"yes"`
-	Discoverer int
-	Created    time.Time
-	Correlated bool
-	Rating     float64
-	Valid      int
-	Invalid    int
-	Json       []byte
-	OriginId   int
+	PatternId     int `primaryKey:"yes"`
+	Uid           int
+	Created       time.Time
+	Rating        float64
+	Valid         int
+	Invalid       int
+	Json          []byte
+	CorrelationId int
+	RelationId    string
 }
 
 func (v Validated) TableName() string {
@@ -176,11 +217,12 @@ func (v Validated) TableName() string {
 }
 
 type Validation struct {
-	PatternId      int
-	ObservationId  int
-	Validator      int
-	ValidationType string
-	Created        time.Time
+	PatternId     int
+	Validator     int
+	ValidationId  int `primaryKey:"yes"`
+	Created       time.Time
+	ObservationId int
+	Valflag       bool
 }
 
 func (vn Validation) TableName() string {

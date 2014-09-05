@@ -15,24 +15,28 @@ const ( //go version of enum
 )
 
 type CorrelationData struct {
-	Id     int       `json:"method, omitempty"`
-	Method string    `json:"method"`
-	Chart  string    `json:"type, omitempty"`
-	From   string    `json:"from"`
-	To     string    `json:"to"`
-	Table1 TableData `json:"table1"`
-	Table2 TableData `json:"table2"`
-	Table3 TableData `json:"table3, omitempty"`
+	Id         int       `json:"id, omitempty"`
+	PatternId  int       `json:"patternid, omitempty"`
+	Method     string    `json:"method"`
+	ChartType  string    `json:"type, omitempty"`
+	Discovered bool      `json:"discovered,omitempty"`
+	From       string    `json:"from"`
+	To         string    `json:"to"`
+	Table1     TableData `json:"table1"`
+	Table2     TableData `json:"table2"`
+	Table3     TableData `json:"table3, omitempty"`
 }
 
 type TableData struct {
-	ChartType string  `json:"type, omitempty"`
-	Title     string  `json:"title"`
-	Desc      string  `json:"desc"`
-	LabelX    string  `json:"xLabel"`
-	LabelY    string  `json:"yLabel,omitempty"`
-	LabelZ    string  `json:"zLabel,omitempty"`
-	Values    []XYVal `json:"values,omitempty"`
+	PatternId  int     `json:"patternid, omitempty"`
+	ChartType  string  `json:"type, omitempty"`
+	Discovered bool    `json:"discovered,omitempty"`
+	Title      string  `json:"title"`
+	Desc       string  `json:"desc"`
+	LabelX     string  `json:"xLabel"`
+	LabelY     string  `json:"yLabel,omitempty"`
+	LabelZ     string  `json:"zLabel,omitempty"`
+	Values     []XYVal `json:"values,omitempty"`
 }
 
 type XYVal struct {
@@ -72,7 +76,7 @@ func GenerateCorrelations(tableName string, searchDepth int) {
 		} else {
 			c = S
 		}
-		AttemptCorrelation(m, c)
+		go AttemptCorrelation(m, c)
 	}
 }
 
