@@ -27,7 +27,5 @@ func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
 		fmt.Println("Could not connect to the Cassandara server.")
 	}
 
-	// defer session.Close() // In init implementation
-
 	return session, err
 }

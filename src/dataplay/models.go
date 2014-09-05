@@ -49,6 +49,26 @@ func (c Correlation) TableName() string {
 	return "priv_correlation"
 }
 
+type Departments struct {
+	GovDept string
+	Type    string
+	Id      int `primaryKey:"yes"`
+}
+
+func (c Departments) TableName() string {
+	return "priv_departments"
+}
+
+type Events struct {
+	Keyword string
+	Event   string
+	Id      int `primaryKey:"yes"`
+}
+
+func (c Events) TableName() string {
+	return "priv_events"
+}
+
 type Index struct {
 	Guid    string
 	Name    string
@@ -101,6 +121,16 @@ type StatsCheck struct {
 	P3     int
 	Xstart int
 	Xend   int
+}
+
+type Regions struct {
+	Town   string
+	County string
+	Id     int `primaryKey:"yes"`
+}
+
+func (c Regions) TableName() string {
+	return "priv_regions"
 }
 
 func (sc StatsCheck) TableName() string {

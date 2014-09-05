@@ -50,8 +50,6 @@ func (c *Client) Extract(urls []string, options Options) error {
 		}
 	}
 
-	outputSomething()
-
 	return nil
 }
 
@@ -83,6 +81,7 @@ func (c *Client) extract(urls []string, options Options, place int) ([]string, e
 
 	// Make the request.
 	addr += "&" + v.Encode() + "&format=json"
+	// time.Sleep(1 * time.Second) // delay
 	resp, err := http.Get(addr)
 	if err != nil {
 		return nil, err
@@ -239,15 +238,15 @@ func writeToCass(resp string) {
 	}
 }
 
-func outputSomething() {
+//////////////////////////////////////////////////////////////////////
+func outputSomething(u string) {
 	session, _ := GetCassandraConnection("dp")
 	defer session.Close()
 
-	var title string
-	var id []byte
-	iter := session.Query(`SELECT id, title FROM related`).Iter()
-	for iter.Scan(&id, &title) {
-		fmt.Println(id, title)
+	var url string
+	iter := session.Query(`SELECT url FROM response WHERE url == ?`, u).Iter()
+	for iter.Scan(&url) {
+		fmt.Println(url)
 	}
 
 	if err := iter.Close(); err != nil {
