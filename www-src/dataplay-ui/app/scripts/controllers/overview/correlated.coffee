@@ -57,7 +57,8 @@ angular.module('dataplayApp')
 						$scope.max.correlated = data.Count
 
 						for key, chart of data.Charts
-							continue unless $scope.isPlotAllowed chart.type
+							# continue unless $scope.isPlotAllowed chart.type
+							continue unless chart.type is 'line'
 
 							chart.id = "correlated-#{$scope.params.id}-#{chart.table1.xLabel}-#{chart.table1.yLabel}-#{chart.table2.xLabel}-#{chart.table2.yLabel}-#{chart.type}"
 
@@ -81,6 +82,8 @@ angular.module('dataplayApp')
 								chart.patterns[chart.table1.xLabel].valuePattern,
 								chart.patterns[chart.table1.xLabel].keyPattern
 							)
+
+							break if chart.type is 'line'
 
 						$scope.offset.correlated += count
 						if $scope.offset.correlated >= $scope.max.correlated
@@ -143,18 +146,32 @@ angular.module('dataplayApp')
 		$scope.lineChartPostSetup = (chart) ->
 			data = $scope.chartsCorrelated[chart.anchorName()]
 
+			data.xDomain = [new Date(data.from), new Date(data.to)]
+			console.log data.xDomain
+			dateFrom = new Date(data.from)
+			dateTo = new Date(data.to)
 			data.entry = crossfilter data.table1.values
-			data.dimension = data.entry.dimension (d) -> d.x
+			data.dimension = data.entry.dimension (d) ->
+				if d.x.getTime() <= dateFrom.getTime()
+					console.log "A <:", d.x, dateFrom
+				if d.x.getTime() >= dateTo.getTime()
+					console.log "A >:", d.x, dateTo
+				d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			data.entry2 = crossfilter data.table2.values
-			data.dimension2 = data.entry2.dimension (d) -> d.x
+			data.dimension2 = data.entry2.dimension (d) ->
+				if d.x.getTime() <= dateFrom.getTime()
+					console.log "B <:", d.x, dateFrom
+				if d.x.getTime() >= dateTo.getTime()
+					console.log "B >:", d.x, dateTo
+				d.x
 			data.group2 = data.dimension2.group().reduceSum (d) ->
 				console.log d
 				d.y
 
-			# chart.dimension data.dimension
-			# chart.group data.group, data.table1.title
+			chart.dimension data.dimension
+			chart.group data.group, data.table1.title
 			# chart.stack data.group2, data.table2.title
 
 			data.ordinals = []
@@ -165,7 +182,7 @@ angular.module('dataplayApp')
 			chart.xAxis().ticks $scope.xTicks
 
 			xScale = d3.time.scale()
-				.domain [new Date(data.from), new Date(data.to)]
+				.domain data.xDomain
 				.range [0, $scope.width]
 			chart.x xScale
 
