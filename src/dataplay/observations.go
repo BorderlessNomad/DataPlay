@@ -76,10 +76,6 @@ func AddObservationHttp(res http.ResponseWriter, req *http.Request, params marti
 		return "no observations id"
 	}
 
-	if params["uid"] == "" {
-		return "no user id"
-	}
-
 	if params["x"] == "" {
 		return "no x value"
 	}
