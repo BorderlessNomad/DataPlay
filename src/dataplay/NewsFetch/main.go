@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	file, _ := os.Open("urls100.csv") // url file
+	file, _ := os.Open("urls1.csv") // url file
 	defer file.Close()
 	reader := csv.NewReader(file)
 	urls := make([]string, 0)
