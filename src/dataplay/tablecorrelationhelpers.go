@@ -53,7 +53,10 @@ func NameToGuid(tablename string) string {
 	err := DB.Table("priv_onlinedata").Where("tablename = ?", tablename).Pluck("guid", &guid).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return ""
+	} else if err == gorm.RecordNotFound || len(guid) < 1 {
+		return "No Record Found!"
 	}
+
 	return guid[0]
 }
 
