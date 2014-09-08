@@ -139,17 +139,19 @@ angular.module('dataplayApp')
 			closest
 
 		$scope.drawCircle = (area, data, x, y, plot, color) ->
+			if data.patterns[data.xLabel].valuePattern is 'date'
+				x = $scope.humanDate x
+
 			area.append 'circle'
 				.attr 'cx', plot[0]
 				.attr 'cy', plot[1]
 				.attr 'r', 5
 				.style 'fill', color
-				.append 'svg:title'
-				.text (d) ->
-					if data.patterns[data.xLabel].valuePattern is 'date'
-						x = $scope.humanDate x
-
-					"#{$scope.chart.xLabel}: #{x}\n#{$scope.chart.yLabel}: #{y}"
+				.attr 'data-placement', 'bottom'
+				.attr 'data-html', true
+				.tooltip "#{$scope.chart.xLabel}: #{x}<br/>#{$scope.chart.yLabel}: #{y}"
+				# .text (d) ->
+				# 	"#{$scope.chart.xLabel}: #{x}\n#{$scope.chart.yLabel}: #{y}"
 
 		$scope.lineChartPostSetup = (chart) ->
 			data = $scope.chart

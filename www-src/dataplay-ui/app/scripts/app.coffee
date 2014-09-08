@@ -16,7 +16,6 @@ angular
 		'ngRoute'
 		'ngSanitize'
 		'ipCookie'
-		'ui.bootstrap'
 		'angularDc'
 	])
 
