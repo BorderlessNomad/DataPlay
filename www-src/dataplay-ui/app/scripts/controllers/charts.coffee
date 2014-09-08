@@ -188,9 +188,10 @@ angular.module('dataplayApp')
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
 
+
 			points = [
-				[new Date("Feb 01 1975 00:00:00 GMT+0000 (GMT Standard Time)"), 600]
-				[new Date("Jan 04 2000 00:00:00 GMT+0000 (GMT Standard Time)"), 400]
+				[new Date("Feb 01 1975 00:00:00 GMT+0000 (GMT Standard Time)"), 600, "Hello Jack!"]
+				[new Date("Jan 04 2000 00:00:00 GMT+0000 (GMT Standard Time)"), 400, "Test Point"]
 			]
 
 			existingObservations = null
@@ -550,10 +551,12 @@ angular.module('dataplayApp')
 				comment: if comment? and comment.length > 0 then comment else ""
 				timestamp: Date.now()
 
+			$scope.saveObservation x, y, comment
+
 			$scope.$apply()
 
-		$scope.saveObservations = ->
-			console.log "saveObservations", $scope.observations
+		$scope.saveObservation = (x, y, comment) ->
+			console.log "saveObservation", x, y, comment
 
 		$scope.resetObservations = ->
 			$scope.observations = []

@@ -51,15 +51,16 @@ angular.module('dataplayApp')
 
 			Overview.related $scope.params.id, $scope.offset.related, count
 				.success (data) ->
-					if data? and data.Charts? and data.Charts.length > 0
+					if data? and data.charts? and data.charts.length > 0
 						$scope.loading.related = false
 
-						$scope.max.related = data.Count
+						$scope.max.related = data.count
 
-						for key, chart of data.Charts
+						for key, chart of data.charts
 							continue unless $scope.isPlotAllowed chart.type
 
 							chart.id = "related-#{$scope.params.id}-#{chart.xLabel}-#{chart.yLabel}-#{chart.type}"
+							chart.key = key
 
 							chart.patterns = {}
 							chart.patterns[chart.xLabel] =
