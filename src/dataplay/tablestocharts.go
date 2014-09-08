@@ -191,7 +191,7 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 	for i, v := range charts {
 		originid := tablename + "_" + strconv.Itoa(i)
 		validated := Validated{}
-		err := DB.Where("origin_id = ?", originid).Find(&validated).Error
+		err := DB.Where("relation_id = ?", originid).Find(&validated).Error
 		if err == gorm.RecordNotFound {
 			v.Discovered = false
 		} else {
@@ -270,7 +270,7 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 	for _, v := range charts {
 		originid := strconv.Itoa(v.Id)
 		validated := Validated{}
-		err := DB.Where("origin_id = ?", originid).Find(&validated).Error
+		err := DB.Where("correlation_id = ?", originid).Find(&validated).Error
 		if err == gorm.RecordNotFound {
 			v.Discovered = false
 		} else {
