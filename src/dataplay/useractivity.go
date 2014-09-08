@@ -46,10 +46,10 @@ func AddCommentHttp(res http.ResponseWriter, req *http.Request, params martini.P
 		return "Missing session parameter."
 	}
 
-	u, err := strconv.Atoi(params["uid"])
-	if err != nil {
-		http.Error(res, "Invalid uid.", http.StatusBadRequest)
-		return "Invalid uid"
+	u, err1 := GetUserID(session)
+	if err1 != nil {
+		http.Error(res, err1.Message, err1.Code)
+		return "Could not validate user"
 	}
 
 	t := time.Now()

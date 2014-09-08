@@ -26,7 +26,7 @@ type ValidatedCharts struct {
 }
 
 // Get all data for single selected chart
-func GetChart(tablename string, tablenum int, chartType string, uid int, discovered bool, coords ...string) (TableData, *appError) {
+func GetChart(tablename string, tablenum int, chartType string, uid int, coords ...string) (TableData, *appError) {
 	guid, _ := GetRealTableName(tablename)
 	index := Index{}
 	chart := make([]TableData, 0)
@@ -65,7 +65,9 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, discove
 	}
 
 	//if undiscovered add to the validated table as an initial discovery
-	if !discovered {
+	var vtd []Validated
+	err1 := DB.Where("relation_id = ?", id).Find(&vtd).Error
+	if err1 == gorm.RecordNotFound {
 		Discover(id, uid, j, false)
 	}
 
@@ -80,7 +82,7 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, discove
 }
 
 // use the id relating to the record stored in the generated correlations table to return the json with the specific chart info
-func GetCorrelatedChart(id int, uid int, discovered bool) (CorrelationData, *appError) {
+func GetCorrelatedChart(id int, uid int) (CorrelationData, *appError) {
 	var chart []string
 	var result CorrelationData
 	err := DB.Table("priv_correlation").Where("id = ?", id).Pluck("json", &chart).Error
@@ -92,7 +94,9 @@ func GetCorrelatedChart(id int, uid int, discovered bool) (CorrelationData, *app
 	}
 
 	//if undiscovered add to the validated table as an initial discovery
-	if !discovered {
+	var vtd []Validated
+	err1 := DB.Where("correlation_id = ?", id).Find(&vtd).Error
+	if err1 == gorm.RecordNotFound {
 		Discover(strconv.Itoa(id), uid, []byte(chart[0]), true)
 	}
 
@@ -575,6 +579,12 @@ func GetChartHttp(res http.ResponseWriter, req *http.Request, params martini.Par
 		return "Missing session parameter"
 	}
 
+	uid, err1 := GetUserID(session)
+	if err1 != nil {
+		http.Error(res, err1.Message, err1.Code)
+		return "Could not validate user"
+	}
+
 	if params["tablename"] == "" {
 		http.Error(res, "Invalid tablename", http.StatusBadRequest)
 		return "Invalid tablename"
@@ -591,17 +601,6 @@ func GetChartHttp(res http.ResponseWriter, req *http.Request, params martini.Par
 		return "Invalid chart type"
 	}
 
-	uid, err1 := strconv.Atoi(params["uid"])
-	if err1 != nil {
-		http.Error(res, "Invalid id parameter", http.StatusBadRequest)
-		return "Invalid id parameter"
-	}
-
-	discovered := false
-	if params["discovered"] == "true" {
-		discovered = true
-	}
-
 	if params["x"] == "" {
 		http.Error(res, "Invalid x label", http.StatusBadRequest)
 		return "Invalid x label"
@@ -612,7 +611,7 @@ func GetChartHttp(res http.ResponseWriter, req *http.Request, params martini.Par
 		return "Invalid y label"
 	}
 
-	result, err2 := GetChart(params["tablename"], tablenum, params["type"], uid, discovered, params["x"], params["y"], params["z"])
+	result, err2 := GetChart(params["tablename"], tablenum, params["type"], uid, params["x"], params["y"], params["z"])
 	if err2 != nil {
 		http.Error(res, err2.Message, err2.Code)
 		return err2.Message
@@ -640,25 +639,20 @@ func GetCorrelatedChartHttp(res http.ResponseWriter, req *http.Request, params m
 		return "Invalid id parameter"
 	}
 
-	uid, err1 := strconv.Atoi(params["uid"])
+	uid, err1 := GetUserID(session)
 	if err1 != nil {
-		http.Error(res, "Invalid id parameter", http.StatusBadRequest)
-		return "Invalid id parameter"
+		http.Error(res, err1.Message, err1.Code)
+		return "Could not validate user"
 	}
 
-	discovered := false
-	if params["discovered"] == "true" {
-		discovered = true
-	}
-
-	result, error := GetCorrelatedChart(id, uid, discovered)
+	result, error := GetCorrelatedChart(id, uid)
 	if error != nil {
 		http.Error(res, error.Message, error.Code)
 		return ""
 	}
 
-	r, err1 := json.Marshal(result)
-	if err1 != nil {
+	r, err2 := json.Marshal(result)
+	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
 		return "Unable to parse JSON"
 	}
@@ -837,11 +831,6 @@ func GetChartQ(params map[string]string) string {
 		return "invalid uid"
 	}
 
-	discovered := false
-	if params["discovered"] == "true" {
-		discovered = true
-	}
-
 	if params["x"] == "" {
 		return "no x coordinate"
 	}
@@ -850,7 +839,7 @@ func GetChartQ(params map[string]string) string {
 		return "no y coordinate"
 	}
 
-	result, err2 := GetChart(params["tablename"], tablenum, params["type"], uid, discovered, params["x"], params["y"], params["z"])
+	result, err2 := GetChart(params["tablename"], tablenum, params["type"], uid, params["x"], params["y"], params["z"])
 	if err2 != nil {
 		return err2.Message
 	}
@@ -874,12 +863,7 @@ func GetCorrelatedChartQ(params map[string]string) string {
 		return e.Error()
 	}
 
-	discovered := false
-	if params["discovered"] == "true" {
-		discovered = true
-	}
-
-	result, err1 := GetCorrelatedChart(id, uid, discovered)
+	result, err1 := GetCorrelatedChart(id, uid)
 	if err1 != nil {
 		return err1.Message
 	}

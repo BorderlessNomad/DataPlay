@@ -177,9 +177,9 @@ func initClassicMode() {
 	m.Get("/api/relatedstrings/:guid", GetRelatedDatasetByStrings)
 
 	// API v1.1
-	m.Get("/api/chart/:tablename/:tablenum/:type/:uid/:discovered/:x/:y", GetChartHttp)
-	m.Get("/api/chart/:tablename/:tablenum/:type/:uid/:discovered/:x/:y/:z", GetChartHttp)
-	m.Get("/api/chartcorrelated/:id/:uid/:discovered", GetCorrelatedChartHttp)
+	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y", GetChartHttp)
+	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y/:z", GetChartHttp)
+	m.Get("/api/chartcorrelated/:id", GetCorrelatedChartHttp)
 	m.Get("/api/related/:tablename", GetRelatedChartsHttp)
 	m.Get("/api/related/:tablename/:offset/:count", GetRelatedChartsHttp)
 	m.Get("/api/correlated/:tablename", GetCorrelatedChartsHttp)
@@ -187,9 +187,9 @@ func initClassicMode() {
 	m.Get("/api/correlated/:tablename/:offset/:count/:searchdepth", GetCorrelatedChartsHttp)
 	m.Get("/api/validated/:tablename/:correlated", GetValidatedChartsHttp)
 	m.Get("/api/validated/:tablename/:correlated/:offset/:count", GetValidatedChartsHttp)
-	m.Post("/api/activity/:uid/:comment", AddCommentHttp)
-	m.Put("/api/chart/:patternid/:uid/:valflag", ValidateChartHttp)
-	m.Put("/api/observations/:observationid/:uid/:valflag", ValidateObservationHttp)
+	m.Post("/api/activity/:comment", AddCommentHttp)
+	m.Put("/api/chart/:patternid/:valflag", ValidateChartHttp)
+	m.Put("/api/observations/:observationid/:valflag", ValidateObservationHttp)
 	m.Post("/api/observations/:patternid/:comment/:x/:y", AddObservationHttp)
 	m.Get("/api/observations/:patternid", GetObservationsHttp)
 
