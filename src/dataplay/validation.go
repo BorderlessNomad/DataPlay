@@ -109,20 +109,16 @@ func ValidateChartHttp(res http.ResponseWriter, req *http.Request, params martin
 		return "no pattern id"
 	}
 
-	if params["uid"] == "" {
-		return "no user id"
-	}
-
 	id, e := strconv.Atoi(params["id"])
 	if e != nil {
 		http.Error(res, "bad id", http.StatusBadRequest)
 		return "bad id"
 	}
 
-	uid, e := strconv.Atoi(params["uid"])
-	if e != nil {
-		http.Error(res, "bad uid", http.StatusBadRequest)
-		return "bad uid"
+	uid, err1 := GetUserID(session)
+	if err1 != nil {
+		http.Error(res, err1.Message, err1.Code)
+		return "Could not validate user"
 	}
 
 	valflag, e := strconv.ParseBool(params["valflag"])
@@ -162,14 +158,10 @@ func ValidateObservationHttp(res http.ResponseWriter, req *http.Request, params 
 		id = 0
 	}
 
-	if params["uid"] == "" {
-		return "no user id"
-	}
-
-	uid, e := strconv.Atoi(params["uid"])
-	if e != nil {
-		http.Error(res, "bad uid", http.StatusBadRequest)
-		return "bad uid"
+	uid, err1 := GetUserID(session)
+	if err1 != nil {
+		http.Error(res, err1.Message, err1.Code)
+		return "Could not validate user"
 	}
 
 	valflag, e := strconv.ParseBool(params["valflag"])
