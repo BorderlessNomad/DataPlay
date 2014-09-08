@@ -192,6 +192,7 @@ func initClassicMode() {
 	m.Put("/api/observations/:observationid/:valflag", ValidateObservationHttp)
 	m.Post("/api/observations/:patternid/:x/:y/:comment", AddObservationHttp)
 	m.Get("/api/observations/:patternid", GetObservationsHttp)
+	m.Get("/api/political/:type", GetOverviewHttp)
 
 	m.Use(JsonApiHandler)
 
