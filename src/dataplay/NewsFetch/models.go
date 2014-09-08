@@ -1,5 +1,7 @@
 package main
 
+import "time"
+
 const (
 	TypeHTML  = "html"
 	TypeText  = "text"
@@ -41,7 +43,7 @@ type Response struct {
 	FaviconURL      string    `json:"favicon_url"`
 	Title           string    `json:"title"`
 	Description     string    `json:"description"`
-	Date            string    `json:"date"`
+	Date            time.Time `json:"date"`
 	Authors         []Author  `json:"authors"`
 	Published       int64     `json:"published,omitempty"`
 	Lead            string    `json:"lead"`

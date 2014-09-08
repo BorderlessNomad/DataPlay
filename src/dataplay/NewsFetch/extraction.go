@@ -13,8 +13,6 @@ import (
 	"time"
 )
 
-const layout = "2006-01-02"
-
 var (
 	Host = "http://api.embed.ly"
 )
@@ -127,7 +125,7 @@ func (c *Client) extract(urls []string, options Options, place int) ([]string, e
 		var p int64
 		p = tmpResp.Published
 		date := publishedDate(p, place+i)
-		tmpResp.Date = date.Format(layout)
+		tmpResp.Date = date
 		result, _ := json.Marshal(tmpResp)
 		responses[i] = string(result)
 	}

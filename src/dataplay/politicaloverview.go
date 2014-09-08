@@ -6,11 +6,21 @@ import (
 	"github.com/jinzhu/gorm"
 	"os"
 	"strconv"
+	"time"
 )
+
+const numdays = 30
+
+const layout = "2006-01-02"
 
 type OV struct {
 	Label  string
-	DayAmt [30]int
+	DayAmt [numdays]int
+}
+
+type DateID struct {
+	ID   []byte
+	Date time.Time
 }
 
 func DepartmentsOverview() []OV {
@@ -25,15 +35,44 @@ func DepartmentsOverview() []OV {
 	}
 
 	ov := make([]OV, len(dept))
+	timeFrom := time.Now().AddDate(0, 0, -numdays) // older than n days
+	var id []byte
+	var date time.Time
+	var ids []DateID
+	iter := session.Query(`SELECT id, date FROM response WHERE date > ?`, timeFrom).Iter()
+	for iter.Scan(&id, &date) {
+		var tmp DateID
+		tmp.ID = id
+		tmp.Date = date.Format(layout)
+		ids = append(ids, tmp)
+	}
 
-	for _, d := range dept {
-
+	for _, i := range ids {
+		for index, d := range dept {
+			ov[index].Label = d
+			s, c := 0, 0
+			err := session.Query(`SELECT score FROM keyword WHERE id = ? AND name =?`, i.ID, d).Scan(&s)
+			check(err)
+			err = session.Query(`SELECT count FROM entity WHERE id = ? AND name =?`, i.ID, d).Scan(&c)
+			check(err)
+			now := time.Now()
+			dayindex := (now.Round(time.Hour).Sub(i.Date.Round(time.Hour)) / 24) - 1
+			if s > 0 {
+				ov[index].DayAmt[dayindex]++
+			}
+			if c > 0 {
+				ov[index].DayAmt[dayindex]++
+			}
+		}
 	}
 
 	return ov
 }
 
 func EventsOverview() []OV {
+	session, _ := GetCassandraConnection("dp")
+	defer session.Close()
+
 	var event []Events
 	err := DB.Find(&event).Error
 
@@ -42,25 +81,81 @@ func EventsOverview() []OV {
 	}
 
 	ov := make([]OV, len(event))
+	timeFrom := time.Now().AddDate(0, 0, -numdays) // older than n days
+	var id []byte
+	var date time.Time
+	var ids []DateID
+	iter := session.Query(`SELECT id, date FROM response WHERE date > ?`, timeFrom).Iter()
+	for iter.Scan(&id, &date) {
+		var tmp DateID
+		tmp.ID = id
+		tmp.Date = date.Format(layout)
+		ids = append(ids, tmp)
+	}
 
 	for _, e := range event {
-
+		for index, d := range dept {
+			ov[index].Label = d
+			s, c := 0, 0
+			err := session.Query(`SELECT score FROM keyword WHERE id = ? AND name =?`, i.ID, d).Scan(&s)
+			check(err)
+			err = session.Query(`SELECT count FROM entity WHERE id = ? AND name =?`, i.ID, d).Scan(&c)
+			check(err)
+			now := time.Now()
+			dayindex := (now.Round(time.Hour).Sub(i.Date.Round(time.Hour)) / 24) - 1
+			if s > 0 {
+				ov[index].DayAmt[dayindex]++
+			}
+			if c > 0 {
+				ov[index].DayAmt[dayindex]++
+			}
+		}
 	}
 
 	return ov
 }
 
 func RegionsOverview() []OV {
+	session, _ := GetCassandraConnection("dp")
+	defer session.Close()
+
 	var region []Regions
 	err := DB.Find(&region).Error
+
 	if err != nil && err != gorm.RecordNotFound {
 		return nil
 	}
 
 	ov := make([]OV, len(region))
+	timeFrom := time.Now().AddDate(0, 0, -numdays) // older than n days
+	var id []byte
+	var date time.Time
+	var ids []DateID
+	iter := session.Query(`SELECT id, date FROM response WHERE date > ?`, timeFrom).Iter()
+	for iter.Scan(&id, &date) {
+		var tmp DateID
+		tmp.ID = id
+		tmp.Date = date.Format(layout)
+		ids = append(ids, tmp)
+	}
 
 	for _, r := range region {
-
+		for index, d := range dept {
+			ov[index].Label = d
+			s, c := 0, 0
+			err := session.Query(`SELECT score FROM keyword WHERE id = ? AND name =?`, i.ID, d).Scan(&s)
+			check(err)
+			err = session.Query(`SELECT count FROM entity WHERE id = ? AND name =?`, i.ID, d).Scan(&c)
+			check(err)
+			now := time.Now()
+			dayindex := (now.Round(time.Hour).Sub(i.Date.Round(time.Hour)) / 24) - 1
+			if s > 0 {
+				ov[index].DayAmt[dayindex]++
+			}
+			if c > 0 {
+				ov[index].DayAmt[dayindex]++
+			}
+		}
 	}
 
 	return ov
