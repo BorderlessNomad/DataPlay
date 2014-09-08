@@ -60,6 +60,7 @@ angular.module('dataplayApp')
 							continue unless $scope.isPlotAllowed chart.type
 
 							chart.id = "related-#{$scope.params.id}-#{chart.xLabel}-#{chart.yLabel}-#{chart.type}"
+							chart.key = key
 
 							chart.patterns = {}
 							chart.patterns[chart.xLabel] =

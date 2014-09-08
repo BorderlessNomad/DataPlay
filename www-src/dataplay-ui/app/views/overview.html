@@ -13,10 +13,10 @@
 	<!-- Related -->
 	<div class="row" ng-init="getRelatedCharts()">
 		<div class="col-md-4" ng-repeat="chart in chartsRelated" id="{{chart.id}}" ng-show="hasRelatedCharts() > 0">
-			<a ng-href="/charts/{{params.id}}/{{chart.type}}/{{chart.xLabel}}/{{chart.yLabel}}" ng-hide="chart.type == 'bubble'">
+			<a ng-href="/charts/{{params.id}}/{{chart.key}}/{{chart.type}}/{{chart.xLabel}}/{{chart.yLabel}}" ng-hide="chart.type == 'bubble'">
 				<span><h4>{{chart.xLabel}}</h4> <h5>vs</h5> <h4>{{chart.yLabel}}</h4></span>
 			</a>
-			<a ng-href="/charts/{{params.id}}/{{chart.type}}/{{chart.xLabel}}/{{chart.yLabel}}/{{chart.zLabel}}" ng-show="chart.type == 'bubble'">
+			<a ng-href="/charts/{{params.id}}/{{chart.key}}/{{chart.type}}/{{chart.xLabel}}/{{chart.yLabel}}/{{chart.zLabel}}" ng-show="chart.type == 'bubble'">
 				<span><h4>{{chart.xLabel}}</h4> <h5>vs</h5> <h4>{{chart.yLabel}}</h4> <h5>vs</h5> <h4>{{chart.zLabel}}</h4></span>
 			</a>
 
