@@ -190,7 +190,7 @@ func initClassicMode() {
 	m.Post("/api/activity/:comment", AddCommentHttp)
 	m.Put("/api/chart/:patternid/:valflag", ValidateChartHttp)
 	m.Put("/api/observations/:observationid/:valflag", ValidateObservationHttp)
-	m.Post("/api/observations/:patternid/:comment/:x/:y", AddObservationHttp)
+	m.Post("/api/observations/:patternid/:x/:y/:comment", AddObservationHttp)
 	m.Get("/api/observations/:patternid", GetObservationsHttp)
 
 	m.Use(JsonApiHandler)

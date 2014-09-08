@@ -93,10 +93,10 @@ func AddObservationHttp(res http.ResponseWriter, req *http.Request, params marti
 		return "bad id"
 	}
 
-	uid, e := strconv.Atoi(params["uid"])
-	if e != nil {
-		http.Error(res, "bad uid", http.StatusBadRequest)
-		return "bad uid"
+	uid, err1 := GetUserID(session)
+	if err1 != nil {
+		http.Error(res, err1.Message, err1.Code)
+		return "Could not validate user"
 	}
 
 	err := AddObservation(id, uid, params["comment"], params["x"], params["y"])
