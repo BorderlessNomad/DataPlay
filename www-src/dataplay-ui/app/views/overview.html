@@ -34,7 +34,7 @@
 		<div class="col-md-12" ng-show="loading.related" ng-include="'views/loader.html'"></div>
 
 		<div class="col-md-12">
-			<a id="getRelated" href="#" class="btn btn-default btn-block" ng-click="getRelated()" ng-hide="limit.related">Show more ({{max.related - offset.related}}) <span class="caret"></span></a>
+			<a id="getRelated" href="#" class="btn btn-default btn-block" ng-click="getRelated()" ng-hide="limit.related || loading.related">Show more ({{max.related - offset.related}}) <span class="caret"></span></a>
 		</div>
 	</div>
 
@@ -60,7 +60,7 @@
 		<div class="col-md-12" ng-show="loading.correlated" ng-include="'views/loader.html'"></div>
 
 		<div class="col-md-12">
-			<a id="getCorrelated" href="#" class="btn btn-default btn-block" ng-click="getCorrelated()" ng-hide="limit.correlated">Show more ({{max.correlated - offset.correlated}}) <span class="caret"></span></a>
+			<a id="getCorrelated" href="#" class="btn btn-default btn-block" ng-click="getCorrelated()" ng-hide="limit.correlated || loading.correlated">Show more ({{max.correlated - offset.correlated}}) <span class="caret"></span></a>
 		</div>
 	</div>
 </div>

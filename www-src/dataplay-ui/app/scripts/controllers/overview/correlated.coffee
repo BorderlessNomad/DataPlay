@@ -49,7 +49,9 @@ angular.module('dataplayApp')
 				count = $scope.max.correlated - $scope.offset.correlated
 				count = if $scope.max.correlated and count < $scope.count then count else $scope.count
 
-			Overview.correlated $scope.params.id, $scope.offset.correlated
+			depth = if $scope.max.correlated then 0 else 100
+
+			Overview.correlated $scope.params.id, $scope.offset.correlated, count, depth
 				.success (data) ->
 					if data? and data.charts? and data.charts.length > 0
 						$scope.loading.correlated = false
@@ -95,6 +97,7 @@ angular.module('dataplayApp')
 						console.log "$scope.chartsCorrelated", $scope.chartsCorrelated
 					return
 				.error (data, status) ->
+					$scope.loading.correlated = false
 					console.log "Overview::getCorrelated::Error:", status
 					return
 
