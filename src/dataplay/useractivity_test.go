@@ -21,15 +21,3 @@ func TestAddCommentHttp(t *testing.T) {
 		So(result, ShouldNotBeNil)
 	})
 }
-
-func TestAddCommentQ(t *testing.T) {
-	params := map[string]string{
-		"uid":     "100",
-		"comment": "Q COMMENTS",
-	}
-
-	Convey("Should add comment via Q", t, func() {
-		result := AddCommentQ(params)
-		So(result, ShouldNotBeNil)
-	})
-}

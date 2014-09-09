@@ -16,16 +16,16 @@ const ( //go version of enum
 )
 
 type CorrelationData struct {
-	Id         int       `json:"id, omitempty"`
-	PatternId  int       `json:"patternid, omitempty"`
-	Method     string    `json:"method"`
-	ChartType  string    `json:"type, omitempty"`
-	Discovered bool      `json:"discovered,omitempty"`
-	From       string    `json:"from"`
-	To         string    `json:"to"`
-	Table1     TableData `json:"table1"`
-	Table2     TableData `json:"table2"`
-	Table3     TableData `json:"table3, omitempty"`
+	Id            int       `json:"id, omitempty"`
+	CorrelationId int       `json:"correlationid, omitempty"`
+	Method        string    `json:"method"`
+	ChartType     string    `json:"type, omitempty"`
+	Discovered    bool      `json:"discovered,omitempty"`
+	From          string    `json:"from"`
+	To            string    `json:"to"`
+	Table1        TableData `json:"table1"`
+	Table2        TableData `json:"table2"`
+	Table3        TableData `json:"table3, omitempty"`
 }
 
 type TableData struct {

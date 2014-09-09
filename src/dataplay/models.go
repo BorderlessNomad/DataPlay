@@ -11,10 +11,10 @@ type appError struct {
 }
 
 type Activity struct {
-	Id      int `primaryKey:"yes"`
-	Type    string
-	Created time.Time
-	Uid     int
+	ActivityId int `primaryKey:"yes"`
+	Type       string
+	Created    time.Time
+	Uid        int
 }
 
 func (a Activity) TableName() string {
@@ -22,7 +22,7 @@ func (a Activity) TableName() string {
 }
 
 type Comment struct {
-	Id         int `primaryKey:"yes"`
+	CommentId  int `primaryKey:"yes"`
 	Comment    string
 	ActivityId int
 }
@@ -32,17 +32,17 @@ func (c Comment) TableName() string {
 }
 
 type Correlation struct {
-	Tbl1    string
-	Col1    string
-	Tbl2    string
-	Col2    string
-	Tbl3    string
-	Col3    string
-	Method  string
-	Coef    float64
-	Json    []byte
-	Id      int `primaryKey:"yes"`
-	Abscoef float64
+	Tbl1          string
+	Col1          string
+	Tbl2          string
+	Col2          string
+	Tbl3          string
+	Col3          string
+	Method        string
+	Coef          float64
+	Json          []byte
+	CorrelationId int `primaryKey:"yes"`
+	Abscoef       float64
 }
 
 func (c Correlation) TableName() string {
@@ -193,7 +193,7 @@ type User struct {
 	Email      string
 	Password   string
 	Reputation int
-	// ProfilePic string
+	ProfilePic string
 }
 
 func (u User) TableName() string {
@@ -201,7 +201,7 @@ func (u User) TableName() string {
 }
 
 type Validated struct {
-	PatternId     int `primaryKey:"yes"`
+	ValidatedId   int `primaryKey:"yes"`
 	Uid           int
 	Created       time.Time
 	Rating        float64
@@ -213,7 +213,7 @@ type Validated struct {
 }
 
 func (v Validated) TableName() string {
-	return "priv_validated"
+	return "priv_validatedtables"
 }
 
 type Validation struct {

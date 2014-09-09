@@ -45,7 +45,7 @@ func TestRandomTableName(t *testing.T) {
 
 func TestExtractDateVal(t *testing.T) {
 	Convey("Should return extracted date and amoutn cols", t, func() {
-		result := ExtractDateVal("gold", "date", "price")
+		result, _ := ExtractDateVal("gold", "date", "price")
 		So(result, ShouldNotBeNil)
 	})
 }
