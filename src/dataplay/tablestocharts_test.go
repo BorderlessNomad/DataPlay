@@ -36,7 +36,7 @@ func TestGetChartHttp(t *testing.T) {
 	})
 }
 
-func TestGetCorrelatedChartHttp(t *testing.T) {
+func TestGetChartCorrelatedHttp(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 	res := httptest.NewRecorder()
@@ -45,7 +45,7 @@ func TestGetCorrelatedChartHttp(t *testing.T) {
 		"uid": "1",
 	}
 	Convey("Should return Correlated chart", t, func() {
-		result := GetCorrelatedChartHttp(res, req, params)
+		result := GetChartCorrelatedHttp(res, req, params)
 		So(result, ShouldNotBeNil)
 	})
 
@@ -53,7 +53,7 @@ func TestGetCorrelatedChartHttp(t *testing.T) {
 	params["discovered"] = "true"
 
 	Convey("Should return xyz chartlist", t, func() {
-		result := GetCorrelatedChartHttp(res, req, params)
+		result := GetChartCorrelatedHttp(res, req, params)
 		So(result, ShouldNotBeNil)
 	})
 }
@@ -128,7 +128,7 @@ func TestGetChartQ(t *testing.T) {
 	})
 }
 
-func TestGetCorrelatedChartQ(t *testing.T) {
+func TestGetChartCorrelatedQ(t *testing.T) {
 	params := map[string]string{
 		"id":         "114264",
 		"uid":        "6",
@@ -136,7 +136,7 @@ func TestGetCorrelatedChartQ(t *testing.T) {
 	}
 
 	Convey("Should discover and return correlated chart", t, func() {
-		result := GetCorrelatedChartQ(params)
+		result := GetChartCorrelatedQ(params)
 		So(result, ShouldNotBeNil)
 	})
 
@@ -144,7 +144,7 @@ func TestGetCorrelatedChartQ(t *testing.T) {
 	params["discovered"] = "true"
 
 	Convey("Should return correlated chart", t, func() {
-		result := GetCorrelatedChartQ(params)
+		result := GetChartCorrelatedQ(params)
 		So(result, ShouldNotBeNil)
 	})
 }

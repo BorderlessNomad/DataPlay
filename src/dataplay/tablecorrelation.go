@@ -16,7 +16,7 @@ const ( //go version of enum
 )
 
 type CorrelationData struct {
-	Id            int       `json:"id, omitempty"`
+	// Id            int       `json:"id, omitempty"`
 	CorrelationId int       `json:"correlationid, omitempty"`
 	Method        string    `json:"method"`
 	ChartType     string    `json:"type, omitempty"`
@@ -29,15 +29,16 @@ type CorrelationData struct {
 }
 
 type TableData struct {
-	PatternId  int     `json:"patternid, omitempty"`
-	ChartType  string  `json:"type, omitempty"`
-	Discovered bool    `json:"discovered,omitempty"`
-	Title      string  `json:"title"`
-	Desc       string  `json:"desc"`
-	LabelX     string  `json:"xLabel"`
-	LabelY     string  `json:"yLabel,omitempty"`
-	LabelZ     string  `json:"zLabel,omitempty"`
-	Values     []XYVal `json:"values,omitempty"`
+	CorrelationId int     `json:"correlationid, omitempty"`
+	RelationId    string  `json:"relationid, omitempty"`
+	ChartType     string  `json:"type, omitempty"`
+	Discovered    bool    `json:"discovered,omitempty"`
+	Title         string  `json:"title"`
+	Desc          string  `json:"desc"`
+	LabelX        string  `json:"xLabel"`
+	LabelY        string  `json:"yLabel,omitempty"`
+	LabelZ        string  `json:"zLabel,omitempty"`
+	Values        []XYVal `json:"values,omitempty"`
 }
 
 type XYVal struct {

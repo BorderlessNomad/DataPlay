@@ -179,12 +179,13 @@ func initClassicMode() {
 	// API v1.1
 	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y", GetChartHttp)
 	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y/:z", GetChartHttp)
-	m.Get("/api/chartcorrelated/:id", GetCorrelatedChartHttp)
+	m.Get("/api/chartcorrelated/:id", GetChartCorrelatedHttp)
 	m.Get("/api/related/:tablename", GetRelatedChartsHttp)
 	m.Get("/api/related/:tablename/:offset/:count", GetRelatedChartsHttp)
 	m.Get("/api/correlated/:tablename", GetCorrelatedChartsHttp)
-	m.Get("/api/correlated/:tablename/:offset/:count", GetCorrelatedChartsHttp)
+	m.Get("/api/correlated/:tablename/:searchdepth", GetCorrelatedChartsHttp)
 	m.Get("/api/correlated/:tablename/:offset/:count/:searchdepth", GetCorrelatedChartsHttp)
+
 	m.Get("/api/validated/:tablename/:correlated", GetValidatedChartsHttp)
 	m.Get("/api/validated/:tablename/:correlated/:offset/:count", GetValidatedChartsHttp)
 	m.Post("/api/activity/:comment", AddCommentHttp)
