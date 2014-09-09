@@ -17,9 +17,10 @@ const numdays = 30
 var Today = time.Date(2010, 3, 1, 0, 0, 0, 0, time.UTC)
 var FromDate = Today.AddDate(0, 0, -numdays)
 
-type OV struct {
+type PoliticalActivity struct {
 	Label  string       `json:"label"`
 	DayAmt [numdays]int `json:"dayamounts"`
+	Val    int          `json:"-"`
 }
 
 type DateID struct {
@@ -27,62 +28,38 @@ type DateID struct {
 	Date time.Time
 }
 
-func DepartmentsOverview() []OV {
-	session, _ := GetCassandraConnection("dp") // create connection to cassandra
-	defer session.Close()
+type KeyEnt struct {
+	Name string
+	Date time.Time
+	ID   []byte
+}
+
+func DepartmentsPoliticalActivity() []PoliticalActivity {
 	var dept []Departments // get all departments from postgres sql table
 	err := DB.Find(&dept).Error
+
 	if err != nil && err != gorm.RecordNotFound {
 		return nil
 	}
 
-	ov := make([]OV, len(dept)) // create overview output array
-	var id []byte               //individual md5 hashed url id within cassandra
-	var date time.Time
-	var urlId []DateID
+	pa := PAinit(len(dept))
 
-	// add all dated urlId between -n days and today to array
-	iter := session.Query(`SELECT id, date FROM response WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
-	for iter.Scan(&id, &date) {
-		var tmp DateID
-		tmp.ID = id
-		tmp.Date = date
-		urlId = append(urlId, tmp)
-	}
+	keyEnt := keywords()
 
-	// if err := iter.Close(); err != nil {
-	// 	check(err)
-	// }
-
-	for _, ui := range urlId { // for each dated url
-		for index, d := range dept { // check if any keywords or entities from the articles match the department and if so increment the counter for that date
-			ov[index].Label = d.GovDept // add the dpeartment name as the label
-			s, c := 0, 0
-			err := session.Query(`SELECT score FROM keyword WHERE id = ? AND name =?`, ui.ID, d.GovDept).Scan(&s)
-			if err != nil {
-				s = 0
-			}
-			err = session.Query(`SELECT count FROM entity WHERE id = ? AND name =?`, ui.ID, d.GovDept).Scan(&c)
-			if err != nil {
-				c = 0
-			}
-			dayindex := int((Today.Round(time.Hour).Sub(ui.Date.Round(time.Hour)) / 24).Hours() - 1) // get day index
-			if s > 0 {
-				ov[index].DayAmt[dayindex]++
-			}
-			if c > 0 {
-				ov[index].DayAmt[dayindex]++
+	for i, d := range dept {
+		pa[i].Label = d.GovDept
+		for _, ke := range keyEnt {
+			if d.GovDept == ke.Name {
+				dayindex := int((Today.Round(time.Hour).Sub(ke.Date.Round(time.Hour)) / 24).Hours() - 1) // get day index
+				pa[i].DayAmt[dayindex]++
 			}
 		}
 	}
 
-	return ov
+	return RankPA(pa)
 }
 
-func EventsOverview() []OV {
-	session, _ := GetCassandraConnection("dp")
-	defer session.Close()
-
+func EventsPoliticalActivity() []PoliticalActivity {
 	var event []Events
 	err := DB.Find(&event).Error
 
@@ -90,97 +67,74 @@ func EventsOverview() []OV {
 		return nil
 	}
 
-	ov := make([]OV, len(event))
-	var id []byte
-	var date time.Time
-	var urlId []DateID
-	iter := session.Query(`SELECT id, date FROM response WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
-	for iter.Scan(&id, &date) {
-		var tmp DateID
-		tmp.ID = id
-		tmp.Date = date
-		urlId = append(urlId, tmp)
-	}
+	pa := PAinit(len(event))
 
-	// if err := iter.Close(); err != nil {
-	// 	check(err)
-	// }
+	keyEnt := keywords()
 
-	for _, ui := range urlId {
-		for index, e := range event {
-			ov[index].Label = e.Event
-			s, c := 0, 0
-			err := session.Query(`SELECT score FROM keyword WHERE id = ? AND name = ?`, ui.ID, e.Keyword).Scan(&s)
-			if err != nil {
-				s = 0
-			}
-			err = session.Query(`SELECT count FROM entity WHERE id = ? AND name = ?`, ui.ID, e.Keyword).Scan(&c)
-			if err != nil {
-				c = 0
-			}
-			dayindex := int((Today.Round(time.Hour).Sub(ui.Date.Round(time.Hour)) / 24).Hours() - 1)
-			if s > 0 {
-				ov[index].DayAmt[dayindex]++
-			}
-			if c > 0 {
-				ov[index].DayAmt[dayindex]++
+	for i, e := range event {
+		pa[i].Label = e.Event
+		for _, ke := range keyEnt {
+			if e.Event == ke.Name {
+				dayindex := int((Today.Round(time.Hour).Sub(ke.Date.Round(time.Hour)) / 24).Hours() - 1) // get day index
+				pa[i].DayAmt[dayindex]++
 			}
 		}
 	}
-	return ov
+
+	return RankPA(pa)
 }
 
-func RegionsOverview() []OV {
-	session, _ := GetCassandraConnection("dp")
-	defer session.Close()
-
+func RegionsPoliticalActivity() []PoliticalActivity {
 	var region []Regions
 	err := DB.Find(&region).Error
 
 	if err != nil && err != gorm.RecordNotFound {
 		return nil
 	}
+	pa := PAinit(len(region))
 
-	ov := make([]OV, len(region))
-	var id []byte
-	var date time.Time
-	var urlId []DateID
+	keyEnt := keywords()
 
-	iter := session.Query(`SELECT id, date FROM response WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
-	for iter.Scan(&id, &date) {
-		var tmp DateID
-		tmp.ID = id
-		tmp.Date = date
-		urlId = append(urlId, tmp)
-	}
-
-	// if err := iter.Close(); err != nil {
-	// 	check(err)
-	// }
-
-	for _, ui := range urlId {
-		for index, r := range region {
-			ov[index].Label = r.County
-			s, c := 0, 0
-			err := session.Query(`SELECT score FROM keyword WHERE id = ? AND name =?`, ui.ID, r.County).Scan(&s)
-			if err != nil {
-				s = 0
-			}
-			err = session.Query(`SELECT count FROM entity WHERE id = ? AND name =?`, ui.ID, r.County).Scan(&c)
-			if err != nil {
-				c = 0
-			}
-			dayindex := int((Today.Round(time.Hour).Sub(ui.Date.Round(time.Hour)) / 24).Hours() - 1)
-			if s > 0 {
-				ov[index].DayAmt[dayindex]++
-			}
-			if c > 0 {
-				ov[index].DayAmt[dayindex]++
+	for i, r := range region {
+		pa[i].Label = r.County
+		for _, ke := range keyEnt {
+			if r.County == ke.Name {
+				dayindex := int((Today.Round(time.Hour).Sub(ke.Date.Round(time.Hour)) / 24).Hours() - 1) // get day index
+				pa[i].DayAmt[dayindex]++
 			}
 		}
 	}
 
-	return ov
+	return RankPA(pa)
+}
+
+func GetPoliticalActivityHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter", http.StatusBadRequest)
+		return "Missing session parameter"
+	}
+
+	var result []PoliticalActivity
+
+	if params["type"] == "d" {
+		result = DepartmentsPoliticalActivity()
+	} else if params["type"] == "e" {
+		result = EventsPoliticalActivity()
+	} else if params["type"] == "r" {
+		result = RegionsPoliticalActivity()
+	} else {
+		http.Error(res, "Bad type param", http.StatusInternalServerError)
+		return "Bad type param"
+	}
+
+	r, err := json.Marshal(result)
+	if err != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return "Unable to parse JSON"
+	}
+
+	return string(r)
 }
 
 func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
@@ -206,31 +160,81 @@ func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
 	return session, err
 }
 
-func GetOverviewHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	session := req.Header.Get("X-API-SESSION")
-	if len(session) <= 0 {
-		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
+func keywords() []KeyEnt {
+	var dateID []DateID
+	var tmpDI DateID
+	var keyEnt []KeyEnt
+	var tmpKE KeyEnt
+	var id []byte
+	var date time.Time
+	var name string
+	var score, count int
+
+	session, _ := GetCassandraConnection("dp") // create connection to cassandra
+	defer session.Close()
+
+	// add all dated dateID between -n days and today to array
+	iter := session.Query(`SELECT id, date FROM response WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
+	for iter.Scan(&id, &date) {
+		tmpDI.ID = id
+		tmpDI.Date = date
+		dateID = append(dateID, tmpDI)
 	}
 
-	var result []OV
-
-	if params["type"] == "d" {
-		result = DepartmentsOverview()
-	} else if params["type"] == "e" {
-		result = EventsOverview()
-	} else if params["type"] == "r" {
-		result = RegionsOverview()
-	} else {
-		http.Error(res, "Bad type param", http.StatusInternalServerError)
-		return "Bad type param"
+	if err := iter.Close(); err != nil {
+		///return err
 	}
 
-	r, err := json.Marshal(result)
-	if err != nil {
-		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
+	for _, ui := range dateID { // add all keyowrds and the date they relate to to array
+		iter := session.Query(`SELECT * FROM keyword WHERE id = ? ALLOW FILTERING`, ui.ID).Iter()
+		for iter.Scan(&name, &id, &score) {
+			tmpKE.Name = name
+			tmpKE.Date = ui.Date
+			tmpKE.ID = id
+			keyEnt = append(keyEnt, tmpKE)
+		}
+
+		iter2 := session.Query(`SELECT * FROM entity WHERE id = ? ALLOW FILTERING`, ui.ID).Iter()
+		for iter2.Scan(&name, &id, &count) {
+			tmpKE.Name = name
+			tmpKE.Date = ui.Date
+			tmpKE.ID = id
+			keyEnt = append(keyEnt, tmpKE)
+		}
+	}
+	return keyEnt
+}
+
+//initialise empty PoliticalActivity array of correct size
+func PAinit(length int) []PoliticalActivity {
+	pa := make([]PoliticalActivity, length) // create PoliticalActivity output array
+
+	for _, p := range pa { // initialise all day amounts to zero
+		p.Val = 0
+		for i, _ := range p.DayAmt {
+			p.DayAmt[i] = 0
+		}
+	}
+	return pa
+}
+
+// sort PA array and return top 15
+func RankPA(pa []PoliticalActivity) []PoliticalActivity {
+	tmpPA := PAinit(len(pa) + 1)
+
+	for _, p := range pa {
+		n := 0
+		for i, _ := range p.DayAmt {
+			n += p.DayAmt[i] // sum total value of DayAmt for that label
+		}
+		for j, _ := range tmpPA {
+			if n > tmpPA[j].Val {
+				tmpPA[j+1] = tmpPA[j]
+				tmpPA[j] = p
+			}
+			break
+		}
 	}
 
-	return string(r)
+	return tmpPA[0:15]
 }

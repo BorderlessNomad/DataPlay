@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestGetOverviewHttp(t *testing.T) {
+func TestGetPoliticalActivityHttp(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 	res := httptest.NewRecorder()
@@ -15,22 +15,22 @@ func TestGetOverviewHttp(t *testing.T) {
 		"type": "d",
 	}
 
-	Convey("Should return departments overview", t, func() {
-		result := GetOverviewHttp(res, req, params)
+	Convey("Should return departments PoliticalActivity", t, func() {
+		result := GetPoliticalActivityHttp(res, req, params)
 		So(result, ShouldEqual, "")
 	})
 
 	params["type"] = "e"
 
-	Convey("Should return events overview", t, func() {
-		result := GetOverviewHttp(res, req, params)
+	Convey("Should return events PoliticalActivity", t, func() {
+		result := GetPoliticalActivityHttp(res, req, params)
 		So(result, ShouldEqual, "")
 	})
 
 	params["type"] = "r"
 
-	Convey("Should return regions overview", t, func() {
-		result := GetOverviewHttp(res, req, params)
+	Convey("Should return regions PoliticalActivity", t, func() {
+		result := GetPoliticalActivityHttp(res, req, params)
 		So(result, ShouldEqual, "")
 	})
 }
