@@ -14,28 +14,6 @@ func TestRankValidations(t *testing.T) {
 	})
 }
 
-func TestValidateChartQ(t *testing.T) {
-	Convey("Should validate chart", t, func() {
-		params := map[string]string{}
-		params["id"] = "169"
-		params["uid"] = "3"
-		params["valflag"] = "true"
-		result := ValidateChartQ(params)
-		So(result, ShouldEqual, "Chart validated")
-	})
-}
-
-func TestValidateObservationQ(t *testing.T) {
-	Convey("Should validate observation", t, func() {
-		params := map[string]string{}
-		params["id"] = "1"
-		params["uid"] = "3"
-		params["valflag"] = "true"
-		result := ValidateObservationQ(params)
-		So(result, ShouldEqual, "Observation validated")
-	})
-}
-
 func TestValidateChartHttp(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")

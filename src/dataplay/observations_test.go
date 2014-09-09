@@ -7,19 +7,6 @@ import (
 	"testing"
 )
 
-func TestAddObservationQ(t *testing.T) {
-	Convey("Should validate observation", t, func() {
-		params := map[string]string{}
-		params["id"] = "184"
-		params["uid"] = "1"
-		params["comment"] = "test comment Q"
-		params["x"] = "xx"
-		params["y"] = "yy"
-		result := AddObservationQ(params)
-		So(result, ShouldEqual, "observation added")
-	})
-}
-
 func TestAddObservationHttp(t *testing.T) {
 	req, _ := http.NewRequest("POST", "/", nil)
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")

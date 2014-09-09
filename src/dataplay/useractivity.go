@@ -61,7 +61,7 @@ func AddCommentHttp(res http.ResponseWriter, req *http.Request, params martini.P
 	}
 
 	var id []int
-	err = DB.Table("priv_activity").Where("created = ?", t).Where("uid = ?", u).Where("type = ?", "Comment").Pluck("id", &id).Error
+	err = DB.Model(Activity{}).Where("created = ?", t).Where("uid = ?", u).Where("type = ?", "Comment").Pluck("activity_id", &id).Error
 	if err != nil {
 		http.Error(res, "No activity found", http.StatusBadRequest)
 		return "No activity found"
@@ -78,37 +78,4 @@ func AddCommentHttp(res http.ResponseWriter, req *http.Request, params martini.P
 
 	activityStr := strconv.Itoa(id[0])
 	return "Comment " + activityStr + " added successfully"
-}
-
-func AddCommentQ(params map[string]string) string {
-	u, err := strconv.Atoi(params["uid"])
-	if err != nil {
-		return "bad uid"
-	}
-
-	t := time.Now()
-
-	err2 := AddActivity(u, "c", t)
-	if err2 != nil {
-		return err2.Message
-	}
-
-	var id []int
-	err = DB.Table("priv_activity").Where("created = ?", t).Where("uid = ?", u).Where("type = ?", "Comment").Pluck("id", &id).Error
-	if err != nil {
-		return "No activity found"
-	}
-
-	c := Comment{}
-	c.Comment = params["comment"]
-	c.ActivityId = id[0]
-
-	err = DB.Save(&c).Error
-	if err != nil {
-		return "Database query failed"
-	}
-
-	activityStr := strconv.Itoa(id[0])
-	return "Comment " + activityStr + " added successfully"
-
 }

@@ -977,7 +977,7 @@ func AddSearchTerm(str string) {
 func PrimaryDate() {
 	var names []string
 
-	DB.Table("priv_onlinedata").Pluck("guid", &names)
+	DB.Model(OnlineData{}).Pluck("guid", &names)
 
 	for _, v := range names {
 		cols := FetchTableCols(v)
@@ -997,7 +997,7 @@ func PrimaryDate() {
 					dv = append(dv, d)
 				}
 				primaryDate := MainDate(dv)
-				err := DB.Table("priv_onlinedata").Where("tablename = ?", table).Update("primarydate", primaryDate).Error
+				err := DB.Model(OnlineData{}).Where("tablename = ?", table).Update("primarydate", primaryDate).Error
 				check(err)
 			}
 		}

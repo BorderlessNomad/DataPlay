@@ -170,12 +170,12 @@ func HandleRegister(res http.ResponseWriter, req *http.Request, register UserFor
 func Reputation(uid int, points int) string {
 	usr := User{}
 
-	err := DB.Table("priv_users").Where("uid = ?", uid).First(&usr).Error
+	err := DB.Model(User{}).Where("uid = ?", uid).First(&usr).Error
 	if err != nil {
 		return "failed to find user"
 	}
 	r := usr.Reputation + points
-	err = DB.Table("priv_users").Where("uid = ?", uid).Update("repuation", r).Error
+	err = DB.Model(User{}).Where("uid = ?", uid).Update("reputation", r).Error
 	if err != nil {
 		return "failed to update reputation"
 	}

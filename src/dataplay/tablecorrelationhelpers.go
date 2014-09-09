@@ -51,7 +51,7 @@ func GetRandomNameMap(m map[string]string, c cmeth) bool {
 // convert table name to guid
 func NameToGuid(tablename string) string {
 	var guid []string
-	err := DB.Table("priv_onlinedata").Where("tablename = ?", tablename).Pluck("guid", &guid).Error
+	err := DB.Model(OnlineData{}).Where("tablename = ?", tablename).Pluck("guid", &guid).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return ""
 	} else if err == gorm.RecordNotFound || len(guid) < 1 {
@@ -115,7 +115,7 @@ func RandomDateColumn(cols []ColType) string {
 // generate a random table name
 func RandomTableName() string {
 	var name []string
-	err := DB.Table("priv_onlinedata").Order("random()").Limit(1).Pluck("tablename", &name).Error
+	err := DB.Model(OnlineData{}).Order("random()").Limit(1).Pluck("tablename", &name).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return ""
 	}

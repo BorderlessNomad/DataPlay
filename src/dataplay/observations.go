@@ -25,10 +25,10 @@ func AddObservation(id int, uid int, comment string, x string, y string) *appErr
 	obs.Y = y
 	obs.Created = time.Now()
 
-	vtd := Validated{}
-	e := DB.Where("pattern_id= ?", id).First(&vtd).Error
+	validated := Validated{}
+	e := DB.Where("validated_id= ?", id).First(&validated).Error
 	check(e)
-	Reputation(vtd.Uid, discObs) // add points to rep of user who discovered chart when their discovery receives an observation
+	Reputation(validated.Uid, discObs) // add points to rep of user who discovered chart when their discovery receives an observation
 
 	err := AddActivity(uid, "c", obs.Created) // add to activities
 	if err != nil {
@@ -49,7 +49,7 @@ func GetObservations(id int) ([]Observations, *appError) {
 	obsData := make([]Observations, 0)
 	var tmpOD Observations
 
-	err := DB.Where("pattern_id= ?", id).Find(&obs).Error
+	err := DB.Where("validated_id= ?", id).Find(&obs).Error
 	if err != nil {
 		return nil, &appError{err, "Database query failed (Save)", http.StatusInternalServerError}
 	}
@@ -83,8 +83,8 @@ func AddObservationHttp(res http.ResponseWriter, req *http.Request, params marti
 		return "no y value"
 	}
 
-	id, e := strconv.Atoi(params["id"])
-	if e != nil {
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
 		http.Error(res, "bad id", http.StatusBadRequest)
 		return "bad id"
 	}
@@ -95,8 +95,8 @@ func AddObservationHttp(res http.ResponseWriter, req *http.Request, params marti
 		return "Could not validate user"
 	}
 
-	err := AddObservation(id, uid, params["comment"], params["x"], params["y"])
-	if err != nil {
+	err2 := AddObservation(id, uid, params["comment"], params["x"], params["y"])
+	if err2 != nil {
 		http.Error(res, "could not add observation", http.StatusBadRequest)
 		return "could not add observation"
 	}
@@ -115,20 +115,20 @@ func GetObservationsHttp(res http.ResponseWriter, req *http.Request, params mart
 		return "no observations id"
 	}
 
-	id, e := strconv.Atoi(params["id"])
-	if e != nil {
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
 		http.Error(res, "bad id", http.StatusBadRequest)
 		return "bad id"
 	}
 
-	obs, err := GetObservations(id)
-	if err != nil {
+	obs, err1 := GetObservations(id)
+	if err1 != nil {
 		http.Error(res, "could not get observations", http.StatusBadRequest)
 		return "could not get observations"
 	}
 
-	r, err1 := json.Marshal(obs)
-	if err1 != nil {
+	r, err2 := json.Marshal(obs)
+	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
 		return ""
 	}
@@ -136,55 +136,20 @@ func GetObservationsHttp(res http.ResponseWriter, req *http.Request, params mart
 	return string(r)
 }
 
-func AddObservationQ(params map[string]string) string {
-	if params["id"] == "" {
-		return "no id"
-	}
-
-	if params["uid"] == "" {
-		return "no uid"
-	}
-
-	if params["x"] == "" {
-		return "no x coordinate"
-	}
-
-	if params["y"] == "" {
-		return "no y coordinate"
-	}
-
-	id, e := strconv.Atoi(params["id"])
-	if e != nil || id < 0 {
-		id = 0
-	}
-
-	uid, e := strconv.Atoi(params["uid"])
-	if e != nil {
-		return "bad uid"
-	}
-
-	err := AddObservation(id, uid, params["comment"], params["x"], params["y"])
-	if err != nil {
-		return "could not add observation"
-	}
-
-	return "observation added"
-}
-
 func GetObservationsQ(params map[string]string) string {
-	id, e := strconv.Atoi(params["id"])
+	id, err := strconv.Atoi(params["id"])
 
-	if e != nil || id < 0 {
+	if err != nil || id < 0 {
 		return "Observations could not be retrieved"
 	}
 
-	result, err := GetObservations(id)
-	if err != nil {
+	result, err1 := GetObservations(id)
+	if err1 != nil {
 		return "Observations could not be retrieved"
 	}
 
-	r, e := json.Marshal(result)
-	if e != nil {
+	r, err2 := json.Marshal(result)
+	if err2 != nil {
 		return "json error"
 	}
 

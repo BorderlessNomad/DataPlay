@@ -65,14 +65,14 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	}
 
 	//if undiscovered add to the validated table as an initial discovery
-	var vtd []Validated
-	err1 := DB.Where("relation_id = ?", id).Find(&vtd).Error
+	var validated []Validated
+	err1 := DB.Where("relation_id = ?", id).Find(&validated).Error
 	if err1 == gorm.RecordNotFound {
 		Discover(id, uid, j, false)
 	}
 
 	var patternid []int
-	err = DB.Table("priv_validated").Where("relation_id = ?", id).Pluck("pattern_id", &patternid).Error
+	err = DB.Model(Validated{}).Where("relation_id = ?", id).Pluck("validated_id", &patternid).Error
 	check(err)
 	var result TableData
 	e := json.Unmarshal(j, &result)
@@ -82,10 +82,10 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 }
 
 // use the id relating to the record stored in the generated correlations table to return the json with the specific chart info
-func GetCorrelatedChart(id int, uid int) (CorrelationData, *appError) {
+func GetCorrelatedChart(cid int, uid int) (CorrelationData, *appError) {
 	var chart []string
 	var result CorrelationData
-	err := DB.Table("priv_correlation").Where("id = ?", id).Pluck("json", &chart).Error
+	err := DB.Model(Correlation{}).Where("correlation_id = ?", cid).Pluck("json", &chart).Error
 
 	if err != nil && err != gorm.RecordNotFound {
 		return result, &appError{err, "Database query failed (ID)", http.StatusInternalServerError}
@@ -94,19 +94,19 @@ func GetCorrelatedChart(id int, uid int) (CorrelationData, *appError) {
 	}
 
 	//if undiscovered add to the validated table as an initial discovery
-	var vtd []Validated
-	err1 := DB.Where("correlation_id = ?", id).Find(&vtd).Error
+	var validated []Validated
+	err1 := DB.Where("correlation_id = ?", cid).Find(&validated).Error
 	if err1 == gorm.RecordNotFound {
-		Discover(strconv.Itoa(id), uid, []byte(chart[0]), true)
+		Discover(strconv.Itoa(cid), uid, []byte(chart[0]), true)
 	}
 
-	var patternid []int
-	err = DB.Table("priv_validated").Where("correlation_id = ?", id).Pluck("pattern_id", &patternid).Error
+	var correlationid []int
+	err = DB.Model(Validated{}).Where("correlation_id = ?", cid).Pluck("validated_id", &correlationid).Error
 	check(err)
 
 	e := json.Unmarshal([]byte(chart[0]), &result)
 	check(e)
-	result.PatternId = patternid[0]
+	result.CorrelationId = correlationid[0]
 	return result, nil
 }
 
@@ -293,7 +293,7 @@ func GetValidatedCharts(tableName string, correlated bool, offset int, count int
 	var vd []byte
 
 	if correlated {
-		err := DB.Select("priv_validated.json").Joins("LEFT JOIN priv_correlation ON priv_validated.correlation_id = priv_correlation.id").Where("priv_correlation.tbl1 = ?", tableName).Order("priv_validated.rating DESC").Find(&validated).Error
+		err := DB.Select("priv_validated.json").Joins("LEFT JOIN priv_correlation ON priv_validated.correlation_id = priv_correlation.correlation_id").Where("priv_correlation.tbl1 = ?", tableName).Order("priv_validated.rating DESC").Find(&validated).Error
 		if err != nil && err != gorm.RecordNotFound {
 			return ValidatedCharts{nil, 0}, &appError{nil, "Database query failed (JOIN)", http.StatusInternalServerError}
 		} else if err == gorm.RecordNotFound {

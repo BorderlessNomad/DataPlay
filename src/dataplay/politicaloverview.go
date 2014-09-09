@@ -218,7 +218,7 @@ func PAinit(length int) []PoliticalActivity {
 	return pa
 }
 
-// sort PA array and return top 15
+// sort PA array and return top 15 ///////////////////////////////!!!!!!!!!!!!!!!!!!!!!! fix up look sharp
 func RankPA(pa []PoliticalActivity) []PoliticalActivity {
 	tmpPA := PAinit(len(pa) + 1)
 

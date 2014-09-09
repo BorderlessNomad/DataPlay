@@ -10,7 +10,7 @@ func TestCalculateCoefficient(t *testing.T) {
 	tstCd := new(CorrelationData)
 
 	Convey("Should return nothing when passed empty map", t, func() {
-		result := CalculateCoefficient(tstM, P, tstCd)
+		result, _ := CalculateCoefficient(tstM, P, tstCd)
 		So(result, ShouldEqual, 0)
 	})
 
@@ -22,7 +22,7 @@ func TestCalculateCoefficient(t *testing.T) {
 	tstM["dateCol2"] = "date"
 
 	Convey("Should return coefficient value of approx 1 when passed same map for table 1 and 2", t, func() {
-		result := CalculateCoefficient(tstM, P, tstCd)
+		result, _ := CalculateCoefficient(tstM, P, tstCd)
 		So(result, ShouldEqual, 1)
 	})
 
@@ -30,7 +30,7 @@ func TestCalculateCoefficient(t *testing.T) {
 	tstM["valCol3"] = "price"
 	tstM["dateCol3"] = "date"
 	Convey("Should return coefficient value of approx 1 when passed same map for table 1, 2 and 3", t, func() {
-		result := CalculateCoefficient(tstM, S, tstCd)
+		result, _ := CalculateCoefficient(tstM, S, tstCd)
 		So(result, ShouldEqual, 0.29639139506866363)
 	})
 }
