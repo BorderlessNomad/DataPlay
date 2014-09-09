@@ -4,6 +4,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"math"
 	"math/rand"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -122,22 +123,26 @@ func RandomTableName() string {
 }
 
 /// return date and value columns combined within struct from table
-func ExtractDateVal(tablename string, dateCol string, valCol string) []DateVal {
+func ExtractDateVal(tablename string, dateCol string, valCol string) ([]DateVal, *appError) {
 	if tablename == "" || dateCol == "" || valCol == "" {
-		return nil
+		return nil, &appError{nil, "Invalid or empty data.", http.StatusBadRequest}
 	}
 
 	var dates []time.Time
 	var amounts []float64
 
-	err = DB.Table(tablename).Pluck(dateCol, &dates).Error
+	err := DB.Table(tablename).Pluck(dateCol, &dates).Error
 	if err != nil && err != gorm.RecordNotFound {
-		check(err)
+		return nil, &appError{err, "Database query failed (DateCol).", http.StatusInternalServerError}
+	} else if err == gorm.RecordNotFound {
+		return nil, &appError{err, "No table for for DateCol.", http.StatusNotFound}
 	}
 
 	err = DB.Table(tablename).Pluck(valCol, &amounts).Error
 	if err != nil && err != gorm.RecordNotFound {
-		check(err)
+		return nil, &appError{err, "Database query failed (ValCol).", http.StatusInternalServerError}
+	} else if err == gorm.RecordNotFound {
+		return nil, &appError{err, "No table for for ValCol.", http.StatusNotFound}
 	}
 
 	result := make([]DateVal, len(dates))
@@ -150,7 +155,7 @@ func ExtractDateVal(tablename string, dateCol string, valCol string) []DateVal {
 		result[i].Value = v
 	}
 
-	return result
+	return result, nil
 }
 
 // return the starting point and end point of a date range and the length of days in between
