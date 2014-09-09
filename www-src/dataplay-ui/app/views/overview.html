@@ -41,7 +41,7 @@
 	<hr/>
 
 	<!-- Correlated -->
-	<!-- <div class="row" ng-controller="OverviewCorrelatedCtrl" ng-init="getCorrelatedCharts()">
+	<div class="row" ng-controller="OverviewCorrelatedCtrl" ng-init="getCorrelatedCharts()">
 		<div class="col-md-4" ng-repeat="chart in chartsCorrelated" id="{{chart.id}}" ng-show="hasCorrelatedCharts() > 0">
 		<a ng-href="/charts/correlated/{{params.id}}/{{chart.type}}/{{chart.table1.xLabel}}/{{chart.table1.yLabel}}" ng-hide="chart.type == 'bubble'">
 				<span><h4>{{chart.table1.xLabel}}</h4> <h5>vs</h5> <h4>{{chart.table1.yLabel}}</h4></span>
@@ -62,5 +62,5 @@
 		<div class="col-md-12">
 			<a id="getCorrelated" href="#" class="btn btn-default btn-block" ng-click="getCorrelated()" ng-hide="limit.correlated">Show more ({{max.correlated - offset.correlated}}) <span class="caret"></span></a>
 		</div>
-	</div> -->
+	</div>
 </div>

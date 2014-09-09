@@ -30,10 +30,11 @@ angular.module('dataplayApp')
 			offset = if offset? then offset else 0
 			count = if count? then count else 3
 			$http.get config.api.base_url + "/related/#{guid}/#{offset}/#{count}"
-		correlated: (guid, offset, count) ->
+		correlated: (guid, offset, count, depth) ->
 			offset = if offset? then offset else 0
 			count = if count? then count else 3
-			$http.get config.api.base_url + "/correlated/#{guid}/0/0"
+			depth = if depth? then depth else 100
+			$http.get config.api.base_url + "/correlated/#{guid}/#{offset}/#{count}/#{depth}"
 		charts: (key, value) ->
 			unless key?
 				chart = {}
@@ -41,4 +42,6 @@ angular.module('dataplayApp')
 			chart[key] = value if value?
 			return chart[key] if chart[key]?
 			null
+		humanDate: (date) ->
+			"#{date.getDate()} #{monthNames[date.getMonth()]}, #{date.getFullYear()}"
 	]

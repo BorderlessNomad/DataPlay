@@ -49,18 +49,19 @@ angular.module('dataplayApp')
 				count = $scope.max.correlated - $scope.offset.correlated
 				count = if $scope.max.correlated and count < $scope.count then count else $scope.count
 
-			Overview.correlated $scope.params.id, $scope.offset.correlated, count
+			Overview.correlated $scope.params.id, $scope.offset.correlated
 				.success (data) ->
-					if data? and data.Charts? and data.Charts.length > 0
+					if data? and data.charts? and data.charts.length > 0
 						$scope.loading.correlated = false
 
-						$scope.max.correlated = data.Count
+						$scope.max.correlated = data.count
 
-						for key, chart of data.Charts
+						for key, chart of data.charts
 							# continue unless $scope.isPlotAllowed chart.type
 							continue unless chart.type is 'line'
 
 							chart.id = "correlated-#{$scope.params.id}-#{chart.table1.xLabel}-#{chart.table1.yLabel}-#{chart.table2.xLabel}-#{chart.table2.yLabel}-#{chart.type}"
+							chart.key = key
 
 							chart.patterns = {}
 							chart.patterns[chart.table1.xLabel] =
@@ -238,7 +239,7 @@ angular.module('dataplayApp')
 			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) ->
 				if data.patterns[data.table1.xLabel].valuePattern is 'date'
-					return "#{d.x.getDate()} #{Overview.monthNames[d.x.getMonth()]} #{d.x.getFullYear()}"
+					return Overview.humanDate d.x
 				x = if d.x? and (d.x.length > 0 || data.patterns[data.table1.xLabel].valuePattern is 'date') then d.x else "N/A"
 			data.groupSum = 0
 			data.group = data.dimension.group().reduceSum (d) ->
