@@ -43,6 +43,10 @@ angular.module('dataplayApp')
 			"Dec"
 		]
 		$scope.observations = []
+		$scope.observation =
+			x: null
+			y: null
+			message: ''
 
 		$scope.init = () ->
 			# Track
@@ -142,16 +146,32 @@ angular.module('dataplayApp')
 			if data.patterns[data.xLabel].valuePattern is 'date'
 				x = $scope.humanDate x
 
-			area.append 'circle'
+			circ = area.append 'circle'
 				.attr 'cx', plot[0]
 				.attr 'cy', plot[1]
 				.attr 'r', 5
 				.style 'fill', color
-				.attr 'data-placement', 'bottom'
+				.attr 'data-placement', 'top'
 				.attr 'data-html', true
 				.tooltip "#{$scope.chart.xLabel}: #{x}<br/>#{$scope.chart.yLabel}: #{y}"
 				# .text (d) ->
 				# 	"#{$scope.chart.xLabel}: #{x}\n#{$scope.chart.yLabel}: #{y}"
+
+		$scope.saveObservation = ->
+			# console.log Charts.createObservation($scope.params.type, $scope.observation.x, $scope.observation.y, $scope.observation.message).then (res) ->
+			# 	console.log 'suc', res
+			# , (err) ->
+			# 	console.log 'err', err
+
+			$scope.observation.message = ''
+			$('#comment-modal').modal 'hide'
+			return
+
+		$scope.clearObservation = ->
+			$scope.observation.message = ''
+			$('#comment-modal').modal 'hide'
+			return
+
 
 		$scope.lineChartPostSetup = (chart) ->
 			data = $scope.chart
@@ -307,6 +327,11 @@ angular.module('dataplayApp')
 
 					$scope.addObservation x, y, space
 
+					$scope.observation.x = x
+					$scope.observation.y = y
+					$scope.observation.message = ''
+
+					$('#comment-modal').modal 'show'
 					$scope.drawCircle newObservations, data, x, y, space, color
 
 				for p in $scope.observations
@@ -553,12 +578,7 @@ angular.module('dataplayApp')
 				comment: if comment? and comment.length > 0 then comment else ""
 				timestamp: Date.now()
 
-			$scope.saveObservation x, y, comment
-
 			$scope.$apply()
-
-		$scope.saveObservation = (x, y, comment) ->
-			console.log "saveObservation", x, y, comment
 
 		$scope.resetObservations = ->
 			$scope.observations = []

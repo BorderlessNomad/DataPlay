@@ -25,3 +25,18 @@
 		</div>
 	</div>
 </div>
+
+<div id="comment-modal" class="modal fade" role="dialog">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<h4>Write an observation:</h4>
+			<form name="observationForm" role="form" novalidate ng-submit="saveObservation()">
+				<textarea ng-model="observation.message" ng-minLength="3" ng-required="true" id="comment-modal-usercomment" class="form-control"></textarea>
+				<div class="comment-modal-buttons">
+					<a class="btn btn-default" id="comment-modal-cancel" ng-click="clearObservation()">Cancel</a>
+					<button type="submit" class="btn btn-primary" value="Save" title="Save" ng-disabled="!observationForm.$valid"><span>Save</span></button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
