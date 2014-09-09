@@ -8,7 +8,7 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'ChartsCtrl', ['$scope', '$routeParams', 'PatternMatcher', 'Charts', 'Tracker', ($scope, $routeParams, PatternMatcher, Charts, Tracker) ->
+	.controller 'ChartsCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', 'Charts', 'Tracker', ($scope, $routeParams, Overview, PatternMatcher, Charts, Tracker) ->
 		$scope.params = $routeParams
 		$scope.width = 1140;
 		$scope.height = $scope.width * 9 / 16 # 16:9
@@ -28,27 +28,23 @@ angular.module('dataplayApp')
 			description: "N/A"
 			data: null
 			values: []
-		$scope.monthNames = [
-			"Jan"
-			"Feb"
-			"Mar"
-			"Apr"
-			"May"
-			"Jun"
-			"Jul"
-			"Aug"
-			"Sep"
-			"Oct"
-			"Nov"
-			"Dec"
-		]
 		$scope.observations = []
 
 		$scope.init = () ->
 			# Track
-			Tracker.visited $scope.params.id, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
+			Tracker.visited $scope.params.id,
+				$scope.params.key
+				$scope.params.type
+				$scope.params.x
+				$scope.params.y
+				$scope.params.z
 
-			Charts.info $scope.params.id, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
+			Charts.info $scope.params.id,
+					$scope.params.key
+					$scope.params.type
+					$scope.params.x
+					$scope.params.y
+					$scope.params.z
 				.success (data) ->
 					if data?
 						$scope.chart = data
@@ -67,6 +63,8 @@ angular.module('dataplayApp')
 					console.log "Charts::getInfo::Error:", status
 					return
 
+			return
+
 		$scope.reduceData = () ->
 			$scope.chart.data = $scope.chart.values
 			$scope.chart.patterns = {}
@@ -82,9 +80,6 @@ angular.module('dataplayApp')
 				$scope.chart.patterns[$scope.chart.yLabel] =
 					valuePattern: PatternMatcher.getPattern $scope.chart.values[0]['y']
 					keyPattern: PatternMatcher.getKeyPattern $scope.chart.values[0]['y']
-
-		$scope.humanDate = (date) ->
-			"#{date.getDate()} #{$scope.monthNames[date.getMonth()]}, #{date.getFullYear()}"
 
 		$scope.getXScale = (data) ->
 			xScale = switch data.patterns[data.xLabel].valuePattern
@@ -140,7 +135,7 @@ angular.module('dataplayApp')
 
 		$scope.drawCircle = (area, data, x, y, plot, color) ->
 			if data.patterns[data.xLabel].valuePattern is 'date'
-				x = $scope.humanDate x
+				x = Overview.humanDate x
 
 			area.append 'circle'
 				.attr 'cx', plot[0]
@@ -150,6 +145,7 @@ angular.module('dataplayApp')
 				.attr 'data-placement', 'bottom'
 				.attr 'data-html', true
 				.tooltip "#{$scope.chart.xLabel}: #{x}<br/>#{$scope.chart.yLabel}: #{y}"
+				# .call bootstrap.tooltip().placement("right").title("Hello")
 				# .text (d) ->
 				# 	"#{$scope.chart.xLabel}: #{x}\n#{$scope.chart.yLabel}: #{y}"
 
@@ -174,7 +170,7 @@ angular.module('dataplayApp')
 			chart.title (d) ->
 				x = d.key
 				if $scope.chart.patterns[$scope.chart.xLabel].valuePattern is 'date'
-					x = $scope.humanDate d.key
+					x = Overview.humanDate d.key
 				"#{$scope.chart.xLabel}: #{x}\n#{$scope.chart.yLabel}: #{d.value}"
 			chart.legend dc.legend().itemHeight(13).gap(5)
 
@@ -418,7 +414,7 @@ angular.module('dataplayApp')
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) ->
 				if data.patterns[data.xLabel].valuePattern is 'date'
-					return "#{d.x.getDate()} #{$scope.monthNames[d.x.getMonth()]} #{d.x.getFullYear()}"
+					return Overview.humanDate d.x
 				x = if d.x? and (d.x.length > 0 || data.patterns[data.xLabel].valuePattern is 'date') then d.x else "N/A"
 			data.groupSum = 0
 			data.group = data.dimension.group().reduceSum (d) ->

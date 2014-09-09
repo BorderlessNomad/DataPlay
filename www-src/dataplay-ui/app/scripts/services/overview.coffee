@@ -42,4 +42,6 @@ angular.module('dataplayApp')
 			chart[key] = value if value?
 			return chart[key] if chart[key]?
 			null
+		humanDate: (date) ->
+			"#{date.getDate()} #{monthNames[date.getMonth()]}, #{date.getFullYear()}"
 	]

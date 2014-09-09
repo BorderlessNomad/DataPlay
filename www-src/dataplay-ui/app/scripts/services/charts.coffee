@@ -9,11 +9,11 @@
 ###
 angular.module('dataplayApp')
 	.factory 'Charts', ['$http', 'config', ($http, config) ->
-		info: (guid, type, x, y, z) ->
+		info: (guid, key, type, x, y, z) ->
 			if z?
-				$http.get config.api.base_url + "/chart/#{guid}/#{type}/#{x}/#{y}/#{z}"
+				$http.get config.api.base_url + "/chart/#{guid}/#{key}/#{type}/#{x}/#{y}/#{z}"
 			else
-				$http.get config.api.base_url + "/chart/#{guid}/#{type}/#{x}/#{y}"
+				$http.get config.api.base_url + "/chart/#{guid}/#{key}/#{type}/#{x}/#{y}"
 
 		bookmark: (bookmarks) ->
 			$http.post config.api.base_url + "/setbookmark",

@@ -239,7 +239,7 @@ angular.module('dataplayApp')
 			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) ->
 				if data.patterns[data.table1.xLabel].valuePattern is 'date'
-					return "#{d.x.getDate()} #{Overview.monthNames[d.x.getMonth()]} #{d.x.getFullYear()}"
+					return Overview.humanDate d.x
 				x = if d.x? and (d.x.length > 0 || data.patterns[data.table1.xLabel].valuePattern is 'date') then d.x else "N/A"
 			data.groupSum = 0
 			data.group = data.dimension.group().reduceSum (d) ->
