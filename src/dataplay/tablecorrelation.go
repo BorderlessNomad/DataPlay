@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"math"
+	"net/http"
 	"time"
 )
 
@@ -76,37 +77,51 @@ func GenerateCorrelations(tableName string, searchDepth int) {
 		} else {
 			c = S
 		}
+
 		go AttemptCorrelation(m, c)
 	}
 }
 
 // Take in table name and a correlation type, then get some random apt columns from it and generate more random tables and columns and check for any  pre-existing correlations on that combination.
 // If a correlation for the generated tables combination doesn't exist, attempt to calculate a new correlation coefficient and if one is generated save the new correlation.
-func AttemptCorrelation(m map[string]string, c cmeth) {
-	cor := Correlation{}
+func AttemptCorrelation(m map[string]string, c cmeth) *appError {
 	var jsonData []string
-	cd := new(CorrelationData)
 	nameChk := GetRandomNameMap(m, c)
 
 	if nameChk { // if all table and columns names are present in name map
+		cor := Correlation{}
+
 		if c == P {
 			err := DB.Model(&cor).Where("tbl1 = ?", m["table1"]).Where("col1 = ?", m["valCol1"]).Where("tbl2 = ?", m["table2"]).Where("col2 = ?", m["valCol2"]).Where("method = ?", "Pearson").Pluck("json", &jsonData).Error
-			check(err)
+			if err != nil {
+				return &appError{err, "Database query failed (DateCol).", http.StatusInternalServerError}
+			}
 		} else if c == S {
 			err := DB.Model(&cor).Where("tbl1 = ?", m["table1"]).Where("col1 = ?", m["valCol1"]).Where("tbl2 = ?", m["table2"]).Where("col2 = ?", m["valCol2"]).Where("tbl3 = ?", m["table3"]).Where("col3 = ?", m["valCol3"]).Where("method = ?", "Spurious").Pluck("json", &jsonData).Error
-			check(err)
+			if err != nil {
+				return &appError{err, "Database query failed (DateCol).", http.StatusInternalServerError}
+			}
 		} else if c == V {
 			err := DB.Model(&cor).Where("tbl1 = ?", m["table1"]).Where("col1 = ?", m["valCol1"]).Where("tbl2 = ?", m["table2"]).Where("col2 = ?", m["valCol2"]).Where("method = ?", "Visual").Pluck("json", &jsonData).Error
-			check(err)
+			if err != nil {
+				return &appError{err, "Database query failed (DateCol).", http.StatusInternalServerError}
+			}
 		}
 
 		if jsonData == nil { // if no correlation exists then generate one
-			cf := CalculateCoefficient(m, c, cd)
+			cd := new(CorrelationData)
+			cf, errCF := CalculateCoefficient(m, c, cd)
+			if errCF != nil {
+				return errCF
+			}
+
 			if cf != 0 { //Save the correlation if one is generated
 				SaveCorrelation(m, c, cf, cd) // save everything to the correlation table
 			}
 		}
 	}
+
+	return nil
 }
 
 // Determine if two sets of dates overlap - X values are referenced so they can be altered in place and passed back again when used with Spurious correlation which covers the intersect between three data sets
@@ -140,44 +155,55 @@ func GetIntersect(pFromX *time.Time, pToX *time.Time, pRngX *int, fromY time.Tim
 
 // Generate a correlation coefficient (if data allows), based on the requested correlation type
 // Uses discrete buckets in order to normalise data for calculating coefficient but stores the entire range of x,y,z values in the correlation data struct
-func CalculateCoefficient(m map[string]string, c cmeth, cd *CorrelationData) float64 {
+func CalculateCoefficient(m map[string]string, c cmeth, cd *CorrelationData) (float64, *appError) {
 	if len(m) == 0 {
-		return 0.0
+		return 0.0, nil
 	}
+
 	var hasVals bool
 	var bucketRange []FromTo
 	var xBuckets, yBuckets, zBuckets []float64
 	var cf float64
-	x := ExtractDateVal(m["table1"], m["dateCol1"], m["valCol1"])
-	y := ExtractDateVal(m["table2"], m["dateCol2"], m["valCol2"])
+
+	x, errX := ExtractDateVal(m["table1"], m["dateCol1"], m["valCol1"])
+	if errX != nil {
+		return 0.0, errX
+	}
+
+	y, errY := ExtractDateVal(m["table2"], m["dateCol2"], m["valCol2"])
+	if errY != nil {
+		return 0.0, errY
+	}
+
 	fromX, toX, rngX := DetermineRange(x)
 	fromY, toY, rngY := DetermineRange(y)
 
 	if rngX == 0 || rngY == 0 {
-		return 0.0
+		return 0.0, nil
 	}
 
 	bucketRange = GetIntersect(&fromX, &toX, &rngX, fromY, toY, rngY)
 	if bucketRange == nil {
-		return 0
+		return 0, nil
 	}
 
 	xBuckets = FillBuckets(x, bucketRange)
 	yBuckets = FillBuckets(y, bucketRange)
 
 	if MostlyEmpty(xBuckets) || MostlyEmpty(yBuckets) {
-		return 0.0
+		return 0.0, nil
 	}
 
 	l := len(bucketRange) - 1
 
 	(*cd).Table1.Values, hasVals = GetValues(x, bucketRange[0].From, bucketRange[l].To)
 	if !hasVals {
-		return 0.0
+		return 0.0, nil
 	}
+
 	(*cd).Table2.Values, hasVals = GetValues(y, bucketRange[0].From, bucketRange[l].To)
 	if !hasVals {
-		return 0.0
+		return 0.0, nil
 	}
 
 	(*cd).From = (bucketRange[0].From.String()[0:10])
@@ -188,17 +214,21 @@ func CalculateCoefficient(m map[string]string, c cmeth, cd *CorrelationData) flo
 	} else if c == V {
 		cf = Visual(xBuckets, yBuckets, bucketRange)
 	} else if c == S {
-		z := ExtractDateVal(m["table3"], m["dateCol3"], m["valCol3"])
+		z, errZ := ExtractDateVal(m["table3"], m["dateCol3"], m["valCol3"])
+		if errZ != nil {
+			return 0.0, errZ
+		}
+
 		fromZ, toZ, rngZ := DetermineRange(z)
 
 		if rngZ == 0 {
-			return 0.0
+			return 0.0, nil
 		}
 
 		//from X, toX and rngX now equal full from, to and rng of x and y from last iteration so just get intersect of those with Z
 		bucketRange = GetIntersect(&fromX, &toX, &rngX, fromZ, toZ, rngZ)
 		if bucketRange == nil {
-			return 0.0
+			return 0.0, nil
 		}
 
 		l := len(bucketRange) - 1
@@ -207,21 +237,24 @@ func CalculateCoefficient(m map[string]string, c cmeth, cd *CorrelationData) flo
 		zBuckets = FillBuckets(z, bucketRange)
 
 		if MostlyEmpty(xBuckets) || MostlyEmpty(yBuckets) || MostlyEmpty(zBuckets) {
-			return 0.0
+			return 0.0, nil
 		}
 
 		(*cd).Table1.Values, hasVals = GetValues(x, bucketRange[0].From, bucketRange[l].To)
 		if !hasVals {
-			return 0.0
+			return 0.0, nil
 		} else {
 			(*cd).Table2.Values, hasVals = GetValues(y, bucketRange[0].From, bucketRange[l].To)
 		}
+
 		if !hasVals {
-			return 0.0
+			return 0.0, nil
 		}
+
 		(*cd).Table3.Values, hasVals = GetValues(z, bucketRange[0].From, bucketRange[l].To)
+
 		if !hasVals {
-			return 0.0
+			return 0.0, nil
 		}
 
 		(*cd).From = (bucketRange[0].From.String()[0:10])
@@ -229,9 +262,10 @@ func CalculateCoefficient(m map[string]string, c cmeth, cd *CorrelationData) flo
 
 		cf = Spurious(yBuckets, zBuckets, xBuckets) // order is table2 = x arg , table3 = y arg, table1 = z arg so that we get correlation of 2 random tables against underlying table
 	} else {
-		return 0.0
+		return 0.0, nil
 	}
-	return cf
+
+	return cf, nil
 }
 
 //Create a json string containing all the data needed for generating a graph and then insert this and all the other correlation info into the correlations table
