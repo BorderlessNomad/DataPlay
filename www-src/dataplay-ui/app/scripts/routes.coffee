@@ -59,6 +59,10 @@ angular.module('dataplayApp')
 			.when '/login',
 				templateUrl: 'views/login.html'
 				login: false
+			.when '/forgot-password',
+				templateUrl: 'views/forgot-password.html'
+				controller: 'UserCtrl'
+				login: false
 			.when '/logout',
 				templateUrl: 'views/login.html'
 				controller: 'UserCtrl'

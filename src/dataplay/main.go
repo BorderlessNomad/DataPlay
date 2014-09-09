@@ -150,6 +150,12 @@ func initClassicMode() {
 	m.Post("/api/register", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
 		return HandleRegister(res, req, login)
 	})
+	m.Post("/api/user/check", binding.Bind(UserNameForm{}), func(res http.ResponseWriter, req *http.Request, username UserNameForm) string {
+		return HandleCheckUsername(res, req, username)
+	})
+	m.Post("/api/user/forgot", binding.Bind(UserNameForm{}), func(res http.ResponseWriter, req *http.Request, username UserNameForm) string {
+		return HandleForgotPassword(res, req, username)
+	})
 	m.Get("/api/user", CheckAuth)
 	m.Get("/api/visited", GetLastVisitedHttp)
 	m.Post("/api/visited", binding.Bind(VisitedForm{}), func(res http.ResponseWriter, req *http.Request, visited VisitedForm) string {
@@ -367,7 +373,7 @@ func JsonApiHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func SessionApiHandler(res http.ResponseWriter, req *http.Request) {
-	if req.URL.Path == "/api/login" || req.URL.Path == "/api/register" {
+	if req.URL.Path == "/api/login" || req.URL.Path == "/api/register" || req.URL.Path == "/api/user/check" || req.URL.Path == "/api/user/forgot" {
 		// Do nothing
 	} else if len(req.Header.Get("X-API-SESSION")) <= 0 || req.Header.Get("X-API-SESSION") == "false" {
 		res.WriteHeader(http.StatusUnauthorized)
