@@ -61,7 +61,7 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 
 		err1 := DB.Save(&validated).Error
 		if err1 != nil {
-			return "", &appError{err1, "Database query failed (Save)", http.StatusInternalServerError}
+			return "", &appError{err1, "Database query failed - validate chart (Save validated)", http.StatusInternalServerError}
 		}
 
 		validation.ValidatedId = validated.ValidatedId
@@ -71,7 +71,7 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 
 		err2 := DB.Save(&validation).Error
 		if err2 != nil {
-			return "", &appError{err2, "Database query failed (Save)", http.StatusInternalServerError}
+			return "", &appError{err2, "Database query failed (Save validaition)", http.StatusInternalServerError}
 		}
 	}
 
@@ -109,7 +109,7 @@ func ValidateObservation(oid int, uid int, valflag bool) *appError {
 
 	err = DB.Save(&validation).Error
 	if err != nil {
-		return &appError{err, "Database query failed (Save)", http.StatusInternalServerError}
+		return &appError{err, "Database query failed - validate observation (Save validation)", http.StatusInternalServerError}
 	}
 
 	return nil

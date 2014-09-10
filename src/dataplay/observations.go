@@ -44,7 +44,7 @@ func AddObservation(vid int, uid int, comment string, x string, y string) (strin
 		validated := Validated{}
 		err := DB.Where("validated_id= ?", vid).First(&validated).Error
 		if err != nil {
-			return "", &appError{err, "Database query failed (Validated id)", http.StatusInternalServerError}
+			return "", &appError{err, "Database query failed (find validated)", http.StatusInternalServerError}
 		}
 		Reputation(validated.Uid, discObs) // add points to rep of user who discovered chart when their discovery receives an observation
 
@@ -55,12 +55,12 @@ func AddObservation(vid int, uid int, comment string, x string, y string) (strin
 
 		err2 := DB.Save(&observation).Error
 		if err2 != nil {
-			return "", &appError{err2, "Database query failed (Save)", http.StatusInternalServerError}
+			return "", &appError{err2, "Database query failed (Save observation)", http.StatusInternalServerError}
 		}
 
 		err3 := DB.Where("validated_id= ?", vid).Where("x =?", x).Where("y =?", y).First(&observation).Error
 		if err3 != nil {
-			return "", &appError{err3, "Database query failed (observation)", http.StatusInternalServerError}
+			return "", &appError{err3, "Database query failed - add observation (find observation)", http.StatusInternalServerError}
 		}
 	}
 
@@ -72,7 +72,7 @@ func GetObservations(vid int) ([]Observations, *appError) {
 	validated := make([]Validated, 0)
 	err := DB.Where("validated_id= ?", vid).Find(&validated).Error
 	if err != nil {
-		return nil, &appError{err, "Database query failed (find validation)", http.StatusInternalServerError}
+		return nil, &appError{err, "Database query failed - get observation (find validation)", http.StatusInternalServerError}
 	}
 
 	observation := make([]Observation, 0)
@@ -81,7 +81,7 @@ func GetObservations(vid int) ([]Observations, *appError) {
 
 	err1 := DB.Where("validated_id= ?", vid).Find(&observation).Error
 	if err1 != nil {
-		return nil, &appError{err1, "Database query failed (find observation)", http.StatusInternalServerError}
+		return nil, &appError{err1, "Database query failed  - get observation (find observation)", http.StatusInternalServerError}
 	}
 
 	for _, o := range observation {
@@ -96,7 +96,7 @@ func GetObservations(vid int) ([]Observations, *appError) {
 		user := make([]User, 0)
 		err2 := DB.Where("uid= ?", o.Uid).Find(&user).Error
 		if err2 != nil {
-			return nil, &appError{err2, "Database query failed - no such user", http.StatusInternalServerError}
+			return nil, &appError{err2, "Database query failed - get observation - no such user", http.StatusInternalServerError}
 		}
 
 		tmpOD.Username = user[0].Username
