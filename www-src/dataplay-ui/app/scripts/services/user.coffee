@@ -22,6 +22,19 @@ angular.module('dataplayApp')
 				username: username
 				password: password
 
+		check: (username) ->
+			$http.post config.api.base_url + "/user/check",
+				username: username
+
+		forgotPassword: (username) ->
+			$http.post config.api.base_url + "/user/forgot",
+				username: username
+
+		resetPassword: (hash, password) ->
+			$http.post config.api.base_url + "/user/reset",
+				hash: hash
+				password: password
+
 		visited: () ->
 			$http.get config.api.base_url + "/visited"
 

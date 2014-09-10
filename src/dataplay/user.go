@@ -3,11 +3,14 @@ package main
 import (
 	bcrypt "code.google.com/p/go.crypto/bcrypt"
 	"crypto/md5"
+	"crypto/rand"
+	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"net/http"
+	"time"
 )
 
 // REPUTATION POINTS
@@ -24,6 +27,10 @@ const obsSpam int = -100 // observation receives spam/flagged
 type UserForm struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
+}
+
+type UserNameForm struct {
+	Username string `json:"username" binding:"required"`
 }
 
 func GetMD5Hash(text string) string {
@@ -161,6 +168,78 @@ func HandleRegister(res http.ResponseWriter, req *http.Request, register UserFor
 	u := map[string]interface{}{
 		"user":    user.Email,
 		"session": session.Value,
+	}
+	usr, _ := json.Marshal(u)
+
+	return string(usr)
+}
+
+func HandleCheckUsername(res http.ResponseWriter, req *http.Request, user UserNameForm) string {
+	if user.Username == "" {
+		http.Error(res, "Invalid or empty username.", http.StatusBadRequest)
+		return ""
+	}
+
+	validUser := User{}
+	err := DB.Where("email = ?", user.Username).First(&validUser).Error
+	if err != nil && err != gorm.RecordNotFound {
+		http.Error(res, "Unable to find that User.", http.StatusInternalServerError)
+		return ""
+	} else if err == gorm.RecordNotFound {
+		http.Error(res, "We couldn't find an account associated with "+user.Username, http.StatusNotFound)
+		return ""
+	}
+
+	u := map[string]interface{}{
+		"user":   validUser.Email,
+		"exists": true,
+	}
+	usr, _ := json.Marshal(u)
+
+	return string(usr)
+}
+
+func HandleForgotPassword(res http.ResponseWriter, req *http.Request, user UserNameForm) string {
+	if user.Username == "" {
+		http.Error(res, "Invalid or empty username.", http.StatusBadRequest)
+		return ""
+	}
+
+	validUser := User{}
+	err := DB.Where("email = ?", user.Username).First(&validUser).Error
+	if err != nil && err != gorm.RecordNotFound {
+		http.Error(res, "Unable to find that User.", http.StatusInternalServerError)
+		return ""
+	} else if err == gorm.RecordNotFound {
+		http.Error(res, "We couldn't find an account associated with "+user.Username, http.StatusNotFound)
+		return ""
+	}
+
+	randomString := make([]byte, 64)
+	_, e := rand.Read(randomString)
+	if e != nil {
+		http.Error(res, "Unable to generate hash.", http.StatusInternalServerError)
+		return ""
+	}
+	hashString := sha1.New()
+	hashString.Write(randomString)
+	hash := hex.EncodeToString(hashString.Sum(nil))
+
+	token := UserTokens{
+		Uid:     validUser.Uid,
+		Hash:    hash,
+		Created: time.Now(),
+	}
+
+	dbError := DB.Save(&token).Error
+	if dbError != nil {
+		http.Error(res, "Database query failed (Save)", http.StatusInternalServerError)
+		return ""
+	}
+
+	u := map[string]interface{}{
+		"user":  validUser.Email,
+		"token": hash,
 	}
 	usr, _ := json.Marshal(u)
 

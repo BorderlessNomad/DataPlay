@@ -150,6 +150,12 @@ func initClassicMode() {
 	m.Post("/api/register", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
 		return HandleRegister(res, req, login)
 	})
+	m.Post("/api/user/check", binding.Bind(UserNameForm{}), func(res http.ResponseWriter, req *http.Request, username UserNameForm) string {
+		return HandleCheckUsername(res, req, username)
+	})
+	m.Post("/api/user/forgot", binding.Bind(UserNameForm{}), func(res http.ResponseWriter, req *http.Request, username UserNameForm) string {
+		return HandleForgotPassword(res, req, username)
+	})
 	m.Get("/api/user", CheckAuth)
 	m.Get("/api/visited", GetLastVisitedHttp)
 	m.Post("/api/visited", binding.Bind(VisitedForm{}), func(res http.ResponseWriter, req *http.Request, visited VisitedForm) string {
@@ -179,12 +185,13 @@ func initClassicMode() {
 	// API v1.1
 	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y", GetChartHttp)
 	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y/:z", GetChartHttp)
-	m.Get("/api/chartcorrelated/:id", GetCorrelatedChartHttp)
+	m.Get("/api/chartcorrelated/:id", GetChartCorrelatedHttp)
 	m.Get("/api/related/:tablename", GetRelatedChartsHttp)
 	m.Get("/api/related/:tablename/:offset/:count", GetRelatedChartsHttp)
 	m.Get("/api/correlated/:tablename", GetCorrelatedChartsHttp)
-	m.Get("/api/correlated/:tablename/:offset/:count", GetCorrelatedChartsHttp)
+	m.Get("/api/correlated/:tablename/:searchdepth", GetCorrelatedChartsHttp)
 	m.Get("/api/correlated/:tablename/:offset/:count/:searchdepth", GetCorrelatedChartsHttp)
+
 	m.Get("/api/validated/:tablename/:correlated", GetValidatedChartsHttp)
 	m.Get("/api/validated/:tablename/:correlated/:offset/:count", GetValidatedChartsHttp)
 	m.Post("/api/activity/:comment", AddCommentHttp)
@@ -366,7 +373,7 @@ func JsonApiHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func SessionApiHandler(res http.ResponseWriter, req *http.Request) {
-	if req.URL.Path == "/api/login" || req.URL.Path == "/api/register" {
+	if req.URL.Path == "/api/login" || req.URL.Path == "/api/register" || req.URL.Path == "/api/user/check" || req.URL.Path == "/api/user/forgot" {
 		// Do nothing
 	} else if len(req.Header.Get("X-API-SESSION")) <= 0 || req.Header.Get("X-API-SESSION") == "false" {
 		res.WriteHeader(http.StatusUnauthorized)

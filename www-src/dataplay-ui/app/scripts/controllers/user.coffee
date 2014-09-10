@@ -15,6 +15,10 @@ angular.module('dataplayApp')
 			password_confirm: null
 			message: null
 
+		$scope.forgotPassword =
+			valid: false
+			sent: false
+
 		$scope.login = (user) ->
 			if user.username? and user.password?
 				User.logIn(user.username, user.password).success((data) ->
@@ -64,6 +68,39 @@ angular.module('dataplayApp')
 				).error (status, data) ->
 					$scope.user.message = status
 					console.log "User::Register::Error:", status
+					return
+
+			return
+
+		$scope.forgotPassword = (user) ->
+			$scope.closeAlert()
+
+			if user.username?
+				# User.check user.username
+				# 	.then (result) ->
+				# 		$scope.forgotPassword.valid = true
+				# 		User.forgotPassword user.username
+				# 	.then (result) ->
+				# 		$scope.forgotPassword.sent = true
+				# 	.error (result) ->
+				# 		console.log "error", result
+
+				User.check(user.username).success((data) ->
+					$scope.forgotPassword.valid = true
+
+					User.forgotPassword(user.username).success((data) ->
+						$scope.forgotPassword.sent = true
+
+						return
+					).error (status, data) ->
+						$scope.forgotPassword.valid = false
+						$scope.user.message = status
+						console.log "User::ForgotPassword::token::Error:", status, data
+						return
+				).error (status, data) ->
+					$scope.forgotPassword.valid = false
+					$scope.user.message = status
+					console.log "User::ForgotPassword::check::Error:", status, data
 					return
 
 			return
