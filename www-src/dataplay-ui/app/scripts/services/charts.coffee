@@ -19,6 +19,9 @@ angular.module('dataplayApp')
 			$http.post config.api.base_url + "/setbookmark",
 				data: bookmarks
 
+		getObservations: (chart) ->
+			$http.get config.api.base_url + "/observations/#{chart}"
+
 		createObservation: (chart, x, y, message) ->
 			$http.post config.api.base_url + "/observations/#{chart}",
 				x: x

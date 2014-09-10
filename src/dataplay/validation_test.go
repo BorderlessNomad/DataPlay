@@ -20,11 +20,11 @@ func TestValidateChartHttp(t *testing.T) {
 	res := httptest.NewRecorder()
 	Convey("Should validate chart", t, func() {
 		params := map[string]string{}
-		params["id"] = "169"
+		params["rcid"] = "114264"
 		params["uid"] = "5"
 		params["valflag"] = "false"
 		result := ValidateChartHttp(res, req, params)
-		So(result, ShouldEqual, "Chart invalidated")
+		So(result, ShouldEqual, "171")
 	})
 }
 
@@ -34,7 +34,7 @@ func TestValidateObservationHttp(t *testing.T) {
 	res := httptest.NewRecorder()
 	Convey("Should validate observation", t, func() {
 		params := map[string]string{}
-		params["id"] = "1"
+		params["oid"] = "1"
 		params["uid"] = "5"
 		params["valflag"] = "false"
 		result := ValidateObservationHttp(res, req, params)
