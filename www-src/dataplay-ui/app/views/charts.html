@@ -1,27 +1,54 @@
 <div class="charts" ng-init="init()">
 	<div class="row">
-		<div class="col-md-6 chart-title"><h1>{{chart.title}}</h1></div>
-		<div class="col-md-6 chart-info pull-right">
-			<div class="well well-sm">
-				<h5 ng-bind-html="chart.description"></h5>
+		<div class="col-md-3" id="sidebar">
+			<div class="row user-observation-title">Observations</div>
+			<div class="row user-observation" ng-repeat="obsv in userObservations">
+
+
+				<div class="uo-date">
+					<hr>
+					<date>{{obsv.date}}</date>
+				</div>
+
+
+				<div class="uo-mainblock">
+					<div class="uo-leftcontrols">
+						<img class="uo-avatar" data-ng-src="{{obsv.user.avatar}}" />
+						<i class="glyphicon glyphicon-arrow-up"></i>
+						<span>{{obsv.upvotes}}</span>
+						<i class="glyphicon glyphicon-arrow-down"></i>
+					</div>
+					<div class="uo-userinfo">
+						<a class="uo-name" data-ng-href="{{obsv.user.name}}">{{obsv.user.name}}</a>
+						<span class="uo-score"><i class="glyphicon glyphicon-star"></i>{{obsv.user.score}}</span>
+						<span class="label label-default uo-discoverer" ng-if="obsv.user.discoverer">Discoverer</span>
+					</div>
+					<div class="uo-message">{{obsv.message}}</div>
+				</div>
+
 			</div>
 		</div>
-	</div>
-
-	<div class="row">
-		<div class="col-md-12">
+		<div class="col-md-9">
 			<div class="pull-right">
 				<!-- <a href="#" class="btn btn-success" ng-show="observations.length" ng-click="saveObservations()">Save observations ({{observations.length}})</a> -->
 				<a href="#" class="btn btn-warning" ng-click="resetAll()">Reset changes</a>
 			</div>
 		</div>
 
-		<div class="col-md-12" ng-switch="chart.type">
+		<div class="col-md-6 constrict-graphs" ng-switch="chart.type">
 			<span ng-include="'views/charts/related/lineRanged.html'"></span>
 			<span ng-include="'views/charts/related/row.html'"></span>
 			<span ng-include="'views/charts/related/column.html'"></span>
 			<span ng-include="'views/charts/related/pie.html'"></span>
 			<span ng-include="'views/charts/related/bubble.html'"></span>
+		</div>
+		<div class="col-md-3">
+			<div class="chart-title"><h1>{{chart.title}}</h1></div>
+			<div class="chart-info pull-right">
+				<div class="well well-sm">
+					<h5 ng-bind-html="chart.description"></h5>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>
