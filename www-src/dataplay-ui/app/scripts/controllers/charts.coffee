@@ -217,7 +217,7 @@ angular.module('dataplayApp')
 				if $scope.chart.patterns[$scope.chart.xLabel].valuePattern is 'date'
 					x = Overview.humanDate d.key
 				"#{$scope.chart.xLabel}: #{x}\n#{$scope.chart.yLabel}: #{d.value}"
-			chart.legend dc.legend().itemHeight(13).gap(5)
+			# chart.legend dc.legend().itemHeight(13).gap(5)
 
 			xScale = $scope.getXScale data
 			chart.x xScale
