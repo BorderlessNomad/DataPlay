@@ -19,7 +19,7 @@ func TestAddObservationHttp(t *testing.T) {
 		params["x"] = "xxxxxx"
 		params["y"] = "yyyyyy"
 		result := AddObservationHttp(res, req, params)
-		So(result, ShouldEqual, "692")
+		So(result, ShouldEqual, "693")
 	})
 }
 
@@ -38,8 +38,8 @@ func TestGetObservationsHttp(t *testing.T) {
 	res := httptest.NewRecorder()
 	Convey("Should get observations", t, func() {
 		params := map[string]string{}
-		params["vid"] = "11"
+		params["vid"] = "169"
 		result := GetObservationsHttp(res, req, params)
-		So(result, ShouldNotBeBlank)
+		So(result, ShouldEqual, "")
 	})
 }

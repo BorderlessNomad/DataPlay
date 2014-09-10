@@ -193,7 +193,8 @@ type User struct {
 	Email      string
 	Password   string
 	Reputation int
-	ProfilePic string
+	Avatar     string
+	Username   string
 }
 
 func (u User) TableName() string {

@@ -10,10 +10,16 @@ import (
 )
 
 type Observations struct {
-	ObservationId int    `json:"observation_id"`
-	Comment       string `json:"comment"`
-	X             string `json:"y"`
-	Y             string `json:"y"`
+	ObservationId int       `json:"observation_id"`
+	Comment       string    `json:"comment, omitempty"`
+	X             string    `json:"x"`
+	Y             string    `json:"y"`
+	Username      string    `json:"username, omitempty"`
+	Reputation    int       `json:"reputation, omitempty"`
+	Avatar        string    `json:"avatar, omitempty"`
+	Created       time.Time `json:"created, omitempty"`
+	Valid         int       `json:"validations, omitempty"`
+	Invalid       int       `json:"invalidations, omitempty"`
 }
 
 // add observation
@@ -71,11 +77,22 @@ func GetObservations(vid int) ([]Observations, *appError) {
 		return nil, &appError{err, "Database query failed (Save)", http.StatusInternalServerError}
 	}
 
-	for _, v := range obs {
-		tmpOD.Comment = v.Comment
-		tmpOD.X = v.X
-		tmpOD.Y = v.Y
-		tmpOD.ObservationId = v.ObservationId
+	for _, o := range obs {
+		tmpOD.Comment = o.Comment
+		tmpOD.X = o.X
+		tmpOD.Y = o.Y
+		tmpOD.Valid = o.Valid
+		tmpOD.Invalid = o.Invalid
+		tmpOD.Created = o.Created
+		tmpOD.ObservationId = o.ObservationId
+		user := make([]User, 0)
+		err1 := DB.Where("uid= ?", o.Uid).Find(&user).Error
+		if err1 != nil {
+			return nil, &appError{err1, "Database query failed - no such user", http.StatusInternalServerError}
+		}
+		tmpOD.Username = user[0].Username
+		tmpOD.Avatar = user[0].Avatar
+		tmpOD.Reputation = user[0].Reputation
 		obsData = append(obsData, tmpOD)
 	}
 
@@ -143,14 +160,14 @@ func GetObservationsHttp(res http.ResponseWriter, req *http.Request, params mart
 
 	obs, err1 := GetObservations(vid)
 	if err1 != nil {
-		http.Error(res, "could not get observations", http.StatusBadRequest)
-		return "could not get observations"
+		http.Error(res, err1.Message, http.StatusBadRequest)
+		return err1.Message
 	}
 
 	r, err2 := json.Marshal(obs)
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return ""
+		return "Unable to parse JSON"
 	}
 
 	return string(r)
