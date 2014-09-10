@@ -641,7 +641,7 @@ func GetChartCorrelatedHttp(res http.ResponseWriter, req *http.Request, params m
 		return "Missing session parameter"
 	}
 
-	id, err := strconv.Atoi(params["id"])
+	cid, err := strconv.Atoi(params["cid"])
 	if err != nil {
 		http.Error(res, "Invalid id parameter", http.StatusBadRequest)
 		return "Invalid id parameter"
@@ -653,7 +653,7 @@ func GetChartCorrelatedHttp(res http.ResponseWriter, req *http.Request, params m
 		return "Could not validate user"
 	}
 
-	result, error := GetChartCorrelated(id, uid)
+	result, error := GetChartCorrelated(cid, uid)
 	if error != nil {
 		http.Error(res, error.Message, error.Code)
 		return ""
@@ -861,24 +861,24 @@ func GetChartQ(params map[string]string) string {
 }
 
 func GetChartCorrelatedQ(params map[string]string) string {
-	id, e := strconv.Atoi(params["id"])
-	if e != nil {
-		return e.Error()
-	}
-
-	uid, e := strconv.Atoi(params["uid"])
+	cid, err := strconv.Atoi(params["cid"])
 	if err != nil {
-		return e.Error()
+		return err.Error()
 	}
 
-	result, err1 := GetChartCorrelated(id, uid)
+	uid, err1 := strconv.Atoi(params["uid"])
 	if err1 != nil {
-		return err1.Message
+		return err1.Error()
 	}
 
-	r, e := json.Marshal(result)
-	if e != nil {
-		return e.Error()
+	result, err2 := GetChartCorrelated(cid, uid)
+	if err2 != nil {
+		return err2.Message
+	}
+
+	r, err3 := json.Marshal(result)
+	if err3 != nil {
+		return err3.Error()
 	}
 
 	return string(r)

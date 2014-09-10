@@ -41,7 +41,7 @@ func TestGetChartCorrelatedHttp(t *testing.T) {
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 	res := httptest.NewRecorder()
 	params := map[string]string{
-		"id":  "114264",
+		"cid": "114264",
 		"uid": "1",
 	}
 	Convey("Should return Correlated chart", t, func() {

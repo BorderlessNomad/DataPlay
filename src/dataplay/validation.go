@@ -26,18 +26,18 @@ func RankValidations(valid int, invalid int) float64 {
 }
 
 // increment user validated total for chart and rerank, return validated id
-func ValidateChart(id string, uid int, valflag bool, skipval bool) (string, *appError) {
+func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *appError) {
 	t := time.Now()
 	validated := Validated{}
 	validation := Validation{}
 
-	if strings.ContainsAny(id, "_") { // if a relation id
-		err := DB.Where("relation_id= ?", id).First(&validated).Error
+	if strings.ContainsAny(rcid, "_") { // if a relation id
+		err := DB.Where("relation_id= ?", rcid).First(&validated).Error
 		if err != nil {
 			return "", &appError{err, "Database query failed", http.StatusInternalServerError}
 		}
 	} else { // if a correlation id of type int
-		cid, _ := strconv.Atoi(id)
+		cid, _ := strconv.Atoi(rcid)
 		if err != nil {
 			return "", &appError{err, "Could not convert id to int", http.StatusInternalServerError}
 		}
@@ -79,12 +79,12 @@ func ValidateChart(id string, uid int, valflag bool, skipval bool) (string, *app
 }
 
 // increment user validated total for observation and rerank
-func ValidateObservation(id int, uid int, valflag bool) *appError {
+func ValidateObservation(oid int, uid int, valflag bool) *appError {
 	t := time.Now()
 	obs := Observation{}
 	validation := Validation{}
 
-	err := DB.Where("observation_id= ?", id).First(&obs).Error
+	err := DB.Where("observation_id= ?", oid).First(&obs).Error
 	check(err)
 
 	if valflag {
@@ -104,7 +104,7 @@ func ValidateObservation(id int, uid int, valflag bool) *appError {
 	validation.ValidatedId = 0 // not a chart
 	validation.Validator = uid
 	validation.Created = time.Now()
-	validation.ObservationId = id
+	validation.ObservationId = oid
 	validation.Valflag = valflag
 
 	err = DB.Save(&validation).Error
@@ -132,7 +132,7 @@ func ValidateChartHttp(res http.ResponseWriter, req *http.Request, params martin
 		valflag, _ = strconv.ParseBool(params["valflag"])
 	}
 
-	if params["id"] == "" {
+	if params["rcid"] == "" {
 		return "no chart id"
 	}
 
@@ -142,7 +142,7 @@ func ValidateChartHttp(res http.ResponseWriter, req *http.Request, params martin
 		return "Could not validate user"
 	}
 
-	result, err2 := ValidateChart(params["id"], uid, valflag, skipval)
+	result, err2 := ValidateChart(params["rcid"], uid, valflag, skipval)
 	if err2 != nil {
 		msg := ""
 		if valflag {
@@ -168,9 +168,9 @@ func ValidateObservationHttp(res http.ResponseWriter, req *http.Request, params 
 		return "Missing session parameter"
 	}
 
-	id, err := strconv.Atoi(params["id"])
-	if err != nil || id < 0 {
-		id = 0
+	oid, err := strconv.Atoi(params["oid"])
+	if err != nil || oid < 0 {
+		oid = 0
 	}
 
 	uid, err1 := GetUserID(session)
@@ -185,7 +185,7 @@ func ValidateObservationHttp(res http.ResponseWriter, req *http.Request, params 
 		return "bad validation flag"
 	}
 
-	err3 := ValidateObservation(id, uid, valflag)
+	err3 := ValidateObservation(oid, uid, valflag)
 	if err3 != nil {
 		msg := ""
 		if valflag {
