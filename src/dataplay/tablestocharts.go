@@ -296,7 +296,12 @@ func GetValidatedCharts(tableName string, correlated bool, offset int, count int
 	var vd []byte
 
 	if correlated {
-		err := DB.Select("priv_validatedtables.json").Joins("LEFT JOIN priv_correlation ON priv_validatedtables.correlation_id = priv_correlation.correlation_id").Where("priv_correlation.tbl1 = ?", tableName).Order("priv_validatedtables.rating DESC").Find(&validated).Error
+		c := Correlation{}
+		v := Validated{}
+		selectStr := v.TableName() + ".json"
+		joinStr := "LEFT JOIN " + c.TableName() + " ON " + v.TableName() + ".correlation_id = " + c.TableName() + ".correlation_id"
+		whereStr := c.TableName() + ".tbl1 = ?"
+		err := DB.Select(selectStr).Joins(joinStr).Where(whereStr, tableName).Order("rating DESC").Find(&validated).Error
 		if err != nil && err != gorm.RecordNotFound {
 			return ValidatedCharts{nil, 0}, &appError{nil, "Database query failed (JOIN)", http.StatusInternalServerError}
 		} else if err == gorm.RecordNotFound {
@@ -304,7 +309,7 @@ func GetValidatedCharts(tableName string, correlated bool, offset int, count int
 		}
 	} else {
 		tableName = tableName + "_%"
-		err := DB.Select("priv_validatedtables.json").Where("priv_validatedtables.relation_id LIKE ?", tableName).Order("priv_validatedtables.rating DESC").Find(&validated).Error
+		err := DB.Model(Validated{}).Select("json").Where("relation_id LIKE ?", tableName).Order("rating DESC").Find(&validated).Error
 		if err != nil && err != gorm.RecordNotFound {
 			return ValidatedCharts{nil, 0}, &appError{nil, "Database query failed", http.StatusInternalServerError}
 		} else if err == gorm.RecordNotFound {

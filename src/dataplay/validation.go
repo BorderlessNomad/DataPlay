@@ -5,6 +5,7 @@ import (
 	"math"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -24,40 +25,57 @@ func RankValidations(valid int, invalid int) float64 {
 	return result
 }
 
-// increment user validated total for chart and rerank
-func ValidateChart(id int, uid int, valflag bool) *appError {
+// increment user validated total for chart and rerank, return validated id
+func ValidateChart(id string, uid int, valflag bool, skipval bool) (string, *appError) {
 	t := time.Now()
 	validated := Validated{}
 	validation := Validation{}
 
-	err := DB.Where("validated_id= ?", id).First(&validated).Error
-	check(err)
-
-	if valflag {
-		validated.Valid++
-		Reputation(validated.Uid, discVal) // add points for discovery validation
-		AddActivity(uid, "vc", t)
-	} else {
-		validated.Invalid++
-		Reputation(validated.Uid, discInval) // remove points for discovery invalidation
-		AddActivity(uid, "ic", t)
-	}
-	validated.Rating = RankValidations(validated.Valid, validated.Invalid)
-
-	err = DB.Save(&validated).Error
-	check(err)
-
-	validation.PatternId = id
-	validation.Validator = uid
-	validation.Created = time.Now()
-	validation.ObservationId = 0 // not an observation
-
-	err = DB.Save(&validation).Error
-	if err != nil {
-		return &appError{err, "Database query failed (Save)", http.StatusInternalServerError}
+	if strings.ContainsAny(id, "_") { // if a relation id
+		err := DB.Where("relation_id= ?", id).First(&validated).Error
+		if err != nil {
+			return "", &appError{err, "Database query failed", http.StatusInternalServerError}
+		}
+	} else { // if a correlation id of type int
+		cid, _ := strconv.Atoi(id)
+		if err != nil {
+			return "", &appError{err, "Could not convert id to int", http.StatusInternalServerError}
+		}
+		err := DB.Where("correlation_id= ?", cid).First(&validated).Error
+		if err != nil {
+			return "", &appError{err, "Database query failed (cid)", http.StatusInternalServerError}
+		}
 	}
 
-	return nil
+	if !skipval {
+		if valflag {
+			validated.Valid++
+			Reputation(validated.Uid, discVal) // add points for discovery validation
+			AddActivity(uid, "vc", t)
+		} else {
+			validated.Invalid++
+			Reputation(validated.Uid, discInval) // remove points for discovery invalidation
+			AddActivity(uid, "ic", t)
+		}
+		validated.Rating = RankValidations(validated.Valid, validated.Invalid)
+
+		err1 := DB.Save(&validated).Error
+		if err1 != nil {
+			return "", &appError{err1, "Database query failed (Save)", http.StatusInternalServerError}
+		}
+
+		validation.ValidatedId = validated.ValidatedId
+		validation.Validator = uid
+		validation.Created = t
+		validation.ObservationId = 0 // not an observation
+
+		err2 := DB.Save(&validation).Error
+		if err2 != nil {
+			return "", &appError{err2, "Database query failed (Save)", http.StatusInternalServerError}
+		}
+	}
+
+	return strconv.Itoa(validated.ValidatedId), nil
 }
 
 // increment user validated total for observation and rerank
@@ -83,7 +101,7 @@ func ValidateObservation(id int, uid int, valflag bool) *appError {
 	err = DB.Save(&obs).Error
 	check(err)
 
-	validation.PatternId = 0 // not a chart
+	validation.ValidatedId = 0 // not a chart
 	validation.Validator = uid
 	validation.Created = time.Now()
 	validation.ObservationId = id
@@ -105,14 +123,17 @@ func ValidateChartHttp(res http.ResponseWriter, req *http.Request, params martin
 		return "Missing session parameter"
 	}
 
-	if params["id"] == "" {
-		return "no chart id"
+	skipval := false
+	valflag := false
+
+	if params["valflag"] == "" { // if no valflag then skip validation and just return validated id
+		skipval = true
+	} else {
+		valflag, _ = strconv.ParseBool(params["valflag"])
 	}
 
-	id, err := strconv.Atoi(params["id"])
-	if err != nil {
-		http.Error(res, "bad id", http.StatusBadRequest)
-		return "bad id"
+	if params["id"] == "" {
+		return "no chart id"
 	}
 
 	uid, err1 := GetUserID(session)
@@ -121,28 +142,22 @@ func ValidateChartHttp(res http.ResponseWriter, req *http.Request, params martin
 		return "Could not validate user"
 	}
 
-	valflag, e := strconv.ParseBool(params["valflag"])
-	if e != nil {
-		http.Error(res, "bad validation flag", http.StatusBadRequest)
-		return "bad validation flag"
-	}
-
-	err2 := ValidateChart(id, uid, valflag)
+	result, err2 := ValidateChart(params["id"], uid, valflag, skipval)
 	if err2 != nil {
 		msg := ""
 		if valflag {
-			msg = "Could not validate chart"
+			msg = " could not validate chart"
 		} else {
-			msg = "Could not invalidate chart"
+			msg = " could not invalidate chart"
 		}
 		http.Error(res, msg, http.StatusBadRequest)
-		return msg
+		return err2.Message + msg
 	}
 
 	if valflag {
-		return "Chart validated"
+		return result
 	} else {
-		return "Chart invalidated"
+		return result
 	}
 }
 
