@@ -80,3 +80,24 @@
 		}
 	}
 }
+
+.chartinfo {
+	.ci-row {
+		border-bottom: 1px solid #E9E9E9;
+		padding: 5px 0;
+
+
+		.ci-key {
+			color: #858585
+		}
+
+		.ci-val {
+			color: #464646;
+
+			.csl:not(:last-child):after { // comma seperated list
+				content: ", ";
+			}
+		}
+
+	}
+}

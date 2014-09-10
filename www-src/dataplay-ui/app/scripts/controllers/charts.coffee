@@ -57,6 +57,20 @@ angular.module('dataplayApp')
 			y: null
 			message: ''
 
+		$scope.info =
+			patternId: '202121200'
+			discoverer: 'DataWiz'
+			discoverDate: Overview.humanDate new Date( new Date() - (2 * 24 * 60 * 60 * 1000) )
+			validators: [
+				'Alan'
+				'Bob'
+				'Chris'
+			]
+			source:
+				prim: 'NHS Spending 2012 - London'
+				seco: 'Weather Patterns 2012'
+			strength: 'High'
+
 		$scope.init = () ->
 			# Track
 			Tracker.visited $scope.params.id,
