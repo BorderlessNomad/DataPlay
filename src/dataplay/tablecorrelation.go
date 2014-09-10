@@ -115,7 +115,10 @@ func AttemptCorrelation(m map[string]string, c cmeth) *appError {
 			}
 
 			if cf != 0 { //Save the correlation if one is generated
-				SaveCorrelation(m, c, cf, cd) // save everything to the correlation table
+				err := SaveCorrelation(m, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -268,18 +271,24 @@ func CalculateCoefficient(m map[string]string, c cmeth, cd *CorrelationData) (fl
 }
 
 //Create a json string containing all the data needed for generating a graph and then insert this and all the other correlation info into the correlations table
-func SaveCorrelation(m map[string]string, c cmeth, cf float64, cd *CorrelationData) {
+func SaveCorrelation(m map[string]string, c cmeth, cf float64, cd *CorrelationData) *appError {
 	ind1, ind2, ind3 := Index{}, Index{}, Index{}
 
 	err1 := DB.Model(&ind1).Where("guid= ?", m["guid1"]).Find(&ind1).Error
-	check(err1)
+	if err1 != nil {
+		return &appError{err1, "Database query failed (guid index1)", http.StatusServiceUnavailable}
+	}
 
 	err2 := DB.Model(&ind2).Where("guid= ?", m["guid2"]).Find(&ind2).Error
-	check(err2)
+	if err2 != nil {
+		return &appError{err2, "Database query failed (guid index2)", http.StatusServiceUnavailable}
+	}
 
 	if c == S {
 		err3 := DB.Model(&ind3).Where("guid= ?", m["guid3"]).Find(&ind3).Error
-		check(err3)
+		if err3 != nil {
+			return &appError{err3, "Database query failed (guid index3)", http.StatusServiceUnavailable}
+		}
 	}
 
 	(*cd).Method = m["method"]
@@ -314,6 +323,10 @@ func SaveCorrelation(m map[string]string, c cmeth, cf float64, cd *CorrelationDa
 		Abscoef: math.Abs(cf), //absolute value for ranking as highly negative correlations are also interesting
 	}
 
-	err3 := DB.Save(&correlation).Error
-	check(err3)
+	err4 := DB.Save(&correlation).Error
+	if err4 != nil {
+		return &appError{err4, "Database query failed (save correlation)", http.StatusServiceUnavailable}
+	}
+
+	return nil
 }
