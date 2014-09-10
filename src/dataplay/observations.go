@@ -17,25 +17,25 @@ type Observations struct {
 }
 
 // add observation
-func AddObservation(id int, uid int, comment string, x string, y string) (string, *appError) {
+func AddObservation(vid int, uid int, comment string, x string, y string) (string, *appError) {
 	obs := Observation{}
 	addObs := false
 
-	e := DB.Where("validated_id= ?", id).Where("x =?", x).Where("y =?", y).First(&obs).Error
+	e := DB.Where("validated_id= ?", vid).Where("x =?", x).Where("y =?", y).First(&obs).Error
 	if e == gorm.RecordNotFound {
 		addObs = true
 	}
 
 	if addObs {
 		obs.Comment = comment
-		obs.ValidatedId = id
+		obs.ValidatedId = vid
 		obs.Uid = uid
 		obs.X = x
 		obs.Y = y
 		obs.Created = time.Now()
 
 		validated := Validated{}
-		err := DB.Where("validated_id= ?", id).First(&validated).Error
+		err := DB.Where("validated_id= ?", vid).First(&validated).Error
 		if err != nil {
 			return "", &appError{err, "Database query failed (Validated id)", http.StatusInternalServerError}
 		}
@@ -51,7 +51,7 @@ func AddObservation(id int, uid int, comment string, x string, y string) (string
 			return "", &appError{err2, "Database query failed (Save)", http.StatusInternalServerError}
 		}
 
-		err3 := DB.Where("validated_id= ?", id).Where("x =?", x).Where("y =?", y).First(&obs).Error
+		err3 := DB.Where("validated_id= ?", vid).Where("x =?", x).Where("y =?", y).First(&obs).Error
 		if err3 != nil {
 			return "", &appError{err3, "Database query failed (Save)", http.StatusInternalServerError}
 		}
@@ -61,12 +61,12 @@ func AddObservation(id int, uid int, comment string, x string, y string) (string
 }
 
 // get all observations for a particular chart
-func GetObservations(id int) ([]Observations, *appError) {
+func GetObservations(vid int) ([]Observations, *appError) {
 	obs := make([]Observation, 0)
 	obsData := make([]Observations, 0)
 	var tmpOD Observations
 
-	err := DB.Where("validated_id= ?", id).Find(&obs).Error
+	err := DB.Where("validated_id= ?", vid).Find(&obs).Error
 	if err != nil {
 		return nil, &appError{err, "Database query failed (Save)", http.StatusInternalServerError}
 	}
@@ -89,8 +89,8 @@ func AddObservationHttp(res http.ResponseWriter, req *http.Request, params marti
 		return ""
 	}
 
-	if params["id"] == "" {
-		http.Error(res, "no observations id.", http.StatusBadRequest)
+	if params["vid"] == "" {
+		http.Error(res, "no validated id.", http.StatusBadRequest)
 		return ""
 	}
 
@@ -103,9 +103,9 @@ func AddObservationHttp(res http.ResponseWriter, req *http.Request, params marti
 		return ""
 	}
 
-	id, err := strconv.Atoi(params["id"])
+	vid, err := strconv.Atoi(params["vid"])
 	if err != nil {
-		http.Error(res, "bad id", http.StatusBadRequest)
+		http.Error(res, "bad validated id", http.StatusBadRequest)
 		return ""
 	}
 
@@ -115,7 +115,7 @@ func AddObservationHttp(res http.ResponseWriter, req *http.Request, params marti
 		return ""
 	}
 
-	result, err2 := AddObservation(id, uid, params["comment"], params["x"], params["y"])
+	result, err2 := AddObservation(vid, uid, params["comment"], params["x"], params["y"])
 	if err2 != nil {
 		http.Error(res, err2.Message, http.StatusBadRequest)
 		return err2.Message
@@ -131,17 +131,17 @@ func GetObservationsHttp(res http.ResponseWriter, req *http.Request, params mart
 		return ""
 	}
 
-	if params["id"] == "" {
-		return "no observations id"
+	if params["vid"] == "" {
+		return "no validated id"
 	}
 
-	id, err := strconv.Atoi(params["id"])
+	vid, err := strconv.Atoi(params["vid"])
 	if err != nil {
-		http.Error(res, "bad id", http.StatusBadRequest)
-		return "bad id"
+		http.Error(res, "bad validated id", http.StatusBadRequest)
+		return "bad validated id"
 	}
 
-	obs, err1 := GetObservations(id)
+	obs, err1 := GetObservations(vid)
 	if err1 != nil {
 		http.Error(res, "could not get observations", http.StatusBadRequest)
 		return "could not get observations"
@@ -157,13 +157,13 @@ func GetObservationsHttp(res http.ResponseWriter, req *http.Request, params mart
 }
 
 func GetObservationsQ(params map[string]string) string {
-	id, err := strconv.Atoi(params["id"])
+	vid, err := strconv.Atoi(params["vid"])
 
-	if err != nil || id < 0 {
+	if err != nil || vid < 0 {
 		return "Observations could not be retrieved"
 	}
 
-	result, err1 := GetObservations(id)
+	result, err1 := GetObservations(vid)
 	if err1 != nil {
 		return "Observations could not be retrieved"
 	}
