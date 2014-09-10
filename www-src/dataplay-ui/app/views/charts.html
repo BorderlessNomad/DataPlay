@@ -13,14 +13,14 @@
 
 				<div class="uo-mainblock">
 					<div class="uo-leftcontrols">
-						<img class="uo-avatar" data-ng-src="{{obsv.user.avatar}}" />
-						<i class="glyphicon glyphicon-arrow-up" ng-click="voteObservation(obsv, 1)"></i>
-						<span>{{obsv.upvotes}}</span>
-						<i class="glyphicon glyphicon-arrow-down" ng-click="voteObservation(obsv, -1)"></i>
+						<img class="uo-avatar" data-ng-src="http://www.gravatar.com/avatar/{{obsv.user.email}}?d=identicon" />
+						<i class="glyphicon glyphicon-arrow-up" ng-click="validateObservation(obsv, true)"></i>
+						<span>{{obsv.validationCount}}</span>
+						<i class="glyphicon glyphicon-arrow-down" ng-click="validateObservation(obsv, false)"></i>
 					</div>
 					<div class="uo-userinfo">
 						<span class="uo-name">{{obsv.user.name}}</span>
-						<span class="uo-score"><i class="glyphicon glyphicon-star"></i>{{obsv.user.score}}</span>
+						<span class="uo-score"><i class="glyphicon glyphicon-star"></i>{{obsv.user.reputation}}</span>
 						<span class="label label-default uo-discoverer" ng-if="obsv.user.discoverer">Discoverer</span>
 					</div>
 					<div class="uo-message">{{obsv.message}}</div>

@@ -22,12 +22,23 @@ angular.module('dataplayApp')
 			$http.post config.api.base_url + "/setbookmark",
 				data: bookmarks
 
-		getObservations: (chart) ->
-			$http.get config.api.base_url + "/observations/#{chart}"
+		validateChart: (chartId, valFlag) ->
+			path = "/chart/#{chartId}"
+
+			if valFlag
+				path += "/#{valFlag}"
+
+			$http.put config.api.base_url + path
+
+		getObservations: (id) ->
+			$http.get config.api.base_url + "/observations/#{id}"
 
 		createObservation: (chart, x, y, message) ->
 			$http.post config.api.base_url + "/observations/#{chart}",
 				x: x
 				y: y
 				comment: message
+
+		validateObservation: (id, valFlag) ->
+			$http.put config.api.base_url + '/observations/#{id}/#{valFlag}'
 	]
