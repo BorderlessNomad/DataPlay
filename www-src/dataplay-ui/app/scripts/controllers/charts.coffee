@@ -502,7 +502,7 @@ angular.module('dataplayApp')
 			chart.legend dc.legend()
 
 			chart.minAngleForLabel 0
-			chart.innerRadius 150
+			chart.innerRadius 75
 
 			return
 
