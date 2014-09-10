@@ -36,19 +36,19 @@ angular.module('dataplayApp')
 				templateUrl: 'views/overview.html'
 				controller: 'OverviewRelatedCtrl'
 				login: true
-			.when '/charts/:id/:key/:type/:x/:y',
+			.when '/charts/related/:id/:key/:type/:x/:y',
 				templateUrl: 'views/charts.html'
 				controller: 'ChartsCtrl'
 				login: true
-			.when '/charts/:id/:key/:type/:x/:y/:z',
+			.when '/charts/related/:id/:key/:type/:x/:y/:z',
 				templateUrl: 'views/charts.html'
 				controller: 'ChartsCtrl'
 				login: true
-			.when '/charts/correlated/:id/:key/:type/:x/:y',
+			.when '/charts/correlated/:id/:correlationid/:type/:x/:y',
 				templateUrl: 'views/charts.html'
 				controller: 'ChartsCtrl'
 				login: true
-			.when '/charts/correlated/:id/:key/:type/:x/:y/:z',
+			.when '/charts/correlated/:id/:correlationid/:type/:x/:y/:z',
 				templateUrl: 'views/charts.html'
 				controller: 'ChartsCtrl'
 				login: true
