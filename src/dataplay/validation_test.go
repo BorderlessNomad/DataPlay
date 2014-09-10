@@ -20,11 +20,11 @@ func TestValidateChartHttp(t *testing.T) {
 	res := httptest.NewRecorder()
 	Convey("Should validate chart", t, func() {
 		params := map[string]string{}
-		params["id"] = "169"
+		params["id"] = "114264"
 		params["uid"] = "5"
 		params["valflag"] = "false"
 		result := ValidateChartHttp(res, req, params)
-		So(result, ShouldEqual, "Chart invalidated")
+		So(result, ShouldEqual, "171")
 	})
 }
 

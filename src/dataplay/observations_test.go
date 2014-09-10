@@ -13,13 +13,13 @@ func TestAddObservationHttp(t *testing.T) {
 	res := httptest.NewRecorder()
 	Convey("Should add observation", t, func() {
 		params := map[string]string{}
-		params["id"] = "184"
+		params["id"] = "188"
 		params["uid"] = "1"
 		params["comment"] = "test comment"
 		params["x"] = "xxxxxx"
 		params["y"] = "yyyyyy"
 		result := AddObservationHttp(res, req, params)
-		So(result, ShouldEqual, "observation added")
+		So(result, ShouldEqual, "692")
 	})
 }
 

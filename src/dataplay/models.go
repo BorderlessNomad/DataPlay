@@ -84,7 +84,7 @@ func (i Index) TableName() string {
 
 type Observation struct {
 	Comment       string
-	PatternId     int
+	ValidatedId   int
 	Uid           int
 	Rating        float64
 	Valid         int
@@ -225,11 +225,11 @@ type Validated struct {
 }
 
 func (v Validated) TableName() string {
-	return "priv_validatedtables"
+	return "priv_validatedcharts"
 }
 
 type Validation struct {
-	PatternId     int
+	ValidatedId   int
 	Validator     int
 	ValidationId  int `primaryKey:"yes"`
 	Created       time.Time
