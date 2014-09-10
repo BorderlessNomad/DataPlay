@@ -3,11 +3,14 @@ package main
 import (
 	bcrypt "code.google.com/p/go.crypto/bcrypt"
 	"crypto/md5"
+	"crypto/rand"
+	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"net/http"
+	"time"
 )
 
 // REPUTATION POINTS
@@ -24,6 +27,10 @@ const obsSpam int = -100 // observation receives spam/flagged
 type UserForm struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
+}
+
+type UserNameForm struct {
+	Username string `json:"username" binding:"required"`
 }
 
 func GetMD5Hash(text string) string {
@@ -137,7 +144,7 @@ func HandleRegister(res http.ResponseWriter, req *http.Request, register UserFor
 
 	hashedPassword, err1 := bcrypt.GenerateFromPassword([]byte(register.Password), bcrypt.DefaultCost)
 	if err1 != nil {
-		http.Error(res, "Invalid Username/Password.", http.StatusBadRequest)
+		http.Error(res, "Unable to generate password hash.", http.StatusInternalServerError)
 		return ""
 	}
 
@@ -165,6 +172,143 @@ func HandleRegister(res http.ResponseWriter, req *http.Request, register UserFor
 	usr, _ := json.Marshal(u)
 
 	return string(usr)
+}
+
+func HandleCheckUsername(res http.ResponseWriter, req *http.Request, user UserNameForm) string {
+	if user.Username == "" {
+		http.Error(res, "Invalid or empty username.", http.StatusBadRequest)
+		return ""
+	}
+
+	validUser := User{}
+	err := DB.Where("email = ?", user.Username).First(&validUser).Error
+	if err != nil && err != gorm.RecordNotFound {
+		http.Error(res, "Unable to find that User.", http.StatusInternalServerError)
+		return ""
+	} else if err == gorm.RecordNotFound {
+		http.Error(res, "We couldn't find an account associated with "+user.Username, http.StatusNotFound)
+		return ""
+	}
+
+	u := map[string]interface{}{
+		"user":   validUser.Email,
+		"exists": true,
+	}
+	usr, _ := json.Marshal(u)
+
+	return string(usr)
+}
+
+func HandleForgotPassword(res http.ResponseWriter, req *http.Request, user UserNameForm) string {
+	if user.Username == "" {
+		http.Error(res, "Invalid or empty username.", http.StatusBadRequest)
+		return ""
+	}
+
+	validUser := User{}
+	err := DB.Where("email = ?", user.Username).First(&validUser).Error
+	if err != nil && err != gorm.RecordNotFound {
+		http.Error(res, "Database query failed (User)", http.StatusInternalServerError)
+		return ""
+	} else if err == gorm.RecordNotFound {
+		http.Error(res, "We couldn't find an account associated with "+user.Username, http.StatusNotFound)
+		return ""
+	}
+
+	randomString := make([]byte, 64)
+	_, e := rand.Read(randomString)
+	if e != nil {
+		http.Error(res, "Unable to generate hash.", http.StatusInternalServerError)
+		return ""
+	}
+	hashString := sha1.New()
+	hashString.Write(randomString)
+	hash := hex.EncodeToString(hashString.Sum(nil))
+
+	token := UserTokens{
+		Uid:     validUser.Uid,
+		Hash:    hash,
+		Created: time.Now(),
+	}
+
+	dbError := DB.Save(&token).Error
+	if dbError != nil {
+		http.Error(res, "Database query failed (Token)", http.StatusInternalServerError)
+		return ""
+	}
+
+	u := map[string]interface{}{
+		"user":  validUser.Email,
+		"token": hash,
+	}
+	usr, _ := json.Marshal(u)
+
+	return string(usr)
+}
+
+func ResetPassword(hash, username, password string) *appError {
+	if username == "" || hash == "" {
+		return &appError{nil, "No username/token found!", http.StatusBadRequest}
+	}
+
+	user := User{}
+	err := DB.Where("email = ?", username).First(&user).Error
+	if err != nil && err != gorm.RecordNotFound {
+		return &appError{nil, "Database query failed (User).", http.StatusInternalServerError}
+	} else if err == gorm.RecordNotFound {
+		return &appError{nil, "Invalid email!", http.StatusNotFound}
+	}
+
+	token := UserTokens{}
+	dbError := DB.Where("uid = ?", user.Uid).Where("hash = ?", hash).Where("used = ?", false).Last(&token).Error
+	if dbError != nil && dbError != gorm.RecordNotFound {
+		return &appError{nil, "Database query failed (Token).", http.StatusInternalServerError}
+	} else if dbError == gorm.RecordNotFound {
+		return &appError{nil, "Invalid token!", http.StatusNotFound}
+	}
+
+	if password == "" {
+		return nil
+	}
+
+	hashedPassword, errH := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if errH != nil {
+		return &appError{errH, "Unable to generate password hash.", http.StatusInternalServerError}
+	}
+
+	user.Password = string(hashedPassword)
+	err = DB.Save(&user).Error
+	if err != nil {
+		return &appError{err, "Database query failed (Password).", http.StatusInternalServerError}
+	}
+
+	token.Used = true
+	err = DB.Save(&token).Error
+	if err != nil {
+		return &appError{err, "Database query failed (Token).", http.StatusInternalServerError}
+	}
+
+	return nil
+}
+
+func HandleResetPasswordCheck(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	err := ResetPassword(params["token"], params["username"], "")
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
+		return ""
+	}
+
+	return "OK"
+}
+
+func HandleResetPassword(res http.ResponseWriter, req *http.Request, params martini.Params, user UserForm) string {
+	err := ResetPassword(params["token"], user.Username, user.Password)
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
+		return ""
+	}
+
+	return "OK"
 }
 
 func Reputation(uid int, points int) string {

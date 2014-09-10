@@ -10,7 +10,7 @@
 angular.module('dataplayApp')
 	.controller 'ChartsCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', 'Charts', 'Tracker', ($scope, $routeParams, Overview, PatternMatcher, Charts, Tracker) ->
 		$scope.params = $routeParams
-		$scope.width = 1140;
+		$scope.width = 570
 		$scope.height = $scope.width * 9 / 16 # 16:9
 		$scope.margin =
 			top: 50
@@ -29,10 +29,47 @@ angular.module('dataplayApp')
 			data: null
 			values: []
 		$scope.observations = []
+
+		$scope.userObservations = [
+			{
+				user:
+					name: 'DataWiz'
+					score: 103
+					avatar: 'https://pbs.twimg.com/profile_images/1237550450/mstom_400x400.jpg'
+					discoverer: true
+				upvotes: 4
+				message: "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+				date: Overview.humanDate new Date( new Date() - (2 * 24 * 60 * 60 * 1000) )
+			}
+			{
+				user:
+					name: 'Chris'
+					score: 102
+					avatar: 'https://pbs.twimg.com/profile_images/3164870237/efe0014851567f9dca856297f8292bf1_400x400.jpeg'
+					discoverer: false
+				upvotes: 3
+				message: "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+				date: Overview.humanDate new Date( new Date() - (1 * 24 * 60 * 60 * 1000) )
+			}
+		]
 		$scope.observation =
 			x: null
 			y: null
 			message: ''
+
+		$scope.info =
+			patternId: '202121200'
+			discoverer: 'DataWiz'
+			discoverDate: Overview.humanDate new Date( new Date() - (2 * 24 * 60 * 60 * 1000) )
+			validators: [
+				'Alan'
+				'Bob'
+				'Chris'
+			]
+			source:
+				prim: 'NHS Spending 2012 - London'
+				seco: 'Weather Patterns 2012'
+			strength: 'High'
 
 		$scope.init = () ->
 			# Track
@@ -565,6 +602,10 @@ angular.module('dataplayApp')
 			# 			r.animVal = r.baseVal
 
 			return
+
+		$scope.voteObservation = (item, effect) ->
+			# TODO: Make relevant request
+			item.upvotes += effect
 
 		$scope.addObservation = (x, y, space, comment) ->
 			$scope.observations.push

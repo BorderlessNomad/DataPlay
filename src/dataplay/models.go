@@ -201,6 +201,18 @@ func (u User) TableName() string {
 	return "priv_users"
 }
 
+type UserTokens struct {
+	Id      int `primaryKey:"yes"`
+	Uid     int
+	Hash    string
+	Used    bool
+	Created time.Time
+}
+
+func (ut UserTokens) TableName() string {
+	return "priv_user_tokens"
+}
+
 type Validated struct {
 	ValidatedId   int `primaryKey:"yes"`
 	Uid           int

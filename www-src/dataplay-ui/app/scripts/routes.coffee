@@ -56,15 +56,23 @@ angular.module('dataplayApp')
 				templateUrl: 'views/map.html'
 				controller: 'MapCtrl'
 				login: true
-			.when '/login',
-				templateUrl: 'views/login.html'
+			.when '/user/login',
+				templateUrl: 'views/user/login.html'
 				login: false
-			.when '/logout',
-				templateUrl: 'views/login.html'
+			.when '/user/logout',
+				templateUrl: 'views/user/login.html'
 				controller: 'UserCtrl'
 				login: true
-			.when '/register',
-				templateUrl: 'views/register.html'
+			.when '/user/forgotpassword',
+				templateUrl: 'views/user/forgot-password.html'
+				controller: 'UserCtrl'
+				login: false
+			.when '/user/resetpassword/:token',
+				templateUrl: 'views/user/reset-password.html'
+				controller: 'UserCtrl'
+				login: false
+			.when '/user/register',
+				templateUrl: 'views/user/register.html'
 				login: false
 			.otherwise
 				redirectTo: '/'
@@ -81,7 +89,7 @@ angular.module('dataplayApp')
 	.run ['$rootScope', '$location', 'Auth', ($rootScope, $location, Auth) ->
 		$rootScope.$on "$routeChangeStart", (event, nextRoute, currentRoute) ->
 			if nextRoute? and nextRoute.login and not Auth.isAuthenticated()
-				$location.path "/login"
+				$location.path "/user/login"
 				return
 
 		return

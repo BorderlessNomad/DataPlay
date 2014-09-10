@@ -150,11 +150,23 @@ func initClassicMode() {
 	m.Post("/api/register", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
 		return HandleRegister(res, req, login)
 	})
+	m.Post("/api/user/check", binding.Bind(UserNameForm{}), func(res http.ResponseWriter, req *http.Request, username UserNameForm) string {
+		return HandleCheckUsername(res, req, username)
+	})
+	m.Post("/api/user/forgot", binding.Bind(UserNameForm{}), func(res http.ResponseWriter, req *http.Request, username UserNameForm) string {
+		return HandleForgotPassword(res, req, username)
+	})
+	m.Get("/api/user/reset/:token/:username", HandleResetPasswordCheck)
+	m.Put("/api/user/reset/:token", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, user UserForm) string {
+		return HandleResetPassword(res, req, params, user)
+	})
 	m.Get("/api/user", CheckAuth)
+
 	m.Get("/api/visited", GetLastVisitedHttp)
 	m.Post("/api/visited", binding.Bind(VisitedForm{}), func(res http.ResponseWriter, req *http.Request, visited VisitedForm) string {
 		return TrackVisitedHttp(res, req, visited)
 	})
+
 	m.Get("/api/search/:s", SearchForDataHttp)
 	m.Get("/api/getinfo/:id", GetEntry)
 	m.Get("/api/getimportstatus/:id", CheckImportStatus)
@@ -367,9 +379,23 @@ func JsonApiHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func SessionApiHandler(res http.ResponseWriter, req *http.Request) {
-	if req.URL.Path == "/api/login" || req.URL.Path == "/api/register" {
-		// Do nothing
-	} else if len(req.Header.Get("X-API-SESSION")) <= 0 || req.Header.Get("X-API-SESSION") == "false" {
+	noAuthPaths := map[string]bool{
+		"/api/login":       true,
+		"/api/register":    true,
+		"/api/user/check":  true,
+		"/api/user/forgot": true,
+		"/api/user/reset":  true,
+	}
+
+	pathTrimmed := strings.TrimLeft(req.URL.Path, "/")
+	path := strings.Split(pathTrimmed, "/")
+	pathA := "/" + path[0] + "/" + path[1]
+	pathB := pathA
+	if len(path) > 2 {
+		pathB = pathA + "/" + path[2]
+	}
+
+	if (!noAuthPaths[pathA] && !noAuthPaths[pathB]) && (len(req.Header.Get("X-API-SESSION")) <= 0 || req.Header.Get("X-API-SESSION") == "false") {
 		res.WriteHeader(http.StatusUnauthorized)
 	}
 }
