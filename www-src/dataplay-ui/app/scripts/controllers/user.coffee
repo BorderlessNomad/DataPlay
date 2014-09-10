@@ -8,8 +8,10 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'UserCtrl', ['$scope', '$location', 'User', 'Auth', 'config', ($scope, $location, User, Auth, config) ->
+	.controller 'UserCtrl', ['$scope', '$location', '$routeParams', 'User', 'Auth', 'config', ($scope, $location, $routeParams, User, Auth, config) ->
+		$scope.params = $routeParams
 		$scope.user =
+			token: $scope.params.token
 			username: null
 			password: null
 			password_confirm: null
@@ -18,6 +20,10 @@ angular.module('dataplayApp')
 		$scope.forgotPassword =
 			valid: false
 			sent: false
+
+		$scope.resetPassword =
+			valid: false
+			saved: false
 
 		$scope.login = (user) ->
 			if user.username? and user.password?
@@ -55,7 +61,7 @@ angular.module('dataplayApp')
 					console.log "User::Logout::Error:", status
 					return
 
-			$location.path "/login"
+			$location.path "/user/login"
 
 			return
 
@@ -76,21 +82,12 @@ angular.module('dataplayApp')
 			$scope.closeAlert()
 
 			if user.username?
-				# User.check user.username
-				# 	.then (result) ->
-				# 		$scope.forgotPassword.valid = true
-				# 		User.forgotPassword user.username
-				# 	.then (result) ->
-				# 		$scope.forgotPassword.sent = true
-				# 	.error (result) ->
-				# 		console.log "error", result
-
 				User.check(user.username).success((data) ->
 					$scope.forgotPassword.valid = true
 
 					User.forgotPassword(user.username).success((data) ->
 						$scope.forgotPassword.sent = true
-
+						$scope.user.token = data.token
 						return
 					).error (status, data) ->
 						$scope.forgotPassword.valid = false
@@ -98,12 +95,37 @@ angular.module('dataplayApp')
 						console.log "User::ForgotPassword::token::Error:", status, data
 						return
 				).error (status, data) ->
-					$scope.forgotPassword.valid = false
 					$scope.user.message = status
 					console.log "User::ForgotPassword::check::Error:", status, data
 					return
 
 			return
+
+		$scope.resetPasswordCheck = (user) ->
+			$scope.closeAlert()
+
+			if user.token? and user.username?
+				User.token(user.token, user.username).success((data) ->
+					$scope.resetPassword.valid = true
+
+					return
+				).error (status, data) ->
+					$scope.user.message = status
+					console.log "User::ResetPassword::check::Error:", status, data
+					return
+
+		$scope.resetPassword = (user) ->
+			$scope.closeAlert()
+
+			if user.token? and user.username? and user.password?
+				User.token(user.token, user.username, user.password).success((data) ->
+					$scope.resetPassword.saved = true
+
+					return
+				).error (status, data) ->
+					$scope.user.message = status
+					console.log "User::ResetPassword::save::Error:", status, data
+					return
 
 		$scope.hasError = () ->
 			if $scope.user.message?.length then true else false
