@@ -14,12 +14,12 @@
 				<div class="uo-mainblock">
 					<div class="uo-leftcontrols">
 						<img class="uo-avatar" data-ng-src="{{obsv.user.avatar}}" />
-						<i class="glyphicon glyphicon-arrow-up"></i>
+						<i class="glyphicon glyphicon-arrow-up" ng-click="voteObservation(obsv, 1)"></i>
 						<span>{{obsv.upvotes}}</span>
-						<i class="glyphicon glyphicon-arrow-down"></i>
+						<i class="glyphicon glyphicon-arrow-down" ng-click="voteObservation(obsv, -1)"></i>
 					</div>
 					<div class="uo-userinfo">
-						<a class="uo-name" data-ng-href="{{obsv.user.name}}">{{obsv.user.name}}</a>
+						<span class="uo-name">{{obsv.user.name}}</span>
 						<span class="uo-score"><i class="glyphicon glyphicon-star"></i>{{obsv.user.score}}</span>
 						<span class="label label-default uo-discoverer" ng-if="obsv.user.discoverer">Discoverer</span>
 					</div>

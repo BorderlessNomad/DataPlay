@@ -589,6 +589,10 @@ angular.module('dataplayApp')
 
 			return
 
+		$scope.voteObservation = (item, effect) ->
+			# TODO: Make relevant request
+			item.upvotes += effect
+
 		$scope.addObservation = (x, y, space, comment) ->
 			$scope.observations.push
 				x: x
