@@ -25,6 +25,7 @@ type UserData struct {
 	Reputation int    `json:"reputation, omitempty"`
 	Avatar     string `json:"avatar, omitempty"`
 	Discoverer bool   `json:"discoverer, omitempty"`
+	Email      string `json:"email, omitempty"`
 }
 
 // add observation
@@ -106,6 +107,7 @@ func GetObservations(vid int) ([]Observations, *appError) {
 		tmpOD.User.Username = user[0].Username
 		tmpOD.User.Avatar = user[0].Avatar
 		tmpOD.User.Reputation = user[0].Reputation
+		tmpOD.User.Email = GetMD5Hash(user[0].Email)
 
 		if validated[0].Uid == observation[0].Uid { // if commenter discovered the chart
 			tmpOD.User.Discoverer = true
