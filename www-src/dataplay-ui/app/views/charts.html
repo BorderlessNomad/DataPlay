@@ -14,9 +14,9 @@
 				<div class="uo-mainblock">
 					<div class="uo-leftcontrols">
 						<img class="uo-avatar" data-ng-src="http://www.gravatar.com/avatar/{{obsv.user.email}}?d=identicon" />
-						<i class="glyphicon glyphicon-arrow-up" ng-click="voteObservation(obsv, 1)"></i>
-						<span>{{obsv.upvotes}}</span>
-						<i class="glyphicon glyphicon-arrow-down" ng-click="voteObservation(obsv, -1)"></i>
+						<i class="glyphicon glyphicon-arrow-up" ng-click="validateObservation(obsv, true)"></i>
+						<span>{{obsv.validationCount}}</span>
+						<i class="glyphicon glyphicon-arrow-down" ng-click="validateObservation(obsv, false)"></i>
 					</div>
 					<div class="uo-userinfo">
 						<span class="uo-name">{{obsv.user.name}}</span>

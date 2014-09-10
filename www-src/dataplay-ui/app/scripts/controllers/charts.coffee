@@ -92,7 +92,7 @@ angular.module('dataplayApp')
 							res.data?.forEach (obsv) ->
 								$scope.userObservations.push
 									user: obsv.user
-									upvotes: parseInt(obsv.validations - obsv.invalidations) || 0
+									validationCount: parseInt(obsv.validations - obsv.invalidations) || 0
 									message: obsv.comment
 									date: Overview.humanDate new Date(obsv.created)
 									coor:
@@ -598,9 +598,11 @@ angular.module('dataplayApp')
 
 			return
 
-		$scope.voteObservation = (item, effect) ->
-			# TODO: Make relevant request
-			item.upvotes += effect
+		$scope.validateObservation = (item, valFlag) ->
+			if item.id?
+				Charts.validateObservation item.id, valFlag
+					.success (res) ->
+						item.validationCount += (valFlag) ? 1 : -1
 
 		$scope.addObservation = (x, y, space, comment) ->
 			$scope.observations.push
