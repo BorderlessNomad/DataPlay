@@ -14,13 +14,17 @@ type Observations struct {
 	Comment       string    `json:"comment, omitempty"`
 	X             string    `json:"x"`
 	Y             string    `json:"y"`
-	Username      string    `json:"username, omitempty"`
-	Reputation    int       `json:"reputation, omitempty"`
-	Avatar        string    `json:"avatar, omitempty"`
+	User          UserData  `json:"user"`
 	Created       time.Time `json:"created, omitempty"`
 	Valid         int       `json:"validations, omitempty"`
 	Invalid       int       `json:"invalidations, omitempty"`
-	Discoverer    bool      `json:"discoverer, omitempty"`
+}
+
+type UserData struct {
+	Username   string `json:"name, omitempty"`
+	Reputation int    `json:"reputation, omitempty"`
+	Avatar     string `json:"avatar, omitempty"`
+	Discoverer bool   `json:"discoverer, omitempty"`
 }
 
 // add observation
@@ -99,14 +103,14 @@ func GetObservations(vid int) ([]Observations, *appError) {
 			return nil, &appError{err2, "Database query failed - get observation - no such user", http.StatusInternalServerError}
 		}
 
-		tmpOD.Username = user[0].Username
-		tmpOD.Avatar = user[0].Avatar
-		tmpOD.Reputation = user[0].Reputation
+		tmpOD.User.Username = user[0].Username
+		tmpOD.User.Avatar = user[0].Avatar
+		tmpOD.User.Reputation = user[0].Reputation
 
 		if validated[0].Uid == observation[0].Uid { // if commenter discovered the chart
-			tmpOD.Discoverer = true
+			tmpOD.User.Discoverer = true
 		} else {
-			tmpOD.Discoverer = false
+			tmpOD.User.Discoverer = false
 		}
 
 		obsData = append(obsData, tmpOD)
