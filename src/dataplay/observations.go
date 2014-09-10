@@ -20,25 +20,26 @@ type Observations struct {
 	Created       time.Time `json:"created, omitempty"`
 	Valid         int       `json:"validations, omitempty"`
 	Invalid       int       `json:"invalidations, omitempty"`
+	Discoverer    bool      `json:"discoverer, omitempty"`
 }
 
 // add observation
 func AddObservation(vid int, uid int, comment string, x string, y string) (string, *appError) {
-	obs := Observation{}
+	observation := Observation{}
 	addObs := false
 
-	e := DB.Where("validated_id= ?", vid).Where("x =?", x).Where("y =?", y).First(&obs).Error
+	e := DB.Where("validated_id= ?", vid).Where("x =?", x).Where("y =?", y).First(&observation).Error
 	if e == gorm.RecordNotFound {
 		addObs = true
 	}
 
 	if addObs {
-		obs.Comment = comment
-		obs.ValidatedId = vid
-		obs.Uid = uid
-		obs.X = x
-		obs.Y = y
-		obs.Created = time.Now()
+		observation.Comment = comment
+		observation.ValidatedId = vid
+		observation.Uid = uid
+		observation.X = x
+		observation.Y = y
+		observation.Created = time.Now()
 
 		validated := Validated{}
 		err := DB.Where("validated_id= ?", vid).First(&validated).Error
@@ -47,37 +48,43 @@ func AddObservation(vid int, uid int, comment string, x string, y string) (strin
 		}
 		Reputation(validated.Uid, discObs) // add points to rep of user who discovered chart when their discovery receives an observation
 
-		err1 := AddActivity(uid, "c", obs.Created) // add to activities
+		err1 := AddActivity(uid, "c", observation.Created) // add to activities
 		if err1 != nil {
 			return "", err1
 		}
 
-		err2 := DB.Save(&obs).Error
+		err2 := DB.Save(&observation).Error
 		if err2 != nil {
 			return "", &appError{err2, "Database query failed (Save)", http.StatusInternalServerError}
 		}
 
-		err3 := DB.Where("validated_id= ?", vid).Where("x =?", x).Where("y =?", y).First(&obs).Error
+		err3 := DB.Where("validated_id= ?", vid).Where("x =?", x).Where("y =?", y).First(&observation).Error
 		if err3 != nil {
-			return "", &appError{err3, "Database query failed (Save)", http.StatusInternalServerError}
+			return "", &appError{err3, "Database query failed (observation)", http.StatusInternalServerError}
 		}
 	}
 
-	return strconv.Itoa(obs.ObservationId), nil
+	return strconv.Itoa(observation.ObservationId), nil
 }
 
 // get all observations for a particular chart
 func GetObservations(vid int) ([]Observations, *appError) {
-	obs := make([]Observation, 0)
+	validated := make([]Validated, 0)
+	err := DB.Where("validated_id= ?", vid).Find(&validated).Error
+	if err != nil {
+		return nil, &appError{err, "Database query failed (find validation)", http.StatusInternalServerError}
+	}
+
+	observation := make([]Observation, 0)
 	obsData := make([]Observations, 0)
 	var tmpOD Observations
 
-	err := DB.Where("validated_id= ?", vid).Find(&obs).Error
-	if err != nil {
-		return nil, &appError{err, "Database query failed (Save)", http.StatusInternalServerError}
+	err1 := DB.Where("validated_id= ?", vid).Find(&observation).Error
+	if err1 != nil {
+		return nil, &appError{err1, "Database query failed (find observation)", http.StatusInternalServerError}
 	}
 
-	for _, o := range obs {
+	for _, o := range observation {
 		tmpOD.Comment = o.Comment
 		tmpOD.X = o.X
 		tmpOD.Y = o.Y
@@ -85,14 +92,23 @@ func GetObservations(vid int) ([]Observations, *appError) {
 		tmpOD.Invalid = o.Invalid
 		tmpOD.Created = o.Created
 		tmpOD.ObservationId = o.ObservationId
+
 		user := make([]User, 0)
-		err1 := DB.Where("uid= ?", o.Uid).Find(&user).Error
-		if err1 != nil {
-			return nil, &appError{err1, "Database query failed - no such user", http.StatusInternalServerError}
+		err2 := DB.Where("uid= ?", o.Uid).Find(&user).Error
+		if err2 != nil {
+			return nil, &appError{err2, "Database query failed - no such user", http.StatusInternalServerError}
 		}
+
 		tmpOD.Username = user[0].Username
 		tmpOD.Avatar = user[0].Avatar
 		tmpOD.Reputation = user[0].Reputation
+
+		if validated[0].Uid == observation[0].Uid { // if commenter discovered the chart
+			tmpOD.Discoverer = true
+		} else {
+			tmpOD.Discoverer = false
+		}
+
 		obsData = append(obsData, tmpOD)
 	}
 
