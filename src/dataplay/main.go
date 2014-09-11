@@ -206,6 +206,9 @@ func initClassicMode() {
 	m.Put("/api/observations/:oid/:valflag", ValidateObservationHttp)
 	m.Get("/api/observations/:did", GetObservationsHttp)
 	m.Get("/api/political/:type", GetPoliticalActivityHttp)
+	m.Get("/api/profile/observations", GetProfileObservationsHttp)
+	m.Get("/api/profile/discoveries", GetDiscoveriesHttp)
+	m.Get("/api/profile/validated", GetValidatedDiscoveriesHttp)
 
 	m.Use(JsonApiHandler)
 

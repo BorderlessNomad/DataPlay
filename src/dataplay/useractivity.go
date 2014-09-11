@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"github.com/codegangsta/martini"
 	"net/http"
 	"time"
 )
@@ -35,4 +37,88 @@ func AddActivity(uid int, atype string, ts time.Time) *appError {
 	}
 
 	return nil
+}
+
+func GetProfileObservationsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter", http.StatusBadRequest)
+		return "Missing session parameter"
+	}
+
+	uid, err := GetUserID(session)
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
+		return "Could not validate user"
+	}
+
+	var comments []string
+	err1 := DB.Model(Observations{}).Select("comment").Where("uid = ?", uid).Find(&comments).Error
+	if err1 != nil {
+		return "not found"
+	}
+
+	r, err2 := json.Marshal(comments)
+	if err2 != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return "Unable to parse JSON"
+	}
+
+	return string(r)
+}
+
+func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter", http.StatusBadRequest)
+		return "Missing session parameter"
+	}
+
+	uid, err := GetUserID(session)
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
+		return "Could not validate user"
+	}
+
+	var patterns []int
+	err1 := DB.Model(Discovered{}).Select("discovered_id").Where("uid = ?", uid).Find(&patterns).Error
+	if err1 != nil {
+		return "not found"
+	}
+
+	r, err2 := json.Marshal(patterns)
+	if err2 != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return "Unable to parse JSON"
+	}
+
+	return string(r)
+}
+
+func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter", http.StatusBadRequest)
+		return "Missing session parameter"
+	}
+
+	uid, err := GetUserID(session)
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
+		return "Could not validate user"
+	}
+
+	var patterns []int
+	err1 := DB.Model(Discovered{}).Select("discovered_id").Where("uid = ?", uid).Where("valid > ?", 0).Find(&patterns).Error
+	if err1 != nil {
+		return "not found"
+	}
+
+	r, err2 := json.Marshal(patterns)
+	if err2 != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return "Unable to parse JSON"
+	}
+
+	return string(r)
 }
