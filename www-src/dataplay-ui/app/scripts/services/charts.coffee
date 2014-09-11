@@ -40,5 +40,5 @@ angular.module('dataplayApp')
 				comment: message
 
 		validateObservation: (id, valFlag) ->
-			$http.put config.api.base_url + '/observations/#{id}/#{valFlag}'
+			$http.put config.api.base_url + "/observations/#{id}/#{valFlag}"
 	]
