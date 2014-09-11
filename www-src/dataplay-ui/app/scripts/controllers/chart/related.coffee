@@ -24,6 +24,7 @@ angular.module('dataplayApp')
 			bottom: 50
 			left: 110
 
+		$scope.chartRendered = null
 		$scope.chart =
 			title: ""
 			description: "N/A"
@@ -89,6 +90,8 @@ angular.module('dataplayApp')
 									coor:
 										x: obsv.x
 										y: obsv.y
+
+							$scope.chartRendered.render()
 			return
 
 		$scope.reduceData = () ->
@@ -250,7 +253,7 @@ angular.module('dataplayApp')
 						.attr 'class', "stack _#{stackList.length + 1} observations new"
 
 				# Clean observation points and re-render
-				d3.selectAll('g.observations > circle').remove()
+				d3.selectAll('g.observations > *').remove()
 
 				circles = c.svg().selectAll 'circle.dot'
 				circleTitles = c.svg().selectAll 'circle.dot > title'
@@ -368,6 +371,8 @@ angular.module('dataplayApp')
 					color = '#2ca02c'
 
 					$scope.drawCircle newObservations, data, x, y, plot, color
+
+			$scope.chartRendered = chart
 
 			return
 
@@ -636,9 +641,7 @@ angular.module('dataplayApp')
 			$scope.$apply()
 
 		$scope.resetObservations = ->
-			$scope.userObservations = []
-
-			d3.selectAll('g.observations.new > circle').remove()
+			d3.selectAll('g.observations.new > *').remove()
 
 		$scope.resetAll = ->
 			dc.filterAll()
