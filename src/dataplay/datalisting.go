@@ -902,9 +902,12 @@ func DumpReducedTable(params map[string]string) ([]map[string]interface{}, *appE
  * @return string output, error
  */
 func GetRealTableName(guid string) (out string, e error) {
+	if guid == "" || guid == "No Record Found!" {
+		return "", fmt.Errorf("Invalid tablename")
+	}
+
 	data := OnlineData{}
 	err := DB.Select("tablename").Where("guid = ?", guid).Find(&data).Error
-
 	if err == gorm.RecordNotFound {
 		return "", fmt.Errorf("Could not find table")
 	}

@@ -111,7 +111,7 @@ angular.module('dataplayApp')
 					keyPattern: PatternMatcher.getKeyPattern $scope.chart.table1.values[0]['y']
 
 		$scope.getXScale = (data) ->
-			xScale = switch data.patterns[data.xLabel].valuePattern
+			xScale = switch data.patterns[data.table1.xLabel].valuePattern
 				when 'label'
 					d3.scale.ordinal()
 						.domain data.ordinals
@@ -202,7 +202,7 @@ angular.module('dataplayApp')
 		$scope.rowChartPostSetup = (chart) ->
 			data = $scope.chart
 
-			data.entry = crossfilter data.values
+			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
@@ -220,7 +220,7 @@ angular.module('dataplayApp')
 			chart.x $scope.getYScale data
 
 			if ordinals? and ordinals.length > 0
-				chart.xUnits switch data.patterns[data.xLabel].valuePattern
+				chart.xUnits switch data.patterns[data.table1.xLabel].valuePattern
 					when 'date' then d3.time.years
 					when 'intNumber' then dc.units.integers
 					when 'label', 'text' then dc.units.ordinal
@@ -228,15 +228,16 @@ angular.module('dataplayApp')
 
 			return
 
-		$scope.columnChartPostSetup = (chart) ->
+		$scope.stackedChartPostSetup = (chart) ->
 			data = $scope.chart
 
-			data.entry = crossfilter data.values
+			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
 			chart.group data.group
+			chart.stack data.group2, data.table2.title
 
 			data.ordinals = []
 			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
@@ -246,47 +247,11 @@ angular.module('dataplayApp')
 			chart.x $scope.getXScale data
 
 			if ordinals? and ordinals.length > 0
-				chart.xUnits switch data.patterns[data.xLabel].valuePattern
+				chart.xUnits switch data.patterns[data.table1.xLabel].valuePattern
 					when 'date' then d3.time.years
 					when 'intNumber' then dc.units.integers
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
-
-			return
-
-		$scope.pieChartPostSetup = (chart) ->
-			data = $scope.chart
-
-			data.entry = crossfilter data.values
-			data.dimension = data.entry.dimension (d) ->
-				if data.patterns[data.xLabel].valuePattern is 'date'
-					return Overview.humanDate d.x
-				x = if d.x? and (d.x.length > 0 || data.patterns[data.xLabel].valuePattern is 'date') then d.x else "N/A"
-			data.groupSum = 0
-			data.group = data.dimension.group().reduceSum (d) ->
-				y = Math.abs parseFloat d.y
-				data.groupSum += y
-				y
-
-			chart.dimension data.dimension
-			chart.group data.group
-
-			chart.colorAccessor (d, i) -> i + 1
-
-			chart.renderLabel false
-			chart.label (d) ->
-				percent = d.value / data.groupSum * 100
-				"#{d.key} (#{Math.floor percent}%)"
-
-			chart.renderTitle false
-			chart.title (d) ->
-				percent = d.value / data.groupSum * 100
-				"#{d.key}: #{d.value} [#{Math.floor percent}%]"
-
-			chart.legend dc.legend()
-
-			chart.minAngleForLabel 0
-			chart.innerRadius 75
 
 			return
 
@@ -302,7 +267,7 @@ angular.module('dataplayApp')
 			# and replace radius with count of X/Y
 			###
 
-			data.entry = crossfilter data.values
+			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) ->
 				z = Math.abs parseInt d.z
 
@@ -328,7 +293,7 @@ angular.module('dataplayApp')
 				r = Math.abs d.key.split("|")[2]
 				if r >= minR then r else minR
 
-			chart.x switch data.patterns[data.xLabel].valuePattern
+			chart.x switch data.patterns[data.table1.xLabel].valuePattern
 				when 'label'
 					d3.scale.ordinal()
 						.domain data.ordinals
@@ -342,7 +307,7 @@ angular.module('dataplayApp')
 						.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[0]
 						.range [0, $scope.width]
 
-			chart.y switch data.patterns[data.xLabel].valuePattern
+			chart.y switch data.patterns[data.table1.xLabel].valuePattern
 				when 'label'
 					d3.scale.ordinal()
 						.domain data.ordinals
@@ -366,7 +331,7 @@ angular.module('dataplayApp')
 				x = d.key.split("|")[0]
 				y = d.key.split("|")[1]
 				z = d.key.split("|")[2]
-				"#{data.xLabel}: #{x}\n#{data.yLabel}: #{y}\n#{data.zLabel}: #{z}"
+				"#{data.table1.xLabel}: #{x}\n#{data.yLabel}: #{y}\n#{data.zLabel}: #{z}"
 
 			minRL = Math.log minR
 			maxRL = Math.log maxR
@@ -384,6 +349,59 @@ angular.module('dataplayApp')
 			# 		if r.baseVal.value < 0
 			# 			r.baseVal.value = Math.abs r.baseVal.value
 			# 			r.animVal = r.baseVal
+
+			return
+
+		$scope.scatterChartPostSetup = (chart) ->
+			data = $scope.chart
+
+			data.entry = crossfilter data.table1.values
+			data.dimension = data.entry.dimension (d) -> "#{d.x}|#{d.y}|#{d.z}"
+			data.group = data.dimension.group().reduceSum (d) -> d.y
+
+			chart.dimension data.dimension
+			chart.group data.group
+
+			data.ordinals = []
+			data.ordinals.push d.key.split("|")[0] for d in data.group.all() when d not in data.ordinals
+
+			chart.keyAccessor (d) -> d.key.split("|")[0]
+			chart.valueAccessor (d) -> d.key.split("|")[1]
+
+			chart.x switch data.patterns[data.table1.xLabel].valuePattern
+				when 'label'
+					d3.scale.ordinal()
+						.domain data.ordinals
+						.rangeBands [0, $scope.width]
+				when 'date'
+					d3.time.scale()
+						.domain d3.extent data.group.all(), (d) -> d.key.split("|")[0]
+						.range [0, $scope.width]
+				else
+					d3.scale.linear()
+						.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[0]
+						.range [0, $scope.width]
+
+			chart.y switch data.patterns[data.table1.xLabel].valuePattern
+				when 'label'
+					d3.scale.ordinal()
+						.domain data.ordinals
+						.rangeBands [0, $scope.height]
+				when 'date'
+					d3.time.scale()
+						.domain d3.extent data.group.all(), (d) -> d.key.split("|")[1]
+						.range [0, $scope.height]
+				else
+					d3.scale.linear()
+						.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[1]
+						.range [0, $scope.height]
+
+			chart.label (d) -> x = d.key.split("|")[0]
+
+			chart.title (d) ->
+				x = d.key.split("|")[0]
+				y = d.key.split("|")[1]
+				"#{data.table1.xLabel}: #{x}\n#{data.yLabel}: #{y}"
 
 			return
 

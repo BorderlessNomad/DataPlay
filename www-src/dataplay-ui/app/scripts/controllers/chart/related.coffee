@@ -24,12 +24,12 @@ angular.module('dataplayApp')
 			bottom: 50
 			left: 110
 
+		$scope.chartRendered = null
 		$scope.chart =
 			title: ""
 			description: "N/A"
 			data: null
 			values: []
-		$scope.observations = []
 		$scope.userObservations = []
 		$scope.observation =
 			x: null
@@ -37,6 +37,9 @@ angular.module('dataplayApp')
 			message: ''
 
 		$scope.info =
+			discoveredId: null
+			validated: null
+			invalidated: null
 			patternId: '202121200'
 			discoverer: 'DataWiz'
 			discoverDate: Overview.humanDate new Date( new Date() - (2 * 24 * 60 * 60 * 1000) )
@@ -72,8 +75,8 @@ angular.module('dataplayApp')
 
 			Charts.validateChart "#{$scope.params.id}_#{$scope.params.key}"
 				.then (validate) ->
-					disId = validate.data
-					Charts.getObservations disId
+					$scope.info.discoveredId = validate.data
+					Charts.getObservations $scope.info.discoveredId
 						.then (res) ->
 							$scope.userObservations.splice 0, $scope.userObservations.length
 
@@ -87,6 +90,8 @@ angular.module('dataplayApp')
 									coor:
 										x: obsv.x
 										y: obsv.y
+
+							$scope.chartRendered?.render()
 			return
 
 		$scope.reduceData = () ->
@@ -159,6 +164,9 @@ angular.module('dataplayApp')
 
 		$scope.drawCircle = (area, data, x, y, plot, color) ->
 			if data.patterns[data.xLabel].valuePattern is 'date'
+				if not(x instanceof Date) and (typeof x is 'string')
+					xdate = new Date x
+					if xdate.toString() isnt 'Invalid Date' then x = xdate
 				x = Overview.humanDate x
 
 			pathId = x.replace(/\s/g, '') + '-' + y.replace(/\s/g, '')
@@ -245,7 +253,7 @@ angular.module('dataplayApp')
 						.attr 'class', "stack _#{stackList.length + 1} observations new"
 
 				# Clean observation points and re-render
-				d3.selectAll('g.observations > circle').remove()
+				d3.selectAll('g.observations > *').remove()
 
 				circles = c.svg().selectAll 'circle.dot'
 				circleTitles = c.svg().selectAll 'circle.dot > title'
@@ -336,22 +344,21 @@ angular.module('dataplayApp')
 
 					$scope.addObservation x, y, space
 
-					$scope.observation.x = x
-					$scope.observation.y = y
-					$scope.observation.message = ''
-
-					$('#comment-modal').modal 'show'
+					$scope.openAddObservationModal x, y
 					$scope.drawCircle newObservations, data, x, y, space, color
 
-				for p in $scope.observations
-					x = p.x
+				for p in $scope.userObservations
+					x = p.coor.x
+					if not(x instanceof Date) and (typeof x is 'string')
+						xdate = new Date x
+						if xdate.toString() isnt 'Invalid Date' then x = xdate
 
 					# Y
 					for k, v of yDomain
-						if v.y is p.y
+						if v.y is p.coor.y
 							j = k
 							break
-						else if parseInt(v.y) > parseInt(p.y)
+						else if parseInt(v.y) > parseInt(p.coor.y)
 							j = k
 
 					# Do not consider points which are beyond visible Y-axis
@@ -364,6 +371,8 @@ angular.module('dataplayApp')
 					color = '#2ca02c'
 
 					$scope.drawCircle newObservations, data, x, y, plot, color
+
+			$scope.chartRendered = chart
 
 			return
 
@@ -579,14 +588,18 @@ angular.module('dataplayApp')
 
 			return
 
+		$scope.validateChart = (valFlag) ->
+			Charts.validateChart "#{$scope.params.id}_#{$scope.params.key}", valFlag
+				.then ->
+					if valFlag
+						$scope.info.validated = true
+					else
+						$scope.info.invalidated = true
 
 		$scope.saveObservation = ->
-			Charts.validateChart "#{$scope.params.id}_#{$scope.params.key}"
-				.then (validate) ->
-					disId = validate.data
-					Charts.createObservation(disId, $scope.observation.x, $scope.observation.y, $scope.observation.message).then (res) ->
-						$scope.observation.message = ''
-						$('#comment-modal').modal 'hide'
+			Charts.createObservation($scope.info.discoveredId, $scope.observation.x, $scope.observation.y, $scope.observation.message).then (res) ->
+				$scope.observation.message = ''
+				$('#comment-modal').modal 'hide'
 
 			return
 
@@ -601,20 +614,34 @@ angular.module('dataplayApp')
 					.success (res) ->
 						item.validationCount += (valFlag) ? 1 : -1
 
+		$scope.openAddObservationModal = (x, y) ->
+			$scope.observation.x = x || 0
+			$scope.observation.y = y || 0
+			$scope.observation.message = ''
+
+			$('#comment-modal').modal 'show'
+			return
+
 		$scope.addObservation = (x, y, space, comment) ->
-			$scope.observations.push
-				x: x
-				y: y
-				space: space
-				comment: if comment? and comment.length > 0 then comment else ""
-				timestamp: Date.now()
+			$scope.userObservations
+				oid: null
+				user:
+					name: ""
+					avatar: ""
+					reputation: 0
+					discoverer: null
+					email: ""
+				validationCount: 0
+				message: comment
+				date: Overview.humanDate new Date()
+				coor:
+					x: x
+					y: y
 
 			$scope.$apply()
 
 		$scope.resetObservations = ->
-			$scope.observations = []
-
-			d3.selectAll('g.observations.new > circle').remove()
+			d3.selectAll('g.observations.new > *').remove()
 
 		$scope.resetAll = ->
 			dc.filterAll()
