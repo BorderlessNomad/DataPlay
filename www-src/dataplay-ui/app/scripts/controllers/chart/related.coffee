@@ -72,8 +72,8 @@ angular.module('dataplayApp')
 
 			Charts.validateChart "#{$scope.params.id}_#{$scope.params.key}"
 				.then (validate) ->
-					valId = validate.data
-					Charts.getObservations valId
+					disId = validate.data
+					Charts.getObservations disId
 						.then (res) ->
 							$scope.userObservations.splice 0, $scope.userObservations.length
 
@@ -181,22 +181,6 @@ angular.module('dataplayApp')
 				.attr 'data-placement', 'top'
 				.attr 'data-html', true
 				.tooltip "#{$scope.chart.xLabel}: #{x}<br/>#{$scope.chart.yLabel}: #{y}"
-
-		$scope.saveObservation = ->
-			# console.log Charts.createObservation($scope.params.type, $scope.observation.x, $scope.observation.y, $scope.observation.message).then (res) ->
-			# 	console.log 'suc', res
-			# , (err) ->
-			# 	console.log 'err', err
-
-			$scope.observation.message = ''
-			$('#comment-modal').modal 'hide'
-			return
-
-		$scope.clearObservation = ->
-			$scope.observation.message = ''
-			$('#comment-modal').modal 'hide'
-			return
-
 
 		$scope.lineChartPostSetup = (chart) ->
 			data = $scope.chart
@@ -593,6 +577,22 @@ angular.module('dataplayApp')
 			# 			r.baseVal.value = Math.abs r.baseVal.value
 			# 			r.animVal = r.baseVal
 
+			return
+
+
+		$scope.saveObservation = ->
+			Charts.validateChart "#{$scope.params.id}_#{$scope.params.key}"
+				.then (validate) ->
+					disId = validate.data
+					Charts.createObservation(disId, $scope.observation.x, $scope.observation.y, $scope.observation.message).then (res) ->
+						$scope.observation.message = ''
+						$('#comment-modal').modal 'hide'
+
+			return
+
+		$scope.clearObservation = ->
+			$scope.observation.message = ''
+			$('#comment-modal').modal 'hide'
 			return
 
 		$scope.validateObservation = (item, valFlag) ->
