@@ -37,6 +37,7 @@ angular.module('dataplayApp')
 			message: ''
 
 		$scope.info =
+			discoveredId: null
 			patternId: '202121200'
 			discoverer: 'DataWiz'
 			discoverDate: Overview.humanDate new Date( new Date() - (2 * 24 * 60 * 60 * 1000) )
@@ -72,8 +73,8 @@ angular.module('dataplayApp')
 
 			Charts.validateChart "#{$scope.params.id}_#{$scope.params.key}"
 				.then (validate) ->
-					disId = validate.data
-					Charts.getObservations disId
+					$scope.info.discoveredId = validate.data
+					Charts.getObservations $scope.info.discoveredId
 						.then (res) ->
 							$scope.userObservations.splice 0, $scope.userObservations.length
 
@@ -581,12 +582,9 @@ angular.module('dataplayApp')
 
 
 		$scope.saveObservation = ->
-			Charts.validateChart "#{$scope.params.id}_#{$scope.params.key}"
-				.then (validate) ->
-					disId = validate.data
-					Charts.createObservation(disId, $scope.observation.x, $scope.observation.y, $scope.observation.message).then (res) ->
-						$scope.observation.message = ''
-						$('#comment-modal').modal 'hide'
+			Charts.createObservation($scope.info.discoveredId, $scope.observation.x, $scope.observation.y, $scope.observation.message).then (res) ->
+				$scope.observation.message = ''
+				$('#comment-modal').modal 'hide'
 
 			return
 
