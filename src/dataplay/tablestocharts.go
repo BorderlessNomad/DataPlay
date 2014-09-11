@@ -24,7 +24,7 @@ type PatternInfo struct {
 	SecondarySource string      `json:"source2, omitempty"`
 	Strength        float64     `json:"statstrength, omitempty"`
 	Observations    int         `json:"numobs"`
-	ChartData       interface{} `json:"tabledata"`
+	ChartData       interface{} `json:"chartdata"`
 }
 
 type CorrelatedCharts struct {
