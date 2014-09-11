@@ -2,13 +2,13 @@
 
 ###*
  # @ngdoc function
- # @name dataplayApp.controller:ChartsCtrl
+ # @name dataplayApp.controller:ChartsCorrelatedCtrl
  # @description
- # # ChartsCtrl
+ # # ChartsCorrelatedCtrl
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'ChartsCtrl', ['$scope', '$location', '$routeParams', 'Overview', 'PatternMatcher', 'Charts', 'Tracker', ($scope, $location, $routeParams, Overview, PatternMatcher, Charts, Tracker) ->
+	.controller 'ChartsCorrelatedCtrl', ['$scope', '$location', '$routeParams', 'Overview', 'PatternMatcher', 'Charts', 'Tracker', ($scope, $location, $routeParams, Overview, PatternMatcher, Charts, Tracker) ->
 		$scope.params = $routeParams
 		$scope.width = 570
 		$scope.height = $scope.width * 9 / 16 # 16:9
@@ -50,37 +50,26 @@ angular.module('dataplayApp')
 			strength: 'High'
 
 		$scope.init = () ->
-			mode = $location.path().split("/")[2]
+			Charts.correlated $scope.params.correlationid
+				.success (data, status) ->
+					if data?
+						$scope.chart = data
 
-			success = (data, status) ->
-				if data?
-					$scope.chart = data
+						if data.desc? and data.desc.length > 0
+							description = data.desc.replace /(h1>|h2>|h3>)/ig, 'h4>'
+							description = description.replace /\n/ig, ''
+							$scope.chart.description = description
 
-					if data.desc? and data.desc.length > 0
-						description = data.desc.replace /(h1>|h2>|h3>)/ig, 'h4>'
-						description = description.replace /\n/ig, ''
-						$scope.chart.description = description
+						$scope.reduceData()
 
-					$scope.reduceData()
+					console.log "Chart", $scope.chart
 
-				console.log "Chart", $scope.chart
+					# Track a page visit
+					Tracker.visited $scope.params.id, $scope.params.key, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
+				.error (data, status) ->
+					console.log "Charts::init::Error:", status
 
-				# Track a page visit
-				Tracker.visited $scope.params.id, $scope.params.key, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
-
-			error = (data, status) ->
-				console.log "Charts::init::Error:", status
-
-			if mode is 'correlated'
-				rcId = "#{$scope.params.correlationid}"
-				Charts.correlated $scope.params.correlationid
-					.success(success).error(error)
-			else
-				rcId = "#{$scope.params.id}_#{$scope.params.key}"
-				Charts.related $scope.params.id, $scope.params.key, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
-					.success(success).error(error)
-
-			Charts.validateChart rcId
+			Charts.validateChart "#{$scope.params.correlationid}"
 				.then (validate) ->
 					valId = validate.data
 					Charts.getObservations valId
