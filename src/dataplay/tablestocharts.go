@@ -70,7 +70,7 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 
 	chart := make([]TableData, 0)
 	GenerateChartData(chartType, guid, xyz, &chart, index)
-	id := tablename + "_" + strconv.Itoa(tablenum) //unique id
+	id := tablename + "_" + strconv.Itoa(tablenum) + chartType //unique id
 	jByte, err := json.Marshal(chart[0])
 	if err != nil {
 		return pattern, &appError{err, "Unable to parse JSON", http.StatusInternalServerError}
@@ -248,7 +248,7 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 	}
 
 	for i, v := range charts {
-		originid := tablename + "_" + strconv.Itoa(i)
+		originid := tablename + "_" + strconv.Itoa(i) + v.ChartType
 		discovered := Discovered{}
 		err := DB.Where("relation_id = ?", originid).Find(&discovered).Error
 		if err == gorm.RecordNotFound {
@@ -265,11 +265,13 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 // Look for new correlated charts, take the correlations and break them down into charting types, and return them along with their total count
 // To return only existing charts use searchdepth = 0
 func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth int) (CorrelatedCharts, *appError) {
+	fmt.Println("ROBOCOP1", time.Now())
 	correlation := make([]Correlation, 0)
 	charts := make([]CorrelationData, 0) ///empty slice for adding all possible charts
 	var cd CorrelationData
 
 	GenerateCorrelations(tableName, searchDepth)
+	fmt.Println("ROBOCOP2", time.Now())
 	err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Find(&correlation).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return CorrelatedCharts{nil, 0}, &appError{nil, "Database query failed (TBL1)", http.StatusInternalServerError}
@@ -277,6 +279,7 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 		return CorrelatedCharts{nil, 0}, &appError{nil, "No correlated chart found", http.StatusNotFound}
 	}
 
+	fmt.Println("ROBOCOP3", time.Now())
 	for _, c := range correlation {
 		json.Unmarshal(c.Json, &cd)
 		cd.CorrelationId = c.CorrelationId
@@ -314,6 +317,7 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 		}
 	}
 
+	fmt.Println("ROBOCOP4", time.Now())
 	totalCharts := len(charts)
 	if offset > totalCharts {
 		return CorrelatedCharts{nil, 0}, &appError{nil, fmt.Sprintf("Offset value out of bounds (Max: %d)", totalCharts), http.StatusBadRequest}
@@ -336,7 +340,7 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 			c.Discovered = true
 		}
 	}
-
+	fmt.Println("ROBOCOP6", time.Now())
 	charts = charts[offset:last] // return marshalled slice
 	return CorrelatedCharts{charts, totalCharts}, nil
 }
