@@ -38,8 +38,8 @@ func TestGetObservationsHttp(t *testing.T) {
 	res := httptest.NewRecorder()
 	Convey("Should get observations", t, func() {
 		params := map[string]string{}
-		params["vid"] = "169"
+		params["vid"] = "558"
 		result := GetObservationsHttp(res, req, params)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 }

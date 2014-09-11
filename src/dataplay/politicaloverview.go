@@ -18,9 +18,9 @@ var Today = time.Date(2010, 3, 1, 0, 0, 0, 0, time.UTC)
 var FromDate = Today.AddDate(0, 0, -numdays)
 
 type PoliticalActivity struct {
-	Label  string       `json:"label"`
-	DayAmt [numdays]int `json:"dayamounts"`
-	Val    int          `json:"-"`
+	Term     string       `json:"term"`
+	Mentions [numdays]int `json:"mentionsperday"`
+	Val      int          `json:"-"`
 }
 
 type DateID struct {
@@ -42,16 +42,16 @@ func DepartmentsPoliticalActivity() []PoliticalActivity {
 		return nil
 	}
 
-	pa := PAinit(len(dept))
+	pa := make([]PoliticalActivity, len(dept))
 
 	keyEnt := keywords()
 
 	for i, d := range dept {
-		pa[i].Label = d.GovDept
+		pa[i].Term = d.GovDept
 		for _, ke := range keyEnt {
 			if d.GovDept == ke.Name {
 				dayindex := int((Today.Round(time.Hour).Sub(ke.Date.Round(time.Hour)) / 24).Hours() - 1) // get day index
-				pa[i].DayAmt[dayindex]++
+				pa[i].Mentions[dayindex]++
 			}
 		}
 	}
@@ -67,16 +67,16 @@ func EventsPoliticalActivity() []PoliticalActivity {
 		return nil
 	}
 
-	pa := PAinit(len(event))
+	pa := make([]PoliticalActivity, len(event))
 
 	keyEnt := keywords()
 
 	for i, e := range event {
-		pa[i].Label = e.Event
+		pa[i].Term = e.Event
 		for _, ke := range keyEnt {
 			if e.Event == ke.Name {
 				dayindex := int((Today.Round(time.Hour).Sub(ke.Date.Round(time.Hour)) / 24).Hours() - 1) // get day index
-				pa[i].DayAmt[dayindex]++
+				pa[i].Mentions[dayindex]++
 			}
 		}
 	}
@@ -91,16 +91,16 @@ func RegionsPoliticalActivity() []PoliticalActivity {
 	if err != nil && err != gorm.RecordNotFound {
 		return nil
 	}
-	pa := PAinit(len(region))
+	pa := make([]PoliticalActivity, len(region))
 
 	keyEnt := keywords()
 
 	for i, r := range region {
-		pa[i].Label = r.County
+		pa[i].Term = r.Town
 		for _, ke := range keyEnt {
-			if r.County == ke.Name {
+			if r.Town == ke.Name {
 				dayindex := int((Today.Round(time.Hour).Sub(ke.Date.Round(time.Hour)) / 24).Hours() - 1) // get day index
-				pa[i].DayAmt[dayindex]++
+				pa[i].Mentions[dayindex]++
 			}
 		}
 	}
@@ -205,36 +205,38 @@ func keywords() []KeyEnt {
 	return keyEnt
 }
 
-//initialise empty PoliticalActivity array of correct size
-func PAinit(length int) []PoliticalActivity {
-	pa := make([]PoliticalActivity, length) // create PoliticalActivity output array
+// sort PA array and return top 15
+func RankPA(activities []PoliticalActivity) []PoliticalActivity {
 
-	for _, p := range pa { // initialise all day amounts to zero
-		p.Val = 0
-		for i, _ := range p.DayAmt {
-			p.DayAmt[i] = 0
+	for i, _ := range activities {
+		total := 0
+		for j, _ := range activities[i].Mentions {
+			total += activities[i].Mentions[j]
 		}
+		activities[i].Val = total
 	}
-	return pa
-}
 
-// sort PA array and return top 15 ///////////////////////////////!!!!!!!!!!!!!!!!!!!!!! fix up look sharp
-func RankPA(pa []PoliticalActivity) []PoliticalActivity {
-	tmpPA := PAinit(len(pa) + 1)
+	n := len(activities)
+	chk := true
+	var tmp PoliticalActivity
 
-	for _, p := range pa {
-		n := 0
-		for i, _ := range p.DayAmt {
-			n += p.DayAmt[i] // sum total value of DayAmt for that label
-		}
-		for j, _ := range tmpPA {
-			if n > tmpPA[j].Val {
-				tmpPA[j+1] = tmpPA[j]
-				tmpPA[j] = p
+	for chk == true {
+		newn := 0
+
+		for i := 1; i < n; i++ {
+			if activities[i].Val > activities[i-1].Val {
+				tmp = activities[i]
+				activities[i] = activities[i-1]
+				activities[i-1] = tmp
+				newn = i
 			}
-			break
+		}
+		n = newn
+
+		if n == 0 {
+			chk = false
 		}
 	}
 
-	return tmpPA[0:15]
+	return activities[0:15]
 }
