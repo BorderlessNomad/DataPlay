@@ -1,6 +1,7 @@
 <div class="action-bar">
-	<a href="#" class="btn btn-success btn-sm"><span class="glyphicon glyphicon-ok"></span> Validate this</a>
-	<a href="#" class="btn btn-info btn-sm"><span class="glyphicon glyphicon-comment"></span>Make observation</a>
+	<button class="btn btn-success btn-sm" ng-click="validateChart(true)" ng-hide="info.validated || info.invalidated"><span class="glyphicon glyphicon-ok"></span> Validate this</button>
+	<button class="btn btn-danger btn-sm" ng-click="validateChart(false)" ng-hide="info.validated || info.invalidated"><span class="glyphicon glyphicon-remove"></span> Invalidate this</button>
+	<button class="btn btn-info btn-sm"><span class="glyphicon glyphicon-comment"></span>Make observation</button>
 </div>
 
 <div class="row ci-row" ng-show="info.patternId">
