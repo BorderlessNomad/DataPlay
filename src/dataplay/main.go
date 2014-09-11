@@ -209,6 +209,9 @@ func initClassicMode() {
 	m.Get("/api/profile/observations", GetProfileObservationsHttp)
 	m.Get("/api/profile/discoveries", GetDiscoveriesHttp)
 	m.Get("/api/profile/validated", GetValidatedDiscoveriesHttp)
+	m.Get("/api/home/data", GetHomePageDataHttp)
+	m.Get("/api/user/reputation", GetReputationHttp)
+	m.Get("/api/user/discoveries", GetAmountDiscoveriesHttp)
 
 	m.Use(JsonApiHandler)
 
