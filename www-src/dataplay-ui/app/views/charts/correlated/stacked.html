@@ -1,5 +1,5 @@
-<div class="dc-chart chartSwitch column"
-	ng-if="chart.type == 'column'"
+<div class="dc-chart chartSwitch stacked"
+	ng-if="chart.type == 'stacked'"
 
 	id="{{chart.id}}"
 
@@ -18,5 +18,5 @@
 	dc-x-axis-label="chart.table1.xLabel"
 	dc-y-axis-label="chart.table1.yLabel"
 
-	dc-post-setup-chart="columnChartPostSetup"
+	dc-post-setup-chart="stackedChartPostSetup"
 ></div>

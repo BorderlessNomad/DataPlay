@@ -9,7 +9,7 @@
 ###
 angular.module('dataplayApp')
 	.controller 'OverviewCorrelatedCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', ($scope, $routeParams, Overview, PatternMatcher) ->
-		$scope.allowed = ['line', 'bar', 'row', 'column', 'pie', 'bubble']
+		$scope.allowed = ['line', 'bar', 'row', 'bubble', 'scatter', 'stacked']
 		$scope.params = $routeParams
 		$scope.count = 3
 		$scope.loading =
@@ -87,8 +87,6 @@ angular.module('dataplayApp')
 								chart.patterns[chart.table1.xLabel].keyPattern
 							)
 
-							break if chart.type is 'line'
-
 						$scope.offset.correlated += count
 						if $scope.offset.correlated >= $scope.max.correlated
 							$scope.limit.correlated = true
@@ -160,7 +158,7 @@ angular.module('dataplayApp')
 
 			chart.dimension data.dimension
 			chart.group data.group
-			chart.stack data.group2
+			# chart.stack data.group2
 
 			data.ordinals = []
 			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
@@ -183,6 +181,10 @@ angular.module('dataplayApp')
 			data.dimension = data.entry.dimension (d) -> d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
+			data.entry2 = crossfilter data.table2.values
+			data.dimension2 = data.entry2.dimension (d) -> d.x
+			data.group2 = data.dimension2.group().reduceSum (d) -> d.y
+
 			chart.dimension data.dimension
 			chart.group data.group
 
@@ -199,15 +201,20 @@ angular.module('dataplayApp')
 
 			return
 
-		$scope.columnChartPostSetup = (chart) ->
+		$scope.stackedChartPostSetup = (chart) ->
 			data = $scope.chartsCorrelated[chart.anchorName()]
 
 			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
+			data.entry2 = crossfilter data.table2.values
+			data.dimension2 = data.entry2.dimension (d) -> d.x
+			data.group2 = data.dimension2.group().reduceSum (d) -> d.y
+
 			chart.dimension data.dimension
 			chart.group data.group
+			# chart.stack data.group2
 
 			data.ordinals = []
 			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
@@ -217,37 +224,6 @@ angular.module('dataplayApp')
 			chart.x $scope.getXScale data
 
 			chart.xUnits $scope.getXUnits data if data.ordinals?.length > 0
-
-			return
-
-		$scope.pieChartPostSetup = (chart) ->
-			data = $scope.chartsCorrelated[chart.anchorName()]
-
-			data.entry = crossfilter data.table1.values
-			data.dimension = data.entry.dimension (d) ->
-				if data.patterns[data.table1.xLabel].valuePattern is 'date'
-					return Overview.humanDate d.x
-				x = if d.x? and (d.x.length > 0 || data.patterns[data.table1.xLabel].valuePattern is 'date') then d.x else "N/A"
-			data.groupSum = 0
-			data.group = data.dimension.group().reduceSum (d) ->
-				y = Math.abs parseFloat d.y
-				data.groupSum += y
-				y
-
-			chart.dimension data.dimension
-			chart.group data.group
-
-			chart.colorAccessor (d, i) -> i + 1
-
-			chart.renderLabel false
-			chart.label (d) ->
-				percent = d.value / data.groupSum * 100
-				"#{d.key} (#{Math.floor percent}%)"
-
-			chart.renderTitle false
-			chart.title (d) ->
-				percent = d.value / data.groupSum * 100
-				"#{d.key}: #{d.value} [#{Math.floor percent}%]"
 
 			return
 
@@ -329,6 +305,60 @@ angular.module('dataplayApp')
 			scale = Math.abs Math.log (maxRL - minRL) / (maxR - minR)
 
 			chart.maxBubbleRelativeSize scale / 100
+
+			return
+
+		$scope.scatterChartPostSetup = (chart) ->
+			data = $scope.chartsCorrelated[chart.anchorName()]
+
+			data.entry = crossfilter data.table1.values
+			data.dimension = data.entry.dimension (d) -> "#{d.x}|#{d.y}|#{d.z}"
+			data.group = data.dimension.group().reduceSum (d) -> d.y
+
+			chart.dimension data.dimension
+			chart.group data.group
+
+			data.ordinals = []
+			for d in data.group.all() when d not in data.ordinals
+				data.ordinals.push d.key.split("|")[0]
+
+			chart.keyAccessor (d) -> d.key.split("|")[0]
+			chart.valueAccessor (d) -> d.key.split("|")[1]
+
+			chart.x switch data.patterns[data.table1.xLabel].valuePattern
+				when 'label'
+					d3.scale.ordinal()
+						.domain data.ordinals
+						.rangeBands [0, $scope.width]
+				when 'date'
+					d3.time.scale()
+						.domain d3.extent data.group.all(), (d) -> d.key.split("|")[0]
+						.range [0, $scope.width]
+				else
+					d3.scale.linear()
+						.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[0]
+						.range [0, $scope.width]
+
+			chart.y switch data.patterns[data.table1.xLabel].valuePattern
+				when 'label'
+					d3.scale.ordinal()
+						.domain data.ordinals
+						.rangeBands [0, $scope.height]
+				when 'date'
+					d3.time.scale()
+						.domain d3.extent data.group.all(), (d) -> d.key.split("|")[1]
+						.range [0, $scope.height]
+				else
+					d3.scale.linear()
+						.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[1]
+						.range [0, $scope.height]
+
+			chart.label (d) -> x = d.key.split("|")[0]
+
+			chart.title (d) ->
+				x = d.key.split("|")[0]
+				y = d.key.split("|")[1]
+				"#{data.table1.xLabel}: #{x}\n#{data.table1.yLabel}: #{y}"
 
 			return
 
