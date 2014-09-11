@@ -29,7 +29,6 @@ angular.module('dataplayApp')
 			description: "N/A"
 			data: null
 			values: []
-		$scope.observations = []
 		$scope.userObservations = []
 		$scope.observation =
 			x: null
@@ -162,6 +161,9 @@ angular.module('dataplayApp')
 
 		$scope.drawCircle = (area, data, x, y, plot, color) ->
 			if data.patterns[data.xLabel].valuePattern is 'date'
+				if not(x instanceof Date) and (typeof x is 'string')
+					xdate = new Date x
+					if xdate.toString() isnt 'Invalid Date' then x = xdate
 				x = Overview.humanDate x
 
 			pathId = x.replace(/\s/g, '') + '-' + y.replace(/\s/g, '')
@@ -342,15 +344,15 @@ angular.module('dataplayApp')
 					$scope.openAddObservationModal x, y
 					$scope.drawCircle newObservations, data, x, y, space, color
 
-				for p in $scope.observations
-					x = p.x
+				for p in $scope.userObservations
+					x = p.coor.x
 
 					# Y
 					for k, v of yDomain
-						if v.y is p.y
+						if v.y is p.coor.y
 							j = k
 							break
-						else if parseInt(v.y) > parseInt(p.y)
+						else if parseInt(v.y) > parseInt(p.coor.y)
 							j = k
 
 					# Do not consider points which are beyond visible Y-axis
@@ -613,17 +615,25 @@ angular.module('dataplayApp')
 			return
 
 		$scope.addObservation = (x, y, space, comment) ->
-			$scope.observations.push
-				x: x
-				y: y
-				space: space
-				comment: if comment? and comment.length > 0 then comment else ""
-				timestamp: Date.now()
+			$scope.userObservations
+				oid: null
+				user:
+					name: ""
+					avatar: ""
+					reputation: 0
+					discoverer: null
+					email: ""
+				validationCount: 0
+				message: comment
+				date: Overview.humanDate new Date()
+				coor:
+					x: x
+					y: y
 
 			$scope.$apply()
 
 		$scope.resetObservations = ->
-			$scope.observations = []
+			$scope.userObservations = []
 
 			d3.selectAll('g.observations.new > circle').remove()
 
