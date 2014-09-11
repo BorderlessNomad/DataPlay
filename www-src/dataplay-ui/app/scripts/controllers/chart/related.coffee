@@ -24,12 +24,12 @@ angular.module('dataplayApp')
 			bottom: 50
 			left: 110
 
+		$scope.chartRendered = null
 		$scope.chart =
 			title: ""
 			description: "N/A"
 			data: null
 			values: []
-		$scope.observations = []
 		$scope.userObservations = []
 		$scope.observation =
 			x: null
@@ -90,6 +90,8 @@ angular.module('dataplayApp')
 									coor:
 										x: obsv.x
 										y: obsv.y
+
+							$scope.chartRendered?.render()
 			return
 
 		$scope.reduceData = () ->
@@ -162,6 +164,9 @@ angular.module('dataplayApp')
 
 		$scope.drawCircle = (area, data, x, y, plot, color) ->
 			if data.patterns[data.xLabel].valuePattern is 'date'
+				if not(x instanceof Date) and (typeof x is 'string')
+					xdate = new Date x
+					if xdate.toString() isnt 'Invalid Date' then x = xdate
 				x = Overview.humanDate x
 
 			pathId = x.replace(/\s/g, '') + '-' + y.replace(/\s/g, '')
@@ -248,7 +253,7 @@ angular.module('dataplayApp')
 						.attr 'class', "stack _#{stackList.length + 1} observations new"
 
 				# Clean observation points and re-render
-				d3.selectAll('g.observations > circle').remove()
+				d3.selectAll('g.observations > *').remove()
 
 				circles = c.svg().selectAll 'circle.dot'
 				circleTitles = c.svg().selectAll 'circle.dot > title'
@@ -342,15 +347,18 @@ angular.module('dataplayApp')
 					$scope.openAddObservationModal x, y
 					$scope.drawCircle newObservations, data, x, y, space, color
 
-				for p in $scope.observations
-					x = p.x
+				for p in $scope.userObservations
+					x = p.coor.x
+					if not(x instanceof Date) and (typeof x is 'string')
+						xdate = new Date x
+						if xdate.toString() isnt 'Invalid Date' then x = xdate
 
 					# Y
 					for k, v of yDomain
-						if v.y is p.y
+						if v.y is p.coor.y
 							j = k
 							break
-						else if parseInt(v.y) > parseInt(p.y)
+						else if parseInt(v.y) > parseInt(p.coor.y)
 							j = k
 
 					# Do not consider points which are beyond visible Y-axis
@@ -363,6 +371,8 @@ angular.module('dataplayApp')
 					color = '#2ca02c'
 
 					$scope.drawCircle newObservations, data, x, y, plot, color
+
+			$scope.chartRendered = chart
 
 			return
 
@@ -613,19 +623,25 @@ angular.module('dataplayApp')
 			return
 
 		$scope.addObservation = (x, y, space, comment) ->
-			$scope.observations.push
-				x: x
-				y: y
-				space: space
-				comment: if comment? and comment.length > 0 then comment else ""
-				timestamp: Date.now()
+			$scope.userObservations
+				oid: null
+				user:
+					name: ""
+					avatar: ""
+					reputation: 0
+					discoverer: null
+					email: ""
+				validationCount: 0
+				message: comment
+				date: Overview.humanDate new Date()
+				coor:
+					x: x
+					y: y
 
 			$scope.$apply()
 
 		$scope.resetObservations = ->
-			$scope.observations = []
-
-			d3.selectAll('g.observations.new > circle').remove()
+			d3.selectAll('g.observations.new > *').remove()
 
 		$scope.resetAll = ->
 			dc.filterAll()

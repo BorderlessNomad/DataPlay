@@ -24,16 +24,16 @@ func TestGetChartHttp(t *testing.T) {
 		So(result, ShouldNotBeNil)
 	})
 
-	params["tablename"] = "gdp"
-	params["type"] = "bubble"
-	params["x"] = "year"
-	params["y"] = "gdp"
-	params["z"] = "change"
+	// params["tablename"] = "gdp"
+	// params["type"] = "bubble"
+	// params["x"] = "year"
+	// params["y"] = "gdp"
+	// params["z"] = "change"
 
-	Convey("Should return xyz chartlist", t, func() {
-		result := GetChartHttp(res, req, params)
-		So(result, ShouldNotBeNil)
-	})
+	// Convey("Should return xyz chartlist", t, func() {
+	// 	result := GetChartHttp(res, req, params)
+	// 	So(result, ShouldNotBeNil)
+	// })
 }
 
 func TestGetChartCorrelatedHttp(t *testing.T) {
