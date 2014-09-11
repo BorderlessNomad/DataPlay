@@ -38,6 +38,8 @@ angular.module('dataplayApp')
 
 		$scope.info =
 			discoveredId: null
+			validated: null
+			invalidated: null
 			patternId: '202121200'
 			discoverer: 'DataWiz'
 			discoverDate: Overview.humanDate new Date( new Date() - (2 * 24 * 60 * 60 * 1000) )
@@ -580,6 +582,13 @@ angular.module('dataplayApp')
 
 			return
 
+		$scope.validateChart = (valFlag) ->
+			Charts.validateChart "#{$scope.params.id}_#{$scope.params.key}", valFlag
+				.then ->
+					if valFlag
+						$scope.info.validated = true
+					else
+						$scope.info.invalidated = true
 
 		$scope.saveObservation = ->
 			Charts.createObservation($scope.info.discoveredId, $scope.observation.x, $scope.observation.y, $scope.observation.message).then (res) ->
