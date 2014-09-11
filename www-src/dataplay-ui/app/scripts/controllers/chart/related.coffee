@@ -77,7 +77,7 @@ angular.module('dataplayApp')
 						.then (res) ->
 							$scope.userObservations.splice 0, $scope.userObservations.length
 
-							res.data?.forEach (obsv) ->
+							res.data?.forEach? (obsv) ->
 								$scope.userObservations.push
 									oid : obsv['observation_id']
 									user: obsv.user
@@ -87,7 +87,6 @@ angular.module('dataplayApp')
 									coor:
 										x: obsv.x
 										y: obsv.y
-
 			return
 
 		$scope.reduceData = () ->
