@@ -50,10 +50,12 @@ angular.module('dataplayApp')
 			strength: ''
 
 		$scope.init = () ->
-			$scope.validateChart()
-			$scope.getChart()
+			$scope.initValidation()
+			$scope.initChart()
 
-		$scope.getChart = () ->
+			return
+
+		$scope.initChart = () ->
 			Charts.related $scope.params.id, $scope.params.key, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
 				.success (data, status) ->
 					if data? and data.chartdata
@@ -83,7 +85,9 @@ angular.module('dataplayApp')
 				.error (data, status) ->
 					console.log "Charts::init::Error:", status
 
-		$scope.validateChart = () ->
+			return
+
+		$scope.initValidation = () ->
 			Charts.validateChart "#{$scope.params.id}_#{$scope.params.key}"
 				.then (validate) ->
 					$scope.info.discoveredId = validate.data
@@ -173,7 +177,7 @@ angular.module('dataplayApp')
 
 			closest
 
-		$scope.drawCircle = (area, data, x, y, plot, color) ->
+		$scope.drawCircle = (area, data, x, y, plot) ->
 			if data.patterns[data.xLabel].valuePattern is 'date'
 				if not(x instanceof Date) and (typeof x is 'string')
 					xdate = new Date x
@@ -298,9 +302,8 @@ angular.module('dataplayApp')
 					y = yDomain[j].y
 
 					plot = [xScale(x), yDomain[j].cy]
-					color = '#ff7f0e'
 
-					$scope.drawCircle existingObservations, data, x, y, plot, color
+					$scope.drawCircle existingObservations, data, x, y, plot
 
 				# New observations
 				datum = null
@@ -314,9 +317,7 @@ angular.module('dataplayApp')
 					if space[0] < 0 or space[1] < 0 or space[0] > box.width or space[1] > box.height
 						return
 
-					color = '#2ca02c'
 					if datum?
-						color = '#d62728'
 						x = datum.x
 						y = datum.y
 						datum = null
@@ -355,7 +356,7 @@ angular.module('dataplayApp')
 					$scope.addObservation x, y, space
 
 					$scope.openAddObservationModal x, y
-					$scope.drawCircle newObservations, data, x, y, space, color
+					$scope.drawCircle newObservations, data, x, y, space
 
 				for p in $scope.userObservations
 					x = p.coor.x
@@ -638,10 +639,11 @@ angular.module('dataplayApp')
 			$scope.observation.message = ''
 
 			$('#comment-modal').modal 'show'
+
 			return
 
 		$scope.addObservation = (x, y, space, comment) ->
-			$scope.userObservations
+			$scope.userObservations.push
 				oid: null
 				user:
 					name: ""
