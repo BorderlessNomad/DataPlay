@@ -163,11 +163,23 @@ angular.module('dataplayApp')
 			if data.patterns[data.xLabel].valuePattern is 'date'
 				x = Overview.humanDate x
 
-			circ = area.append 'circle'
-				.attr 'cx', plot[0]
-				.attr 'cy', plot[1]
-				.attr 'r', 5
-				.style 'fill', color
+			pathId = x.replace(/\s/g, '') + '-' + y.replace(/\s/g, '')
+
+			clipPath = area.append 'clipPath'
+				.attr 'id', "clipImage-#{pathId}"
+				.append 'circle'
+					.attr 'r', 10
+					.attr 'cx', plot[0]
+					.attr 'cy', plot[1]
+
+			circ = area.append 'image'
+				.attr 'xlink:href', 'images/observation.png'
+				.attr 'style', "stroke: none; fill: none; fill-opacity: 0.0; stroke-opacity: 0.0"
+				.attr 'height', '20px'
+				.attr 'width', '20px'
+				.attr 'x', plot[0] - 10
+				.attr 'y', plot[1] - 10
+				.attr 'clip-path', "url(#clipImage-#{pathId})"
 				.attr 'data-placement', 'top'
 				.attr 'data-html', true
 				.tooltip "#{$scope.chart.xLabel}: #{x}<br/>#{$scope.chart.yLabel}: #{y}"
