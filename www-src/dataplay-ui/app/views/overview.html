@@ -48,11 +48,8 @@
 	<!-- Correlated -->
 	<div class="row" ng-controller="OverviewCorrelatedCtrl" ng-init="getCorrelatedCharts()">
 		<div class="col-md-4" ng-repeat="chart in chartsCorrelated" id="{{chart.id}}" ng-show="hasCorrelatedCharts() > 0">
-		<a ng-href="/charts/correlated/{{params.id}}/{{chart.correlationid}}/{{chart.type}}/{{chart.table1.xLabel}}/{{chart.table1.yLabel}}" ng-hide="chart.type == 'bubble'">
+			<a ng-href="/charts/correlated/{{params.id}}/{{chart.correlationid}}/{{chart.type}}/{{chart.table1.xLabel}}/{{chart.table1.yLabel}}" ng-hide="chart.type == 'bubble'">
 				<span><h4>{{chart.table1.xLabel}}</h4> <h5>vs</h5> <h4>{{chart.table1.yLabel}}</h4></span>
-			</a>
-			<a ng-href="/charts/correlated/{{params.id}}/{{chart.correlationid}}/{{chart.type}}/{{chart.table1.xLabel}}/{{chart.table1.yLabel}}/{{chart.table1.zLabel}}" ng-show="chart.type == 'bubble'">
-				<span><h4>{{chart.table1.xLabel}}</h4> <h5>vs</h5> <h4>{{chart.table1.yLabel}}</h4> <h5>vs</h5> <h4>{{chart.table1.zLabel}}</h4></span>
 			</a>
 
 			<span ng-include="'views/charts/correlated/line.html'"></span>
