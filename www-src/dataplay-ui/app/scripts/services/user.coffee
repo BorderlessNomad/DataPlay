@@ -46,14 +46,6 @@ angular.module('dataplayApp')
 		visited: () ->
 			$http.get config.api.base_url + "/visited"
 
-		getDetails: () ->
-			$http.get config.api.base_url + "/user"
-
-		updateDetails: (username, email) ->
-			$http.put config.api.base_url + "/user",
-				username: username
-				email: email
-
 		search: (word) ->
 			$http.get config.api.base_url + "/search/#{word}"
 	]

@@ -25,6 +25,8 @@ angular.module('dataplayApp')
 			valid: false
 			saved: false
 
+		$scope.currentTab = 'details'
+
 		$scope.login = (user) ->
 			if user.username? and user.password?
 				User.logIn(user.username, user.password).success((data) ->
@@ -132,6 +134,9 @@ angular.module('dataplayApp')
 
 		$scope.closeAlert = () ->
 			$scope.user.message = null
+
+		$scope.changeTab = (tab) ->
+			$scope.currentTab = tab
 
 		return
 	]
