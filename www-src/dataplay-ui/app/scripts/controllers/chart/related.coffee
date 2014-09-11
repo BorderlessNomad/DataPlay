@@ -40,18 +40,14 @@ angular.module('dataplayApp')
 			discoveredId: null
 			validated: null
 			invalidated: null
-			patternId: '202121200'
-			discoverer: 'DataWiz'
-			discoverDate: Overview.humanDate new Date( new Date() - (2 * 24 * 60 * 60 * 1000) )
-			validators: [
-				'Alan'
-				'Bob'
-				'Chris'
-			]
+			patternId: null
+			discoverer: ''
+			discoverDate: ''
+			validators: []
 			source:
-				prim: 'NHS Spending 2012 - London'
-				seco: 'Weather Patterns 2012'
-			strength: 'High'
+				prim: ''
+				seco: ''
+			strength: ''
 
 		$scope.init = () ->
 			$scope.validateChart()
@@ -60,8 +56,8 @@ angular.module('dataplayApp')
 		$scope.getChart = () ->
 			Charts.related $scope.params.id, $scope.params.key, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
 				.success (data, status) ->
-					if data?
-						$scope.chart = data
+					if data? and data.chartdata
+						$scope.chart = data.chartdata
 
 						if data.desc? and data.desc.length > 0
 							description = data.desc.replace /(h1>|h2>|h3>)/ig, 'h4>'
@@ -69,6 +65,16 @@ angular.module('dataplayApp')
 							$scope.chart.description = description
 
 						$scope.reduceData()
+
+					if data?
+						$scope.info.patternId = data.patternid or ''
+						$scope.info.discoverer = data.discoveredby or ''
+						$scope.info.discoverDate = if data.discoverydate then Overview.humanDate new Date( data.discoverydate ) else ''
+						$scope.info.validators = data.validatedby or ''
+						$scope.info.source =
+							prim: data.source1  or ''
+							seco: data.source2  or ''
+						$scope.info.strength = data.statstrength
 
 					console.log "Chart", $scope.chart
 
