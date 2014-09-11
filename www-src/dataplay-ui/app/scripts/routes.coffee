@@ -79,7 +79,7 @@ angular.module('dataplayApp')
 
 		$locationProvider
 			.html5Mode true
-			.hashPrefix '!'
+			# .hashPrefix '!'
 
 		return
 	]

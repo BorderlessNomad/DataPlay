@@ -49,7 +49,7 @@ angular.module('dataplayApp')
 				count = $scope.max.correlated - $scope.offset.correlated
 				count = if $scope.max.correlated and count < $scope.count then count else $scope.count
 
-			depth = if $scope.max.correlated then 0 else 100
+			depth = if $scope.max.correlated then 0 else 251
 
 			Overview.correlated $scope.params.id, $scope.offset.correlated, count, depth
 				.success (data) ->
@@ -159,8 +159,8 @@ angular.module('dataplayApp')
 			data.group2 = data.dimension2.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
-			chart.group data.group, data.table1.title
-			chart.stack data.group2, data.table2.title
+			chart.group data.group
+			chart.stack data.group2
 
 			data.ordinals = []
 			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals

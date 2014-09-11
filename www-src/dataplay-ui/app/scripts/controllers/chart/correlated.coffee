@@ -111,7 +111,7 @@ angular.module('dataplayApp')
 					keyPattern: PatternMatcher.getKeyPattern $scope.chart.table1.values[0]['y']
 
 		$scope.getXScale = (data) ->
-			xScale = switch data.patterns[data.xLabel].valuePattern
+			xScale = switch data.patterns[data.table1.xLabel].valuePattern
 				when 'label'
 					d3.scale.ordinal()
 						.domain data.ordinals
@@ -202,7 +202,7 @@ angular.module('dataplayApp')
 		$scope.rowChartPostSetup = (chart) ->
 			data = $scope.chart
 
-			data.entry = crossfilter data.values
+			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
@@ -220,7 +220,7 @@ angular.module('dataplayApp')
 			chart.x $scope.getYScale data
 
 			if ordinals? and ordinals.length > 0
-				chart.xUnits switch data.patterns[data.xLabel].valuePattern
+				chart.xUnits switch data.patterns[data.table1.xLabel].valuePattern
 					when 'date' then d3.time.years
 					when 'intNumber' then dc.units.integers
 					when 'label', 'text' then dc.units.ordinal
@@ -231,7 +231,7 @@ angular.module('dataplayApp')
 		$scope.columnChartPostSetup = (chart) ->
 			data = $scope.chart
 
-			data.entry = crossfilter data.values
+			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
@@ -246,7 +246,7 @@ angular.module('dataplayApp')
 			chart.x $scope.getXScale data
 
 			if ordinals? and ordinals.length > 0
-				chart.xUnits switch data.patterns[data.xLabel].valuePattern
+				chart.xUnits switch data.patterns[data.table1.xLabel].valuePattern
 					when 'date' then d3.time.years
 					when 'intNumber' then dc.units.integers
 					when 'label', 'text' then dc.units.ordinal
@@ -257,11 +257,11 @@ angular.module('dataplayApp')
 		$scope.pieChartPostSetup = (chart) ->
 			data = $scope.chart
 
-			data.entry = crossfilter data.values
+			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) ->
-				if data.patterns[data.xLabel].valuePattern is 'date'
+				if data.patterns[data.table1.xLabel].valuePattern is 'date'
 					return Overview.humanDate d.x
-				x = if d.x? and (d.x.length > 0 || data.patterns[data.xLabel].valuePattern is 'date') then d.x else "N/A"
+				x = if d.x? and (d.x.length > 0 || data.patterns[data.table1.xLabel].valuePattern is 'date') then d.x else "N/A"
 			data.groupSum = 0
 			data.group = data.dimension.group().reduceSum (d) ->
 				y = Math.abs parseFloat d.y
@@ -302,7 +302,7 @@ angular.module('dataplayApp')
 			# and replace radius with count of X/Y
 			###
 
-			data.entry = crossfilter data.values
+			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) ->
 				z = Math.abs parseInt d.z
 
@@ -328,7 +328,7 @@ angular.module('dataplayApp')
 				r = Math.abs d.key.split("|")[2]
 				if r >= minR then r else minR
 
-			chart.x switch data.patterns[data.xLabel].valuePattern
+			chart.x switch data.patterns[data.table1.xLabel].valuePattern
 				when 'label'
 					d3.scale.ordinal()
 						.domain data.ordinals
@@ -342,7 +342,7 @@ angular.module('dataplayApp')
 						.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[0]
 						.range [0, $scope.width]
 
-			chart.y switch data.patterns[data.xLabel].valuePattern
+			chart.y switch data.patterns[data.table1.xLabel].valuePattern
 				when 'label'
 					d3.scale.ordinal()
 						.domain data.ordinals
@@ -366,7 +366,7 @@ angular.module('dataplayApp')
 				x = d.key.split("|")[0]
 				y = d.key.split("|")[1]
 				z = d.key.split("|")[2]
-				"#{data.xLabel}: #{x}\n#{data.yLabel}: #{y}\n#{data.zLabel}: #{z}"
+				"#{data.table1.xLabel}: #{x}\n#{data.yLabel}: #{y}\n#{data.zLabel}: #{z}"
 
 			minRL = Math.log minR
 			maxRL = Math.log maxR
