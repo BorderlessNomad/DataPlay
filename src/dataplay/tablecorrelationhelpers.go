@@ -12,7 +12,7 @@ import (
 )
 
 // generate some random tables and columns, amount dependent on correlation type
-func GetRandomNameMap(m map[string]string, c cmeth) bool {
+func GetRandomNameMap(m map[string]string) bool {
 
 	m["guid1"] = NameToGuid(m["table1"])
 	if m["guid1"] == "" {
@@ -33,13 +33,14 @@ func GetRandomNameMap(m map[string]string, c cmeth) bool {
 	if m["table1"] == m["table2"] || m["table1"] == "" || m["table2"] == "" || m["valCol1"] == "" || m["valCol2"] == "" || m["dateCol1"] == "" || m["dateCol2"] == "" {
 		return false
 	}
-	if c == P {
+
+	r := rand.Intn(5)
+
+	if r == 0 {
 		m["method"] = "Pearson"
-	}
-	if c == V {
+	} else if r == 1 {
 		m["method"] = "Visual"
-	}
-	if c == S {
+	} else {
 		m["table3"] = RandomTableName()
 		m["guid3"] = NameToGuid(m["table3"])
 		if m["guid3"] == "" {
@@ -53,6 +54,7 @@ func GetRandomNameMap(m map[string]string, c cmeth) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -61,15 +63,16 @@ func NameToGuid(tablename string) string {
 	if tablename == "" {
 		return ""
 	}
-	var guid []string
-	err := DB.Model(OnlineData{}).Where("tablename = ?", tablename).Pluck("guid", &guid).Error
+
+	onlineData := OnlineData{}
+	err := DB.Where("tablename = ?", tablename).Find(&onlineData).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return ""
-	} else if err == gorm.RecordNotFound || len(guid) < 1 {
+	} else if err == gorm.RecordNotFound || len(onlineData.Guid) < 1 {
 		return "No Record Found!"
 	}
 
-	return guid[0]
+	return onlineData.Guid
 }
 
 // generate a random value column if one exists
