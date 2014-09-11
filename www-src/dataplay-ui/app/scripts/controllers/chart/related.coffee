@@ -91,7 +91,7 @@ angular.module('dataplayApp')
 										x: obsv.x
 										y: obsv.y
 
-							$scope.chartRendered.render()
+							$scope.chartRendered?.render()
 			return
 
 		$scope.reduceData = () ->
