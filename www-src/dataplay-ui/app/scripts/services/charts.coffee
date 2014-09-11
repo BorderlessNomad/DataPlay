@@ -10,10 +10,9 @@
 angular.module('dataplayApp')
 	.factory 'Charts', ['$http', 'config', ($http, config) ->
 		related: (guid, key, type, x, y, z) ->
-			if z?
-				$http.get config.api.base_url + "/chart/#{guid}/#{key}/#{type}/#{x}/#{y}/#{z}"
-			else
-				$http.get config.api.base_url + "/chart/#{guid}/#{key}/#{type}/#{x}/#{y}"
+			path = "/chart/#{guid}/#{key}/#{type}/#{x}/#{y}"
+			if z? then path += "/#{z}"
+			$http.get config.api.base_url + path
 
 		correlated: (key) ->
 			$http.get config.api.base_url + "/chartcorrelated/#{key}"
@@ -33,11 +32,13 @@ angular.module('dataplayApp')
 		getObservations: (id) ->
 			$http.get config.api.base_url + "/observations/#{id}"
 
-		createObservation: (chart, x, y, message) ->
-			$http.post config.api.base_url + "/observations/#{chart}",
-				x: x
-				y: y
-				comment: message
+		createObservation: (did, x, y, message) ->
+			path = "/observations/#{did}/#{x}/#{y}"
+
+			if message
+				path += "/#{message}"
+
+			$http.put config.api.base_url + path
 
 		validateObservation: (id, valFlag) ->
 			$http.put config.api.base_url + "/observations/#{id}/#{valFlag}"
