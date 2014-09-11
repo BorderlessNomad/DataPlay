@@ -115,10 +115,12 @@
 		position: absolute;
 		top: 0;
 		right: 0;
+		background-color: #F8FAFC;
+		padding: 0;
 
 		.title {
 			padding: 8px 15px;
-			margin-bottom: 21px;
+			margin-bottom: 12px;
 			background-color: #A0B6CB;
 			color: #fffff;
 		}
@@ -132,7 +134,14 @@
 		}
 
 		.content {
-			background-color: #F8FAFC;
+			margin-bottom: 8px;
+
+			.media-heading {
+				span {
+					font-size: 0.6em;
+					margin: 0 5px;
+				}
+			}
 
 			&:last-child {
 				margin-bottom: 0;
@@ -142,13 +151,16 @@
 				text-align: center;
 				color: #C6C6C6;
 
+
 				img.media-object {
 					width: 32px;
+					margin-bottom: 2px;
 				}
 
 				.votes {
 					text-align: center;
 					max-width: 32px;
+					text-decoration: none;
 
 					> * {
 						display: block;
@@ -156,8 +168,14 @@
 
 					i.glyphicon {
 						cursor: pointer;
+						margin-right: 0;
 					}
 				}
+			}
+
+			.media-body {
+				padding-left: 5px;
+				font-size: 12px;
 			}
 		}
 	}
