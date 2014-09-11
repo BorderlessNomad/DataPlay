@@ -160,7 +160,11 @@ func initClassicMode() {
 	m.Put("/api/user/reset/:token", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, user UserForm) string {
 		return HandleResetPassword(res, req, params, user)
 	})
-	m.Get("/api/user", CheckAuth)
+
+	m.Get("/api/user", GetUserDetails)
+	m.Put("/api/user", binding.Bind(UserDetailsForm{}), func(res http.ResponseWriter, req *http.Request, user UserDetailsForm) string {
+		return UpdateUserDetails(res, req, user)
+	})
 
 	m.Get("/api/visited", GetLastVisitedHttp)
 	m.Post("/api/visited", binding.Bind(VisitedForm{}), func(res http.ResponseWriter, req *http.Request, visited VisitedForm) string {
