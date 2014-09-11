@@ -10,6 +10,7 @@
 angular.module('dataplayApp')
 	.controller 'ChartsRelatedCtrl', ['$scope', '$location', '$routeParams', 'Overview', 'PatternMatcher', 'Charts', 'Tracker', ($scope, $location, $routeParams, Overview, PatternMatcher, Charts, Tracker) ->
 		$scope.params = $routeParams
+		$scope.mode = 'related'
 		$scope.width = 570
 		$scope.height = $scope.width * 9 / 16 # 16:9
 		$scope.margin =
@@ -50,8 +51,6 @@ angular.module('dataplayApp')
 			strength: 'High'
 
 		$scope.init = () ->
-			mode = $location.path().split("/")[2]
-
 			Charts.related $scope.params.id, $scope.params.key, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
 				.success (data, status) ->
 					if data?
@@ -73,12 +72,12 @@ angular.module('dataplayApp')
 
 			Charts.validateChart "#{$scope.params.id}_#{$scope.params.key}"
 				.then (validate) ->
-					valId = validate.data
-					Charts.getObservations valId
+					disId = validate.data
+					Charts.getObservations disId
 						.then (res) ->
 							$scope.userObservations.splice 0, $scope.userObservations.length
 
-							res.data?.forEach (obsv) ->
+							res.data?.forEach? (obsv) ->
 								$scope.userObservations.push
 									oid : obsv['observation_id']
 									user: obsv.user
@@ -88,7 +87,6 @@ angular.module('dataplayApp')
 									coor:
 										x: obsv.x
 										y: obsv.y
-
 			return
 
 		$scope.reduceData = () ->
@@ -163,30 +161,26 @@ angular.module('dataplayApp')
 			if data.patterns[data.xLabel].valuePattern is 'date'
 				x = Overview.humanDate x
 
-			circ = area.append 'circle'
-				.attr 'cx', plot[0]
-				.attr 'cy', plot[1]
-				.attr 'r', 5
-				.style 'fill', color
+			pathId = x.replace(/\s/g, '') + '-' + y.replace(/\s/g, '')
+
+			clipPath = area.append 'clipPath'
+				.attr 'id', "clipImage-#{pathId}"
+				.append 'circle'
+					.attr 'r', 10
+					.attr 'cx', plot[0]
+					.attr 'cy', plot[1]
+
+			circ = area.append 'image'
+				.attr 'xlink:href', 'images/observation.png'
+				.attr 'style', "stroke: none; fill: none; fill-opacity: 0.0; stroke-opacity: 0.0"
+				.attr 'height', '20px'
+				.attr 'width', '20px'
+				.attr 'x', plot[0] - 10
+				.attr 'y', plot[1] - 10
+				.attr 'clip-path', "url(#clipImage-#{pathId})"
 				.attr 'data-placement', 'top'
 				.attr 'data-html', true
 				.tooltip "#{$scope.chart.xLabel}: #{x}<br/>#{$scope.chart.yLabel}: #{y}"
-
-		$scope.saveObservation = ->
-			# console.log Charts.createObservation($scope.params.type, $scope.observation.x, $scope.observation.y, $scope.observation.message).then (res) ->
-			# 	console.log 'suc', res
-			# , (err) ->
-			# 	console.log 'err', err
-
-			$scope.observation.message = ''
-			$('#comment-modal').modal 'hide'
-			return
-
-		$scope.clearObservation = ->
-			$scope.observation.message = ''
-			$('#comment-modal').modal 'hide'
-			return
-
 
 		$scope.lineChartPostSetup = (chart) ->
 			data = $scope.chart
@@ -583,6 +577,22 @@ angular.module('dataplayApp')
 			# 			r.baseVal.value = Math.abs r.baseVal.value
 			# 			r.animVal = r.baseVal
 
+			return
+
+
+		$scope.saveObservation = ->
+			Charts.validateChart "#{$scope.params.id}_#{$scope.params.key}"
+				.then (validate) ->
+					disId = validate.data
+					Charts.createObservation(disId, $scope.observation.x, $scope.observation.y, $scope.observation.message).then (res) ->
+						$scope.observation.message = ''
+						$('#comment-modal').modal 'hide'
+
+			return
+
+		$scope.clearObservation = ->
+			$scope.observation.message = ''
+			$('#comment-modal').modal 'hide'
 			return
 
 		$scope.validateObservation = (item, valFlag) ->
