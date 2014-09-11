@@ -346,6 +346,9 @@ angular.module('dataplayApp')
 
 				for p in $scope.userObservations
 					x = p.coor.x
+					if not(x instanceof Date) and (typeof x is 'string')
+						xdate = new Date x
+						if xdate.toString() isnt 'Invalid Date' then x = xdate
 
 					# Y
 					for k, v of yDomain
