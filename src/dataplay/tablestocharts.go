@@ -70,7 +70,7 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 
 	chart := make([]TableData, 0)
 	GenerateChartData(chartType, guid, xyz, &chart, index)
-	id := tablename + "_" + strconv.Itoa(tablenum) + chartType //unique id
+	id := tablename + "_" + strconv.Itoa(tablenum) + "_" + chartType //unique id
 	jByte, err := json.Marshal(chart[0])
 	if err != nil {
 		return pattern, &appError{err, "Unable to parse JSON", http.StatusInternalServerError}
@@ -248,7 +248,7 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 	}
 
 	for i, v := range charts {
-		originid := tablename + "_" + strconv.Itoa(i) + v.ChartType
+		originid := tablename + "_" + strconv.Itoa(i) + "_" + v.ChartType
 		discovered := Discovered{}
 		err := DB.Where("relation_id = ?", originid).Find(&discovered).Error
 		if err == gorm.RecordNotFound {
