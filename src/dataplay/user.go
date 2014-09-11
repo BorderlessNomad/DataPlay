@@ -33,6 +33,11 @@ type UserNameForm struct {
 	Username string `json:"username" binding:"required"`
 }
 
+type UserDetailsForm struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
+
 func GetMD5Hash(text string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(text))
@@ -309,6 +314,90 @@ func HandleResetPassword(res http.ResponseWriter, req *http.Request, params mart
 	}
 
 	return "OK"
+}
+
+func GetUserDetails(res http.ResponseWriter, req *http.Request) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+		return ""
+	}
+
+	uid, err := GetUserID(session)
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
+		return ""
+	}
+
+	user := User{}
+	err1 := DB.Where("uid = ?", uid).First(&user).Error
+	if err1 != nil && err1 != gorm.RecordNotFound {
+		http.Error(res, "Database query failed (User).", http.StatusInternalServerError)
+		return ""
+	} else if err1 == gorm.RecordNotFound {
+		http.Error(res, "No such user found!", http.StatusNotFound)
+		return ""
+	}
+
+	u := map[string]interface{}{
+		"username": user.Username,
+		"email":    user.Email,
+	}
+	usr, _ := json.Marshal(u)
+
+	return string(usr)
+}
+
+func UpdateUserDetails(res http.ResponseWriter, req *http.Request, data UserDetailsForm) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+		return ""
+	}
+
+	if data.Email == "" && data.Username == "" {
+		http.Error(res, "Missing request parameter.", http.StatusBadRequest)
+		return ""
+	}
+
+	uid, err := GetUserID(session)
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
+		return ""
+	}
+
+	user := User{}
+	err1 := DB.Where("uid = ?", uid).First(&user).Error
+	if err1 != nil && err1 != gorm.RecordNotFound {
+		http.Error(res, "Database query failed (Select).", http.StatusInternalServerError)
+		return ""
+	} else if err1 == gorm.RecordNotFound {
+		http.Error(res, "No such user found!", http.StatusNotFound)
+		return ""
+	}
+
+	if data.Username != "" {
+		user.Username = data.Username
+	}
+
+	if data.Email != "" {
+		user.Email = data.Email
+	}
+
+	err2 := DB.Save(&user).Error
+	if err2 != nil {
+		panic(err2)
+		http.Error(res, "Database query failed (Update).", http.StatusInternalServerError)
+		return ""
+	}
+
+	u := map[string]interface{}{
+		"username": user.Username,
+		"email":    user.Email,
+	}
+	usr, _ := json.Marshal(u)
+
+	return string(usr)
 }
 
 func Reputation(uid int, points int) string {
