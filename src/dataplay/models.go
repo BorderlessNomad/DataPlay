@@ -49,6 +49,22 @@ func (c Departments) TableName() string {
 	return "priv_departments"
 }
 
+type Discovered struct {
+	DiscoveredId  int `primaryKey:"yes"`
+	Uid           int
+	Created       time.Time
+	Rating        float64
+	Valid         int
+	Invalid       int
+	Json          []byte
+	CorrelationId int
+	RelationId    string
+}
+
+func (v Discovered) TableName() string {
+	return "priv_discoveredcharts"
+}
+
 type Events struct {
 	Keyword string
 	Event   string
@@ -74,7 +90,7 @@ func (i Index) TableName() string {
 
 type Observation struct {
 	Comment       string
-	ValidatedId   int
+	DiscoveredId  int
 	Uid           int
 	Rating        float64
 	Valid         int
@@ -203,24 +219,8 @@ func (ut UserTokens) TableName() string {
 	return "priv_user_tokens"
 }
 
-type Validated struct {
-	ValidatedId   int `primaryKey:"yes"`
-	Uid           int
-	Created       time.Time
-	Rating        float64
-	Valid         int
-	Invalid       int
-	Json          []byte
-	CorrelationId int
-	RelationId    string
-}
-
-func (v Validated) TableName() string {
-	return "priv_validatedcharts"
-}
-
 type Validation struct {
-	ValidatedId   int
+	DiscoveredId  int
 	Validator     int
 	ValidationId  int `primaryKey:"yes"`
 	Created       time.Time

@@ -26,14 +26,14 @@ func RankValidations(valid int, invalid int) float64 {
 	return result
 }
 
-// increment user validated total for chart and rerank, return validated id
+// increment user discovered total for chart and rerank, return discovered id
 func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *appError) {
 	t := time.Now()
-	validated := Validated{}
+	discovered := Discovered{}
 	validation := Validation{}
 
 	if strings.ContainsAny(rcid, "_") { // if a relation id
-		err := DB.Where("relation_id= ?", rcid).First(&validated).Error
+		err := DB.Where("relation_id= ?", rcid).First(&discovered).Error
 		if err != nil {
 			return "", &appError{err, "Database query failed", http.StatusInternalServerError}
 		}
@@ -42,30 +42,32 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 		if err != nil {
 			return "", &appError{err, "Could not convert id to int", http.StatusInternalServerError}
 		}
-		err := DB.Where("correlation_id= ?", cid).First(&validated).Error
+		err := DB.Where("correlation_id= ?", cid).First(&discovered).Error
 		if err != nil {
 			return "", &appError{err, "Database query failed (cid)", http.StatusInternalServerError}
 		}
 	}
 
+	// if discovered.Uid
+
 	if !skipval {
 		if valflag {
-			validated.Valid++
-			Reputation(validated.Uid, discVal) // add points for discovery validation
+			discovered.Valid++
+			Reputation(discovered.Uid, discVal) // add points for discovery validation
 			AddActivity(uid, "vc", t)
 		} else {
-			validated.Invalid++
-			Reputation(validated.Uid, discInval) // remove points for discovery invalidation
+			discovered.Invalid++
+			Reputation(discovered.Uid, discInval) // remove points for discovery invalidation
 			AddActivity(uid, "ic", t)
 		}
-		validated.Rating = RankValidations(validated.Valid, validated.Invalid)
+		discovered.Rating = RankValidations(discovered.Valid, discovered.Invalid)
 
-		err1 := DB.Save(&validated).Error
+		err1 := DB.Save(&discovered).Error
 		if err1 != nil {
-			return "", &appError{err1, "Database query failed - validate chart (Save validated)", http.StatusInternalServerError}
+			return "", &appError{err1, "Database query failed - validate chart (Save discovered)", http.StatusInternalServerError}
 		}
 
-		validation.ValidatedId = validated.ValidatedId
+		validation.DiscoveredId = discovered.DiscoveredId
 		validation.Validator = uid
 		validation.Created = t
 		validation.ObservationId = 0 // not an observation
@@ -76,10 +78,10 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 		}
 	}
 
-	return strconv.Itoa(validated.ValidatedId), nil
+	return strconv.Itoa(discovered.DiscoveredId), nil
 }
 
-// increment user validated total for observation and rerank
+// increment user discovered total for observation and rerank
 func ValidateObservation(oid int, uid int, valflag bool) *appError {
 	t := time.Now()
 	obs := Observation{}
@@ -108,7 +110,7 @@ func ValidateObservation(oid int, uid int, valflag bool) *appError {
 		return &appError{err, "Database query failed - Unable to save an observation.", http.StatusInternalServerError}
 	}
 
-	validation.ValidatedId = 0 // not a chart
+	validation.DiscoveredId = 0 // not a chart
 	validation.Validator = uid
 	validation.Created = time.Now()
 	validation.ObservationId = oid
@@ -133,7 +135,7 @@ func ValidateChartHttp(res http.ResponseWriter, req *http.Request, params martin
 	skipval := false
 	valflag := false
 
-	if params["valflag"] == "" { // if no valflag then skip validation and just return validated id
+	if params["valflag"] == "" { // if no valflag then skip validation and just return discovered id
 		skipval = true
 	} else {
 		valflag, _ = strconv.ParseBool(params["valflag"])
