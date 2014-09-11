@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/codegangsta/martini"
+	"github.com/jinzhu/gorm"
 	"math"
 	"net/http"
 	"strconv"
@@ -84,8 +85,12 @@ func ValidateObservation(oid int, uid int, valflag bool) *appError {
 	obs := Observation{}
 	validation := Validation{}
 
-	err := DB.Where("observation_id= ?", oid).First(&obs).Error
-	check(err)
+	err := DB.Where("observation_id = ?", oid).First(&obs).Error
+	if err != nil && err != gorm.RecordNotFound {
+		return &appError{err, "Database query failed - validate observation (get)", http.StatusInternalServerError}
+	} else if err == gorm.RecordNotFound {
+		return &appError{err, "No such observation found!", http.StatusNotFound}
+	}
 
 	if valflag {
 		obs.Valid++
@@ -99,7 +104,9 @@ func ValidateObservation(oid int, uid int, valflag bool) *appError {
 
 	obs.Rating = RankValidations(obs.Valid, obs.Invalid)
 	err = DB.Save(&obs).Error
-	check(err)
+	if err != nil {
+		return &appError{err, "Database query failed - Unable to save an observation.", http.StatusInternalServerError}
+	}
 
 	validation.ValidatedId = 0 // not a chart
 	validation.Validator = uid
