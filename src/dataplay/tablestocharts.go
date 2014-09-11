@@ -265,13 +265,12 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 // Look for new correlated charts, take the correlations and break them down into charting types, and return them along with their total count
 // To return only existing charts use searchdepth = 0
 func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth int) (CorrelatedCharts, *appError) {
-	fmt.Println("ROBOCOP1", time.Now())
 	correlation := make([]Correlation, 0)
 	charts := make([]CorrelationData, 0) ///empty slice for adding all possible charts
 	var cd CorrelationData
 
 	GenerateCorrelations(tableName, searchDepth)
-	fmt.Println("ROBOCOP2", time.Now())
+	fmt.Println("ROBOCOP1", time.Now())
 	err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Find(&correlation).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return CorrelatedCharts{nil, 0}, &appError{nil, "Database query failed (TBL1)", http.StatusInternalServerError}
@@ -279,12 +278,12 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 		return CorrelatedCharts{nil, 0}, &appError{nil, "No correlated chart found", http.StatusNotFound}
 	}
 
-	fmt.Println("ROBOCOP3", time.Now())
+	fmt.Println("ROBOCOP2", time.Now())
 	for _, c := range correlation {
 		json.Unmarshal(c.Json, &cd)
 		cd.CorrelationId = c.CorrelationId
 
-		if c.Method == "Pearson" {
+		if cd.Method == "Pearson" {
 			cd.ChartType = "bar"
 			charts = append(charts, cd)
 			cd.ChartType = "column"
@@ -294,7 +293,7 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 			cd.ChartType = "scatter"
 			charts = append(charts, cd)
 
-		} else if c.Method == "Spurious" {
+		} else if cd.Method == "Spurious" {
 			cd.ChartType = "line"
 			charts = append(charts, cd)
 			cd.ChartType = "scatter"
@@ -302,7 +301,7 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 			cd.ChartType = "stacked"
 			charts = append(charts, cd)
 
-		} else if c.Method == "Visual" {
+		} else if cd.Method == "Visual" {
 			cd.ChartType = "bar"
 			charts = append(charts, cd)
 			cd.ChartType = "column"
@@ -317,7 +316,6 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 		}
 	}
 
-	fmt.Println("ROBOCOP4", time.Now())
 	totalCharts := len(charts)
 	if offset > totalCharts {
 		return CorrelatedCharts{nil, 0}, &appError{nil, fmt.Sprintf("Offset value out of bounds (Max: %d)", totalCharts), http.StatusBadRequest}
@@ -330,17 +328,19 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 		last = totalCharts
 	}
 
-	for _, c := range charts {
-		originid := strconv.Itoa(c.CorrelationId)
-		discovered := Discovered{}
-		err := DB.Where("correlation_id = ?", originid).Find(&discovered).Error
-		if err == gorm.RecordNotFound {
-			c.Discovered = false
-		} else {
-			c.Discovered = true
-		}
-	}
-	fmt.Println("ROBOCOP6", time.Now())
+	fmt.Println("ROBOCOP3", time.Now())
+	// for _, c := range charts {
+	// 	originid := strconv.Itoa(c.CorrelationId)
+	// 	discovered := Discovered{}
+	// 	err := DB.Where("correlation_id = ?", originid).Find(&discovered).Error
+	// 	if err == gorm.RecordNotFound {
+	// 		c.Discovered = false
+	// 	} else {
+	// 		c.Discovered = true
+	// 	}
+	// }
+
+	fmt.Println("ROBOCOP4", time.Now())
 	charts = charts[offset:last] // return marshalled slice
 	return CorrelatedCharts{charts, totalCharts}, nil
 }
