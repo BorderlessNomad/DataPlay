@@ -201,10 +201,10 @@ func initClassicMode() {
 	m.Get("/api/discovered/:tablename/:correlated/:offset/:count", GetDiscoveredChartsHttp)
 	m.Put("/api/chart/:rcid", ValidateChartHttp)
 	m.Put("/api/chart/:rcid/:valflag", ValidateChartHttp)
-	m.Put("/api/observations/:vid/:x/:y/:comment", AddObservationHttp)
+	m.Put("/api/observations/:did/:x/:y/:comment", AddObservationHttp)
 	m.Put("/api/observations/:oid", ValidateObservationHttp)
 	m.Put("/api/observations/:oid/:valflag", ValidateObservationHttp)
-	m.Get("/api/observations/:vid", GetObservationsHttp)
+	m.Get("/api/observations/:did", GetObservationsHttp)
 	m.Get("/api/political/:type", GetPoliticalActivityHttp)
 
 	m.Use(JsonApiHandler)

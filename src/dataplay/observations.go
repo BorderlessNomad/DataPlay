@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"net/http"
@@ -49,7 +50,7 @@ func AddObservation(did int, uid int, comment string, x string, y string) (strin
 		discovered := Discovered{}
 		err := DB.Where("discovered_id= ?", did).First(&discovered).Error
 		if err != nil {
-			return "", &appError{err, "Database query failed (find discovered)", http.StatusInternalServerError}
+			return "Database query failed (find discovered)", &appError{err, "Database query failed (find discovered)", http.StatusInternalServerError}
 		}
 		Reputation(discovered.Uid, discObs) // add points to rep of user who discovered chart when their discovery receives an observation
 
@@ -60,15 +61,16 @@ func AddObservation(did int, uid int, comment string, x string, y string) (strin
 
 		err2 := DB.Save(&observation).Error
 		if err2 != nil {
-			return "", &appError{err2, "Database query failed (Save observation)", http.StatusInternalServerError}
+			return "Database query failed (Save observation)", &appError{err2, "Database query failed (Save observation)", http.StatusInternalServerError}
 		}
 
 		err3 := DB.Where("discovered_id= ?", did).Where("x =?", x).Where("y =?", y).First(&observation).Error
 		if err3 != nil {
-			return "", &appError{err3, "Database query failed - add observation (find observation)", http.StatusInternalServerError}
+			return "Database query failed - add observation (find observation)", &appError{err3, "Database query failed - add observation (find observation)", http.StatusInternalServerError}
 		}
 	}
 
+	fmt.Println("MACARINA", observation)
 	return strconv.Itoa(observation.ObservationId), nil
 }
 
@@ -127,33 +129,33 @@ func AddObservationHttp(res http.ResponseWriter, req *http.Request, params marti
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
-		return ""
+		return "Missing session parameter."
 	}
 
 	if params["did"] == "" {
 		http.Error(res, "no discovered id.", http.StatusBadRequest)
-		return ""
+		return "no discovered id."
 	}
 
 	if params["x"] == "" {
 		http.Error(res, "no x value.", http.StatusBadRequest)
-		return ""
+		return "no x value."
 	}
 	if params["y"] == "" {
 		http.Error(res, "no y value.", http.StatusBadRequest)
-		return ""
+		return "no y value."
 	}
 
 	did, err := strconv.Atoi(params["did"])
 	if err != nil {
 		http.Error(res, "bad discovered id", http.StatusBadRequest)
-		return ""
+		return "bad discovered id"
 	}
 
 	uid, err1 := GetUserID(session)
 	if err1 != nil {
 		http.Error(res, err1.Message, err1.Code)
-		return ""
+		return err1.Message
 	}
 
 	result, err2 := AddObservation(did, uid, params["comment"], params["x"], params["y"])
