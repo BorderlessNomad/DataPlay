@@ -150,6 +150,7 @@ func ValidateChartHttp(res http.ResponseWriter, req *http.Request, params martin
 		} else {
 			msg = " could not invalidate chart"
 		}
+
 		http.Error(res, msg, http.StatusBadRequest)
 		return err2.Message + msg
 	}

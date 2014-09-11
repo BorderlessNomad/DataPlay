@@ -72,13 +72,15 @@ angular.module('dataplayApp')
 				console.log "Charts::init::Error:", status
 
 			if mode is 'correlated'
+				rcId = "#{$scope.params.correlationid}"
 				Charts.correlated $scope.params.correlationid
 					.success(success).error(error)
 			else
+				rcId = "#{$scope.params.id}_#{$scope.params.key}"
 				Charts.related $scope.params.id, $scope.params.key, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
 					.success(success).error(error)
 
-			Charts.validateChart "#{$scope.params.id}_#{$scope.params.key}"
+			Charts.validateChart rcId
 				.then (validate) ->
 					valId = validate.data
 					Charts.getObservations valId
