@@ -84,9 +84,11 @@ func GetObservations(vid int) ([]Observations, *appError) {
 	obsData := make([]Observations, 0)
 	var tmpOD Observations
 
-	err1 := DB.Where("validated_id= ?", vid).Find(&observation).Error
-	if err1 != nil {
+	err1 := DB.Where("validated_id = ?", vid).Find(&observation).Error
+	if err1 != nil && err1 != gorm.RecordNotFound {
 		return nil, &appError{err1, "Database query failed  - get observation (find observation)", http.StatusInternalServerError}
+	} else if err1 == gorm.RecordNotFound {
+		return obsData, nil //Empty map
 	}
 
 	for _, o := range observation {

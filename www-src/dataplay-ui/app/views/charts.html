@@ -1,84 +1,32 @@
 <div class="charts" ng-init="init()">
 	<div class="row">
-		<div class="col-md-3" id="sidebar">
-			<div class="row user-observation-title">Observations</div>
-			<div class="row user-observation" ng-repeat="obsv in userObservations">
-
-
-				<div class="uo-date">
-					<hr>
-					<date>{{obsv.date}}</date>
-				</div>
-
-
-				<div class="uo-mainblock">
-					<div class="uo-leftcontrols">
-						<img class="uo-avatar" data-ng-src="{{obsv.user.avatar}}" />
-						<i class="glyphicon glyphicon-arrow-up" ng-click="voteObservation(obsv, 1)"></i>
-						<span>{{obsv.upvotes}}</span>
-						<i class="glyphicon glyphicon-arrow-down" ng-click="voteObservation(obsv, -1)"></i>
-					</div>
-					<div class="uo-userinfo">
-						<span class="uo-name">{{obsv.user.name}}</span>
-						<span class="uo-score"><i class="glyphicon glyphicon-star"></i>{{obsv.user.score}}</span>
-						<span class="label label-default uo-discoverer" ng-if="obsv.user.discoverer">Discoverer</span>
-					</div>
-					<div class="uo-message">{{obsv.message}}</div>
-				</div>
-
-			</div>
-			<div class="row uo-nothing" ng-hide="userObservations.length > 0"><p>Nothing to show</p></div>
-		</div>
 		<div class="col-md-9">
-			<div class="pull-right">
-				<!-- <a href="#" class="btn btn-success" ng-show="observations.length" ng-click="saveObservations()">Save observations ({{observations.length}})</a> -->
-				<a href="#" class="btn btn-warning" ng-click="resetAll()">Reset changes</a>
-			</div>
+			<ul class="breadcrumb">
+				<li><a href="#" ng-href="/">Home</a></li>
+				<li><a href="#" ng-href="/overview/{{params.id}}">{{params.id}}</a></li>
+			</ul>
 		</div>
+	</div>
 
+	<div class="row">
 		<div class="col-md-6 constrict-graphs" ng-switch="chart.type">
+			<div class="action-bar">
+				<a href="#" ng-href="/overview/{{params.id}}" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-share-alt glyphicon-flip"></span> Go Back</a>
+			</div>
+
+			<div>{{chart.title}}</div>
+
 			<span ng-include="'views/charts/related/lineRanged.html'"></span>
 			<span ng-include="'views/charts/related/row.html'"></span>
 			<span ng-include="'views/charts/related/column.html'"></span>
 			<span ng-include="'views/charts/related/pie.html'"></span>
 			<span ng-include="'views/charts/related/bubble.html'"></span>
 		</div>
-		<div class="col-md-3 chartinfo">
-			<div class="row ci-row" ng-show="info.patternId">
-				<div class="col-sm-6 ci-key">Pattern ID</div>
-				<div class="col-sm-6 ci-val">{{info.patternId}}</div>
-			</div>
-			<div class="row ci-row" ng-show="info.discoverer">
-				<div class="col-sm-6 ci-key">Discovered by</div>
-				<div class="col-sm-6 ci-val">{{info.discoverer}}</div>
-			</div>
-			<div class="row ci-row" ng-show="info.discoverDate">
-				<div class="col-sm-6 ci-key">Date discovered</div>
-				<div class="col-sm-6 ci-val">{{info.discoverDate}}</div>
-			</div>
-			<div class="row ci-row" ng-show="info.validators.length > 0">
-				<div class="col-sm-6 ci-key">Validated by</div>
-				<div class="col-sm-6 ci-val">
-					<span class="csl" ng-repeat="vldtr in info.validators">{{vldtr}}</span>
-				</div>
-			</div>
-			<div class="row ci-row" ng-show="info.source.prim">
-				<div class="col-sm-6 ci-key">Primary datasource</div>
-				<div class="col-sm-6 ci-val">{{info.source.prim}}</div>
-			</div>
-			<div class="row ci-row" ng-show="info.source.seco">
-				<div class="col-sm-6 ci-key">Secondary datasource</div>
-				<div class="col-sm-6 ci-val">{{info.source.seco}}</div>
-			</div>
-			<div class="row ci-row" ng-show="info.strength">
-				<div class="col-sm-6 ci-key">Statistical strength</div>
-				<div class="col-sm-6 ci-val">{{info.strength}}</div>
-			</div>
-			<div class="row ci-row">
-				<div class="col-sm-6 ci-key">Observations</div>
-				<div class="col-sm-6 ci-val">{{userObservations.length}}</div>
-			</div>
-		</div>
+
+		<div class="col-md-3 info" ng-include="'views/charts/info.html'"></div>
+
+		<div class="col-md-3 observations" ng-include="'views/charts/observations.html'"></div>
+
 	</div>
 </div>
 

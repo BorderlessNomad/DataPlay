@@ -27,6 +27,8 @@
 	dc-post-setup-chart="lineChartPostSetup"
 ></div>
 
+<a ng-show="chart.type == 'line'" href="#" class="pull-right" ng-click="resetAll()">Reset</a>
+
 <div class="dc-chart chartSwitch range"
 	ng-show="chart.type == 'line'"
 

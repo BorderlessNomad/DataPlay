@@ -62,7 +62,7 @@ angular.module('dataplayApp')
 							# continue unless $scope.isPlotAllowed chart.type
 							continue unless chart.type is 'line'
 
-							chart.id = "correlated-#{$scope.params.id}-#{chart.table1.xLabel}-#{chart.table1.yLabel}-#{chart.table2.xLabel}-#{chart.table2.yLabel}-#{chart.type}"
+							chart.id = "correlated-#{chart.correlationid}"
 							chart.key = key
 
 							chart.patterns = {}
