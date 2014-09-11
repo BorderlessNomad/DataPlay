@@ -40,24 +40,24 @@ angular.module('dataplayApp')
 			discoveredId: null
 			validated: null
 			invalidated: null
-			patternId: '202121200'
-			discoverer: 'DataWiz'
-			discoverDate: Overview.humanDate new Date( new Date() - (2 * 24 * 60 * 60 * 1000) )
-			validators: [
-				'Alan'
-				'Bob'
-				'Chris'
-			]
+			patternId: null
+			discoverer: ''
+			discoverDate: ''
+			validators: []
 			source:
-				prim: 'NHS Spending 2012 - London'
-				seco: 'Weather Patterns 2012'
-			strength: 'High'
+				prim: ''
+				seco: ''
+			strength: ''
 
 		$scope.init = () ->
+			$scope.validateChart()
+			$scope.getChart()
+
+		$scope.getChart = () ->
 			Charts.related $scope.params.id, $scope.params.key, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
 				.success (data, status) ->
-					if data?
-						$scope.chart = data
+					if data? and data.chartdata
+						$scope.chart = data.chartdata
 
 						if data.desc? and data.desc.length > 0
 							description = data.desc.replace /(h1>|h2>|h3>)/ig, 'h4>'
@@ -66,6 +66,16 @@ angular.module('dataplayApp')
 
 						$scope.reduceData()
 
+					if data?
+						$scope.info.patternId = data.patternid or ''
+						$scope.info.discoverer = data.discoveredby or ''
+						$scope.info.discoverDate = if data.discoverydate then Overview.humanDate new Date( data.discoverydate ) else ''
+						$scope.info.validators = data.validatedby or ''
+						$scope.info.source =
+							prim: data.source1  or ''
+							seco: data.source2  or ''
+						$scope.info.strength = data.statstrength
+
 					console.log "Chart", $scope.chart
 
 					# Track a page visit
@@ -73,6 +83,7 @@ angular.module('dataplayApp')
 				.error (data, status) ->
 					console.log "Charts::init::Error:", status
 
+		$scope.validateChart = () ->
 			Charts.validateChart "#{$scope.params.id}_#{$scope.params.key}"
 				.then (validate) ->
 					$scope.info.discoveredId = validate.data
@@ -227,6 +238,7 @@ angular.module('dataplayApp')
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
 
+			chart.yAxisLabel data.yLabel
 
 			points = [
 				[new Date("Feb 01 1975 00:00:00 GMT+0000 (GMT Standard Time)"), 600, "Hello Jack!"]
@@ -237,8 +249,6 @@ angular.module('dataplayApp')
 			newObservations = null
 
 			chart.renderlet (c) ->
-				console.log 'renderlet'
-
 				svg = d3.select 'svg'
 				stack = d3.select('g.stack-list').node()
 				box = stack.getBBox()
@@ -368,9 +378,8 @@ angular.module('dataplayApp')
 					y = yDomain[j].y
 
 					plot = [xScale(x), yDomain[j].cy]
-					color = '#2ca02c'
 
-					$scope.drawCircle newObservations, data, x, y, plot, color
+					$scope.drawCircle newObservations, data, x, y, plot
 
 			$scope.chartRendered = chart
 
@@ -427,6 +436,9 @@ angular.module('dataplayApp')
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
 
+			chart.xAxisLabel data.xLabel
+			chart.yAxisLabel data.yLabel
+
 			return
 
 		$scope.columnChartPostSetup = (chart) ->
@@ -452,6 +464,9 @@ angular.module('dataplayApp')
 					when 'intNumber' then dc.units.integers
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
+
+			chart.xAxisLabel data.xLabel
+			chart.yAxisLabel data.yLabel
 
 			return
 
@@ -577,6 +592,9 @@ angular.module('dataplayApp')
 
 			chart.zoomOutRestrict true
 			chart.mouseZoomable true
+
+			chart.xAxisLabel data.xLabel
+			chart.yAxisLabel data.yLabel
 
 			# chart.renderlet (c) ->
 			# 	circles = c.svg().selectAll('g.chart-body').selectAll('g circle')
