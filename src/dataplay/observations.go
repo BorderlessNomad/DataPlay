@@ -29,29 +29,29 @@ type UserData struct {
 }
 
 // add observation
-func AddObservation(vid int, uid int, comment string, x string, y string) (string, *appError) {
+func AddObservation(did int, uid int, comment string, x string, y string) (string, *appError) {
 	observation := Observation{}
 	addObs := false
 
-	e := DB.Where("validated_id= ?", vid).Where("x =?", x).Where("y =?", y).First(&observation).Error
+	e := DB.Where("discovered_id= ?", did).Where("x =?", x).Where("y =?", y).First(&observation).Error
 	if e == gorm.RecordNotFound {
 		addObs = true
 	}
 
 	if addObs {
 		observation.Comment = comment
-		observation.ValidatedId = vid
+		observation.DiscoveredId = did
 		observation.Uid = uid
 		observation.X = x
 		observation.Y = y
 		observation.Created = time.Now()
 
-		validated := Validated{}
-		err := DB.Where("validated_id= ?", vid).First(&validated).Error
+		discovered := Discovered{}
+		err := DB.Where("discovered_id= ?", did).First(&discovered).Error
 		if err != nil {
-			return "", &appError{err, "Database query failed (find validated)", http.StatusInternalServerError}
+			return "", &appError{err, "Database query failed (find discovered)", http.StatusInternalServerError}
 		}
-		Reputation(validated.Uid, discObs) // add points to rep of user who discovered chart when their discovery receives an observation
+		Reputation(discovered.Uid, discObs) // add points to rep of user who discovered chart when their discovery receives an observation
 
 		err1 := AddActivity(uid, "c", observation.Created) // add to activities
 		if err1 != nil {
@@ -63,7 +63,7 @@ func AddObservation(vid int, uid int, comment string, x string, y string) (strin
 			return "", &appError{err2, "Database query failed (Save observation)", http.StatusInternalServerError}
 		}
 
-		err3 := DB.Where("validated_id= ?", vid).Where("x =?", x).Where("y =?", y).First(&observation).Error
+		err3 := DB.Where("discovered_id= ?", did).Where("x =?", x).Where("y =?", y).First(&observation).Error
 		if err3 != nil {
 			return "", &appError{err3, "Database query failed - add observation (find observation)", http.StatusInternalServerError}
 		}
@@ -73,18 +73,18 @@ func AddObservation(vid int, uid int, comment string, x string, y string) (strin
 }
 
 // get all observations for a particular chart
-func GetObservations(vid int) ([]Observations, *appError) {
-	validated := make([]Validated, 0)
-	err := DB.Where("validated_id= ?", vid).Find(&validated).Error
+func GetObservations(did int) ([]Observations, *appError) {
+	discovered := make([]Discovered, 0)
+	err := DB.Where("discovered_id= ?", did).Find(&discovered).Error
 	if err != nil {
-		return nil, &appError{err, "Database query failed - get observation (find validation)", http.StatusInternalServerError}
+		return nil, &appError{err, "Database query failed - get observation (find discovered)", http.StatusInternalServerError}
 	}
 
 	observation := make([]Observation, 0)
 	obsData := make([]Observations, 0)
 	var tmpOD Observations
 
-	err1 := DB.Where("validated_id = ?", vid).Find(&observation).Error
+	err1 := DB.Where("discovered_id = ?", did).Find(&observation).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {
 		return nil, &appError{err1, "Database query failed  - get observation (find observation)", http.StatusInternalServerError}
 	} else if err1 == gorm.RecordNotFound {
@@ -111,7 +111,7 @@ func GetObservations(vid int) ([]Observations, *appError) {
 		tmpOD.User.Reputation = user[0].Reputation
 		tmpOD.User.Email = GetMD5Hash(user[0].Email)
 
-		if validated[0].Uid == observation[0].Uid { // if commenter discovered the chart
+		if discovered[0].Uid == observation[0].Uid { // if commenter discovered the chart
 			tmpOD.User.Discoverer = true
 		} else {
 			tmpOD.User.Discoverer = false
@@ -130,8 +130,8 @@ func AddObservationHttp(res http.ResponseWriter, req *http.Request, params marti
 		return ""
 	}
 
-	if params["vid"] == "" {
-		http.Error(res, "no validated id.", http.StatusBadRequest)
+	if params["did"] == "" {
+		http.Error(res, "no discovered id.", http.StatusBadRequest)
 		return ""
 	}
 
@@ -144,9 +144,9 @@ func AddObservationHttp(res http.ResponseWriter, req *http.Request, params marti
 		return ""
 	}
 
-	vid, err := strconv.Atoi(params["vid"])
+	did, err := strconv.Atoi(params["did"])
 	if err != nil {
-		http.Error(res, "bad validated id", http.StatusBadRequest)
+		http.Error(res, "bad discovered id", http.StatusBadRequest)
 		return ""
 	}
 
@@ -156,7 +156,7 @@ func AddObservationHttp(res http.ResponseWriter, req *http.Request, params marti
 		return ""
 	}
 
-	result, err2 := AddObservation(vid, uid, params["comment"], params["x"], params["y"])
+	result, err2 := AddObservation(did, uid, params["comment"], params["x"], params["y"])
 	if err2 != nil {
 		http.Error(res, err2.Message, http.StatusBadRequest)
 		return err2.Message
@@ -172,17 +172,17 @@ func GetObservationsHttp(res http.ResponseWriter, req *http.Request, params mart
 		return ""
 	}
 
-	if params["vid"] == "" {
-		return "no validated id"
+	if params["did"] == "" {
+		return "no discovered id"
 	}
 
-	vid, err := strconv.Atoi(params["vid"])
+	did, err := strconv.Atoi(params["did"])
 	if err != nil {
-		http.Error(res, "bad validated id", http.StatusBadRequest)
-		return "bad validated id"
+		http.Error(res, "bad discovered id", http.StatusBadRequest)
+		return "bad discovered id"
 	}
 
-	obs, err1 := GetObservations(vid)
+	obs, err1 := GetObservations(did)
 	if err1 != nil {
 		http.Error(res, err1.Message, http.StatusBadRequest)
 		return err1.Message
@@ -198,13 +198,13 @@ func GetObservationsHttp(res http.ResponseWriter, req *http.Request, params mart
 }
 
 func GetObservationsQ(params map[string]string) string {
-	vid, err := strconv.Atoi(params["vid"])
+	did, err := strconv.Atoi(params["did"])
 
-	if err != nil || vid < 0 {
+	if err != nil || did < 0 {
 		return "Observations could not be retrieved"
 	}
 
-	result, err1 := GetObservations(vid)
+	result, err1 := GetObservations(did)
 	if err1 != nil {
 		return "Observations could not be retrieved"
 	}
