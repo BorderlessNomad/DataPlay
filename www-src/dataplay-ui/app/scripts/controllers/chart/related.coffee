@@ -339,11 +339,7 @@ angular.module('dataplayApp')
 
 					$scope.addObservation x, y, space
 
-					$scope.observation.x = x
-					$scope.observation.y = y
-					$scope.observation.message = ''
-
-					$('#comment-modal').modal 'show'
+					$scope.openAddObservationModal x, y
 					$scope.drawCircle newObservations, data, x, y, space, color
 
 				for p in $scope.observations
@@ -607,6 +603,14 @@ angular.module('dataplayApp')
 				Charts.validateObservation item.oid, valFlag
 					.success (res) ->
 						item.validationCount += (valFlag) ? 1 : -1
+
+		$scope.openAddObservationModal = (x, y) ->
+			$scope.observation.x = x || 0
+			$scope.observation.y = y || 0
+			$scope.observation.message = ''
+
+			$('#comment-modal').modal 'show'
+			return
 
 		$scope.addObservation = (x, y, space, comment) ->
 			$scope.observations.push
