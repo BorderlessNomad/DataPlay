@@ -15,18 +15,23 @@ import (
 func GetRandomNameMap(m map[string]string, c cmeth) bool {
 
 	m["guid1"] = NameToGuid(m["table1"])
+	if m["guid1"] == "" {
+		return false
+	}
 	m["table2"] = RandomTableName()
 	m["guid2"] = NameToGuid(m["table2"])
+	if m["guid2"] == "" {
+		return false
+	}
 	cols1 := FetchTableCols(m["guid1"])
 	cols2 := FetchTableCols(m["guid2"])
 	m["dateCol1"] = RandomDateColumn(cols1)
 	m["valCol1"] = RandomValueColumn(cols1)
 	m["dateCol2"] = RandomDateColumn(cols2)
 	m["valCol2"] = RandomValueColumn(cols2)
-	allNames := true
 
 	if m["table1"] == m["table2"] || m["table1"] == "" || m["table2"] == "" || m["valCol1"] == "" || m["valCol2"] == "" || m["dateCol1"] == "" || m["dateCol2"] == "" {
-		allNames = false
+		return false
 	}
 	if c == P {
 		m["method"] = "Pearson"
@@ -37,19 +42,25 @@ func GetRandomNameMap(m map[string]string, c cmeth) bool {
 	if c == S {
 		m["table3"] = RandomTableName()
 		m["guid3"] = NameToGuid(m["table3"])
+		if m["guid3"] == "" {
+			return false
+		}
 		cols3 := FetchTableCols(m["guid3"])
 		m["dateCol3"] = RandomDateColumn(cols3)
 		m["valCol3"] = RandomValueColumn(cols3)
 		m["method"] = "Spurious"
 		if m["table1"] == m["table3"] || m["table2"] == m["table3"] || m["table3"] == "" || m["valCol3"] == "" || m["dateCol3"] == "" {
-			allNames = false
+			return false
 		}
 	}
-	return allNames
+	return true
 }
 
 // convert table name to guid
 func NameToGuid(tablename string) string {
+	if tablename == "" {
+		return ""
+	}
 	var guid []string
 	err := DB.Model(OnlineData{}).Where("tablename = ?", tablename).Pluck("guid", &guid).Error
 	if err != nil && err != gorm.RecordNotFound {

@@ -48,7 +48,7 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 		}
 	}
 
-	// if discovered.Uid skipval
+	// err := DB.Where("discovered_id= ?", discovered.DiscoveredId).Where("uid= ?", uid).First(&discovered).Error
 
 	if !skipval {
 		if valflag {
@@ -155,9 +155,9 @@ func ValidateChartHttp(res http.ResponseWriter, req *http.Request, params martin
 	if err2 != nil {
 		msg := ""
 		if valflag {
-			msg = " could not validate chart"
+			msg = " could not validate chart" + err2.Message
 		} else {
-			msg = " could not invalidate chart"
+			msg = " could not invalidate chart" + err2.Message
 		}
 
 		http.Error(res, msg, http.StatusBadRequest)
@@ -199,9 +199,9 @@ func ValidateObservationHttp(res http.ResponseWriter, req *http.Request, params 
 	if err3 != nil {
 		msg := ""
 		if valflag {
-			msg = "Could not validate observation"
+			msg = "Could not validate observation" + err3.Message
 		} else {
-			msg = "Could not invalidate observation"
+			msg = "Could not invalidate observation" + err3.Message
 		}
 		return msg
 	}
