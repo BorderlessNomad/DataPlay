@@ -80,6 +80,7 @@ angular.module('dataplayApp')
 
 							res.data?.forEach (obsv) ->
 								$scope.userObservations.push
+									oid : obsv['observation_id']
 									user: obsv.user
 									validationCount: parseInt(obsv.validations - obsv.invalidations) || 0
 									message: obsv.comment
@@ -585,8 +586,8 @@ angular.module('dataplayApp')
 			return
 
 		$scope.validateObservation = (item, valFlag) ->
-			if item.id?
-				Charts.validateObservation item.id, valFlag
+			if item.oid?
+				Charts.validateObservation item.oid, valFlag
 					.success (res) ->
 						item.validationCount += (valFlag) ? 1 : -1
 
