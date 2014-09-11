@@ -154,6 +154,9 @@ angular.module('dataplayApp')
 
 			chart.xAxis().ticks $scope.xTicks
 
+			chart.xAxisLabel false, 0
+			chart.yAxisLabel false, 0
+
 			chart.x $scope.getXScale data
 
 			return

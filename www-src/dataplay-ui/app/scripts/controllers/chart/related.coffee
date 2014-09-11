@@ -54,6 +54,10 @@ angular.module('dataplayApp')
 			strength: 'High'
 
 		$scope.init = () ->
+			$scope.validateChart()
+			$scope.getChart()
+
+		$scope.getChart = () ->
 			Charts.related $scope.params.id, $scope.params.key, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
 				.success (data, status) ->
 					if data?
@@ -73,6 +77,7 @@ angular.module('dataplayApp')
 				.error (data, status) ->
 					console.log "Charts::init::Error:", status
 
+		$scope.validateChart = () ->
 			Charts.validateChart "#{$scope.params.id}_#{$scope.params.key}"
 				.then (validate) ->
 					$scope.info.discoveredId = validate.data
@@ -227,6 +232,7 @@ angular.module('dataplayApp')
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
 
+			chart.yAxisLabel data.yLabel
 
 			points = [
 				[new Date("Feb 01 1975 00:00:00 GMT+0000 (GMT Standard Time)"), 600, "Hello Jack!"]
@@ -237,8 +243,6 @@ angular.module('dataplayApp')
 			newObservations = null
 
 			chart.renderlet (c) ->
-				console.log 'renderlet'
-
 				svg = d3.select 'svg'
 				stack = d3.select('g.stack-list').node()
 				box = stack.getBBox()
@@ -368,9 +372,8 @@ angular.module('dataplayApp')
 					y = yDomain[j].y
 
 					plot = [xScale(x), yDomain[j].cy]
-					color = '#2ca02c'
 
-					$scope.drawCircle newObservations, data, x, y, plot, color
+					$scope.drawCircle newObservations, data, x, y, plot
 
 			$scope.chartRendered = chart
 
@@ -427,6 +430,9 @@ angular.module('dataplayApp')
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
 
+			chart.xAxisLabel data.xLabel
+			chart.yAxisLabel data.yLabel
+
 			return
 
 		$scope.columnChartPostSetup = (chart) ->
@@ -452,6 +458,9 @@ angular.module('dataplayApp')
 					when 'intNumber' then dc.units.integers
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
+
+			chart.xAxisLabel data.xLabel
+			chart.yAxisLabel data.yLabel
 
 			return
 
@@ -577,6 +586,9 @@ angular.module('dataplayApp')
 
 			chart.zoomOutRestrict true
 			chart.mouseZoomable true
+
+			chart.xAxisLabel data.xLabel
+			chart.yAxisLabel data.yLabel
 
 			# chart.renderlet (c) ->
 			# 	circles = c.svg().selectAll('g.chart-body').selectAll('g circle')
