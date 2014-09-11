@@ -48,7 +48,7 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 		}
 	}
 
-	// if discovered.Uid
+	// if discovered.Uid skipval
 
 	if !skipval {
 		if valflag {
@@ -68,7 +68,7 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 		}
 
 		validation.DiscoveredId = discovered.DiscoveredId
-		validation.Validator = uid
+		validation.Uid = uid
 		validation.Created = t
 		validation.ObservationId = 0 // not an observation
 
@@ -111,7 +111,7 @@ func ValidateObservation(oid int, uid int, valflag bool) *appError {
 	}
 
 	validation.DiscoveredId = 0 // not a chart
-	validation.Validator = uid
+	validation.Uid = uid
 	validation.Created = time.Now()
 	validation.ObservationId = oid
 	validation.Valflag = valflag

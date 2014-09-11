@@ -221,7 +221,7 @@ func (ut UserTokens) TableName() string {
 
 type Validation struct {
 	DiscoveredId  int
-	Validator     int
+	Uid           int
 	ValidationId  int `primaryKey:"yes"`
 	Created       time.Time
 	ObservationId int
