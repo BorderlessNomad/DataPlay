@@ -10,6 +10,7 @@
 angular.module('dataplayApp')
 	.controller 'ChartsRelatedCtrl', ['$scope', '$location', '$routeParams', 'Overview', 'PatternMatcher', 'Charts', 'Tracker', ($scope, $location, $routeParams, Overview, PatternMatcher, Charts, Tracker) ->
 		$scope.params = $routeParams
+		$scope.mode = 'related'
 		$scope.width = 570
 		$scope.height = $scope.width * 9 / 16 # 16:9
 		$scope.margin =
@@ -50,8 +51,6 @@ angular.module('dataplayApp')
 			strength: 'High'
 
 		$scope.init = () ->
-			mode = $location.path().split("/")[2]
-
 			Charts.related $scope.params.id, $scope.params.key, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
 				.success (data, status) ->
 					if data?

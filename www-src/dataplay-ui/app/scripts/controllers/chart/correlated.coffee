@@ -10,6 +10,7 @@
 angular.module('dataplayApp')
 	.controller 'ChartsCorrelatedCtrl', ['$scope', '$location', '$routeParams', 'Overview', 'PatternMatcher', 'Charts', 'Tracker', ($scope, $location, $routeParams, Overview, PatternMatcher, Charts, Tracker) ->
 		$scope.params = $routeParams
+		$scope.mode = 'correlated'
 		$scope.width = 570
 		$scope.height = $scope.width * 9 / 16 # 16:9
 		$scope.margin =
@@ -54,6 +55,7 @@ angular.module('dataplayApp')
 				.success (data, status) ->
 					if data?
 						$scope.chart = data
+						$scope.chart.type = $scope.params.type
 
 						if data.desc? and data.desc.length > 0
 							description = data.desc.replace /(h1>|h2>|h3>)/ig, 'h4>'
@@ -90,20 +92,23 @@ angular.module('dataplayApp')
 			return
 
 		$scope.reduceData = () ->
-			$scope.chart.data = $scope.chart.values
+			$scope.chart.data = $scope.chart.table1.values
 			$scope.chart.patterns = {}
-			$scope.chart.patterns[$scope.chart.xLabel] =
-				valuePattern: PatternMatcher.getPattern $scope.chart.values[0]['x']
-				keyPattern: PatternMatcher.getKeyPattern $scope.chart.values[0]['x']
+			$scope.chart.patterns[$scope.chart.table1.xLabel] =
+				valuePattern: PatternMatcher.getPattern $scope.chart.table1.values[0]['x']
+				keyPattern: PatternMatcher.getKeyPattern $scope.chart.table1.values[0]['x']
 
-			if $scope.chart.patterns[$scope.chart.xLabel].valuePattern is 'date'
-				for value, key in $scope.chart.values
-					$scope.chart.values[key].x = new Date(value.x)
+			if $scope.chart.patterns[$scope.chart.table1.xLabel].valuePattern is 'date'
+				for value, key in $scope.chart.table1.values
+					$scope.chart.table1.values[key].x = new Date(value.x)
 
-			if $scope.chart.yLabel?
-				$scope.chart.patterns[$scope.chart.yLabel] =
-					valuePattern: PatternMatcher.getPattern $scope.chart.values[0]['y']
-					keyPattern: PatternMatcher.getKeyPattern $scope.chart.values[0]['y']
+				for value, key in $scope.chart.table2.values
+					$scope.chart.table2.values[key].x = new Date(value.x)
+
+			if $scope.chart.table1.yLabel?
+				$scope.chart.patterns[$scope.chart.table1.yLabel] =
+					valuePattern: PatternMatcher.getPattern $scope.chart.table1.values[0]['y']
+					keyPattern: PatternMatcher.getKeyPattern $scope.chart.table1.values[0]['y']
 
 		$scope.getXScale = (data) ->
 			xScale = switch data.patterns[data.xLabel].valuePattern
@@ -139,259 +144,58 @@ angular.module('dataplayApp')
 
 			yScale
 
-		$scope.nearestNeighbour = (index, data, key) ->
-			index = parseInt index
-			curr = data[index][key]
-			next = if data[index + 1]? then data[index + 1][key] else null
-			prev = if data[index - 1]? then data[index - 1][key] else null
-
-			closest = curr
-			if curr is next
-				closest = next
-			else if curr is prev
-				closest = prev
-			else if not next? or Math.abs(curr - next) >= Math.abs(curr - prev)
-				closest = prev
-			else if not prev? or Math.abs(curr - next) <= Math.abs(curr - prev)
-				closest = next
-
-			closest
-
-		$scope.drawCircle = (area, data, x, y, plot, color) ->
-			if data.patterns[data.xLabel].valuePattern is 'date'
-				x = Overview.humanDate x
-
-			circ = area.append 'circle'
-				.attr 'cx', plot[0]
-				.attr 'cy', plot[1]
-				.attr 'r', 5
-				.style 'fill', color
-				.attr 'data-placement', 'top'
-				.attr 'data-html', true
-				.tooltip "#{$scope.chart.xLabel}: #{x}<br/>#{$scope.chart.yLabel}: #{y}"
-
-		$scope.saveObservation = ->
-			# console.log Charts.createObservation($scope.params.type, $scope.observation.x, $scope.observation.y, $scope.observation.message).then (res) ->
-			# 	console.log 'suc', res
-			# , (err) ->
-			# 	console.log 'err', err
-
-			$scope.observation.message = ''
-			$('#comment-modal').modal 'hide'
-			return
-
-		$scope.clearObservation = ->
-			$scope.observation.message = ''
-			$('#comment-modal').modal 'hide'
-			return
-
-
 		$scope.lineChartPostSetup = (chart) ->
 			data = $scope.chart
 
-			data.entry = crossfilter data.values
+			data.xDomain = [new Date(data.from), new Date(data.to)]
+			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
-			# data.group1 = data.dimension.group().reduceSum (d) -> d.y
+
+			data.entry2 = crossfilter data.table2.values
+			data.dimension2 = data.entry2.dimension (d) -> d.x
+			data.group2 = data.dimension2.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
-			chart.group data.group, data.title
-			# chart.stack data.group1, "Test"
+			chart.group data.group, data.table1.title
+			chart.stack data.group2, data.table2.title
 
 			data.ordinals = []
 			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
 
-			# chart.colorAccessor (d, i) -> parseInt(d.y) % data.ordinals.length
-			chart.keyAccessor (d) -> d.key
-			chart.valueAccessor (d) -> d.value
-			chart.title (d) ->
-				x = d.key
-				if $scope.chart.patterns[$scope.chart.xLabel].valuePattern is 'date'
-					x = Overview.humanDate d.key
-				"#{$scope.chart.xLabel}: #{x}\n#{$scope.chart.yLabel}: #{d.value}"
-			# chart.legend dc.legend().itemHeight(13).gap(5)
+			chart.colorAccessor (d, i) -> parseInt(d.y) % data.ordinals.length
 
-			xScale = $scope.getXScale data
+			chart.xAxis().ticks $scope.xTicks
+
+			xScale = d3.time.scale()
+				.domain data.xDomain
+				.range [0, $scope.width]
 			chart.x xScale
-
-			yScale = $scope.getYScale data
-
-			if data.ordinals.length > 0
-				chart.xUnits switch data.patterns[data.xLabel].valuePattern
-					when 'date' then d3.time.years
-					when 'intNumber' then dc.units.integers
-					when 'label', 'text' then dc.units.ordinal
-					else dc.units.ordinal
-
-
-			points = [
-				[new Date("Feb 01 1975 00:00:00 GMT+0000 (GMT Standard Time)"), 600, "Hello Jack!"]
-				[new Date("Jan 04 2000 00:00:00 GMT+0000 (GMT Standard Time)"), 400, "Test Point"]
-			]
-
-			existingObservations = null
-			newObservations = null
-
-			chart.renderlet (c) ->
-				console.log 'renderlet'
-
-				svg = d3.select 'svg'
-				stack = d3.select('g.stack-list').node()
-				box = stack.getBBox()
-
-				stackList = d3.select 'g.stack-list'
-				if not existingObservations?
-					existingObservations = stackList.append 'g'
-						.attr 'class', "stack _#{stackList.length + 0} observations existing"
-
-				if not newObservations?
-					newObservations = stackList.append 'g'
-						.attr 'class', "stack _#{stackList.length + 1} observations new"
-
-				# Clean observation points and re-render
-				d3.selectAll('g.observations > circle').remove()
-
-				circles = c.svg().selectAll 'circle.dot'
-				circleTitles = c.svg().selectAll 'circle.dot > title'
-				yDomain = []
-				for cr, i in circles[0]
-					yDomain[i] =
-						cy: cr.cy.animVal.value
-						y: null
-
-				for crt, i in circleTitles[0]
-					html = crt.innerHTML.split('\n')
-					yDomain[i].y = html[1].split(': ')[1]
-
-				yDomain.sort (a, b) -> a.cy - b.cy
-
-				# Exisiting observations
-				for p in points
-					x = p[0]
-
-					# Y
-					for k, v of yDomain
-						if v.y is p[1]
-							j = k
-							break
-						else if parseInt(v.y) > parseInt(p[1])
-							j = k
-
-					# Do not consider points which are beyond visible Y-axis
-					if not yDomain? or not yDomain[j]? or not yDomain[j].y?
-						continue
-
-					y = yDomain[j].y
-
-					plot = [xScale(x), yDomain[j].cy]
-					color = '#ff7f0e'
-
-					$scope.drawCircle existingObservations, data, x, y, plot, color
-
-				# New observations
-				datum = null
-				circles.on 'click', (d) ->
-					datum = d
-
-				svg.on 'click', () ->
-					space = d3.mouse(stack)
-
-					# Clicking out-side box is now allowed
-					if space[0] < 0 or space[1] < 0 or space[0] > box.width or space[1] > box.height
-						return
-
-					color = '#2ca02c'
-					if datum?
-						color = '#d62728'
-						x = datum.x
-						y = datum.y
-						datum = null
-					else
-						x = xScale.invert space[0]
-						y = yScale.invert space[1]
-
-					# X
-					for val, key in data.group.all()
-						if data.patterns[data.xLabel].valuePattern is 'date'
-							if x.getTime() is val.key.getTime()
-								i = key
-								break
-							else if x.getTime() > val.key.getTime()
-								i = key
-						else if x is val.key
-							i = key
-							break
-						else if x > val.key
-							i = key
-
-					x = data.group.all()[i].key
-					$scope.nearestNeighbour i, data.group.all(), 'key'
-
-					# Y
-					for k, v of yDomain
-						if v.cy is space[1]
-							j = k
-							break
-						else if v.cy <= space[1]
-							j = k
-
-					y = yDomain[j].y
-					$scope.nearestNeighbour j, yDomain, 'y'
-
-					$scope.addObservation x, y, space
-
-					$scope.observation.x = x
-					$scope.observation.y = y
-					$scope.observation.message = ''
-
-					$('#comment-modal').modal 'show'
-					$scope.drawCircle newObservations, data, x, y, space, color
-
-				for p in $scope.observations
-					x = p.x
-
-					# Y
-					for k, v of yDomain
-						if v.y is p.y
-							j = k
-							break
-						else if parseInt(v.y) > parseInt(p.y)
-							j = k
-
-					# Do not consider points which are beyond visible Y-axis
-					if not yDomain? or not yDomain[j]? or not yDomain[j].y?
-						continue
-
-					y = yDomain[j].y
-
-					plot = [xScale(x), yDomain[j].cy]
-					color = '#2ca02c'
-
-					$scope.drawCircle newObservations, data, x, y, plot, color
 
 			return
 
 		$scope.rangeChartPostSetup = (chart) ->
 			data = $scope.chart
 
-			data.entry = crossfilter data.values
+			data.xDomain = [new Date(data.from), new Date(data.to)]
+			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
-			chart.group data.group
+			chart.group data.group, data.table1.title
 
 			data.ordinals = []
 			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
 
-			chart.x $scope.getXScale data
+			chart.colorAccessor (d, i) -> parseInt(d.y) % data.ordinals.length
 
-			if data.ordinals.length > 0
-				chart.xUnits switch data.patterns[data.xLabel].valuePattern
-					when 'date' then d3.time.years
-					when 'intNumber' then dc.units.integers
-					when 'label', 'text' then dc.units.ordinal
-					else dc.units.ordinal
+			chart.xAxis().ticks $scope.xTicks
+
+			xScale = d3.time.scale()
+				.domain data.xDomain
+				.range [0, $scope.width]
+			chart.x xScale
 
 			return
 

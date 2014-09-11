@@ -73,6 +73,7 @@ angular.module('dataplayApp')
 							if chart.patterns[chart.table1.xLabel].valuePattern is 'date'
 								for value, key in chart.table1.values
 									chart.table1.values[key].x = new Date(value.x)
+
 								for value, key in chart.table2.values
 									chart.table2.values[key].x = new Date(value.x)
 
@@ -93,8 +94,6 @@ angular.module('dataplayApp')
 							$scope.limit.correlated = true
 
 						Overview.charts 'correlated', $scope.offset.correlated
-
-						console.log "$scope.chartsCorrelated", $scope.chartsCorrelated
 					return
 				.error (data, status) ->
 					$scope.loading.correlated = false
@@ -151,32 +150,17 @@ angular.module('dataplayApp')
 			data = $scope.chartsCorrelated[chart.anchorName()]
 
 			data.xDomain = [new Date(data.from), new Date(data.to)]
-			console.log data.xDomain
-			dateFrom = new Date(data.from)
-			dateTo = new Date(data.to)
 			data.entry = crossfilter data.table1.values
-			data.dimension = data.entry.dimension (d) ->
-				if d.x.getTime() <= dateFrom.getTime()
-					console.log "A <:", d.x, dateFrom
-				if d.x.getTime() >= dateTo.getTime()
-					console.log "A >:", d.x, dateTo
-				d.x
+			data.dimension = data.entry.dimension (d) -> d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			data.entry2 = crossfilter data.table2.values
-			data.dimension2 = data.entry2.dimension (d) ->
-				if d.x.getTime() <= dateFrom.getTime()
-					console.log "B <:", d.x, dateFrom
-				if d.x.getTime() >= dateTo.getTime()
-					console.log "B >:", d.x, dateTo
-				d.x
-			data.group2 = data.dimension2.group().reduceSum (d) ->
-				console.log d
-				d.y
+			data.dimension2 = data.entry2.dimension (d) -> d.x
+			data.group2 = data.dimension2.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
 			chart.group data.group, data.table1.title
-			# chart.stack data.group2, data.table2.title
+			chart.stack data.group2, data.table2.title
 
 			data.ordinals = []
 			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
