@@ -62,7 +62,7 @@ type Discovered struct {
 }
 
 func (v Discovered) TableName() string {
-	return "priv_discoveredcharts"
+	return "priv_discovered"
 }
 
 type Events struct {
