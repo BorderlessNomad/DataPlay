@@ -49,7 +49,7 @@ angular.module('dataplayApp')
 				count = $scope.max.correlated - $scope.offset.correlated
 				count = if $scope.max.correlated and count < $scope.count then count else $scope.count
 
-			depth = if $scope.max.correlated then 0 else 251
+			depth = if $scope.max.correlated then 0 else 100
 
 			Overview.correlated $scope.params.id, $scope.offset.correlated, count, depth
 				.success (data) ->
