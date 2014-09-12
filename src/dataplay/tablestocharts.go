@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const sd = 100
+const sd = 200
 
 type RelatedCharts struct {
 	Charts []TableData `json:"charts"`
@@ -77,6 +77,9 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 
 	chart := make([]TableData, 0)
 	GenerateChartData(chartType, guid, xyz, &chart, index)
+	if len(chart) == 0 {
+		return pattern, &appError{err, "Not possible to plot this chart", http.StatusInternalServerError}
+	}
 
 	jByte, err := json.Marshal(chart[0])
 	if err != nil {
@@ -279,7 +282,6 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 	var cd CorrelationData
 
 	GenerateCorrelations(tableName, searchDepth)
-	fmt.Println("ROBOCOP1", time.Now())
 	err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Find(&correlation).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return CorrelatedCharts{nil, 0}, &appError{nil, "Database query failed (TBL1)", http.StatusInternalServerError}
@@ -287,7 +289,6 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 		return CorrelatedCharts{nil, 0}, &appError{nil, "No correlated chart found", http.StatusNotFound}
 	}
 
-	fmt.Println("ROBOCOP2", time.Now())
 	for _, c := range correlation {
 		json.Unmarshal(c.Json, &cd)
 		cd.CorrelationId = c.CorrelationId
@@ -337,7 +338,6 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 		last = totalCharts
 	}
 
-	fmt.Println("ROBOCOP3", time.Now())
 	for _, c := range charts {
 		originid := strconv.Itoa(c.CorrelationId)
 		discovered := Discovered{}
@@ -349,7 +349,6 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 		}
 	}
 
-	fmt.Println("ROBOCOP4", time.Now())
 	charts = charts[offset:last] // return marshalled slice
 	return CorrelatedCharts{charts, totalCharts}, nil
 }
@@ -431,150 +430,151 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 		sql = fmt.Sprintf("SELECT %s AS x, %s AS y FROM  %s", names.X, names.Y, guid)
 	}
 
-	rows, err := DB.Raw(sql).Rows()
-	if err == nil {
-		defer rows.Close()
+	rows, _ := DB.Raw(sql).Rows()
+	defer rows.Close()
 
-		if chartType == "bubble" {
-			tmpTD.LabelY = names.Y
-			tmpTD.LabelZ = names.Z
-			for rows.Next() {
-				if (names.Xtype == "float" || names.Xtype == "integer") && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
-					rows.Scan(&fx, &fy, &fz)
-					tmpXY.X = FloatToString(fx)
-					tmpXY.Y = FloatToString(fy)
-					tmpXY.Z = FloatToString(fz)
-					tmpTD.Values = append(tmpTD.Values, tmpXY)
-				} else if (names.Xtype == "float" || names.Xtype == "integer") && names.Ytype == "varchar" && (names.Ztype == "float" || names.Ztype == "integer") {
-					rows.Scan(&fx, &vy, &fz)
-					tmpXY.X = FloatToString(fx)
-					tmpXY.Y = vy
-					tmpXY.Z = FloatToString(fz)
-					tmpTD.Values = append(tmpTD.Values, tmpXY)
-				} else if names.Xtype == "varchar" && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
-					rows.Scan(&vx, &fy, &fz)
-					tmpXY.X = vx
-					tmpXY.Y = FloatToString(fy)
-					tmpXY.Z = FloatToString(fz)
-					tmpTD.Values = append(tmpTD.Values, tmpXY)
-				} else {
-					tmpXY.X = ""
-					tmpXY.Y = ""
-					tmpXY.Z = ""
-					tmpTD.Values = append(tmpTD.Values, tmpXY)
-				}
-			}
-			if ValueCheck(tmpTD) && NegCheck(tmpTD) {
-				*charts = append(*charts, tmpTD)
-			}
+	if chartType == "bubble" {
+		tmpTD.LabelY = names.Y
+		tmpTD.LabelZ = names.Z
+		for rows.Next() {
 
-		} else if chartType == "pie" { // single column pie chart x = type, y = count
-			for rows.Next() {
-				pieSlices++
-				if names.Xtype == "varchar" {
-					rows.Scan(&vx, &fy)
-					tmpXY.X = vx
-					tmpXY.Y = FloatToString(fy)
-					tmpTD.Values = append(tmpTD.Values, tmpXY)
-				} else if names.Xtype == "date" {
-					rows.Scan(&dx, &fy)
-					tmpXY.X = (dx.String()[0:10])
-					tmpXY.Y = FloatToString(fy)
-					tmpTD.Values = append(tmpTD.Values, tmpXY)
-				} else if names.Xtype == "float" || names.Xtype == "integer" {
-					rows.Scan(&fx, &fy)
-					tmpXY.X = FloatToString(fx)
-					tmpXY.Y = FloatToString(fy)
-					tmpTD.Values = append(tmpTD.Values, tmpXY)
-				} else {
-					tmpXY.X = ""
-					tmpXY.Y = ""
-					tmpTD.Values = append(tmpTD.Values, tmpXY)
-				}
-			}
-
-			if pieSlices <= 20 && pieSlices > 1 { // reject pies with too many slices or not enough
-				if ValueCheck(tmpTD) {
-					*charts = append(*charts, tmpTD)
-				}
-			}
-
-		} else { // for all other types of chart
-			tmpTD.LabelY = names.Y
-			for rows.Next() {
-				if chartType == "row" {
-					rowAmt++
-				}
-				if names.Xtype == "date" && names.Ytype == "date" {
-					rows.Scan(&dx, &dy)
-					tmpXY.X = (dx.String()[0:10])
-					tmpXY.Y = (dy.String()[0:10])
-					tmpTD.Values = append(tmpTD.Values, tmpXY)
-				} else if names.Xtype == "date" && (names.Ytype == "float" || names.Ytype == "integer") {
-					rows.Scan(&dx, &fy)
-					tmpXY.X = (dx.String()[0:10])
-					tmpXY.Y = FloatToString(fy)
-					tmpTD.Values = append(tmpTD.Values, tmpXY)
-				} else if names.Xtype == "date" && names.Ytype == "varchar" {
-					rows.Scan(&dx, &vy)
-					tmpXY.X = (dx.String()[0:10])
-					tmpXY.Y = vy
-					tmpTD.Values = append(tmpTD.Values, tmpXY)
-				} else if (names.Xtype == "float" || names.Xtype == "integer") && names.Ytype == "date" {
-					rows.Scan(&fx, &dy)
-					tmpXY.X = FloatToString(fx)
-					tmpXY.Y = (dy.String()[0:10])
-					tmpTD.Values = append(tmpTD.Values, tmpXY)
-				} else if (names.Xtype == "float" || names.Xtype == "integer") && (names.Ytype == "float" || names.Ytype == "integer") {
-					rows.Scan(&fx, &fy)
-					tmpXY.X = FloatToString(fx)
-					tmpXY.Y = FloatToString(fy)
-					tmpTD.Values = append(tmpTD.Values, tmpXY)
-				} else if (names.Xtype == "float" || names.Xtype == "integer") && names.Ytype == "varchar" {
-					rows.Scan(&fx, &vy)
-					tmpXY.X = FloatToString(fx)
-					tmpXY.Y = vy
-					tmpTD.Values = append(tmpTD.Values, tmpXY)
-				} else if names.Xtype == "varchar" && names.Ytype == "date" {
-					rows.Scan(&vx, &dy)
-					tmpXY.X = vx
-					tmpXY.Y = (dy.String()[0:10])
-					tmpTD.Values = append(tmpTD.Values, tmpXY)
-				} else if names.Xtype == "varchar" && (names.Ytype == "float" || names.Ytype == "integer") {
-					rows.Scan(&vx, &fy)
-					tmpXY.X = vx
-					tmpXY.Y = FloatToString(fy)
-					tmpTD.Values = append(tmpTD.Values, tmpXY)
-				} else if names.Xtype == "varchar" && names.Ytype == "varchar" {
-					rows.Scan(&vx, &vy)
-					tmpXY.X = vx
-					tmpXY.Y = vy
-					tmpTD.Values = append(tmpTD.Values, tmpXY)
-				} else {
-					tmpXY.X = ""
-					tmpXY.Y = ""
-					tmpTD.Values = append(tmpTD.Values, tmpXY)
-				}
-			}
-
-			if chartType == "row" {
-				if rowAmt <= 20 && rowAmt > 1 {
-					if ValueCheck(tmpTD) {
-						*charts = append(*charts, tmpTD)
-					}
-				}
+			if (names.Xtype == "float" || names.Xtype == "integer") && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
+				rows.Scan(&fx, &fy, &fz)
+				tmpXY.X = FloatToString(fx)
+				tmpXY.Y = FloatToString(fy)
+				tmpXY.Z = FloatToString(fz)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if (names.Xtype == "float" || names.Xtype == "integer") && names.Ytype == "varchar" && (names.Ztype == "float" || names.Ztype == "integer") {
+				rows.Scan(&fx, &vy, &fz)
+				tmpXY.X = FloatToString(fx)
+				tmpXY.Y = vy
+				tmpXY.Z = FloatToString(fz)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "varchar" && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
+				rows.Scan(&vx, &fy, &fz)
+				tmpXY.X = vx
+				tmpXY.Y = FloatToString(fy)
+				tmpXY.Z = FloatToString(fz)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			} else {
-				if ValueCheck(tmpTD) {
-					*charts = append(*charts, tmpTD)
-				}
+				tmpXY.X = ""
+				tmpXY.Y = ""
+				tmpXY.Z = ""
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			}
 		}
-	} else {
-		*charts = append(*charts, tmpTD)
+
+		if ValueCheck(tmpTD) && NegCheck(tmpTD) {
+			*charts = append(*charts, tmpTD)
+		}
+
+	} else if chartType == "pie" { // single column pie chart x = type, y = count
+		for rows.Next() {
+			pieSlices++
+
+			if names.Xtype == "varchar" {
+				rows.Scan(&vx, &fy)
+				tmpXY.X = vx
+				tmpXY.Y = FloatToString(fy)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "date" {
+				rows.Scan(&dx, &fy)
+				tmpXY.X = (dx.String()[0:10])
+				tmpXY.Y = FloatToString(fy)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "float" || names.Xtype == "integer" {
+				rows.Scan(&fx, &fy)
+				tmpXY.X = FloatToString(fx)
+				tmpXY.Y = FloatToString(fy)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else {
+				tmpXY.X = ""
+				tmpXY.Y = ""
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			}
+		}
+
+		if pieSlices <= 20 && pieSlices > 1 { // reject pies with too many slices or not enough
+			if ValueCheck(tmpTD) {
+				*charts = append(*charts, tmpTD)
+			}
+		}
+
+	} else { // for all other types of chart
+		tmpTD.LabelY = names.Y
+		for rows.Next() {
+
+			if chartType == "row" {
+				rowAmt++
+			}
+
+			if names.Xtype == "date" && names.Ytype == "date" {
+				rows.Scan(&dx, &dy)
+				tmpXY.X = (dx.String()[0:10])
+				tmpXY.Y = (dy.String()[0:10])
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "date" && (names.Ytype == "float" || names.Ytype == "integer") {
+				rows.Scan(&dx, &fy)
+				tmpXY.X = (dx.String()[0:10])
+				tmpXY.Y = FloatToString(fy)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "date" && names.Ytype == "varchar" {
+				rows.Scan(&dx, &vy)
+				tmpXY.X = (dx.String()[0:10])
+				tmpXY.Y = vy
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if (names.Xtype == "float" || names.Xtype == "integer") && names.Ytype == "date" {
+				rows.Scan(&fx, &dy)
+				tmpXY.X = FloatToString(fx)
+				tmpXY.Y = (dy.String()[0:10])
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if (names.Xtype == "float" || names.Xtype == "integer") && (names.Ytype == "float" || names.Ytype == "integer") {
+				rows.Scan(&fx, &fy)
+				tmpXY.X = FloatToString(fx)
+				tmpXY.Y = FloatToString(fy)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if (names.Xtype == "float" || names.Xtype == "integer") && names.Ytype == "varchar" {
+				rows.Scan(&fx, &vy)
+				tmpXY.X = FloatToString(fx)
+				tmpXY.Y = vy
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "varchar" && names.Ytype == "date" {
+				rows.Scan(&vx, &dy)
+				tmpXY.X = vx
+				tmpXY.Y = (dy.String()[0:10])
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "varchar" && (names.Ytype == "float" || names.Ytype == "integer") {
+				rows.Scan(&vx, &fy)
+				tmpXY.X = vx
+				tmpXY.Y = FloatToString(fy)
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else if names.Xtype == "varchar" && names.Ytype == "varchar" {
+				rows.Scan(&vx, &vy)
+				tmpXY.X = vx
+				tmpXY.Y = vy
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			} else {
+				tmpXY.X = ""
+				tmpXY.Y = ""
+				tmpTD.Values = append(tmpTD.Values, tmpXY)
+			}
+		}
+
+		if chartType == "row" {
+			if rowAmt <= 20 && rowAmt > 1 {
+				if ValueCheck(tmpTD) {
+					*charts = append(*charts, tmpTD)
+				}
+			}
+		} else {
+			if ValueCheck(tmpTD) {
+				*charts = append(*charts, tmpTD)
+			}
+		}
 	}
 }
 
-// Generate all possible permutations of xy columns
+// Gnerate all possible permutations of xy columns
 func XYPermutations(columns []ColType, bubble bool) []XYVal {
 	length := len(columns)
 	var xyNames []XYVal

@@ -34,13 +34,14 @@ func GetRandomNameMap(m map[string]string) bool {
 		return false
 	}
 
-	r := rand.Intn(5)
+	r := rand.Intn(7) ///??????????????????? <- Does Spurious cost too much?
 
 	if r == 0 {
 		m["method"] = "Pearson"
 	} else if r == 1 {
 		m["method"] = "Visual"
 	} else {
+		m["method"] = "Spurious"
 		m["table3"] = RandomTableName()
 		m["guid3"] = NameToGuid(m["table3"])
 		if m["guid3"] == "" {
@@ -49,7 +50,6 @@ func GetRandomNameMap(m map[string]string) bool {
 		cols3 := FetchTableCols(m["guid3"])
 		m["dateCol3"] = RandomDateColumn(cols3)
 		m["valCol3"] = RandomValueColumn(cols3)
-		m["method"] = "Spurious"
 		if m["table1"] == m["table3"] || m["table2"] == m["table3"] || m["table3"] == "" || m["valCol3"] == "" || m["dateCol3"] == "" {
 			return false
 		}
