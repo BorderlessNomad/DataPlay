@@ -81,7 +81,7 @@ func TestGetCorrelatedChartsHttp(t *testing.T) {
 		"tablename":   "gold",
 		"offset":      "0",
 		"count":       "20",
-		"searchdepth": "1000",
+		"searchdepth": "10",
 	}
 	Convey("Should return correlated chartlist", t, func() {
 		result := GetCorrelatedChartsHttp(res, req, params)
