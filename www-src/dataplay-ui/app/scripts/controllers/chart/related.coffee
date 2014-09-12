@@ -244,10 +244,11 @@ angular.module('dataplayApp')
 
 			chart.yAxisLabel data.yLabel
 
-			points = [
-				[new Date("Feb 01 1975 00:00:00 GMT+0000 (GMT Standard Time)"), 600, "Hello Jack!"]
-				[new Date("Jan 04 2000 00:00:00 GMT+0000 (GMT Standard Time)"), 400, "Test Point"]
-			]
+			# points = [
+			# 	[new Date("Feb 01 1975 00:00:00 GMT+0000 (GMT Standard Time)"), 600, "Hello Jack!"]
+			# 	[new Date("Jan 04 2000 00:00:00 GMT+0000 (GMT Standard Time)"), 400, "Test Point"]
+			# ]
+			points = []
 
 			existingObservations = null
 			newObservations = null

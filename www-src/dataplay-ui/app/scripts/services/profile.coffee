@@ -17,4 +17,13 @@ angular.module('dataplayApp')
 				email: email
 				username: username
 
+		getValidDiscoveries: ->
+			$http.get config.api.base_url + "/profile/validated"
+
+		getDiscoveries: ->
+			$http.get config.api.base_url + "/profile/discoveries"
+
+		getObservations: ->
+			$http.get config.api.base_url + "/profile/observations"
+
 	]
