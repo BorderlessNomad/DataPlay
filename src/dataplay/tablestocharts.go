@@ -282,6 +282,7 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 	var cd CorrelationData
 
 	GenerateCorrelations(tableName, searchDepth)
+
 	err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Find(&correlation).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return CorrelatedCharts{nil, 0}, &appError{nil, "Database query failed (TBL1)", http.StatusInternalServerError}
@@ -292,38 +293,7 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 	for _, c := range correlation {
 		json.Unmarshal(c.Json, &cd)
 		cd.CorrelationId = c.CorrelationId
-
-		if cd.Method == "Pearson" {
-			cd.ChartType = "bar"
-			charts = append(charts, cd)
-			cd.ChartType = "column"
-			charts = append(charts, cd)
-			cd.ChartType = "line"
-			charts = append(charts, cd)
-			cd.ChartType = "scatter"
-			charts = append(charts, cd)
-
-		} else if cd.Method == "Spurious" {
-			cd.ChartType = "line"
-			charts = append(charts, cd)
-			cd.ChartType = "scatter"
-			charts = append(charts, cd)
-			cd.ChartType = "stacked"
-			charts = append(charts, cd)
-
-		} else if cd.Method == "Visual" {
-			cd.ChartType = "bar"
-			charts = append(charts, cd)
-			cd.ChartType = "column"
-			charts = append(charts, cd)
-			cd.ChartType = "line"
-			charts = append(charts, cd)
-			cd.ChartType = "scatter"
-			charts = append(charts, cd)
-		} else {
-			cd.ChartType = "unknown"
-			charts = append(charts, cd)
-		}
+		charts = append(charts, cd)
 	}
 
 	totalCharts := len(charts)
