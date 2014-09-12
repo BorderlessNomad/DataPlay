@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+const sd = 100
+
 type RelatedCharts struct {
 	Charts []TableData `json:"charts"`
 	Count  int         `json:"count"`
@@ -40,10 +42,15 @@ type DiscoveredCharts struct {
 // Get all data for single selected chart
 func GetChart(tablename string, tablenum int, chartType string, uid int, coords ...string) (PatternInfo, *appError) {
 	pattern := PatternInfo{}
+	id := ""
 	x, y, z := coords[0], coords[1], ""
 	if len(coords) > 2 {
 		z = coords[2]
+		id = tablename + "_" + strconv.Itoa(tablenum) + "_" + chartType + "_" + x + "_" + y + "_" + z //unique id
+	} else {
+		id = tablename + "_" + strconv.Itoa(tablenum) + "_" + chartType + "_" + x + "_" + y //unique id
 	}
+
 	xyz := XYVal{X: x, Y: y, Z: z}
 
 	guid, _ := GetRealTableName(tablename)
@@ -70,7 +77,7 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 
 	chart := make([]TableData, 0)
 	GenerateChartData(chartType, guid, xyz, &chart, index)
-	id := tablename + "_" + strconv.Itoa(tablenum) + "_" + chartType //unique id
+
 	jByte, err := json.Marshal(chart[0])
 	if err != nil {
 		return pattern, &appError{err, "Unable to parse JSON", http.StatusInternalServerError}
@@ -331,16 +338,16 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 	}
 
 	fmt.Println("ROBOCOP3", time.Now())
-	// for _, c := range charts {
-	// 	originid := strconv.Itoa(c.CorrelationId)
-	// 	discovered := Discovered{}
-	// 	err := DB.Where("correlation_id = ?", originid).Find(&discovered).Error
-	// 	if err == gorm.RecordNotFound {
-	// 		c.Discovered = false
-	// 	} else {
-	// 		c.Discovered = true
-	// 	}
-	// }
+	for _, c := range charts {
+		originid := strconv.Itoa(c.CorrelationId)
+		discovered := Discovered{}
+		err := DB.Where("correlation_id = ?", originid).Find(&discovered).Error
+		if err == gorm.RecordNotFound {
+			c.Discovered = false
+		} else {
+			c.Discovered = true
+		}
+	}
 
 	fmt.Println("ROBOCOP4", time.Now())
 	charts = charts[offset:last] // return marshalled slice
@@ -779,7 +786,7 @@ func GetCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, params 
 		return "Missing session parameter"
 	}
 
-	var searchDepth, offset, count int
+	var search, offset, count int
 	var err error
 
 	if params["offset"] == "" {
@@ -802,19 +809,13 @@ func GetCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, params 
 		}
 	}
 
-	if params["searchdepth"] == "" { ///default searchdepth when blank
-		searchDepth = 100
-	} else if params["searchdepth"] == "0" { // do not search when 0 so can return just what exist in table
-		searchDepth = 0
-	} else {
-		searchDepth, err = strconv.Atoi(params["searchdepth"])
-		if err != nil {
-			http.Error(res, "Invalid searchdepth parameter", http.StatusBadRequest)
-			return "Invalid searchdepth parameter"
-		}
+	if params["search"] == "true" { ///default searchdepth when blank
+		search = sd
+	} else if params["search"] == "false" { // do not search when 0 so can return just what exist in table
+		search = 0
 	}
 
-	result, error := GetCorrelatedCharts(params["tablename"], offset, count, searchDepth)
+	result, error := GetCorrelatedCharts(params["tablename"], offset, count, search)
 	if error != nil {
 		http.Error(res, error.Message, error.Code)
 		return error.Message
@@ -982,12 +983,15 @@ func GetCorrelatedChartsQ(params map[string]string) string {
 		return e.Error()
 	}
 
-	searchDepth, e := strconv.Atoi(params["searchdepth"])
-	if e != nil {
-		return e.Error()
+	search := 0
+
+	if params["search"] == "true" { ///default searchdepth when true
+		search = sd
+	} else if params["search"] == "false" { // do not search when 0 so can return just what exist in table
+		search = 0
 	}
 
-	result, err := GetCorrelatedCharts(params["tablename"], offset, count, searchDepth)
+	result, err := GetCorrelatedCharts(params["tablename"], offset, count, search)
 	if err != nil {
 		return err.Message
 	}

@@ -21,7 +21,7 @@ func TestGetChartHttp(t *testing.T) {
 	}
 	Convey("Should return xy chartlist", t, func() {
 		result := GetChartHttp(res, req, params)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 
 	// 	// params["tablename"] = "gdp"
@@ -80,14 +80,14 @@ func TestGetCorrelatedChartsHttp(t *testing.T) {
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 	res := httptest.NewRecorder()
 	params := map[string]string{
-		"tablename":   "gold",
-		"offset":      "0",
-		"count":       "20",
-		"searchdepth": "10",
+		"tablename": "imp001c13096eef77908f287d4c48a734f4b3cee919_4e8a2d16ee798d15b32",
+		"offset":    "0",
+		"count":     "20",
+		"search":    "true",
 	}
 	Convey("Should return correlated chartlist", t, func() {
 		result := GetCorrelatedChartsHttp(res, req, params)
-		So(result, ShouldNotBeNil)
+		So(result, ShouldEqual, "")
 	})
 }
 
