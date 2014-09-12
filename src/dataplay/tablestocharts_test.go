@@ -23,39 +23,39 @@ func TestGetChartHttp(t *testing.T) {
 		So(result, ShouldNotBeNil)
 	})
 
-	// params["tablename"] = "gdp"
-	// params["type"] = "bubble"
-	// params["x"] = "year"
-	// params["y"] = "gdp"
-	// params["z"] = "change"
+	params["tablename"] = "gdp"
+	params["type"] = "bubble"
+	params["x"] = "date"
+	params["y"] = "gdp"
+	params["z"] = "change"
+
+	Convey("Should return xyz chartlist", t, func() {
+		result := GetChartHttp(res, req, params)
+		So(result, ShouldNotBeNil)
+	})
+}
+
+func TestGetChartCorrelatedHttp(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+	res := httptest.NewRecorder()
+	params := map[string]string{
+		"cid": "114743",
+		"uid": "1",
+	}
+	Convey("Should return Correlated chart", t, func() {
+		result := GetChartCorrelatedHttp(res, req, params)
+		So(result, ShouldNotBeNil)
+	})
+
+	// params["uid"] = "3"
+	// params["discovered"] = "true"
 
 	// Convey("Should return xyz chartlist", t, func() {
-	// 	result := GetChartHttp(res, req, params)
+	// 	result := GetChartCorrelatedHttp(res, req, params)
 	// 	So(result, ShouldNotBeNil)
 	// })
 }
-
-// func TestGetChartCorrelatedHttp(t *testing.T) {
-// 	req, _ := http.NewRequest("GET", "/", nil)
-// 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
-// 	res := httptest.NewRecorder()
-// 	params := map[string]string{
-// 		"cid": "114264",
-// 		"uid": "1",
-// 	}
-// 	Convey("Should return Correlated chart", t, func() {
-// 		result := GetChartCorrelatedHttp(res, req, params)
-// 		So(result, ShouldNotBeNil)
-// 	})
-
-// 	params["uid"] = "3"
-// 	params["discovered"] = "true"
-
-// 	Convey("Should return xyz chartlist", t, func() {
-// 		result := GetChartCorrelatedHttp(res, req, params)
-// 		So(result, ShouldNotBeNil)
-// 	})
-// }
 
 // func TestGetRelatedChartsHttp(t *testing.T) {
 // 	req, _ := http.NewRequest("GET", "/", nil)
@@ -77,7 +77,7 @@ func TestGetChartHttp(t *testing.T) {
 // 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 // 	res := httptest.NewRecorder()
 // 	params := map[string]string{
-// 		"tablename": "imp001c13096eef77908f287d4c48a734f4b3cee919_4e8a2d16ee798d15b32",
+// 		"tablename": "gold",
 // 		"offset":    "0",
 // 		"count":     "20",
 // 		"search":    "true",

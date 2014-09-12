@@ -61,11 +61,10 @@ type FromTo struct {
 // Take in table name and a threshold for the looping and attempt to get correlated tables through a variety of correlation methods
 // Use 3:1:1 for Spurious to Pearson and Visual as Spurious less likely to find correlations
 func GenerateCorrelations(tableName string, searchDepth int) {
-	m := make(map[string]string)
-	m["table1"] = tableName
-
 	///Main loop to generate/check for correlations based on input table
 	for i := 0; i < searchDepth; i++ {
+		m := make(map[string]string)
+		m["table1"] = tableName
 		nameChk := GetRandomNameMap(m)
 		if nameChk { // if all table and columns names are present in name map
 			go AttemptCorrelation(m)
@@ -155,7 +154,6 @@ func CalculateCoefficient(m map[string]string, c cmeth, cd *CorrelationData) (fl
 	if len(m) == 0 {
 		return 0.0, nil
 	}
-
 	var hasVals bool
 	var bucketRange []FromTo
 	var xBuckets, yBuckets, zBuckets []float64
@@ -260,7 +258,6 @@ func CalculateCoefficient(m map[string]string, c cmeth, cd *CorrelationData) (fl
 	} else {
 		return 0.0, nil
 	}
-
 	return cf, nil
 }
 
