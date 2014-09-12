@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/codegangsta/martini"
+	"github.com/jinzhu/gorm"
 	"net/http"
 	"time"
 )
@@ -114,8 +115,12 @@ func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request, par
 	}
 
 	var patterns []int
-	err1 := DB.Model(Discovered{}).Select("discovered_id").Where("uid = ?", uid).Where("valid > ?", 0).Find(&patterns).Error
-	if err1 != nil {
+	err1 := DB.Model(Discovered{}).Where("uid = ?", uid).Where("valid > ?", 0).Pluck("discovered_id", &patterns).Error
+	if err1 != nil && err1 != gorm.RecordNotFound {
+		http.Error(res, "Database query failed", http.StatusInternalServerError)
+		return "query failed"
+	} else if err1 == gorm.RecordNotFound {
+		http.Error(res, "No discoveries found", http.StatusNotFound)
 		return "not found"
 	}
 
