@@ -48,7 +48,11 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 		}
 	}
 
-	// err := DB.Where("discovered_id= ?", discovered.DiscoveredId).Where("uid= ?", uid).First(&discovered).Error
+	var vid int
+	err := DB.Model(Validation{}).Where("discovered_id= ?", discovered.DiscoveredId).Where("uid= ?", uid).Pluck("validation_id", &vid).Error
+	if err != gorm.RecordNotFound {
+		skipval = true
+	}
 
 	if !skipval {
 		if valflag {

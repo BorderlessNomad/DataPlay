@@ -92,7 +92,7 @@ func TestGetDiscoveredChartsHttp(t *testing.T) {
 	}
 	Convey("Should return chartlist", t, func() {
 		result := GetDiscoveredChartsHttp(res, req, params)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 }
 
