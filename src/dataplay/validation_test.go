@@ -27,21 +27,20 @@ func TestValidateChartHttp(t *testing.T) {
 	})
 }
 
-// func TestValidateObservationHttp(t *testing.T) {
-// 	req, _ := http.NewRequest("GET", "/", nil)
-// 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
-// 	res := httptest.NewRecorder()
-// 	params := map[string]string{}
-// 	params["oid"] = "5"
-// 	params["uid"] = "345"
-// 	params["valflag"] = "true"
-// 	Convey("Should validate observation", t, func() {
-// 		result := ValidateObservationHttp(res, req, params)
-// 		So(result, ShouldEqual, "Observation validated")
-// 	})
-// 	Convey("Should invalidate observation", t, func() {
-// 		params["valflag"] = "false"
-// 		result := ValidateObservationHttp(res, req, params)
-// 		So(result, ShouldEqual, "Observation invalidated")
-// 	})
-// }
+func TestValidateObservationHttp(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+	res := httptest.NewRecorder()
+	params := map[string]string{}
+	params["oid"] = "702"
+	params["valflag"] = "true"
+	Convey("Should validate observation", t, func() {
+		result := ValidateObservationHttp(res, req, params)
+		So(result, ShouldNotBeNil)
+	})
+	// 	Convey("Should invalidate observation", t, func() {
+	// 		params["valflag"] = "false"
+	// 		result := ValidateObservationHttp(res, req, params)
+	// 		So(result, ShouldEqual, "Observation invalidated")
+	// 	})
+}

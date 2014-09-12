@@ -1,11 +1,11 @@
 package main
 
-// import (
-// 	. "github.com/smartystreets/goconvey/convey"
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"testing"
-// )
+import (
+	. "github.com/smartystreets/goconvey/convey"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
 
 // func TestAddObservationHttp(t *testing.T) {
 // 	req, _ := http.NewRequest("POST", "/", nil)
@@ -32,14 +32,14 @@ package main
 // 	})
 // }
 
-// func TestGetObservationsHttp(t *testing.T) {
-// 	req, _ := http.NewRequest("GET", "/", nil)
-// 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
-// 	res := httptest.NewRecorder()
-// 	Convey("Should get observations", t, func() {
-// 		params := map[string]string{}
-// 		params["did"] = "558"
-// 		result := GetObservationsHttp(res, req, params)
-// 		So(result, ShouldNotBeNil)
-// 	})
-// }
+func TestGetObservationsHttp(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+	res := httptest.NewRecorder()
+	Convey("Should get observations", t, func() {
+		params := map[string]string{}
+		params["did"] = "592"
+		result := GetObservationsHttp(res, req, params)
+		So(result, ShouldNotBeNil)
+	})
+}
