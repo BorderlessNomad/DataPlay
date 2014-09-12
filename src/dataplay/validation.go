@@ -33,9 +33,9 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 	validation := Validation{}
 
 	if strings.ContainsAny(rcid, "_") { // if a relation id
-		err := DB.Where("relation_id= ?", rcid).First(&discovered).Error
-		if err != nil {
-			return "", &appError{err, "Database query failed", http.StatusInternalServerError}
+		err := DB.Where("relation_id = ?", rcid).First(&discovered).Error
+		if err != nil && err != gorm.RecordNotFound {
+			return "", &appError{err, "Database query failed (relation_id)", http.StatusInternalServerError}
 		}
 	} else { // if a correlation id of type int
 		cid, _ := strconv.Atoi(rcid)
@@ -43,8 +43,8 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 			return "", &appError{err, "Could not convert id to int", http.StatusInternalServerError}
 		}
 		err := DB.Where("correlation_id= ?", cid).First(&discovered).Error
-		if err != nil {
-			return "", &appError{err, "Database query failed (cid)", http.StatusInternalServerError}
+		if err != nil && err != gorm.RecordNotFound {
+			return "", &appError{err, "Database query failed (correlation_id)", http.StatusInternalServerError}
 		}
 	}
 
@@ -60,6 +60,7 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 			Reputation(discovered.Uid, discInval) // remove points for discovery invalidation
 			AddActivity(uid, "ic", t)
 		}
+
 		discovered.Rating = RankValidations(discovered.Valid, discovered.Invalid)
 
 		err1 := DB.Save(&discovered).Error
@@ -142,26 +143,29 @@ func ValidateChartHttp(res http.ResponseWriter, req *http.Request, params martin
 	}
 
 	if params["rcid"] == "" {
-		return "no chart id"
+		http.Error(res, "no chart id", http.StatusBadRequest)
+		return ""
 	}
 
 	uid, err1 := GetUserID(session)
 	if err1 != nil {
 		http.Error(res, err1.Message, err1.Code)
-		return "Could not validate user"
+		return ""
 	}
 
 	result, err2 := ValidateChart(params["rcid"], uid, valflag, skipval)
 	if err2 != nil {
 		msg := ""
 		if valflag {
-			msg = " could not validate chart" + err2.Message
+			msg = "Could not validate chart" + err2.Message
+		} else if valflag == false && skipval == false {
+			msg = "Could not invalidate chart" + err2.Message
 		} else {
-			msg = " could not invalidate chart" + err2.Message
+			msg = "Could not do that sorry bro :P"
 		}
 
-		http.Error(res, msg, http.StatusBadRequest)
-		return err2.Message + msg
+		http.Error(res, err2.Message+msg, http.StatusBadRequest)
+		return ""
 	}
 
 	if valflag {

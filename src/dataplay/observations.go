@@ -29,55 +29,55 @@ type UserData struct {
 	Email      string `json:"email, omitempty"`
 }
 
+type ObservationComment struct {
+	DiscoveryId string `json:"did" binding:"required"`
+	X           string `json:"x" binding:"required"`
+	Y           string `json:"y" binding:"required"`
+	Comment     string `json:"comment" binding:"required"`
+}
+
 // add observation
 func AddObservation(did int, uid int, comment string, x string, y string) (string, *appError) {
 	observation := Observation{}
-	addObs := false
+	observation.Comment = comment
+	observation.DiscoveredId = did
+	observation.Uid = uid
+	observation.X = x
+	observation.Y = y
+	observation.Created = time.Now()
 
-	e := DB.Where("discovered_id= ?", did).Where("x =?", x).Where("y =?", y).First(&observation).Error
-	if e == gorm.RecordNotFound {
-		addObs = true
+	discovered := Discovered{}
+	err := DB.Where("discovered_id = ?", did).First(&discovered).Error
+	if err != nil {
+		return "Database query failed (find discovered)", &appError{err, "Database query failed (find discovered)", http.StatusInternalServerError}
 	}
 
-	if addObs {
-		observation.Comment = comment
-		observation.DiscoveredId = did
-		observation.Uid = uid
-		observation.X = x
-		observation.Y = y
-		observation.Created = time.Now()
+	Reputation(discovered.Uid, discObs) // add points to rep of user who discovered chart when their discovery receives an observation
 
-		discovered := Discovered{}
-		err := DB.Where("discovered_id= ?", did).First(&discovered).Error
-		if err != nil {
-			return "Database query failed (find discovered)", &appError{err, "Database query failed (find discovered)", http.StatusInternalServerError}
-		}
-		Reputation(discovered.Uid, discObs) // add points to rep of user who discovered chart when their discovery receives an observation
+	err1 := AddActivity(uid, "c", observation.Created) // add to activities
+	if err1 != nil {
+		return "", err1
+	}
 
-		err1 := AddActivity(uid, "c", observation.Created) // add to activities
-		if err1 != nil {
-			return "", err1
-		}
+	err2 := DB.Save(&observation).Error
+	if err2 != nil {
+		return "Database query failed (Save observation)", &appError{err2, "Database query failed (Save observation)", http.StatusInternalServerError}
+	}
 
-		err2 := DB.Save(&observation).Error
-		if err2 != nil {
-			return "Database query failed (Save observation)", &appError{err2, "Database query failed (Save observation)", http.StatusInternalServerError}
-		}
-
-		err3 := DB.Where("discovered_id= ?", did).Where("x =?", x).Where("y =?", y).First(&observation).Error
-		if err3 != nil {
-			return "Database query failed - add observation (find observation)", &appError{err3, "Database query failed - add observation (find observation)", http.StatusInternalServerError}
-		}
+	err3 := DB.Where("discovered_id= ?", did).Where("x =?", x).Where("y =?", y).First(&observation).Error
+	if err3 != nil {
+		return "Database query failed - add observation (find observation)", &appError{err3, "Database query failed - add observation (find observation)", http.StatusInternalServerError}
 	}
 
 	fmt.Println("MACARINA", observation)
+
 	return strconv.Itoa(observation.ObservationId), nil
 }
 
 // get all observations for a particular chart
 func GetObservations(did int) ([]Observations, *appError) {
 	discovered := make([]Discovered, 0)
-	err := DB.Where("discovered_id= ?", did).Find(&discovered).Error
+	err := DB.Where("discovered_id = ?", did).Find(&discovered).Error
 	if err != nil {
 		return nil, &appError{err, "Database query failed - get observation (find discovered)", http.StatusInternalServerError}
 	}
@@ -86,7 +86,7 @@ func GetObservations(did int) ([]Observations, *appError) {
 	obsData := make([]Observations, 0)
 	var tmpOD Observations
 
-	err1 := DB.Where("discovered_id = ?", did).Find(&observation).Error
+	err1 := DB.Where("discovered_id = ?", did).Order("observation_id ASC").Find(&observation).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {
 		return nil, &appError{err1, "Database query failed  - get observation (find observation)", http.StatusInternalServerError}
 	} else if err1 == gorm.RecordNotFound {
@@ -125,31 +125,22 @@ func GetObservations(did int) ([]Observations, *appError) {
 	return obsData, nil
 }
 
-func AddObservationHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+func AddObservationHttp(res http.ResponseWriter, req *http.Request, observation ObservationComment) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
-		return "Missing session parameter."
+		return ""
 	}
 
-	if params["did"] == "" {
-		http.Error(res, "no discovered id.", http.StatusBadRequest)
-		return "no discovered id."
+	if observation.DiscoveryId == "" || observation.X == "" || observation.Y == "" || observation.Comment == "" {
+		http.Error(res, "Invalid/missing request parameters.", http.StatusBadRequest)
+		return ""
 	}
 
-	if params["x"] == "" {
-		http.Error(res, "no x value.", http.StatusBadRequest)
-		return "no x value."
-	}
-	if params["y"] == "" {
-		http.Error(res, "no y value.", http.StatusBadRequest)
-		return "no y value."
-	}
-
-	did, err := strconv.Atoi(params["did"])
+	did, err := strconv.Atoi(observation.DiscoveryId)
 	if err != nil {
-		http.Error(res, "bad discovered id", http.StatusBadRequest)
-		return "bad discovered id"
+		http.Error(res, "Bad Discovery id", http.StatusBadRequest)
+		return ""
 	}
 
 	uid, err1 := GetUserID(session)
@@ -158,7 +149,7 @@ func AddObservationHttp(res http.ResponseWriter, req *http.Request, params marti
 		return err1.Message
 	}
 
-	result, err2 := AddObservation(did, uid, params["comment"], params["x"], params["y"])
+	result, err2 := AddObservation(did, uid, observation.Comment, observation.X, observation.Y)
 	if err2 != nil {
 		http.Error(res, err2.Message, http.StatusBadRequest)
 		return err2.Message

@@ -19,6 +19,7 @@ angular.module('dataplayApp')
     $scope.saved =
       email: ''
       username: ''
+      success: false
 
     # Valid Discoveries
     $scope.validDiscoveries = [
@@ -67,21 +68,23 @@ angular.module('dataplayApp')
       }
     ]
 
-
-
     $scope.inits =
       details: ->
         Profile.getInfo().then (res) ->
           $scope.current.email = res.data.email
           $scope.current.username = res.data.username
+
           $scope.saved.email = res.data.email
           $scope.saved.username = res.data.username
+
       validdiscoveries: ->
         Profile.getValidDiscoveries().then (res) ->
           console.log res
+
       discoveries: ->
         Profile.getDiscoveries().then (res) ->
           console.log res
+
       observations: ->
         Profile.getObservations().then (res) ->
           console.log res
@@ -94,10 +97,17 @@ angular.module('dataplayApp')
 
     $scope.submitDetails = ->
       Profile.setInfo $scope.current.email, $scope.current.username
+        .then (res) ->
+          $scope.saved.email = $scope.current.email
+          $scope.saved.username = $scope.current.username
+          $scope.saved.success = true
 
     $scope.clearDetails = ->
       $scope.current.email = $scope.saved.email
       $scope.current.username = $scope.saved.username
+
+    $scope.closeAlert = () ->
+      $scope.saved.success = false
 
     return
   ]

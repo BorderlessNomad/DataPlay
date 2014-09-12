@@ -205,7 +205,9 @@ func initClassicMode() {
 	m.Get("/api/discovered/:tablename/:correlated/:offset/:count", GetDiscoveredChartsHttp)
 	m.Put("/api/chart/:rcid", ValidateChartHttp)
 	m.Put("/api/chart/:rcid/:valflag", ValidateChartHttp)
-	m.Put("/api/observations/:did/:x/:y/:comment", AddObservationHttp)
+	m.Put("/api/observations", binding.Bind(ObservationComment{}), func(res http.ResponseWriter, req *http.Request, observation ObservationComment) string {
+		return AddObservationHttp(res, req, observation)
+	})
 	m.Put("/api/observations/:oid", ValidateObservationHttp)
 	m.Put("/api/observations/:oid/:valflag", ValidateObservationHttp)
 	m.Get("/api/observations/:did", GetObservationsHttp)
