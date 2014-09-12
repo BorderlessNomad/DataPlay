@@ -35,8 +35,8 @@ type CorrelatedCharts struct {
 }
 
 type DiscoveredCharts struct {
-	Charts []string `json:"charts"`
-	Count  int      `json:"count"`
+	Charts []interface{} `json:"charts"`
+	Count  int           `json:"count"`
 }
 
 // Get all data for single selected chart
@@ -168,7 +168,9 @@ func GetChartCorrelated(cid int, uid int) (CorrelationData, *appError) {
 	}
 
 	err3 := json.Unmarshal(discovered[0].Json, &result)
-	check(err3)
+	if err3 != nil {
+		return result, &appError{err3, "Json failed", http.StatusInternalServerError}
+	}
 	result.CorrelationId = discovered[0].CorrelationId
 	return result, nil
 }
@@ -326,16 +328,14 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 // As GetNew but get charts users have already voted on and return in an order based upon their absoulte ranking value
 func GetDiscoveredCharts(tableName string, correlated bool, offset int, count int) (DiscoveredCharts, *appError) {
 	discovered := make([]Discovered, 0)
-	charts := make([]string, 0)
-	var vd []byte
+	charts := make([]interface{}, 0)
 
 	if correlated {
 		c := Correlation{}
-		v := Discovered{}
-		selectStr := v.TableName() + ".json"
-		joinStr := "LEFT JOIN " + c.TableName() + " ON " + v.TableName() + ".correlation_id = " + c.TableName() + ".correlation_id"
+		d := Discovered{}
+		joinStr := "LEFT JOIN " + c.TableName() + " ON " + d.TableName() + ".correlation_id = " + c.TableName() + ".correlation_id"
 		whereStr := c.TableName() + ".tbl1 = ?"
-		err := DB.Select(selectStr).Joins(joinStr).Where(whereStr, tableName).Order("rating DESC").Find(&discovered).Error
+		err := DB.Joins(joinStr).Where(whereStr, tableName).Order("rating DESC").Find(&discovered).Error
 		if err != nil && err != gorm.RecordNotFound {
 			return DiscoveredCharts{nil, 0}, &appError{nil, "Database query failed (JOIN)", http.StatusInternalServerError}
 		} else if err == gorm.RecordNotFound {
@@ -343,7 +343,7 @@ func GetDiscoveredCharts(tableName string, correlated bool, offset int, count in
 		}
 	} else {
 		tableName = tableName + "_%"
-		err := DB.Model(Discovered{}).Select("json").Where("relation_id LIKE ?", tableName).Order("rating DESC").Find(&discovered).Error
+		err := DB.Model(Discovered{}).Where("relation_id LIKE ?", tableName).Order("rating DESC").Find(&discovered).Error
 		if err != nil && err != gorm.RecordNotFound {
 			return DiscoveredCharts{nil, 0}, &appError{nil, "Database query failed", http.StatusInternalServerError}
 		} else if err == gorm.RecordNotFound {
@@ -351,9 +351,24 @@ func GetDiscoveredCharts(tableName string, correlated bool, offset int, count in
 		}
 	}
 
-	for _, v := range discovered {
-		vd = v.Json
-		charts = append(charts, string(vd))
+	for i, _ := range discovered {
+		if correlated {
+			var correlationData CorrelationData
+			err1 := json.Unmarshal(discovered[i].Json, &correlationData)
+			if err1 != nil {
+				return DiscoveredCharts{nil, 0}, &appError{err1, "Json failed", http.StatusInternalServerError}
+			}
+			correlationData.CorrelationId = discovered[i].CorrelationId
+			charts = append(charts, correlationData)
+		} else {
+			var tableData TableData
+			err1 := json.Unmarshal(discovered[i].Json, &tableData)
+			if err1 != nil {
+				return DiscoveredCharts{nil, 0}, &appError{err1, "Json failed", http.StatusInternalServerError}
+			}
+			tableData.RelationId = discovered[i].RelationId
+			charts = append(charts, tableData)
+		}
 	}
 
 	totalCharts := len(charts)
@@ -368,7 +383,7 @@ func GetDiscoveredCharts(tableName string, correlated bool, offset int, count in
 		last = totalCharts
 	}
 
-	charts = charts[offset:last] // return marshalled slice
+	charts = charts[offset:last] // return slice
 	return DiscoveredCharts{charts, totalCharts}, nil
 }
 
