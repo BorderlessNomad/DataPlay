@@ -1,0 +1,50 @@
+<h3 class="text-center">Your Profile</h3>
+<form name="profileForm" class="form-profile" role="form" novalidate>
+	<div ng-show="hasError()" class="alert alert-dismissable alert-danger">
+		<button type="button" class="close" ng-click="closeAlert()">×</button>
+		{{user.message}}
+	</div>
+
+	<ul class="nav nav-tabs" role="tablist">
+		<li ng-class="{true: 'active', false: ''}[currentTab == 'details']"><a href="#" data-toggle="tab" ng-click="changeTab('details')">Personal Details</a></li>
+		<li ng-class="{true: 'active', false: ''}[currentTab == 'validdiscoveries']"><a href="#" data-toggle="tab" ng-click="changeTab('validdiscoveries')">Valid Discoveries</a></li>
+		<li ng-class="{true: 'active', false: ''}[currentTab == 'discoveries']"><a href="#" data-toggle="tab" ng-click="changeTab('discoveries')">Discoveries</a></li>
+		<li ng-class="{true: 'active', false: ''}[currentTab == 'observations']"><a href="#" data-toggle="tab" ng-click="changeTab('observations')">Observations</a></li>
+	</ul>
+
+	<div class="tab-content">
+		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'details']" id="details">
+			<div class="form-group" ng-class="{'has-error': profileForm.email.$invalid && !profileForm.email.$pristine}">
+				<p>Email Address</p>
+				<input class="form-control" name="email" type="email" ng-model="current.email" autocomplete="off" />
+			</div>
+			<div class="form-group" ng-class="{'has-error': profileForm.username.$invalid && !profileForm.username.$pristine}">
+				<p
+				>Username</p>
+				<input class="form-control" name="username" type="username" ng-model="current.username" autocomplete="off" />
+			</div>
+			<div class="form-group text-center">
+				<button class="btn btn-default" value="Revert Changes" title="Revert Changes" ng-click="clearDetails()"><span>Revert Changes</span></button>
+				<button class="btn btn-primary" value="Save Changes" title="Save Changes" ng-disabled="!profileForm.$valid" ng-click="submitDetails()"><span>Save Changes</span></button>
+			</div>
+
+		</div>
+		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'validdiscoveries']" id="validdiscoveries">
+			<p>Valid Discoveries here.</p>
+		</div>
+		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'discoveries']" id="discoveries">
+			<p>Discoveries here.</p>
+		</div>
+		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'observations']" id="observations">
+			<p>Observations here.</p>
+		</div>
+	</div>
+
+</form>
+
+<div ng-show="forgotPassword.sent">
+	<h3>Please check your email</h3>
+	We've sent you an email that will allow you to reset your password quickly and easily.
+
+	<a href="#" ng-href="/user/resetpassword/{{user.token}}">Link</a>
+</div>

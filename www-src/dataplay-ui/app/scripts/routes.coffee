@@ -56,6 +56,10 @@ angular.module('dataplayApp')
 				templateUrl: 'views/map.html'
 				controller: 'MapCtrl'
 				login: true
+			.when '/user',
+				templateUrl: 'views/user/profile.html'
+				controller: 'ProfileCtrl'
+				login: true
 			.when '/user/login',
 				templateUrl: 'views/user/login.html'
 				login: false
