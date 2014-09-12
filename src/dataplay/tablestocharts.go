@@ -24,7 +24,7 @@ type PatternInfo struct {
 	Validators      []string    `json:"validatedby, omitempty"`
 	PrimarySource   string      `json:"source1"`
 	SecondarySource string      `json:"source2, omitempty"`
-	Strength        float64     `json:"statstrength, omitempty"`
+	Strength        string      `json:"statstrength, omitempty"`
 	Observations    int         `json:"numobs"`
 	ChartData       interface{} `json:"chartdata"`
 }
@@ -81,19 +81,19 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 		return pattern, &appError{err, "Not possible to plot this chart", http.StatusInternalServerError}
 	}
 
-	jByte, err := json.Marshal(chart[0])
-	if err != nil {
-		return pattern, &appError{err, "Unable to parse JSON", http.StatusInternalServerError}
+	jByte, err1 := json.Marshal(chart[0])
+	if err1 != nil {
+		return pattern, &appError{err1, "Unable to parse JSON", http.StatusInternalServerError}
 	}
 
 	//if the table is as yet undiscovered then add to the discovered table as an initial discovery
 	discovered := Discovered{}
-	var errd *appError
-	err1 := DB.Where("relation_id = ?", id).First(&discovered).Error
-	if err1 == gorm.RecordNotFound {
-		discovered, errd = Discover(id, uid, jByte, false)
-		if errd != nil {
-			return pattern, errd
+	var err3 *appError
+	err2 := DB.Where("relation_id = ?", id).First(&discovered).Error
+	if err2 == gorm.RecordNotFound {
+		discovered, err3 = Discover(id, uid, jByte, false)
+		if err3 != nil {
+			return pattern, err3
 		}
 	}
 
@@ -119,15 +119,15 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 
 	var observation []Observation
 	count := 0
-	err7 := DB.Model(&observation).Where("discovered_id = ?", discovered.DiscoveredId).Count(&count).Error
-	if err7 != nil {
-		return pattern, &appError{err7, "observation count failed", http.StatusInternalServerError}
+	err6 := DB.Model(&observation).Where("discovered_id = ?", discovered.DiscoveredId).Count(&count).Error
+	if err6 != nil {
+		return pattern, &appError{err6, "observation count failed", http.StatusInternalServerError}
 	}
 
 	var td TableData
-	err3 := json.Unmarshal(discovered.Json, &td)
-	if err3 != nil {
-		return pattern, &appError{err3, "json failed", http.StatusInternalServerError}
+	err7 := json.Unmarshal(discovered.Json, &td)
+	if err7 != nil {
+		return pattern, &appError{err7, "json failed", http.StatusInternalServerError}
 	}
 
 	pattern.ChartData = td
@@ -144,35 +144,79 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 }
 
 // use the id relating to the record stored in the generated correlations table to return the json with the specific chart info
-func GetChartCorrelated(cid int, uid int) (CorrelationData, *appError) {
+func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
+	pattern := PatternInfo{}
 	var chart []string
-	var result CorrelationData
+	var cd CorrelationData
 	err := DB.Model(Correlation{}).Where("correlation_id = ?", cid).Pluck("json", &chart).Error
 
 	if err != nil && err != gorm.RecordNotFound {
-		return result, &appError{err, "Database query failed (ID)", http.StatusInternalServerError}
+		return pattern, &appError{err, "Database query failed (ID)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
-		return result, &appError{err, "No related chart found", http.StatusNotFound}
+		return pattern, &appError{err, "No related chart found", http.StatusNotFound}
 	}
 
 	//if undiscovered add to the discovered table as an initial discovery
-	var discovered []Discovered
+	discovered := Discovered{}
 	err1 := DB.Where("correlation_id = ?", cid).Find(&discovered).Error
 	if err1 == gorm.RecordNotFound {
 		Discover(strconv.Itoa(cid), uid, []byte(chart[0]), true)
 	}
 
-	err2 := DB.Where("correlation_id = ?", cid).Find(&discovered).Error
-	if err2 != nil {
-		return result, &appError{err, "Validation failed", http.StatusInternalServerError}
+	user := User{}
+	err2 := DB.Where("uid = ?", discovered.Uid).First(&user).Error
+	if err2 != nil && err2 != gorm.RecordNotFound {
+		return pattern, &appError{err2, "unable to retrieve user", http.StatusInternalServerError}
 	}
 
-	err3 := json.Unmarshal(discovered[0].Json, &result)
-	if err3 != nil {
-		return result, &appError{err3, "Json failed", http.StatusInternalServerError}
+	validators := make([]string, 0)
+	validatorsUsers := []struct {
+		Validation
+		Username string
+	}{}
+	err3 := DB.Select("DISTINCT uid, (SELECT priv_users.username FROM priv_users WHERE priv_users.uid = priv_validations.uid) as username").Where("discovered_id = ?", discovered.DiscoveredId).Where("valflag = ?", true).Find(&validatorsUsers).Error
+	if err3 != nil && err3 != gorm.RecordNotFound {
+		return pattern, &appError{err3, "find validators failed", http.StatusInternalServerError}
+	} else {
+		for _, vu := range validatorsUsers {
+			validators = append(validators, vu.Username)
+		}
 	}
-	result.CorrelationId = discovered[0].CorrelationId
-	return result, nil
+
+	err4 := DB.Where("correlation_id = ?", cid).Find(&discovered).Error
+	if err4 != nil {
+		return pattern, &appError{err4, "Validation failed", http.StatusInternalServerError}
+	}
+
+	var observation []Observation
+	count := 0
+	err5 := DB.Model(&observation).Where("discovered_id = ?", discovered.DiscoveredId).Count(&count).Error
+	if err5 != nil {
+		return pattern, &appError{err5, "observation count failed", http.StatusInternalServerError}
+	}
+
+	err6 := json.Unmarshal(discovered.Json, &cd)
+	if err6 != nil {
+		return pattern, &appError{err6, "Json failed", http.StatusInternalServerError}
+	}
+
+	correlation := Correlation{}
+	err7 := DB.Where("correlation_id = ?", cid).Find(&correlation).Error
+	if err7 != nil {
+		return pattern, &appError{err7, "Validation failed", http.StatusInternalServerError}
+	}
+
+	pattern.ChartData = cd
+	pattern.PatternID = discovered.CorrelationId
+	pattern.Discoverer = user.Username
+	pattern.DiscoveryDate = discovered.Created
+	pattern.Validators = validators
+	pattern.PrimarySource = cd.Table1.Title
+	pattern.SecondarySource = cd.Table2.Title
+	pattern.Strength = CalcStrength(correlation.Abscoef)
+	pattern.Observations = count
+
+	return pattern, nil
 }
 
 // save chart to valdiated table
@@ -628,6 +672,24 @@ func NegCheck(t TableData) bool {
 		}
 	}
 	return true
+}
+
+func CalcStrength(x float64) string {
+	if x <= 0.2 {
+		return "very low"
+	} else if x <= 0.3 {
+		return "low"
+	} else if x <= 0.4 {
+		return "quite low"
+	} else if x <= 0.5 {
+		return "medium"
+	} else if x <= 0.6 {
+		return "quite high"
+	} else if x <= 0.7 {
+		return "high"
+	} else {
+		return "very high"
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

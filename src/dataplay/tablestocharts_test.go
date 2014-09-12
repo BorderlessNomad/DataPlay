@@ -41,7 +41,6 @@ func TestGetChartCorrelatedHttp(t *testing.T) {
 	res := httptest.NewRecorder()
 	params := map[string]string{
 		"cid": "114789",
-		"uid": "1",
 	}
 	Convey("Should return Correlated chart", t, func() {
 		result := GetChartCorrelatedHttp(res, req, params)
