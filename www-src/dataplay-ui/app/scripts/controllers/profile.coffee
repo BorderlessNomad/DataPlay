@@ -12,13 +12,62 @@ angular.module('dataplayApp')
     $scope.params = $routeParams
     $scope.currentTab = 'details'
 
+    # Personal Details
     $scope.current =
       email: ''
       username: ''
-
     $scope.saved =
       email: ''
       username: ''
+
+    # Valid Discoveries
+    $scope.validDiscoveries = [
+      {
+        title: 'Gold Prices'
+        link: 555
+      }
+      {
+        title: 'A&E waiting times'
+        title2: 'Crime Rate London'
+        link: 556
+        link2: 557
+      }
+      {
+        title: 'GDP Prices'
+        link: 558
+      }
+    ]
+
+    # Discoveries
+    $scope.discoveries = [
+      {
+        title: 'GDP Prices'
+        link: 558
+      }
+    ]
+
+    # Observations
+    $scope.observations = [
+      {
+        title: 'Gold Prices'
+        link: 555
+        message: 'We should buy some gold!'
+      }
+      {
+        title: 'A&E waiting times'
+        title2: 'Crime Rate London'
+        link: 556
+        link2: 557
+        message: 'I think this is really interesting!!'
+      }
+      {
+        title: 'GDP Prices'
+        link: 558
+        message: 'Lets buy some EUR!'
+      }
+    ]
+
+
 
     $scope.inits =
       details: ->
@@ -27,6 +76,15 @@ angular.module('dataplayApp')
           $scope.current.username = res.data.username
           $scope.saved.email = res.data.email
           $scope.saved.username = res.data.username
+      validdiscoveries: ->
+        Profile.getValidDiscoveries().then (res) ->
+          console.log res
+      discoveries: ->
+        Profile.getDiscoveries().then (res) ->
+          console.log res
+      observations: ->
+        Profile.getObservations().then (res) ->
+          console.log res
 
     $scope.inits[$scope.currentTab]?()
 

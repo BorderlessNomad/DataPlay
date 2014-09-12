@@ -30,13 +30,47 @@
 
 		</div>
 		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'validdiscoveries']" id="validdiscoveries">
-			<p>Valid Discoveries here.</p>
+			<div class="row">
+				<div class="col-md-6 col-md-offset-3">
+					<p class="text-center">My Validated Discoveries</p>
+					<div ng-repeat="disc in validDiscoveries">
+						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
+						<p class="profile-li">
+							<a ng-href="{{disc.link}}">{{disc.title}}</a>
+							<span ng-show="disc.title2"> correlates with <a ng-href="{{disc.link2}}">{{disc.title2}}</a></span>
+						</p>
+					</div>
+				</div>
+			</div>
 		</div>
 		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'discoveries']" id="discoveries">
-			<p>Discoveries here.</p>
+			<div class="row">
+				<div class="col-md-6 col-md-offset-3">
+					<p class="text-center">My Discoveries</p>
+					<div ng-repeat="disc in discoveries">
+						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
+						<p class="profile-li">
+							<a ng-href="{{disc.link}}">{{disc.title}}</a>
+							<span ng-show="disc.title2"> correlates with <a ng-href="{{disc.link2}}">{{disc.title2}}</a></span>
+						</p>
+					</div>
+				</div>
+			</div>
 		</div>
 		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'observations']" id="observations">
-			<p>Observations here.</p>
+			<div class="row">
+				<div class="col-md-6 col-md-offset-3">
+					<p class="text-center">My Observations</p>
+					<div ng-repeat="obsv in observations">
+						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
+						<p class="profile-li">
+							<a ng-href="{{obsv.link}}">{{obsv.title}}</a>
+							<span ng-show="obsv.title2"> correlates with <a ng-href="{{obsv.link2}}">{{obsv.title2}}</a></span><br/>
+							<span class="text-muted">{{obsv.message}}</span>
+						</p>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 
