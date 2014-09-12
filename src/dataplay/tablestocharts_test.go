@@ -7,34 +7,36 @@ import (
 	"testing"
 )
 
-// func TestGetChartHttp(t *testing.T) {
-// 	req, _ := http.NewRequest("GET", "/", nil)
-// 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
-// 	res := httptest.NewRecorder()
-// 	params := map[string]string{
-// 		"uid":       "1",
-// 		"tablename": "gold",
-// 		"tablenum":  "1",
-// 		"type":      "line",
-// 		"x":         "price",
-// 		"y":         "date",
-// 	}
-// 	Convey("Should return xy chartlist", t, func() {
-// 		result := GetChartHttp(res, req, params)
-// 		So(result, ShouldNotBeNil)
-// 	})
+func TestGetChartHttp(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+	res := httptest.NewRecorder()
+	params := map[string]string{
+		// "uid":       "1",
+		"tablename": "gdp",
+		"tablenum":  "3",
+		"type":      "line",
+		"x":         "year",
+		"y":         "gdp",
+	}
+	Convey("Should return xy chartlist", t, func() {
+		result := GetChartHttp(res, req, params)
+		So(result, ShouldEqual, "")
+	})
 
-// 	// params["tablename"] = "gdp"
-// 	// params["type"] = "bubble"
-// 	// params["x"] = "year"
-// 	// params["y"] = "gdp"
-// 	// params["z"] = "change"
+	// 	// params["tablename"] = "gdp"
+	// 	// params["type"] = "bubble"
+	// 	// params["x"] = "year"
+	// 	// params["y"] = "gdp"
+	// 	// params["z"] = "change"
 
-// 	// Convey("Should return xyz chartlist", t, func() {
-// 	// 	result := GetChartHttp(res, req, params)
-// 	// 	So(result, ShouldNotBeNil)
-// 	// })
-// }
+	// 	// Convey("Should return xyz chartlist", t, func() {
+	// 	// 	result := GetChartHttp(res, req, params)
+	// 	// 	So(result, ShouldNotBeNil)
+	// 	// })
+	// }
+
+}
 
 // func TestGetChartCorrelatedHttp(t *testing.T) {
 // 	req, _ := http.NewRequest("GET", "/", nil)

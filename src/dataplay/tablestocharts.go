@@ -93,18 +93,18 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 		return pattern, &appError{err4, "unable to retrieve user", http.StatusInternalServerError}
 	}
 
+	validators := make([]string, 0)
 	validatorsUsers := []struct {
 		Validation
 		Username string
 	}{}
 	err5 := DB.Select("DISTINCT uid, (SELECT priv_users.username FROM priv_users WHERE priv_users.uid = priv_validations.uid) as username").Where("discovered_id = ?", discovered.DiscoveredId).Where("valflag = ?", true).Find(&validatorsUsers).Error
-	if err5 != nil {
+	if err5 != nil && err5 != gorm.RecordNotFound {
 		return pattern, &appError{err5, "find validators failed", http.StatusInternalServerError}
-	}
-
-	validators := make([]string, 0)
-	for _, vu := range validatorsUsers {
-		validators = append(validators, vu.Username)
+	} else {
+		for _, vu := range validatorsUsers {
+			validators = append(validators, vu.Username)
+		}
 	}
 
 	var observation []Observation
@@ -116,7 +116,9 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 
 	var td TableData
 	err3 := json.Unmarshal(discovered.Json, &td)
-	check(err3)
+	if err3 != nil {
+		return pattern, &appError{err3, "json failed", http.StatusInternalServerError}
+	}
 
 	pattern.ChartData = td
 	pattern.PatternID = discovered.DiscoveredId
@@ -422,6 +424,7 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 		sql = fmt.Sprintf("SELECT %s AS x, %s AS y FROM  %s", names.X, names.Y, guid)
 	}
 
+	fmt.Println("ROBOCOP", sql)
 	rows, _ := DB.Raw(sql).Rows()
 	defer rows.Close()
 
