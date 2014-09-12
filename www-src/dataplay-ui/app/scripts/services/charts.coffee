@@ -33,12 +33,11 @@ angular.module('dataplayApp')
 			$http.get config.api.base_url + "/observations/#{id}"
 
 		createObservation: (did, x, y, message) ->
-			path = "/observations/#{did}/#{x}/#{y}"
-
-			if message
-				path += "/#{message}"
-
-			$http.put config.api.base_url + path
+			$http.put config.api.base_url + "/observations",
+				did: did
+				x: "#{x}"
+				y: "#{y}"
+				comment: message
 
 		validateObservation: (id, valFlag) ->
 			$http.put config.api.base_url + "/observations/#{id}/#{valFlag}"

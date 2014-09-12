@@ -9,13 +9,14 @@
 		<a class="navbar-brand" href="/">DataPlay</a>
 	</div>
 	<div class="navbar-collapse collapse">
-		<ul class="nav navbar-nav">
-			<li ng-class="{active: isActive('/')}" ng-show="Auth.isAuthenticated()"><a href="/">Home</a></li>
-		</ul>
+		<!-- <ul class="nav navbar-nav">
+			<li ng-class="{active: isActive('/home')}" ng-show="Auth.isAuthenticated()"><a href="/">Home</a></li>
+		</ul> -->
 		<ul class="nav navbar-nav navbar-right">
 			<li ng-class="{active: isActive('/user/login')}" ng-hide="Auth.isAuthenticated()"><a ng-href="/user/login">Login</a></li>
 			<li ng-class="{active: isActive('/user/register')}" ng-hide="Auth.isAuthenticated()"><a ng-href="/user/register">Register</a></li>
-			<li ng-show="Auth.isAuthenticated()"><a href="/user">My Profile</a></li>
+
+			<li ng-class="{active: isActive('/user')}" ng-show="Auth.isAuthenticated()"><a href="#" ng-href="/user">My Profile</a></li>
 			<li ng-show="Auth.isAuthenticated()"><a href="#" ng-controller="UserCtrl" ng-click="logout()">Logout</a></li>
 		</ul>
 	</div><!--/.nav-collapse -->

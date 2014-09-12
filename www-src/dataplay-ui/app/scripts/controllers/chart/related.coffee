@@ -30,6 +30,8 @@ angular.module('dataplayApp')
 			description: "N/A"
 			data: null
 			values: []
+		$scope.xScale = null
+		$scope.yDomain = null
 		$scope.userObservations = []
 		$scope.observation =
 			x: null
@@ -87,8 +89,8 @@ angular.module('dataplayApp')
 
 			return
 
-		$scope.initValidation = () ->
-			Charts.validateChart "#{$scope.params.id}_#{$scope.params.key}"
+		$scope.initValidation = (redraw) ->
+			Charts.validateChart "#{$scope.params.id}_#{$scope.params.key}_#{$scope.params.type}_#{$scope.params.x}_#{$scope.params.y}_"
 				.then (validate) ->
 					$scope.info.discoveredId = validate.data
 					Charts.getObservations $scope.info.discoveredId
@@ -106,7 +108,11 @@ angular.module('dataplayApp')
 										x: obsv.x
 										y: obsv.y
 
-							$scope.chartRendered?.render()
+							if redraw? and redraw
+								$scope.redrawObservationIcons()
+
+								newObservations = d3.select 'g.stack-list > .observations.new'
+								$scope.renderObservationIcons $scope.xScale, $scope.yDomain, $scope.chart, newObservations
 			return
 
 		$scope.reduceData = () ->
@@ -177,33 +183,66 @@ angular.module('dataplayApp')
 
 			closest
 
-		$scope.drawCircle = (area, data, x, y, plot) ->
+		$scope.drawObservationIcon = (area, data, x, y, plot) ->
 			if data.patterns[data.xLabel].valuePattern is 'date'
 				if not(x instanceof Date) and (typeof x is 'string')
 					xdate = new Date x
 					if xdate.toString() isnt 'Invalid Date' then x = xdate
 				x = Overview.humanDate x
 
-			pathId = x.replace(/\s/g, '') + '-' + y.replace(/\s/g, '')
-
+			xy = "#{x.replace(/\W/g, '')}-#{y.replace(/\W/g, '')}"
+			pathId = "clipImage-#{xy}"
 			clipPath = area.append 'clipPath'
-				.attr 'id', "clipImage-#{pathId}"
+				.attr 'id', pathId
 				.append 'circle'
 					.attr 'r', 10
 					.attr 'cx', plot[0]
 					.attr 'cy', plot[1]
 
 			circ = area.append 'image'
+				.attr 'id', "observationIcon-#{xy}"
 				.attr 'xlink:href', 'images/observation.png'
 				.attr 'style', "stroke: none; fill: none; fill-opacity: 0.0; stroke-opacity: 0.0"
 				.attr 'height', '20px'
 				.attr 'width', '20px'
 				.attr 'x', plot[0] - 10
 				.attr 'y', plot[1] - 10
-				.attr 'clip-path', "url(#clipImage-#{pathId})"
+				.attr 'clip-path', "url(##{pathId})"
 				.attr 'data-placement', 'top'
 				.attr 'data-html', true
 				.tooltip "#{$scope.chart.xLabel}: #{x}<br/>#{$scope.chart.yLabel}: #{y}"
+
+		$scope.redrawObservationIcons = () ->
+			# Clean observation points and re-render
+			d3.selectAll('g.observations > *').remove()
+
+		$scope.renderObservationIcons = (xScale, yDomain, data, newObservations) ->
+			for p in $scope.userObservations
+				if (p.coor.x is 0 or p.coor.x is "0") and (p.coor.y is 0 or p.coor.y is "0")
+					continue
+
+				x = p.coor.x
+				if not(x instanceof Date) and (typeof x is 'string')
+					xdate = new Date x
+					if xdate.toString() isnt 'Invalid Date' then x = xdate
+
+				# Y
+				for k, v of yDomain
+					if v.y is p.coor.y
+						j = k
+						break
+					else if parseInt(v.y) > parseInt(p.coor.y)
+						j = k
+
+				# Do not consider points which are beyond visible Y-axis
+				if not yDomain? or not yDomain[j]? or not yDomain[j].y?
+					continue
+
+				y = yDomain[j].y
+
+				plot = [xScale(x), yDomain[j].cy]
+
+				$scope.drawObservationIcon newObservations, data, x, y, plot
 
 		$scope.lineChartPostSetup = (chart) ->
 			data = $scope.chart
@@ -244,12 +283,6 @@ angular.module('dataplayApp')
 
 			chart.yAxisLabel data.yLabel
 
-			# points = [
-			# 	[new Date("Feb 01 1975 00:00:00 GMT+0000 (GMT Standard Time)"), 600, "Hello Jack!"]
-			# 	[new Date("Jan 04 2000 00:00:00 GMT+0000 (GMT Standard Time)"), 400, "Test Point"]
-			# ]
-			points = []
-
 			existingObservations = null
 			newObservations = null
 
@@ -268,7 +301,7 @@ angular.module('dataplayApp')
 						.attr 'class', "stack _#{stackList.length + 1} observations new"
 
 				# Clean observation points and re-render
-				d3.selectAll('g.observations > *').remove()
+				$scope.redrawObservationIcons()
 
 				circles = c.svg().selectAll 'circle.dot'
 				circleTitles = c.svg().selectAll 'circle.dot > title'
@@ -283,28 +316,6 @@ angular.module('dataplayApp')
 					yDomain[i].y = html[1].split(': ')[1]
 
 				yDomain.sort (a, b) -> a.cy - b.cy
-
-				# Exisiting observations
-				for p in points
-					x = p[0]
-
-					# Y
-					for k, v of yDomain
-						if v.y is p[1]
-							j = k
-							break
-						else if parseInt(v.y) > parseInt(p[1])
-							j = k
-
-					# Do not consider points which are beyond visible Y-axis
-					if not yDomain? or not yDomain[j]? or not yDomain[j].y?
-						continue
-
-					y = yDomain[j].y
-
-					plot = [xScale(x), yDomain[j].cy]
-
-					$scope.drawCircle existingObservations, data, x, y, plot
 
 				# New observations
 				datum = null
@@ -354,34 +365,12 @@ angular.module('dataplayApp')
 					y = yDomain[j].y
 					$scope.nearestNeighbour j, yDomain, 'y'
 
-					$scope.addObservation x, y, space
-
 					$scope.openAddObservationModal x, y
-					$scope.drawCircle newObservations, data, x, y, space
+					$scope.drawObservationIcon newObservations, data, x, y, space
 
-				for p in $scope.userObservations
-					x = p.coor.x
-					if not(x instanceof Date) and (typeof x is 'string')
-						xdate = new Date x
-						if xdate.toString() isnt 'Invalid Date' then x = xdate
-
-					# Y
-					for k, v of yDomain
-						if v.y is p.coor.y
-							j = k
-							break
-						else if parseInt(v.y) > parseInt(p.coor.y)
-							j = k
-
-					# Do not consider points which are beyond visible Y-axis
-					if not yDomain? or not yDomain[j]? or not yDomain[j].y?
-						continue
-
-					y = yDomain[j].y
-
-					plot = [xScale(x), yDomain[j].cy]
-
-					$scope.drawCircle newObservations, data, x, y, plot
+				$scope.xScale = xScale
+				$scope.yDomain = yDomain
+				$scope.renderObservationIcons xScale, yDomain, data, newObservations
 
 			$scope.chartRendered = chart
 
@@ -619,12 +608,35 @@ angular.module('dataplayApp')
 		$scope.saveObservation = ->
 			Charts.createObservation($scope.info.discoveredId, $scope.observation.x, $scope.observation.y, $scope.observation.message).then (res) ->
 				$scope.observation.message = ''
+
+				$scope.addObservation $scope.observation.x, $scope.observation.y, $scope.observation.message
+
 				$('#comment-modal').modal 'hide'
 
 			return
 
 		$scope.clearObservation = ->
 			$scope.observation.message = ''
+
+			x = $scope.observation.x
+			y = $scope.observation.y
+
+			if (x is 0 or x is "0") and (y is 0 or y is "0")
+				$('#comment-modal').modal 'hide'
+				return
+
+			if not(x instanceof Date) and (typeof x is 'string')
+				xdate = new Date x
+				if xdate.toString() isnt 'Invalid Date' then x = Overview.humanDate xdate
+			else if x instanceof Date
+				x = Overview.humanDate x
+
+			xy = "#{x.replace(/\W/g, '')}-#{y.replace(/\W/g, '')}"
+
+			# console.log xy, d3.select("#clipImage-#{xy}"), d3.select("#observationIcon-#{xy}")
+			d3.select("#clipImage-#{xy}").remove()
+			d3.select("#observationIcon-#{xy}").remove()
+
 			$('#comment-modal').modal 'hide'
 			return
 
@@ -643,23 +655,8 @@ angular.module('dataplayApp')
 
 			return
 
-		$scope.addObservation = (x, y, space, comment) ->
-			$scope.userObservations.push
-				oid: null
-				user:
-					name: ""
-					avatar: ""
-					reputation: 0
-					discoverer: null
-					email: ""
-				validationCount: 0
-				message: comment
-				date: Overview.humanDate new Date()
-				coor:
-					x: x
-					y: y
-
-			$scope.$apply()
+		$scope.addObservation = (x, y, comment) ->
+			$scope.initValidation(true)
 
 		$scope.resetObservations = ->
 			d3.selectAll('g.observations.new > *').remove()
