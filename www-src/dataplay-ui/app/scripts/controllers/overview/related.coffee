@@ -59,8 +59,11 @@ angular.module('dataplayApp')
 						for key, chart of data.charts
 							continue unless $scope.isPlotAllowed chart.type
 
-							chart.id = "related-#{$scope.params.id}-#{chart.xLabel}-#{chart.yLabel}-#{chart.type}"
+							key = parseInt(key)
 							chart.key = key
+							chart.id = "related-#{$scope.params.id}-#{chart.key + $scope.offset.related}-#{chart.type}"
+							chart.url = "/charts/related/#{$scope.params.id}/#{chart.key}/#{chart.type}/#{chart.xLabel}/#{chart.yLabel}"
+							chart.url += "/#{chart.zLabel}" if chart.type is 'bubble'
 
 							chart.patterns = {}
 							chart.patterns[chart.xLabel] =

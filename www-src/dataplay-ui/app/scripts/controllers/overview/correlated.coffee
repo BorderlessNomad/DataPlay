@@ -9,7 +9,7 @@
 ###
 angular.module('dataplayApp')
 	.controller 'OverviewCorrelatedCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', ($scope, $routeParams, Overview, PatternMatcher) ->
-		$scope.allowed = ['line', 'bar', 'row', 'bubble', 'scatter', 'stacked']
+		$scope.allowed = ['line', 'bar', 'row', 'column', 'bubble', 'scatter', 'stacked']
 		$scope.params = $routeParams
 		$scope.count = 3
 		$scope.loading =
@@ -59,11 +59,14 @@ angular.module('dataplayApp')
 						$scope.max.correlated = data.count
 
 						for key, chart of data.charts
-							# continue unless $scope.isPlotAllowed chart.type
-							continue unless chart.type is 'line'
+							continue unless $scope.isPlotAllowed chart.type
+							# continue unless chart.type is 'line'
 
-							chart.id = "correlated-#{chart.correlationid}"
+							key = parseInt(key)
 							chart.key = key
+							chart.id = "correlated-#{$scope.params.id}-#{chart.key + $scope.offset.correlated}-#{chart.type}"
+							chart.url = "/charts/correlated/#{$scope.params.id}/#{chart.correlationid}/#{chart.type}/#{chart.table1.xLabel}/#{chart.table1.yLabel}"
+							chart.url += "/#{chart.table1.zLabel}" if chart.type is 'bubble' or chart.type is 'scatter'
 
 							chart.patterns = {}
 							chart.patterns[chart.table1.xLabel] =
@@ -86,6 +89,8 @@ angular.module('dataplayApp')
 								chart.patterns[chart.table1.xLabel].valuePattern,
 								chart.patterns[chart.table1.xLabel].keyPattern
 							)
+
+						console.log $scope.chartsCorrelated
 
 						$scope.offset.correlated += count
 						if $scope.offset.correlated >= $scope.max.correlated
@@ -198,6 +203,32 @@ angular.module('dataplayApp')
 			chart.x $scope.getYScale data
 
 			# chart.xUnits $scope.getXUnits data if data.ordinals?.length > 0
+
+			return
+
+		$scope.columnChartPostSetup = (chart) ->
+			data = $scope.chartsCorrelated[chart.anchorName()]
+
+			data.entry = crossfilter data.table1.values
+			data.dimension = data.entry.dimension (d) -> d.x
+			data.group = data.dimension.group().reduceSum (d) -> d.y
+
+			data.entry2 = crossfilter data.table2.values
+			data.dimension2 = data.entry2.dimension (d) -> d.x
+			data.group2 = data.dimension2.group().reduceSum (d) -> d.y
+
+			chart.dimension data.dimension
+			chart.group data.group
+			# chart.stack data.group2
+
+			data.ordinals = []
+			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
+
+			chart.colorAccessor (d, i) -> i + 1
+
+			chart.x $scope.getXScale data
+
+			chart.xUnits $scope.getXUnits data if data.ordinals?.length > 0
 
 			return
 
