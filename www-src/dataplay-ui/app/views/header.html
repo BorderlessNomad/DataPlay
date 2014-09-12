@@ -15,6 +15,7 @@
 		<ul class="nav navbar-nav navbar-right">
 			<li ng-class="{active: isActive('/user/login')}" ng-hide="Auth.isAuthenticated()"><a ng-href="/user/login">Login</a></li>
 			<li ng-class="{active: isActive('/user/register')}" ng-hide="Auth.isAuthenticated()"><a ng-href="/user/register">Register</a></li>
+			<li ng-show="Auth.isAuthenticated()"><a href="/user">My Profile</a></li>
 			<li ng-show="Auth.isAuthenticated()"><a href="#" ng-controller="UserCtrl" ng-click="logout()">Logout</a></li>
 		</ul>
 	</div><!--/.nav-collapse -->
