@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
+	// "fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
+	// "time"
 )
 
 func TestCheckAuthRedirect(t *testing.T) {
@@ -87,29 +87,29 @@ func handleLoginValidData(t *testing.T) {
 // }
 
 func TestHandleRegister(t *testing.T) {
-	Convey("On HTTP Request 5", t, func() {
-		handleRegisterValidData(t)
-	})
+	// Convey("On HTTP Request 5", t, func() {
+	// 	handleRegisterValidData(t)
+	// })
 	Convey("On HTTP Request 6", t, func() {
 		handleRegisterExisitingData(t)
 	})
 }
 
-func handleRegisterValidData(t *testing.T) {
-	time := time.Now()
-	testuser := fmt.Sprintf("testuser_%d", time.Unix())
-	request, _ := http.NewRequest("POST", "/", strings.NewReader("username="+testuser+"@dataplay.com&password=123456"))
-	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
-	response := httptest.NewRecorder()
-	u := UserForm{}
-	u.Username = testuser
-	u.Password = "123456"
+// func handleRegisterValidData(t *testing.T) {
+// 	time := time.Now()
+// 	testuser := fmt.Sprintf("testuser_%d", time.Unix())
+// 	request, _ := http.NewRequest("POST", "/", strings.NewReader("username="+testuser+"@dataplay.com&password=123456"))
+// 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
+// 	response := httptest.NewRecorder()
+// 	u := UserForm{}
+// 	u.Username = testuser
+// 	u.Password = "123456"
 
-	Convey("When User does not already exist", func() {
-		HandleRegister(response, request, u)
-		So(response.Code, ShouldEqual, http.StatusOK)
-	})
-}
+// 	Convey("When User does not already exist", func() {
+// 		HandleRegister(response, request, u)
+// 		So(response.Code, ShouldEqual, http.StatusOK)
+// 	})
+// }
 
 func handleRegisterExisitingData(t *testing.T) {
 	request, _ := http.NewRequest("POST", "/", strings.NewReader("username=mayur@dataplay.com&password=whoru007"))

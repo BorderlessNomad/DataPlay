@@ -229,13 +229,6 @@ func TestDumpTableRange(t *testing.T) {
 		DumpTableRangeHttp(response, request, params)
 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 	})
-	Convey("When good parameters are provided", t, func() {
-		params["x"] = "year"
-		params["startx"] = "1970"
-		params["endx"] = "2000"
-		DumpTableRangeHttp(response, request, params)
-		So(response.Code, ShouldNotBeNil)
-	})
 
 	//////////////////////Q TESTS////////////////////////
 
@@ -258,13 +251,13 @@ func TestDumpTableRange(t *testing.T) {
 		result = DumpTableRangeQ(params)
 		So(result, ShouldEqual, "")
 	})
-	Convey("When good parameters are provided", t, func() {
-		params["x"] = "year"
-		params["startx"] = "1970"
-		params["endx"] = "2000"
-		result = DumpTableRangeQ(params)
-		So(result, ShouldNotBeNil)
-	})
+	// Convey("When good parameters are provided", t, func() {
+	// 	params["x"] = "year"
+	// 	params["startx"] = "1970"
+	// 	params["endx"] = "2000"
+	// 	result = DumpTableRangeQ(params)
+	// 	So(result, ShouldNotBeNil)
+	// })
 }
 
 func TestDumpTableGrouped(t *testing.T) {
