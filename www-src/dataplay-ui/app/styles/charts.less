@@ -120,21 +120,17 @@
 		border-bottom-left-radius: 4px;
 	}
 
-	.observations .title {
-		font-weight: 600;
-		color: white;
-	}
-
 	.glyphicon {
 		margin-right: 4.5px;
 	}
 
 	.observations {
-		position: absolute;
-		top: 0;
-		right: 0;
+		position: fixed;
+		top: 60px;
+		bottom: 0;
 		background-color: #F8FAFC;
 		padding: 0;
+		width: 263px;
 
 		-webkit-border-bottom-right-radius: 4px;
 		-webkit-border-bottom-left-radius: 4px;
@@ -144,22 +140,29 @@
 		border-bottom-left-radius: 4px;
 
 		.title {
+			font-weight: 600;
 			padding: 8px 15px;
 			margin-bottom: 12px;
 			background-color: #A0B6CB;
-			color: #fffff;
-		}
-
-		.media {
-			margin-top: 0;
-
-			.pull-left {
-				margin-right: 0;
-			}
+			color: #ffffff;
 		}
 
 		.content {
-			margin-bottom: 8px;
+			position: absolute;
+			top: 48px;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			margin-top: 0;
+			overflow-y: auto;
+
+			.media {
+				margin-bottom: 8px;
+
+				.pull-left {
+					margin-right: 0;
+				}
+			}
 
 			.media-heading {
 				span {
