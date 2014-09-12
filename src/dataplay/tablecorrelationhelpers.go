@@ -66,10 +66,8 @@ func NameToGuid(tablename string) string {
 
 	onlineData := OnlineData{}
 	err := DB.Where("tablename = ?", tablename).Find(&onlineData).Error
-	if err != nil && err != gorm.RecordNotFound {
+	if err != nil {
 		return ""
-	} else if err == gorm.RecordNotFound || len(onlineData.Guid) < 1 {
-		return "No Record Found!"
 	}
 
 	return onlineData.Guid

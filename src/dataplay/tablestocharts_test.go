@@ -12,11 +12,10 @@ func TestGetChartHttp(t *testing.T) {
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 	res := httptest.NewRecorder()
 	params := map[string]string{
-		// "uid":       "1",
 		"tablename": "gdp",
 		"tablenum":  "3",
 		"type":      "line",
-		"x":         "year",
+		"x":         "date",
 		"y":         "gdp",
 	}
 	Convey("Should return xy chartlist", t, func() {
@@ -24,18 +23,16 @@ func TestGetChartHttp(t *testing.T) {
 		So(result, ShouldNotBeNil)
 	})
 
-	// 	// params["tablename"] = "gdp"
-	// 	// params["type"] = "bubble"
-	// 	// params["x"] = "year"
-	// 	// params["y"] = "gdp"
-	// 	// params["z"] = "change"
+	// params["tablename"] = "gdp"
+	// params["type"] = "bubble"
+	// params["x"] = "year"
+	// params["y"] = "gdp"
+	// params["z"] = "change"
 
-	// 	// Convey("Should return xyz chartlist", t, func() {
-	// 	// 	result := GetChartHttp(res, req, params)
-	// 	// 	So(result, ShouldNotBeNil)
-	// 	// })
-	// }
-
+	// Convey("Should return xyz chartlist", t, func() {
+	// 	result := GetChartHttp(res, req, params)
+	// 	So(result, ShouldNotBeNil)
+	// })
 }
 
 // func TestGetChartCorrelatedHttp(t *testing.T) {
@@ -75,21 +72,21 @@ func TestGetChartHttp(t *testing.T) {
 // 	})
 // }
 
-func TestGetCorrelatedChartsHttp(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/", nil)
-	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
-	res := httptest.NewRecorder()
-	params := map[string]string{
-		"tablename": "imp001c13096eef77908f287d4c48a734f4b3cee919_4e8a2d16ee798d15b32",
-		"offset":    "0",
-		"count":     "20",
-		"search":    "true",
-	}
-	Convey("Should return correlated chartlist", t, func() {
-		result := GetCorrelatedChartsHttp(res, req, params)
-		So(result, ShouldEqual, "")
-	})
-}
+// func TestGetCorrelatedChartsHttp(t *testing.T) {
+// 	req, _ := http.NewRequest("GET", "/", nil)
+// 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+// 	res := httptest.NewRecorder()
+// 	params := map[string]string{
+// 		"tablename": "imp001c13096eef77908f287d4c48a734f4b3cee919_4e8a2d16ee798d15b32",
+// 		"offset":    "0",
+// 		"count":     "20",
+// 		"search":    "true",
+// 	}
+// 	Convey("Should return correlated chartlist", t, func() {
+// 		result := GetCorrelatedChartsHttp(res, req, params)
+// 		So(result, ShouldNotBeNil)
+// 	})
+// }
 
 // func TestGetDiscoveredChartsHttp(t *testing.T) {
 // 	req, _ := http.NewRequest("GET", "/", nil)
