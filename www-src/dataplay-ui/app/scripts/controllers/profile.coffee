@@ -30,35 +30,35 @@ angular.module('dataplayApp')
     $scope.inits =
       profile: ->
         Profile.getInfo()
-          .success (res) ->
-            $scope.current.email = res.data.email
-            $scope.current.username = res.data.username
+          .success (data) ->
+            $scope.current.email = data.email
+            $scope.current.username = data.username
 
-            $scope.saved.email = res.data.email
-            $scope.saved.username = res.data.username
+            $scope.saved.email = data.email
+            $scope.saved.username = data.username
          .error (data, status) -> $scope.handleError data, status
 
       validdiscoveries: ->
         Profile.getValidDiscoveries()
           .success (data) ->
-            if res instanceof Array
-              $scope.validDiscoveries = res
+            if data instanceof Array
+              $scope.validDiscoveries = data
             return
           .error (data, status) -> $scope.handleError data, status
 
       discoveries: ->
         Profile.getDiscoveries()
-          .success (res) ->
-            if res instanceof Array
-              $scope.discoveries = res
+          .success (data) ->
+            if data instanceof Array
+              $scope.discoveries = data
             return
           .error (data, status) -> $scope.handleError data, status
 
       observations: ->
         Profile.getObservations()
-          .success (res) ->
-            if res instanceof Array
-              $scope.observations = res
+          .success (data) ->
+            if data instanceof Array
+              $scope.observations = data
             return
           .error (data, status) -> $scope.handleError data, status
 

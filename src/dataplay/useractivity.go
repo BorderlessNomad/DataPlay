@@ -56,25 +56,26 @@ func GetProfileObservationsHttp(res http.ResponseWriter, req *http.Request) stri
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
+		return ""
 	}
 
 	uid, err := GetUserID(session)
 	if err != nil {
 		http.Error(res, err.Message, err.Code)
-		return "Could not validate user"
+		return ""
 	}
 
-	var comments []string
-	err1 := DB.Model(Observations{}).Select("comment").Where("uid = ?", uid).Find(&comments).Error
-	if err1 != nil {
-		return "not found"
+	comments := []Observation{}
+	err1 := DB.Where("uid = ?", uid).Find(&comments).Error
+	if err1 != nil && err1 != gorm.RecordNotFound {
+		http.Error(res, "Database query failed", http.StatusInternalServerError)
+		return ""
 	}
 
 	r, err2 := json.Marshal(comments)
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
+		return ""
 	}
 
 	return string(r)
@@ -107,13 +108,13 @@ func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request) string {
 		tmp.DiscoveryDate = d.Created
 
 		if d.CorrelationId == 0 {
-			tmp.ApiString = "chart/" + d.RelationId
+			tmp.ApiString = "chart/related/" + d.RelationId
 			var td TableData
 			json.Unmarshal(d.Json, &td)
 			tmp.Title = td.Title
 		} else {
 			cid := strconv.Itoa(d.CorrelationId)
-			tmp.ApiString = "chartcorrelated/" + cid
+			tmp.ApiString = "chart/correlated/" + cid
 			var cd CorrelationData
 			json.Unmarshal(d.Json, &cd)
 			tmp.Title = cd.Table1.Title + " correlated with " + cd.Table2.Title
@@ -121,6 +122,7 @@ func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request) string {
 				tmp.Title += " correlated with " + cd.Table3.Title
 			}
 		}
+
 		profileDiscoveries = append(profileDiscoveries, tmp)
 	}
 
@@ -146,14 +148,11 @@ func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request) str
 		return "Could not validate user"
 	}
 
-	var discovered []Discovered
+	discovered := []Discovered{}
 	err1 := DB.Where("uid = ?", uid).Where("valid > ?", 0).Find(&discovered).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {
 		http.Error(res, "Database query failed", http.StatusInternalServerError)
-		return "query failed"
-	} else if err1 == gorm.RecordNotFound {
-		http.Error(res, "No discoveries found", http.StatusNotFound)
-		return "not found"
+		return ""
 	}
 
 	profileDiscoveries := make([]ProfileDiscovery, 0)
@@ -178,13 +177,14 @@ func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request) str
 				tmp.Title += " correlated with " + cd.Table3.Title
 			}
 		}
+
 		profileDiscoveries = append(profileDiscoveries, tmp)
 	}
 
 	r, err2 := json.Marshal(profileDiscoveries)
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
+		return ""
 	}
 
 	return string(r)

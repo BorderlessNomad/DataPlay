@@ -29,7 +29,7 @@
 		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'profile']" id="profile">
 			<div class="row">
 				<div class="col-md-6 col-md-offset-3">
-					<div ng-show="!error && saved.success" class="alert alert-dismissable alert-success">
+					<div ng-show="!hasError() && saved.success" class="alert alert-dismissable alert-success">
 						<button type="button" class="close" ng-click="closeAlert()">×</button>
 						Your profile profile have been updated successfully.
 					</div>
