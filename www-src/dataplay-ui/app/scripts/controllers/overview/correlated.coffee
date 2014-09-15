@@ -65,7 +65,7 @@ angular.module('dataplayApp')
 							key = parseInt(key)
 							chart.key = key
 							chart.id = "correlated-#{$scope.params.id}-#{chart.key + $scope.offset.correlated}-#{chart.type}"
-							chart.url = "/charts/correlated/#{$scope.params.id}/#{chart.correlationid}/#{chart.type}/#{chart.table1.xLabel}/#{chart.table1.yLabel}"
+							chart.url = "charts/correlated/#{$scope.params.id}/#{chart.correlationid}/#{chart.type}/#{chart.table1.xLabel}/#{chart.table1.yLabel}"
 							chart.url += "/#{chart.table1.zLabel}" if chart.type is 'bubble' or chart.type is 'scatter'
 
 							chart.patterns = {}

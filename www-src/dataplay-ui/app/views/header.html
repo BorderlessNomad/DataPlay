@@ -6,18 +6,23 @@
 			<span class="icon-bar"></span>
 			<span class="icon-bar"></span>
 		</button>
-		<a class="navbar-brand" ng-href="/home">DataPlay</a>
+		<a class="navbar-brand" href="home">DataPlay</a>
 	</div>
-	<div class="navbar-collapse collapse">
-		<!-- <ul class="nav navbar-nav">
-			<li ng-class="{active: isActive('/home')}" ng-show="Auth.isAuthenticated()"><a href="/">Home</a></li>
-		</ul> -->
-		<ul class="nav navbar-nav navbar-right">
-			<li ng-class="{active: isActive('/user/login')}" ng-hide="Auth.isAuthenticated()"><a ng-href="/user/login">Login</a></li>
-			<li ng-class="{active: isActive('/user/register')}" ng-hide="Auth.isAuthenticated()"><a ng-href="/user/register">Register</a></li>
 
-			<li ng-class="{active: isActive('/user')}" ng-show="Auth.isAuthenticated()"><a href="#" ng-href="/user">My Profile</a></li>
-			<li ng-show="Auth.isAuthenticated()"><a href="#" ng-controller="UserCtrl" ng-click="logout()">Logout</a></li>
+	<div class="navbar-collapse collapse" ng-if="Auth.isAuthenticated()">
+		<ul class="nav navbar-nav">
+			<li ng-class="{active: isActive('/search')}"><a href="search">Search</a></li>
 		</ul>
-	</div><!--/.nav-collapse -->
+		<ul class="nav navbar-nav navbar-right">
+			<li ng-class="{active: isActive('/user')}"><a href="user/profile">My Profile</a></li>
+			<li><a href="user/logout" ng-controller="UserCtrl" ng-click="logout()">Logout</a></li>
+		</ul>
+	</div>
+
+	<div class="navbar-collapse collapse" ng-if="!Auth.isAuthenticated()">
+		<ul class="nav navbar-nav navbar-right">
+			<li ng-class="{active: isActive('/user/login')}"><a href="user/login">Login</a></li>
+			<li ng-class="{active: isActive('/user/register')}"><a href="user/register">Register</a></li>
+		</ul>
+	</div>
 </div>

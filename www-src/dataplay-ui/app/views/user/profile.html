@@ -6,19 +6,27 @@
 	</div>
 
 	<ul class="nav nav-tabs" role="tablist">
-		<li ng-class="{true: 'active', false: ''}[currentTab == 'details']"><a href="#" data-toggle="tab" ng-click="changeTab('details')">Personal Details</a></li>
-		<li ng-class="{true: 'active', false: ''}[currentTab == 'validdiscoveries']"><a href="#" data-toggle="tab" ng-click="changeTab('validdiscoveries')">Valid Discoveries</a></li>
-		<li ng-class="{true: 'active', false: ''}[currentTab == 'discoveries']"><a href="#" data-toggle="tab" ng-click="changeTab('discoveries')">Discoveries</a></li>
-		<li ng-class="{true: 'active', false: ''}[currentTab == 'observations']"><a href="#" data-toggle="tab" ng-click="changeTab('observations')">Observations</a></li>
+		<li ng-class="{true: 'active', false: ''}[currentTab == 'profile']">
+			<a href="user/profile" data-toggle="tab" ng-click="changeTab('profile')">Personal Details</a>
+		</li>
+		<li ng-class="{true: 'active', false: ''}[currentTab == 'validdiscoveries']">
+			<a href="user/validdiscoveries" data-toggle="tab" ng-click="changeTab('validdiscoveries')">Valid Discoveries</a>
+		</li>
+		<li ng-class="{true: 'active', false: ''}[currentTab == 'discoveries']">
+			<a href="user/discoveries" data-toggle="tab" ng-click="changeTab('discoveries')">Discoveries</a>
+		</li>
+		<li ng-class="{true: 'active', false: ''}[currentTab == 'observations']">
+			<a href="user/observations" data-toggle="tab" ng-click="changeTab('observations')">Observations</a>
+		</li>
 	</ul>
 
 	<div class="tab-content">
-		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'details']" id="details">
+		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'profile']" id="profile">
 			<div class="row">
 				<div class="col-md-6 col-md-offset-3">
 					<div ng-show="!hasError() && saved.success" class="alert alert-dismissable alert-success">
 						<button type="button" class="close" ng-click="closeAlert()">×</button>
-						Your profile details have been updated successfully.
+						Your profile profile have been updated successfully.
 					</div>
 
 					<div class="form-group" ng-class="{'has-error': profileForm.email.$invalid && !profileForm.email.$pristine}">
@@ -47,8 +55,8 @@
 					<div ng-repeat="disc in validDiscoveries">
 						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
 						<p class="profile-li">
-							<a ng-href="{{disc.link}}">{{disc.title}}</a>
-							<span ng-show="disc.title2"> correlates with <a ng-href="{{disc.link2}}">{{disc.title2}}</a></span>
+							<a href="{{disc.link}}">{{disc.title}}</a>
+							<span ng-show="disc.title2"> correlates with <a href="{{disc.link2}}">{{disc.title2}}</a></span>
 						</p>
 					</div>
 				</div>
@@ -61,8 +69,8 @@
 					<div ng-repeat="disc in discoveries">
 						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
 						<p class="profile-li">
-							<a ng-href="{{disc.link}}">{{disc.title}}</a>
-							<span ng-show="disc.title2"> correlates with <a ng-href="{{disc.link2}}">{{disc.title2}}</a></span>
+							<a href="{{disc.link}}">{{disc.title}}</a>
+							<span ng-show="disc.title2"> correlates with <a href="{{disc.link2}}">{{disc.title2}}</a></span>
 						</p>
 					</div>
 				</div>
@@ -75,8 +83,8 @@
 					<div ng-repeat="obsv in observations">
 						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
 						<p class="profile-li">
-							<a ng-href="{{obsv.link}}">{{obsv.title}}</a>
-							<span ng-show="obsv.title2"> correlates with <a ng-href="{{obsv.link2}}">{{obsv.title2}}</a></span><br/>
+							<a href="{{obsv.link}}">{{obsv.title}}</a>
+							<span ng-show="obsv.title2"> correlates with <a href="{{obsv.link2}}">{{obsv.title2}}</a></span><br/>
 							<span class="text-muted">{{obsv.message}}</span>
 						</p>
 					</div>
@@ -91,5 +99,5 @@
 	<h3>Please check your email</h3>
 	We've sent you an email that will allow you to reset your password quickly and easily.
 
-	<a href="#" ng-href="/user/resetpassword/{{user.token}}">Link</a>
+	<a href="user/resetpassword/{{user.token}}">Link</a>
 </div>

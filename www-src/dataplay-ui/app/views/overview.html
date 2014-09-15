@@ -20,10 +20,10 @@
 
 	<!-- Related -->
 	<div class="row related" ng-init="getRelatedCharts()">
-		<div class="col-md-12"><h4>Relation within <a href="#" ng-href="/overview/{{params.id}}">{{params.id}}</a></h4></div>
+		<div class="col-md-12"><h4>Relation within <a href="overview/{{params.id}}">{{params.id}}</a></h4></div>
 
 		<div class="col-md-4" ng-repeat="chart in chartsRelated" id="{{chart.id}}" ng-show="hasRelatedCharts() > 0">
-			<a class="related" href="#" ng-href="{{chart.url}}">
+			<a class="related" href="{{chart.url}}">
 				<span ng-include="'views/charts/related/line.html'"></span>
 				<span ng-include="'views/charts/related/row.html'"></span>
 				<span ng-include="'views/charts/related/column.html'"></span>
@@ -53,10 +53,10 @@
 
 	<!-- Correlated -->
 	<div class="row" ng-controller="OverviewCorrelatedCtrl" ng-init="getCorrelatedCharts()">
-		<div class="col-md-12"><h4>Correlation within <a href="#" ng-href="/overview/{{params.id}}">{{params.id}}</a></h4></div>
+		<div class="col-md-12"><h4>Correlation within <a href="overview/{{params.id}}">{{params.id}}</a></h4></div>
 
 		<div class="col-md-4" ng-repeat="chart in chartsCorrelated" id="{{chart.id}}" ng-show="hasCorrelatedCharts() > 0">
-			<a class="correlated" href="#" ng-href="{{chart.url}}">
+			<a class="correlated" href="{{chart.url}}">
 				<span ng-include="'views/charts/correlated/line.html'"></span>
 				<span ng-include="'views/charts/correlated/row.html'"></span>
 				<span ng-include="'views/charts/correlated/column.html'"></span>

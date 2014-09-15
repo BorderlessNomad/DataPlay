@@ -10,7 +10,7 @@
 angular.module('dataplayApp')
   .controller 'ProfileCtrl', ['$scope', '$location', '$routeParams', 'Profile', 'Auth', 'config', ($scope, $location, $routeParams, Profile, Auth, config) ->
     $scope.params = $routeParams
-    $scope.currentTab = 'details'
+    $scope.currentTab = if $scope.params?.tab?.length > 0 then $scope.params.tab else 'profile'
 
     # Personal Details
     $scope.current =
@@ -69,7 +69,7 @@ angular.module('dataplayApp')
     ]
 
     $scope.inits =
-      details: ->
+      profile: ->
         Profile.getInfo().then (res) ->
           $scope.current.email = res.data.email
           $scope.current.username = res.data.username
