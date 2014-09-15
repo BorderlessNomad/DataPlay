@@ -268,7 +268,7 @@ func initMasterMode() {
 	m.Post("/noauth/login.json", HandleLogin)
 	m.Post("/noauth/logout.json", HandleLogout)
 	m.Post("/noauth/register.json", HandleRegister)
-	m.Get("/api/user", CheckAuth)
+	// m.Get("/api/user", CheckAuth)
 	m.Get("/api/visited", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 		return sendToQueue(res, req, params, "/api/visited", "GetLastVisitedQ")
 	})
