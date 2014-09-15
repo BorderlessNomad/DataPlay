@@ -2,8 +2,8 @@
 	<div class="row">
 		<div class="col-md-9">
 			<ul class="breadcrumb">
-				<li><a href="#" ng-href="/">Home</a></li>
-				<li><a href="#" ng-href="/overview/{{params.id}}">{{params.id}}</a></li>
+				<li><a href="home">Home</a></li>
+				<li><a href="overview/{{params.id}}">{{params.id}}</a></li>
 			</ul>
 		</div>
 	</div>
@@ -11,7 +11,7 @@
 	<div class="row">
 		<div class="col-md-6 constrict-graphs">
 			<div class="action-bar">
-				<a href="#" ng-href="/overview/{{params.id}}" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-share-alt glyphicon-flip"></span> Go Back</a>
+				<a href="overview/{{params.id}}" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-share-alt glyphicon-flip"></span> Go Back</a>
 			</div>
 
 			<div>{{chart.title}}</div>

@@ -78,6 +78,10 @@ angular.module('dataplayApp')
 			.when '/user/register',
 				templateUrl: 'views/user/register.html'
 				login: false
+			.when '/user/:tab',# This must be kept after all /user/* calls to make sure that login and other known pages works.
+				templateUrl: 'views/user/profile.html'
+				controller: 'ProfileCtrl'
+				login: true
 			.otherwise
 				redirectTo: '/'
 

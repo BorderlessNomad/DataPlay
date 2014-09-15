@@ -10,9 +10,9 @@
 	<div class="list-group-item row" ng-repeat="result in results">
 		<span class="col-md-9">{{result.Title}}</span>
 		<span class="col-md-3 text-right">
-			<a class="btn btn-danger btn-xs" ng-href="/charts/{{result.GUID}}">Chart</a>
-			<a class="btn btn-warning btn-xs" ng-href="/overview/{{result.GUID}}">Overview</a>
-			<a class="btn btn-primary btn-xs" ng-href="/map/{{result.GUID}}" ng-show="result.LocationData">Map</a>
+			<a class="btn btn-danger btn-xs" href="charts/{{result.GUID}}">Chart</a>
+			<a class="btn btn-warning btn-xs" href="overview/{{result.GUID}}">Overview</a>
+			<a class="btn btn-primary btn-xs" href="map/{{result.GUID}}" ng-show="result.LocationData">Map</a>
 		</span>
 	</div>
 </div>
