@@ -88,8 +88,8 @@
 					<div ng-repeat="obsv in observations">
 						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
 						<p class="profile-li">
-							<a href="{{obsv.apistring}}">{{obsv.title}}</a><br/>
-							<span class="text-muted">{{obsv.message}}</span>
+							<a href="{{obsv.apistring}}">{{obsv.charttitle}}</a><br/>
+							<span class="text-muted">{{obsv.comment}}</span>
 						</p>
 					</div>
 					<div ng-show="observations.length < 1">Nothing to show</div>
