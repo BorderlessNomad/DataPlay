@@ -8,8 +8,8 @@ import (
 )
 
 func main() {
-	// file, _ := os.Open("urls_4072.csv") // url file
-	file, _ := os.Open("urls1.csv")
+	file, _ := os.Open("urls_4072.csv") // url file
+	// file, _ := os.Open("urls100.csv")
 	defer file.Close()
 	reader := csv.NewReader(file)
 	urls := make([]string, 0)
@@ -27,8 +27,8 @@ func main() {
 		urls = append(urls, record[0])
 	}
 
-	// c := NewClient("2ba4435681034ef6b92f729d527453e3") // embedly API key
-	c := NewClient("8104b696aa0e471e8d58f83e4e4c39b1") // embedly API key
+	c := NewClient("2ba4435681034ef6b92f729d527453e3") // embedly API key
+	// c := NewClient("8104b696aa0e471e8d58f83e4e4c39b1") // embedly API key
 	options := Options{}
 	c.Extract(urls, options)
 }

@@ -1,6 +1,6 @@
 <div class="charts" ng-init="init()">
 	<div class="row">
-		<div class="col-md-9">
+		<div class="col-md-9 col-sm-9">
 			<ul class="breadcrumb">
 				<li><a href="home">Home</a></li>
 				<li><a href="overview/{{params.id}}">{{params.id}}</a></li>
@@ -9,7 +9,7 @@
 	</div>
 
 	<div class="row" ng-show="error">
-		<div class="col-md-9">
+		<div class="col-md-9 col-sm-9">
 			<div class="alert alert-warning">
 				<h4>There seems to be a problem...</h4>
 				<p>{{error.message}}</p>
@@ -18,7 +18,7 @@
 	</div>
 
 	<div class="row">
-		<div class="col-md-6 constrict-graphs">
+		<div class="col-md-6 col-sm-6 constrict-graphs">
 			<div class="action-bar">
 				<a href="overview/{{params.id}}" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-share-alt glyphicon-flip"></span> Go Back</a>
 			</div>
@@ -42,10 +42,10 @@
 			</div>
 		</div>
 
-		<div class="col-md-3 info" ng-include="'views/charts/info.html'"></div>
+		<div class="col-md-3 col-sm-3 info" ng-include="'views/charts/info.html'"></div>
 
-		<div class="col-md-3">
-			<div class="observations" ng-include="'views/charts/observations.html'"></div>
+		<div class="col-md-3 col-sm-3">
+			<div class="observations sidebar" ng-include="'views/charts/observations.html'"></div>
 		</div>
 
 	</div>
