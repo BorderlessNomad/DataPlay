@@ -46,9 +46,9 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	x, y, z := coords[0], coords[1], ""
 	if len(coords) > 2 {
 		z = coords[2]
-		id = tablename + "_" + strconv.Itoa(tablenum) + "_" + chartType + "_" + x + "_" + y + "_" + z //unique id
+		id = tablename + "/" + strconv.Itoa(tablenum) + "/" + chartType + "/" + x + "/" + y + "/" + z //unique id
 	} else {
-		id = tablename + "_" + strconv.Itoa(tablenum) + "_" + chartType + "_" + x + "_" + y //unique id
+		id = tablename + "/" + strconv.Itoa(tablenum) + "/" + chartType + "/" + x + "/" + y //unique id
 	}
 
 	xyz := XYVal{X: x, Y: y, Z: z}
@@ -306,7 +306,7 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 	}
 
 	for i, v := range charts {
-		originid := tablename + "_" + strconv.Itoa(i) + "_" + v.ChartType + "_" + v.LabelX + "_" + v.LabelY
+		originid := tablename + "/" + strconv.Itoa(i) + "/" + v.ChartType + "/" + v.LabelX + "/" + v.LabelY
 		discovered := Discovered{}
 		err := DB.Where("relation_id = ?", originid).Find(&discovered).Error
 		if err == gorm.RecordNotFound {

@@ -13,6 +13,13 @@ type HomeData struct {
 	Value int
 }
 
+type ProfileDiscovery struct {
+	PatternId     int       `json:"patternid"`
+	Title         string    `json:"title"`
+	ApiString     string    `json:"apistring"`
+	DiscoveryDate time.Time `json:"discoverydate"`
+}
+
 func ActivityCheck(a string) string {
 	switch a {
 	case "c":
@@ -86,13 +93,37 @@ func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request, params marti
 		return "Could not validate user"
 	}
 
-	var patterns []int
-	err1 := DB.Model(Discovered{}).Select("discovered_id").Where("uid = ?", uid).Find(&patterns).Error
+	var discovered []Discovered
+	err1 := DB.Where("uid = ?", uid).Find(&discovered).Error
 	if err1 != nil {
 		return "not found"
 	}
 
-	r, err2 := json.Marshal(patterns)
+	profileDiscoveries := make([]ProfileDiscovery, 0)
+
+	for _, d := range discovered {
+		var tmp ProfileDiscovery
+		tmp.PatternId = d.DiscoveredId
+		tmp.DiscoveryDate = d.Created
+
+		if d.CorrelationId == 0 {
+			tmp.ApiString = "chart/" + d.RelationId
+			var td TableData
+			json.Unmarshal(d.Json, &td)
+			tmp.Title = td.Title
+		} else {
+			tmp.ApiString = "chartcorrelated/" + d.CorrelationId
+			var cd CorrelationData
+			json.Unmarshal(d.Json, &cd)
+			tmp.Title = cd.Table1.Title + " correlated with " + cd.Table2.Title
+			if cd.Table3.Title != "" {
+				tmp.Title += " correlated with " + cd.Table3
+			}
+		}
+		profileDiscoveries = append(profileDiscoveries, tmp)
+	}
+
+	r, err2 := json.Marshal(profileDiscoveries)
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
 		return "Unable to parse JSON"
@@ -114,8 +145,8 @@ func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request, par
 		return "Could not validate user"
 	}
 
-	var patterns []int
-	err1 := DB.Model(Discovered{}).Where("uid = ?", uid).Where("valid > ?", 0).Pluck("discovered_id", &patterns).Error
+	var discovered []Discovered
+	err1 := DB.Where("uid = ?", uid).Where("valid > ?", 0).Find(&discovered).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {
 		http.Error(res, "Database query failed", http.StatusInternalServerError)
 		return "query failed"
@@ -124,7 +155,31 @@ func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request, par
 		return "not found"
 	}
 
-	r, err2 := json.Marshal(patterns)
+	profileDiscoveries := make([]ProfileDiscovery, 0)
+
+	for _, d := range discovered {
+		var tmp ProfileDiscovery
+		tmp.PatternId = d.DiscoveredId
+		tmp.DiscoveryDate = d.Created
+
+		if d.CorrelationId == 0 {
+			tmp.ApiString = "chart/" + d.RelationId
+			var td TableData
+			json.Unmarshal(d.Json, &td)
+			tmp.Title = td.Title
+		} else {
+			tmp.ApiString = "chartcorrelated/" + d.CorrelationId
+			var cd CorrelationData
+			json.Unmarshal(d.Json, &cd)
+			tmp.Title = cd.Table1.Title + " correlated with " + cd.Table2.Title
+			if cd.Table3.Title != "" {
+				tmp.Title += " correlated with " + cd.Table3
+			}
+		}
+		profileDiscoveries = append(profileDiscoveries, tmp)
+	}
+
+	r, err2 := json.Marshal(profileDiscoveries)
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
 		return "Unable to parse JSON"
