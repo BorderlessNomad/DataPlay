@@ -10,6 +10,11 @@ import (
 	"time"
 )
 
+type ValidationRequest struct {
+	Cid string `json:"cid"`
+	Rid string `json:"rid"`
+}
+
 // given a small fraction of ratings there is a strong (95%) chance that the "real", final positive rating will be this value
 // eg: gives expected (not necessarily current as there may have only been a few votes so far) value of positive ratings / total ratings
 func RankValidations(valid int, invalid int) float64 {
@@ -32,7 +37,7 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 	discovered := Discovered{}
 	validation := Validation{}
 
-	if strings.ContainsAny(rcid, "_") { // if a relation id
+	if strings.ContainsAny(rcid, "/") { // if a relation id
 		err := DB.Where("relation_id = ?", rcid).First(&discovered).Error
 		if err != nil && err != gorm.RecordNotFound {
 			return "", &appError{err, ", database query failed (relation_id)", http.StatusInternalServerError}
@@ -42,15 +47,20 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 		if err != nil {
 			return "", &appError{err, ", could not convert id to int", http.StatusInternalServerError}
 		}
-		err := DB.Where("correlation_id= ?", cid).First(&discovered).Error
+
+		err := DB.Where("correlation_id = ?", cid).First(&discovered).Error
 		if err != nil && err != gorm.RecordNotFound {
 			return "", &appError{err, ", database query failed (correlation_id)", http.StatusInternalServerError}
 		}
 	}
 
-	var vid int
-	err := DB.Model(Validation{}).Where("discovered_id= ?", discovered.DiscoveredId).Where("uid= ?", uid).Pluck("validation_id", &vid).Error
-	if err != gorm.RecordNotFound {
+	vid := Validation{}
+	err := DB.Where("discovered_id = ?", discovered.DiscoveredId).Where("uid = ?", uid).Find(&vid).Error
+	if err != nil && err != gorm.RecordNotFound {
+		return "", &appError{err, "Database query failed (Find discovered)", http.StatusInternalServerError}
+	} else if err == gorm.RecordNotFound {
+		skipval = false
+	} else {
 		skipval = true
 	}
 
@@ -138,7 +148,7 @@ func ValidateObservation(oid int, uid int, valflag bool) *appError {
 }
 
 //////////////////////////////////////////////
-func ValidateChartHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+func ValidateChartHttp(res http.ResponseWriter, req *http.Request, params martini.Params, validation ValidationRequest) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
@@ -154,9 +164,14 @@ func ValidateChartHttp(res http.ResponseWriter, req *http.Request, params martin
 		valflag, _ = strconv.ParseBool(params["valflag"])
 	}
 
-	if params["rcid"] == "" {
-		http.Error(res, "no chart id", http.StatusBadRequest)
+	var rcid string
+	if validation.Cid == "" && validation.Rid == "" {
+		http.Error(res, "No Relation/Correlation ID provided.", http.StatusBadRequest)
 		return ""
+	} else if validation.Cid == "" {
+		rcid = validation.Rid
+	} else {
+		rcid = validation.Cid
 	}
 
 	uid, err1 := GetUserID(session)
@@ -165,7 +180,7 @@ func ValidateChartHttp(res http.ResponseWriter, req *http.Request, params martin
 		return ""
 	}
 
-	result, err2 := ValidateChart(params["rcid"], uid, valflag, skipval)
+	result, err2 := ValidateChart(rcid, uid, valflag, skipval)
 	if err2 != nil {
 		msg := ""
 		if valflag {

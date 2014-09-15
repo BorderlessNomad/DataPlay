@@ -21,13 +21,16 @@ angular.module('dataplayApp')
 			$http.post config.api.base_url + "/setbookmark",
 				data: bookmarks
 
-		validateChart: (chartId, valFlag) ->
-			path = "/chart/#{chartId}"
+		validateChart: (type, chartId, valFlag) ->
+			console.log "validateChart", type, chartId
+			path = if valFlag then "/chart/#{valFlag}" else "/chart"
 
-			if valFlag
-				path += "/#{valFlag}"
-
-			$http.put config.api.base_url + path
+			if type is "rid"
+				$http.put config.api.base_url + path,
+					"rid": chartId
+			else
+				$http.put config.api.base_url + path,
+					"cid": chartId
 
 		getObservations: (id) ->
 			$http.get config.api.base_url + "/observations/#{id}"

@@ -92,7 +92,10 @@ angular.module('dataplayApp')
 			return
 
 		$scope.initValidation = (redraw) ->
-			Charts.validateChart "#{$scope.params.id}_#{$scope.params.key}_#{$scope.params.type}_#{$scope.params.x}_#{$scope.params.y}_"
+			id = "#{$scope.params.id}/#{$scope.params.key}/#{$scope.params.type}/#{$scope.params.x}/#{$scope.params.y}"
+			id += "/#{$scope.params.z}" if $scope.params.z?.length > 0
+
+			Charts.validateChart "rid", id
 				.then (validate) ->
 					$scope.info.discoveredId = validate.data
 					Charts.getObservations $scope.info.discoveredId
@@ -619,7 +622,10 @@ angular.module('dataplayApp')
 			return
 
 		$scope.validateChart = (valFlag) ->
-			Charts.validateChart "#{$scope.params.id}_#{$scope.params.key}", valFlag
+			id = "#{$scope.params.id}/#{$scope.params.key}/#{$scope.params.type}/#{$scope.params.x}/#{$scope.params.y}"
+			id += "/#{$scope.params.z}" if $scope.params.z?.length > 0
+
+			Charts.validateChart "rid", id, valFlag
 				.then ->
 					if valFlag
 						$scope.info.validated = true

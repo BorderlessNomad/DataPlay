@@ -203,8 +203,14 @@ func initClassicMode() {
 	m.Get("/api/correlated/:tablename/:offset/:count/:search", GetCorrelatedChartsHttp)
 	m.Get("/api/discovered/:tablename/:correlated", GetDiscoveredChartsHttp)
 	m.Get("/api/discovered/:tablename/:correlated/:offset/:count", GetDiscoveredChartsHttp)
-	m.Put("/api/chart/:rcid", ValidateChartHttp)
-	m.Put("/api/chart/:rcid/:valflag", ValidateChartHttp)
+
+	m.Put("/api/chart", binding.Bind(ValidationRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, validation ValidationRequest) string {
+		return ValidateChartHttp(res, req, params, validation)
+	})
+	m.Put("/api/chart/:valflag", binding.Bind(ValidationRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, validation ValidationRequest) string {
+		return ValidateChartHttp(res, req, params, validation)
+	})
+
 	m.Put("/api/observations", binding.Bind(ObservationComment{}), func(res http.ResponseWriter, req *http.Request, observation ObservationComment) string {
 		return AddObservationHttp(res, req, observation)
 	})
