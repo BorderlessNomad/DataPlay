@@ -60,6 +60,7 @@ type SearchResult struct {
 }
 
 type SearchResponse struct {
+	Keyword string
 	Results []SearchResult
 	Total   int
 }
@@ -163,7 +164,7 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 		return response, &appError{err, "Database query failed (SUFFIX)", http.StatusServiceUnavailable}
 	}
 
-	Response := ProcessSearchResults(indices, total, err)
+	Response := ProcessSearchResults(term, indices, total, err)
 	if len(Response.Results) == 0 {
 		term := "%" + keyword + "%" // e.g. "nhs" => "%nhs%"
 
@@ -174,7 +175,7 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 			return response, &appError{err, "Database query failed (PREFIX + SUFFIX)", http.StatusServiceUnavailable}
 		}
 
-		Response = ProcessSearchResults(indices, total, err)
+		Response = ProcessSearchResults(term, indices, total, err)
 		if len(Response.Results) == 0 {
 			term := "%" + strings.Replace(keyword, " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
 
@@ -185,12 +186,13 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 				return response, &appError{err, "Database query failed (PREFIX + SUFFIX + TRIM)", http.StatusServiceUnavailable}
 			}
 
-			Response = ProcessSearchResults(indices, total, err)
+			Response = ProcessSearchResults(term, indices, total, err)
 			if len(Response.Results) == 0 && (len(keyword) >= 3 && len(keyword) < 20) {
 				term := "%" + keyword + "%" // e.g. "nhs" => "%nhs%"
 
 				Logger.Println("Searching with Prefix + Suffix Wildcard in String Table", term)
 
+				indicesAll := []Index{}
 				query := DB.Table("priv_stringsearch, priv_onlinedata, index")
 				query = query.Select("DISTINCT ON (priv_onlinedata.guid) priv_onlinedata.guid, index.title")
 				query = query.Where("(LOWER(value) LIKE LOWER(?) OR LOWER(x) LIKE LOWER(?))", term, term)
@@ -199,13 +201,39 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 				query = query.Where("(owner = ? OR owner = ?)", 0, uid)
 				query = query.Order("priv_onlinedata.guid")
 				query = query.Order("priv_stringsearch.count DESC")
-				err = query.Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Count(&total).Error
+				err = query.Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Find(&indicesAll).Error
+
+				total = len(indicesAll)
 
 				if err != nil && err != gorm.RecordNotFound {
 					return response, &appError{err, "Database query failed (PREFIX + SUFFIX + STRING)", http.StatusInternalServerError}
 				}
 
-				Response = ProcessSearchResults(indices, total, err)
+				Response = ProcessSearchResults(term, indices, total, err)
+				if len(Response.Results) == 0 && (len(keyword) >= 3 && len(keyword) < 20) {
+					term := "%" + strings.Replace(keyword, " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
+
+					Logger.Println("Searching with Prefix + Suffix + Trim Wildcard in String Table", term)
+
+					indicesAll := []Index{}
+					query := DB.Table("priv_stringsearch, priv_onlinedata, index")
+					query = query.Select("DISTINCT ON (priv_onlinedata.guid) priv_onlinedata.guid, index.title")
+					query = query.Where("(LOWER(value) LIKE LOWER(?) OR LOWER(x) LIKE LOWER(?))", term, term)
+					query = query.Where("priv_stringsearch.tablename = priv_onlinedata.tablename")
+					query = query.Where("priv_onlinedata.guid = index.guid")
+					query = query.Where("(owner = ? OR owner = ?)", 0, uid)
+					query = query.Order("priv_onlinedata.guid")
+					query = query.Order("priv_stringsearch.count DESC")
+					err = query.Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Find(&indicesAll).Error
+
+					total = len(indicesAll)
+
+					if err != nil && err != gorm.RecordNotFound {
+						return response, &appError{err, "Database query failed (PREFIX + SUFFIX + STRING)", http.StatusInternalServerError}
+					}
+
+					Response = ProcessSearchResults(term, indices, total, err)
+				}
 			}
 		}
 	}
@@ -213,7 +241,7 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 	return Response, nil
 }
 
-func ProcessSearchResults(rows []Index, total int, e error) SearchResponse {
+func ProcessSearchResults(term string, rows []Index, total int, e error) SearchResponse {
 	if e != nil && e != gorm.RecordNotFound {
 		check(e)
 	}
@@ -233,6 +261,7 @@ func ProcessSearchResults(rows []Index, total int, e error) SearchResponse {
 	}
 
 	Response := SearchResponse{
+		Keyword: term,
 		Results: Results,
 		Total:   total,
 	}
