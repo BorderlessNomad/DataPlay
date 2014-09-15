@@ -9,12 +9,13 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
 const numdays = 30
 
-var Today = time.Date(2010, 3, 1, 0, 0, 0, 0, time.UTC)
+var Today = time.Date(2010, 2, 1, 0, 0, 0, 0, time.UTC)
 var FromDate = Today.AddDate(0, 0, -numdays)
 
 type PoliticalActivity struct {
@@ -39,7 +40,7 @@ func WriteCass() {
 	defer session.Close()
 	url := ""
 
-	iter := session.Query(`SELECT url FROM response`).Iter()
+	iter := session.Query(`SELECT original_url FROM response`).Iter()
 	f, _ := os.OpenFile("dat1.txt", os.O_RDWR|os.O_APPEND, 0666)
 
 	for iter.Scan(&url) {
@@ -47,23 +48,23 @@ func WriteCass() {
 		f.Write(u)
 	}
 
-	// check(err)
-	// f, err := os.Create("/tmp/dat2")
-
-	// defer f.Close()
 }
 
 func DepartmentsPoliticalActivity() []PoliticalActivity {
 	var dept []Departments // get all departments from postgres sql table
+	var deptNames []string
 	err := DB.Find(&dept).Error
 
 	if err != nil && err != gorm.RecordNotFound {
 		return nil
 	}
 
-	pa := make([]PoliticalActivity, len(dept))
+	for _, d := range dept {
+		deptNames = append(deptNames, d.GovDept)
+	}
 
-	keyEnt := keywords()
+	pa := make([]PoliticalActivity, len(dept))
+	keyEnt := keywords(deptNames)
 
 	for i, d := range dept {
 		pa[i].Term = d.GovDept
@@ -78,54 +79,54 @@ func DepartmentsPoliticalActivity() []PoliticalActivity {
 	return RankPA(pa)
 }
 
-func EventsPoliticalActivity() []PoliticalActivity {
-	var event []Events
-	err := DB.Find(&event).Error
+// func EventsPoliticalActivity() []PoliticalActivity {
+// 	var event []Events
+// 	err := DB.Find(&event).Error
 
-	if err != nil && err != gorm.RecordNotFound {
-		return nil
-	}
+// 	if err != nil && err != gorm.RecordNotFound {
+// 		return nil
+// 	}
 
-	pa := make([]PoliticalActivity, len(event))
+// 	pa := make([]PoliticalActivity, len(event))
 
-	keyEnt := keywords()
+// 	keyEnt := keywords()
 
-	for i, e := range event {
-		pa[i].Term = e.Event
-		for _, ke := range keyEnt {
-			if e.Event == ke.Name {
-				dayindex := int((Today.Round(time.Hour).Sub(ke.Date.Round(time.Hour)) / 24).Hours() - 1) // get day index
-				pa[i].Mentions[dayindex]++
-			}
-		}
-	}
+// 	for i, e := range event {
+// 		pa[i].Term = e.Event
+// 		for _, ke := range keyEnt {
+// 			if e.Event == ke.Name {
+// 				dayindex := int((Today.Round(time.Hour).Sub(ke.Date.Round(time.Hour)) / 24).Hours() - 1) // get day index
+// 				pa[i].Mentions[dayindex]++
+// 			}
+// 		}
+// 	}
 
-	return RankPA(pa)
-}
+// 	return RankPA(pa)
+// }
 
-func RegionsPoliticalActivity() []PoliticalActivity {
-	var region []Regions
-	err := DB.Find(&region).Error
+// func RegionsPoliticalActivity() []PoliticalActivity {
+// 	var region []Regions
+// 	err := DB.Find(&region).Error
 
-	if err != nil && err != gorm.RecordNotFound {
-		return nil
-	}
-	pa := make([]PoliticalActivity, len(region))
+// 	if err != nil && err != gorm.RecordNotFound {
+// 		return nil
+// 	}
+// 	pa := make([]PoliticalActivity, len(region))
 
-	keyEnt := keywords()
+// 	keyEnt := keywords()
 
-	for i, r := range region {
-		pa[i].Term = r.Town
-		for _, ke := range keyEnt {
-			if r.Town == ke.Name {
-				dayindex := int((Today.Round(time.Hour).Sub(ke.Date.Round(time.Hour)) / 24).Hours() - 1) // get day index
-				pa[i].Mentions[dayindex]++
-			}
-		}
-	}
+// 	for i, r := range region {
+// 		pa[i].Term = r.Town
+// 		for _, ke := range keyEnt {
+// 			if r.Town == ke.Name {
+// 				dayindex := int((Today.Round(time.Hour).Sub(ke.Date.Round(time.Hour)) / 24).Hours() - 1) // get day index
+// 				pa[i].Mentions[dayindex]++
+// 			}
+// 		}
+// 	}
 
-	return RankPA(pa)
-}
+// 	return RankPA(pa)
+// }
 
 func GetPoliticalActivityHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 	session := req.Header.Get("X-API-SESSION")
@@ -138,10 +139,10 @@ func GetPoliticalActivityHttp(res http.ResponseWriter, req *http.Request, params
 
 	if params["type"] == "d" {
 		result = DepartmentsPoliticalActivity()
-	} else if params["type"] == "e" {
-		result = EventsPoliticalActivity()
-	} else if params["type"] == "r" {
-		result = RegionsPoliticalActivity()
+		// } else if params["type"] == "e" {
+		// 	result = EventsPoliticalActivity()
+		// } else if params["type"] == "r" {
+		// 	result = RegionsPoliticalActivity()
 	} else {
 		http.Error(res, "Bad type param", http.StatusInternalServerError)
 		return "Bad type param"
@@ -179,49 +180,67 @@ func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
 	return session, err
 }
 
-func keywords() []KeyEnt {
-	var dateID []DateID
-	var tmpDI DateID
+func keywords(names []string) []KeyEnt {
+	var id []byte
+	var dateID []string
+	var queryDate time.Time
 	var keyEnt []KeyEnt
 	var tmpKE KeyEnt
-	var id []byte
-	var date time.Time
-	var name string
-	var score, count int
 
 	session, _ := GetCassandraConnection("dp") // create connection to cassandra
 	defer session.Close()
 
 	// add all dated dateID between -n days and today to array
 	iter := session.Query(`SELECT id, date FROM response WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
-	for iter.Scan(&id, &date) {
-		tmpDI.ID = id
-		tmpDI.Date = date
-		dateID = append(dateID, tmpDI)
+	for iter.Scan(&id, &queryDate) {
+		dateID = append(dateID, string(id[:len(id)])+"!"+queryDate.Format(time.RFC3339))
 	}
 
 	if err := iter.Close(); err != nil {
 		///return err
 	}
 
-	for _, ui := range dateID { // add all keyowrds and the date they relate to to array
-		iter := session.Query(`SELECT * FROM keyword WHERE id = ? ALLOW FILTERING`, ui.ID).Iter()
-		for iter.Scan(&name, &id, &score) {
-			tmpKE.Name = name
-			tmpKE.Date = ui.Date
-			tmpKE.ID = id
-			keyEnt = append(keyEnt, tmpKE)
-		}
-
-		iter2 := session.Query(`SELECT * FROM entity WHERE id = ? ALLOW FILTERING`, ui.ID).Iter()
-		for iter2.Scan(&name, &id, &count) {
-			tmpKE.Name = name
-			tmpKE.Date = ui.Date
-			tmpKE.ID = id
-			keyEnt = append(keyEnt, tmpKE)
+	for _, n := range names {
+		iter := session.Query(`SELECT id FROM keyword WHERE name = ?`, n).Iter()
+		for iter.Scan(&id) {
+			var date time.Time
+			date = DateAndId(id, dateID)
+			if date.Year() < 2 {
+				tmpKE.Name = n
+				tmpKE.ID = id
+				tmpKE.Date = date
+				keyEnt = append(keyEnt, tmpKE)
+			}
 		}
 	}
+
+	for _, n := range names {
+		iter := session.Query(`SELECT id FROM entity WHERE name = ?`, n).Iter()
+		for iter.Scan(&id) {
+			var date time.Time
+			date = DateAndId(id, dateID)
+			if date.Year() < 2 {
+				tmpKE.Name = n
+				tmpKE.ID = id
+				tmpKE.Date = date
+				keyEnt = append(keyEnt, tmpKE)
+			}
+		}
+	}
+
 	return keyEnt
+}
+
+func DateAndId(id []byte, dateID []string) time.Time {
+	var t time.Time
+	for _, d := range dateID {
+		split := strings.Split(d, "!")
+		if string(id[:len(id)]) == split[0] {
+			t, _ = time.Parse(time.RFC3339, split[1])
+			return t
+		}
+	}
+	return t
 }
 
 // sort PA array and return top 15
