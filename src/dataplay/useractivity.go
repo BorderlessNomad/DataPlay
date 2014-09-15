@@ -2,15 +2,22 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"net/http"
+	"strconv"
 	"time"
 )
 
 type HomeData struct {
 	Label string
 	Value int
+}
+
+type ProfileDiscovery struct {
+	PatternId     int       `json:"patternid"`
+	Title         string    `json:"title"`
+	ApiString     string    `json:"apistring"`
+	DiscoveryDate time.Time `json:"discoverydate"`
 }
 
 func ActivityCheck(a string) string {
@@ -45,7 +52,7 @@ func AddActivity(uid int, atype string, ts time.Time) *appError {
 	return nil
 }
 
-func GetProfileObservationsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+func GetProfileObservationsHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
@@ -73,7 +80,7 @@ func GetProfileObservationsHttp(res http.ResponseWriter, req *http.Request, para
 	return string(r)
 }
 
-func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
@@ -86,13 +93,38 @@ func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request, params marti
 		return "Could not validate user"
 	}
 
-	var patterns []int
-	err1 := DB.Model(Discovered{}).Select("discovered_id").Where("uid = ?", uid).Find(&patterns).Error
+	var discovered []Discovered
+	err1 := DB.Where("uid = ?", uid).Find(&discovered).Error
 	if err1 != nil {
 		return "not found"
 	}
 
-	r, err2 := json.Marshal(patterns)
+	profileDiscoveries := make([]ProfileDiscovery, 0)
+
+	for _, d := range discovered {
+		var tmp ProfileDiscovery
+		tmp.PatternId = d.DiscoveredId
+		tmp.DiscoveryDate = d.Created
+
+		if d.CorrelationId == 0 {
+			tmp.ApiString = "chart/" + d.RelationId
+			var td TableData
+			json.Unmarshal(d.Json, &td)
+			tmp.Title = td.Title
+		} else {
+			cid := strconv.Itoa(d.CorrelationId)
+			tmp.ApiString = "chartcorrelated/" + cid
+			var cd CorrelationData
+			json.Unmarshal(d.Json, &cd)
+			tmp.Title = cd.Table1.Title + " correlated with " + cd.Table2.Title
+			if cd.Table3.Title != "" {
+				tmp.Title += " correlated with " + cd.Table3.Title
+			}
+		}
+		profileDiscoveries = append(profileDiscoveries, tmp)
+	}
+
+	r, err2 := json.Marshal(profileDiscoveries)
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
 		return "Unable to parse JSON"
@@ -101,7 +133,7 @@ func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request, params marti
 	return string(r)
 }
 
-func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
@@ -114,8 +146,8 @@ func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request, par
 		return "Could not validate user"
 	}
 
-	var patterns []int
-	err1 := DB.Model(Discovered{}).Where("uid = ?", uid).Where("valid > ?", 0).Pluck("discovered_id", &patterns).Error
+	var discovered []Discovered
+	err1 := DB.Where("uid = ?", uid).Where("valid > ?", 0).Find(&discovered).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {
 		http.Error(res, "Database query failed", http.StatusInternalServerError)
 		return "query failed"
@@ -124,7 +156,32 @@ func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request, par
 		return "not found"
 	}
 
-	r, err2 := json.Marshal(patterns)
+	profileDiscoveries := make([]ProfileDiscovery, 0)
+
+	for _, d := range discovered {
+		var tmp ProfileDiscovery
+		tmp.PatternId = d.DiscoveredId
+		tmp.DiscoveryDate = d.Created
+
+		if d.CorrelationId == 0 {
+			tmp.ApiString = "chart/" + d.RelationId
+			var td TableData
+			json.Unmarshal(d.Json, &td)
+			tmp.Title = td.Title
+		} else {
+			cid := strconv.Itoa(d.CorrelationId)
+			tmp.ApiString = "chartcorrelated/" + cid
+			var cd CorrelationData
+			json.Unmarshal(d.Json, &cd)
+			tmp.Title = cd.Table1.Title + " correlated with " + cd.Table2.Title
+			if cd.Table3.Title != "" {
+				tmp.Title += " correlated with " + cd.Table3.Title
+			}
+		}
+		profileDiscoveries = append(profileDiscoveries, tmp)
+	}
+
+	r, err2 := json.Marshal(profileDiscoveries)
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
 		return "Unable to parse JSON"
@@ -133,7 +190,7 @@ func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request, par
 	return string(r)
 }
 
-func GetHomePageDataHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+func GetHomePageDataHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
@@ -167,7 +224,7 @@ func GetHomePageDataHttp(res http.ResponseWriter, req *http.Request, params mart
 	return string(r)
 }
 
-func GetReputationHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+func GetReputationHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
@@ -189,7 +246,7 @@ func GetReputationHttp(res http.ResponseWriter, req *http.Request, params martin
 	return string(rep)
 }
 
-func GetAmountDiscoveriesHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+func GetAmountDiscoveriesHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
