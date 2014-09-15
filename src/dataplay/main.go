@@ -171,7 +171,10 @@ func initClassicMode() {
 		return TrackVisitedHttp(res, req, visited)
 	})
 
-	m.Get("/api/search/:s", SearchForDataHttp)
+	m.Get("/api/search/:keyword", SearchForDataHttp)
+	m.Get("/api/search/:keyword/:offset", SearchForDataHttp)
+	m.Get("/api/search/:keyword/:offset/:count", SearchForDataHttp)
+
 	m.Get("/api/getinfo/:id", GetEntry)
 	m.Get("/api/getimportstatus/:id", CheckImportStatus)
 	m.Get("/api/getdata/:id", DumpTableHttp)
