@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -52,7 +52,7 @@ func AddActivity(uid int, atype string, ts time.Time) *appError {
 	return nil
 }
 
-func GetProfileObservationsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+func GetProfileObservationsHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
@@ -80,7 +80,7 @@ func GetProfileObservationsHttp(res http.ResponseWriter, req *http.Request, para
 	return string(r)
 }
 
-func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
@@ -112,12 +112,13 @@ func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request, params marti
 			json.Unmarshal(d.Json, &td)
 			tmp.Title = td.Title
 		} else {
-			tmp.ApiString = "chartcorrelated/" + d.CorrelationId
+			cid := strconv.Itoa(d.CorrelationId)
+			tmp.ApiString = "chartcorrelated/" + cid
 			var cd CorrelationData
 			json.Unmarshal(d.Json, &cd)
 			tmp.Title = cd.Table1.Title + " correlated with " + cd.Table2.Title
 			if cd.Table3.Title != "" {
-				tmp.Title += " correlated with " + cd.Table3
+				tmp.Title += " correlated with " + cd.Table3.Title
 			}
 		}
 		profileDiscoveries = append(profileDiscoveries, tmp)
@@ -132,7 +133,7 @@ func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request, params marti
 	return string(r)
 }
 
-func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
@@ -168,12 +169,13 @@ func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request, par
 			json.Unmarshal(d.Json, &td)
 			tmp.Title = td.Title
 		} else {
-			tmp.ApiString = "chartcorrelated/" + d.CorrelationId
+			cid := strconv.Itoa(d.CorrelationId)
+			tmp.ApiString = "chartcorrelated/" + cid
 			var cd CorrelationData
 			json.Unmarshal(d.Json, &cd)
 			tmp.Title = cd.Table1.Title + " correlated with " + cd.Table2.Title
 			if cd.Table3.Title != "" {
-				tmp.Title += " correlated with " + cd.Table3
+				tmp.Title += " correlated with " + cd.Table3.Title
 			}
 		}
 		profileDiscoveries = append(profileDiscoveries, tmp)
@@ -188,7 +190,7 @@ func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request, par
 	return string(r)
 }
 
-func GetHomePageDataHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+func GetHomePageDataHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
@@ -222,7 +224,7 @@ func GetHomePageDataHttp(res http.ResponseWriter, req *http.Request, params mart
 	return string(r)
 }
 
-func GetReputationHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+func GetReputationHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
@@ -244,7 +246,7 @@ func GetReputationHttp(res http.ResponseWriter, req *http.Request, params martin
 	return string(rep)
 }
 
-func GetAmountDiscoveriesHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+func GetAmountDiscoveriesHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
