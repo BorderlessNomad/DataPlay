@@ -28,6 +28,8 @@ func NewClient(key string) *Client {
 func (c *Client) Extract(urls []string, options Options) error {
 
 	for i := 0; i < len(urls); i += 10 {
+		time.Sleep(500 * time.Millisecond) // delay
+		fmt.Println("Extracting next 10 - ", i, " out of ", len(urls))
 		to := len(urls)
 		if to > i+10 {
 			to = i + 10
@@ -79,7 +81,6 @@ func (c *Client) extract(urls []string, options Options, place int) ([]string, e
 
 	// Make the request.
 	addr += "&" + v.Encode() + "&format=json"
-	// time.Sleep(1 * time.Second) // delay
 	resp, err := http.Get(addr)
 	if err != nil {
 		return nil, err
