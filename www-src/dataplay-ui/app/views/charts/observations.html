@@ -1,7 +1,7 @@
 <div class="title">Observations</div>
 
 <div class="content">
-	<div class="media" ng-repeat="obsv in userObservations">
+	<div class="media" ng-repeat="obsv in userObservations" id="observation_{{obsv.xy}}">
 		<div class="row">
 			<span class="text-muted"><small>{{obsv.date}}</small></span>
 		</div>

@@ -33,6 +33,7 @@ angular.module('dataplayApp')
 		$scope.xScale = null
 		$scope.yDomain = null
 		$scope.userObservations = []
+		$scope.userObservationsMessage = []
 		$scope.observation =
 			x: null
 			y: null
@@ -99,7 +100,18 @@ angular.module('dataplayApp')
 							$scope.userObservations.splice 0, $scope.userObservations.length
 
 							res.data?.forEach? (obsv) ->
+								x = obsv.x
+								y = obsv.y
+								if $scope.chart.patterns[$scope.chart.xLabel].valuePattern is 'date'
+									if not(x instanceof Date) and (typeof x is 'string')
+										xdate = new Date x
+										if xdate.toString() isnt 'Invalid Date' then x = xdate
+									x = Overview.humanDate x
+
+								xy = "#{x.replace(/\W/g, '')}-#{y.replace(/\W/g, '')}"
+								$scope.userObservationsMessage[xy] = obsv.comment
 								$scope.userObservations.push
+									xy: xy
 									oid : obsv['observation_id']
 									user: obsv.user
 									validationCount: parseInt(obsv.validations - obsv.invalidations) || 0
@@ -202,6 +214,9 @@ angular.module('dataplayApp')
 					.attr 'cx', plot[0]
 					.attr 'cy', plot[1]
 
+			comment = if $scope.userObservationsMessage[xy]?.length > 0 then $scope.userObservationsMessage[xy] else ""
+			comment = if comment.length > 10 then "#{comment.substr 0, 10}..." else comment
+
 			circ = area.append 'image'
 				.attr 'id', "observationIcon-#{xy}"
 				.attr 'xlink:href', 'images/observation.png'
@@ -213,7 +228,7 @@ angular.module('dataplayApp')
 				.attr 'clip-path', "url(##{pathId})"
 				.attr 'data-placement', 'top'
 				.attr 'data-html', true
-				.tooltip "#{$scope.chart.xLabel}: #{x}<br/>#{$scope.chart.yLabel}: #{y}"
+				.tooltip "#{$scope.chart.xLabel}: #{x}<br/>#{$scope.chart.yLabel}: #{y}<br/>comment: #{comment}"
 
 		$scope.redrawObservationIcons = () ->
 			# Clean observation points and re-render
@@ -324,6 +339,9 @@ angular.module('dataplayApp')
 				datum = null
 				circles.on 'click', (d) ->
 					datum = d
+
+				images = c.svg().selectAll 'g.observations > image'
+				console.log images
 
 				svg.on 'click', () ->
 					space = d3.mouse(stack)
