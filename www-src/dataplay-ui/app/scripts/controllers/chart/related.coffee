@@ -343,9 +343,6 @@ angular.module('dataplayApp')
 				circles.on 'click', (d) ->
 					datum = d
 
-				images = c.svg().selectAll 'g.observations > image'
-				console.log images
-
 				svg.on 'click', () ->
 					space = d3.mouse(stack)
 

@@ -87,13 +87,13 @@ func TestSearchForData(t *testing.T) {
 	})
 	Convey("When bad data parameter is provided", t, func() {
 		params["user"] = "-98"
-		params["s"] = "derpaderp"
+		params["keyword"] = "derpaderp"
 		result = SearchForDataQ(params)
 		So(result, ShouldEqual, "[]")
 	})
 	Convey("When search parameter is 'nhs'", t, func() {
 		params["user"] = "1"
-		params["s"] = "nhs"
+		params["keyword"] = "nhs"
 		result = SearchForDataQ(params)
 		So(result, ShouldNotBeBlank)
 	})

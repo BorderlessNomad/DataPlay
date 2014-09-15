@@ -59,6 +59,11 @@ type SearchResult struct {
 	LocationData bool
 }
 
+type SearchResponse struct {
+	Results []SearchResult
+	Total   int
+}
+
 func SearchForDataHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
@@ -72,7 +77,7 @@ func SearchForDataHttp(res http.ResponseWriter, req *http.Request, params martin
 		return ""
 	}
 
-	result, error := SearchForData(params["s"], uid)
+	result, error := SearchForData(uid, params["keyword"], params)
 	if error != nil {
 		http.Error(res, error.Message, error.Code)
 		return ""
@@ -97,7 +102,7 @@ func SearchForDataQ(params map[string]string) string {
 		return ""
 	}
 
-	result, err := SearchForData(params["s"], uid)
+	result, err := SearchForData(uid, params["keyword"], params)
 	if err != nil {
 		return ""
 	}
@@ -111,56 +116,78 @@ func SearchForDataQ(params map[string]string) string {
 }
 
 /**
- * @brief Search a given term in database
+ * @brief Search a given keyword in database
  * @details This method searches for a matching title with following conditions,
  * 		Suffix wildcard
  * 		Prefix & suffix wildcard
  * 		Prefix, suffix & trimmed spaces with wildcard
  * 		Prefix & suffix on previously searched terms
  */
-func SearchForData(str string, uid int) ([]SearchResult, *appError) {
-	if str == "" {
-		return nil, &appError{nil, "There was no search request", http.StatusBadRequest}
+func SearchForData(uid int, keyword string, params map[string]string) (SearchResponse, *appError) {
+	response := SearchResponse{}
+	if keyword == "" {
+		return response, &appError{nil, "There was no search request", http.StatusBadRequest}
 	}
 
-	AddSearchTerm(str) // add to search term count
+	AddSearchTerm(keyword) // add to search term count
 
-	Indices := []Index{}
+	var total int = 0
+	var offset int = 0
+	var count int = 9
 
-	term := str + "%" // e.g. "nhs" => "nhs%" (What about "%nhs"?)
+	if params["offset"] != "" {
+		var oE error
+		offset, oE = strconv.Atoi(params["offset"])
+		if oE != nil {
+			return response, &appError{oE, "Invalid offset value.", http.StatusBadRequest}
+		}
+	}
+
+	if params["count"] != "" {
+		var cE error
+		count, cE = strconv.Atoi(params["count"])
+		if params["count"] != "" && cE != nil {
+			return response, &appError{cE, "Invalid count value.", http.StatusBadRequest}
+		}
+	}
+
+	indices := []Index{}
+
+	term := keyword + "%" // e.g. "nhs" => "nhs%" (What about "%nhs"?)
 
 	Logger.Println("Searching with Suffix Wildcard", term)
 
-	err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&Indices).Error
+	var err error
+	err = DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Count(&total).Error
 	if err != nil && err != gorm.RecordNotFound {
-		return nil, &appError{err, "Database query failed (SUFFIX)", http.StatusServiceUnavailable}
+		return response, &appError{err, "Database query failed (SUFFIX)", http.StatusServiceUnavailable}
 	}
 
-	Results := ProcessSearchResults(Indices, err)
-	if len(Results) == 0 {
-		term := "%" + str + "%" // e.g. "nhs" => "%nhs%"
+	Response := ProcessSearchResults(indices, total, err)
+	if len(Response.Results) == 0 {
+		term := "%" + keyword + "%" // e.g. "nhs" => "%nhs%"
 
 		Logger.Println("Searching with Prefix + Suffix Wildcard", term)
 
-		err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&Indices).Error
+		err = DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Count(&total).Error
 		if err != nil && err != gorm.RecordNotFound {
-			return nil, &appError{err, "Database query failed (PREFIX + SUFFIX)", http.StatusServiceUnavailable}
+			return response, &appError{err, "Database query failed (PREFIX + SUFFIX)", http.StatusServiceUnavailable}
 		}
 
-		Results = ProcessSearchResults(Indices, err)
-		if len(Results) == 0 {
-			term := "%" + strings.Replace(str, " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
+		Response = ProcessSearchResults(indices, total, err)
+		if len(Response.Results) == 0 {
+			term := "%" + strings.Replace(keyword, " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
 
 			Logger.Println("Searching with Prefix + Suffix + Trim Wildcard", term)
 
-			err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&Indices).Error
+			err = DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Count(&total).Error
 			if err != nil && err != gorm.RecordNotFound {
-				return nil, &appError{err, "Database query failed (PREFIX + SUFFIX + TRIM)", http.StatusServiceUnavailable}
+				return response, &appError{err, "Database query failed (PREFIX + SUFFIX + TRIM)", http.StatusServiceUnavailable}
 			}
 
-			Results = ProcessSearchResults(Indices, err)
-			if len(Results) == 0 && (len(str) >= 3 && len(str) < 20) {
-				term := "%" + str + "%" // e.g. "nhs" => "%nhs%"
+			Response = ProcessSearchResults(indices, total, err)
+			if len(Response.Results) == 0 && (len(keyword) >= 3 && len(keyword) < 20) {
+				term := "%" + keyword + "%" // e.g. "nhs" => "%nhs%"
 
 				Logger.Println("Searching with Prefix + Suffix Wildcard in String Table", term)
 
@@ -172,22 +199,21 @@ func SearchForData(str string, uid int) ([]SearchResult, *appError) {
 				query = query.Where("(owner = ? OR owner = ?)", 0, uid)
 				query = query.Order("priv_onlinedata.guid")
 				query = query.Order("priv_stringsearch.count DESC")
-				query = query.Limit(10)
-				err := query.Find(&Indices).Error
+				err = query.Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Count(&total).Error
 
 				if err != nil && err != gorm.RecordNotFound {
-					return nil, &appError{err, "Database query failed (PREFIX + SUFFIX + STRING)", http.StatusInternalServerError}
+					return response, &appError{err, "Database query failed (PREFIX + SUFFIX + STRING)", http.StatusInternalServerError}
 				}
 
-				Results = ProcessSearchResults(Indices, err)
+				Response = ProcessSearchResults(indices, total, err)
 			}
 		}
 	}
 
-	return Results, nil
+	return Response, nil
 }
 
-func ProcessSearchResults(rows []Index, e error) []SearchResult {
+func ProcessSearchResults(rows []Index, total int, e error) SearchResponse {
 	if e != nil && e != gorm.RecordNotFound {
 		check(e)
 	}
@@ -206,7 +232,12 @@ func ProcessSearchResults(rows []Index, e error) []SearchResult {
 		Results = append(Results, result)
 	}
 
-	return Results
+	Response := SearchResponse{
+		Results: Results,
+		Total:   total,
+	}
+
+	return Response
 }
 
 type DataEntry struct {

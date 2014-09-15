@@ -12,6 +12,7 @@ angular.module('dataplayApp')
 		$scope.query = if $routeParams.query? then $routeParams.query else ""
 		$scope.searchTimeout = null
 		$scope.results = []
+		$scope.total = []
 
 		$scope.overview = [
 			{
@@ -30,7 +31,9 @@ angular.module('dataplayApp')
 			return if $scope.query.length < 3
 
 			User.search($scope.query).success((data) ->
-				$scope.results = data
+				$scope.results = data.Results
+				$scope.total = data.Total
+
 				return
 			).error (status, data) ->
 				console.log "Search::search::Error:", status

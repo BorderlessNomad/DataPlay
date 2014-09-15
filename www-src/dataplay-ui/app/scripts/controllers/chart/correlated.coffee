@@ -24,37 +24,43 @@ angular.module('dataplayApp')
 			bottom: 50
 			left: 110
 
+		$scope.chartRendered = null
 		$scope.chart =
 			title: ""
 			description: "N/A"
 			data: null
 			values: []
-		$scope.observations = []
+		$scope.xScale = null
+		$scope.yDomain = null
 		$scope.userObservations = []
+		$scope.userObservationsMessage = []
 		$scope.observation =
 			x: null
 			y: null
 			message: ''
 
 		$scope.info =
-			patternId: '202121200'
-			discoverer: 'DataWiz'
-			discoverDate: Overview.humanDate new Date( new Date() - (2 * 24 * 60 * 60 * 1000) )
-			validators: [
-				'Alan'
-				'Bob'
-				'Chris'
-			]
+			discoveredId: null
+			validated: null
+			invalidated: null
+			patternId: null
+			discoverer: ''
+			discoverDate: ''
+			validators: []
 			source:
-				prim: 'NHS Spending 2012 - London'
-				seco: 'Weather Patterns 2012'
-			strength: 'High'
+				prim: ''
+				seco: ''
+			strength: ''
 
 		$scope.init = () ->
+			$scope.initValidation()
+			$scope.initChart()
+
+		$scope.initChart = () ->
 			Charts.correlated $scope.params.correlationid
 				.success (data, status) ->
-					if data?
-						$scope.chart = data
+					if data? and data.chartdata
+						$scope.chart = data.chartdata
 						$scope.chart.type = $scope.params.type
 
 						if data.desc? and data.desc.length > 0
@@ -64,6 +70,16 @@ angular.module('dataplayApp')
 
 						$scope.reduceData()
 
+					if data?
+						$scope.info.patternId = data.patternid or ''
+						$scope.info.discoverer = data.discoveredby or ''
+						$scope.info.discoverDate = if data.discoverydate then Overview.humanDate new Date( data.discoverydate ) else ''
+						$scope.info.validators = data.validatedby or ''
+						$scope.info.source =
+							prim: data.source1 or ''
+							seco: data.source2 or ''
+						$scope.info.strength = data.statstrength
+
 					console.log "Chart", $scope.chart
 
 					# Track a page visit
@@ -71,15 +87,31 @@ angular.module('dataplayApp')
 				.error (data, status) ->
 					console.log "Charts::init::Error:", status
 
-			Charts.validateChart "#{$scope.params.correlationid}"
+			return
+
+		$scope.initValidation = (redraw) ->
+			id = "#{$scope.params.correlationid}"
+
+			Charts.validateChart "cid", id
 				.then (validate) ->
-					valId = validate.data
-					Charts.getObservations valId
+					$scope.info.discoveredId = validate.data
+					Charts.getObservations $scope.info.discoveredId
 						.then (res) ->
 							$scope.userObservations.splice 0, $scope.userObservations.length
 
-							res.data?.forEach (obsv) ->
+							res.data?.forEach? (obsv) ->
+								x = obsv.x
+								y = obsv.y
+								if $scope.chart.patterns[$scope.chart.table1.xLabel].valuePattern is 'date'
+									if not(x instanceof Date) and (typeof x is 'string')
+										xdate = new Date x
+										if xdate.toString() isnt 'Invalid Date' then x = xdate
+									x = Overview.humanDate x
+
+								xy = "#{x.replace(/\W/g, '')}-#{y.replace(/\W/g, '')}"
+								$scope.userObservationsMessage[xy] = obsv.comment
 								$scope.userObservations.push
+									xy: xy
 									oid : obsv['observation_id']
 									user: obsv.user
 									validationCount: parseInt(obsv.validations - obsv.invalidations) || 0
@@ -89,6 +121,13 @@ angular.module('dataplayApp')
 										x: obsv.x
 										y: obsv.y
 
+							if redraw? and redraw
+								$scope.redrawObservationIcons()
+
+								newObservations = d3.select 'g.stack-list > .observations.new'
+								$scope.renderObservationIcons $scope.xScale, $scope.yDomain, $scope.chart, newObservations
+						, $scope.handleError
+				, $scope.handleError
 			return
 
 		$scope.reduceData = () ->
@@ -158,7 +197,7 @@ angular.module('dataplayApp')
 
 			chart.dimension data.dimension
 			chart.group data.group, data.table1.title
-			chart.stack data.group2, data.table2.title
+			# chart.stack data.group2, data.table2.title
 
 			data.ordinals = []
 			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
