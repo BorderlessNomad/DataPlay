@@ -3,16 +3,16 @@
 
 	<ul class="nav nav-tabs" role="tablist">
 		<li ng-class="{true: 'active', false: ''}[currentTab == 'profile']">
-			<a href="user/profile" data-toggle="tab" >Personal Details</a>
+			<a data-toggle="tab" ng-click="changeTab('profile')" >Personal Details</a>
 		</li>
 		<li ng-class="{true: 'active', false: ''}[currentTab == 'validdiscoveries']">
-			<a href="user/validdiscoveries" data-toggle="tab" >Valid Discoveries</a>
+			<a data-toggle="tab" ng-click="changeTab('validdiscoveries')" >Valid Discoveries</a>
 		</li>
 		<li ng-class="{true: 'active', false: ''}[currentTab == 'discoveries']">
-			<a href="user/discoveries" data-toggle="tab" >Discoveries</a>
+			<a data-toggle="tab" ng-click="changeTab('discoveries')" >Discoveries</a>
 		</li>
 		<li ng-class="{true: 'active', false: ''}[currentTab == 'observations']">
-			<a href="user/observations" data-toggle="tab" >Observations</a>
+			<a data-toggle="tab" ng-click="changeTab('observations')" >Observations</a>
 		</li>
 	</ul>
 
