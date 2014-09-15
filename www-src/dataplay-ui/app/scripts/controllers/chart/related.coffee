@@ -85,6 +85,7 @@ angular.module('dataplayApp')
 					# Track a page visit
 					Tracker.visited $scope.params.id, $scope.params.key, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
 				.error (data, status) ->
+					$scope.handleError data, status
 					console.log "Charts::init::Error:", status
 
 			return
@@ -113,6 +114,8 @@ angular.module('dataplayApp')
 
 								newObservations = d3.select 'g.stack-list > .observations.new'
 								$scope.renderObservationIcons $scope.xScale, $scope.yDomain, $scope.chart, newObservations
+						, $scope.handleError
+				, $scope.handleError
 			return
 
 		$scope.reduceData = () ->
@@ -604,6 +607,7 @@ angular.module('dataplayApp')
 						$scope.info.validated = true
 					else
 						$scope.info.invalidated = true
+				, $scope.handleError
 
 		$scope.saveObservation = ->
 			Charts.createObservation($scope.info.discoveredId, $scope.observation.x, $scope.observation.y, $scope.observation.message).then (res) ->
@@ -612,6 +616,7 @@ angular.module('dataplayApp')
 				$scope.addObservation $scope.observation.x, $scope.observation.y, $scope.observation.message
 
 				$('#comment-modal').modal 'hide'
+			, $scope.handleError
 
 			return
 
@@ -645,6 +650,7 @@ angular.module('dataplayApp')
 				Charts.validateObservation item.oid, valFlag
 					.success (res) ->
 						item.validationCount += (valFlag) ? 1 : -1
+					.error $scope.handleError
 
 		$scope.openAddObservationModal = (x, y) ->
 			$scope.observation.x = x || 0
@@ -666,6 +672,15 @@ angular.module('dataplayApp')
 			dc.redrawAll()
 
 			$scope.resetObservations()
+
+		$scope.handleError = (err, status) ->
+			$scope.error =
+				message: switch
+					when err and err.message then err.message
+					when err and err.data and err.data.message then err.data.message
+					when err and err.data then err.data
+					when err then err
+					else ''
 
 		return
 	]

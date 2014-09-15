@@ -8,6 +8,15 @@
 		</div>
 	</div>
 
+	<div class="row" ng-show="error">
+		<div class="col-md-9">
+			<div class="alert alert-warning">
+				<h4>There seems to be a problem...</h4>
+				<p>{{error.message}}</p>
+			</div>
+		</div>
+	</div>
+
 	<div class="row">
 		<div class="col-md-6 constrict-graphs">
 			<div class="action-bar">
