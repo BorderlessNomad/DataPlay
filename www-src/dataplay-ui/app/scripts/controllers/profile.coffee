@@ -64,6 +64,9 @@ angular.module('dataplayApp')
 
     $scope.inits[$scope.currentTab]?()
 
+    $scope.changeTab = (tab) ->
+      $location.path "/user/#{tab}"
+
     $scope.submitDetails = ->
       Profile.setInfo $scope.current.email, $scope.current.username
         .then (res) ->
