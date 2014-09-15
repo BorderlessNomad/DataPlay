@@ -9,13 +9,18 @@
 		</form>
 
 		<div class="list-group" ng-show="results.length > 0">
-			<div class="list-group-item row" ng-repeat="result in results">
-				<span class="col-md-9">{{result.Title}}</span>
-				<span class="col-md-3 text-right">
-					<a class="btn btn-danger btn-xs" href="charts/{{result.GUID}}">Chart</a>
-					<a class="btn btn-warning btn-xs" href="overview/{{result.GUID}}">Overview</a>
-					<a class="btn btn-primary btn-xs" href="map/{{result.GUID}}" ng-show="result.LocationData">Map</a>
-				</span>
+			<div class="row">
+				<div class="list-group-item col-sm-4" ng-repeat="result in results | limitTo:3">
+					<h5>{{result.Title}}</h5>
+					<div style="width: 100%; height: 150px; background-color:rgb(61, 61, 255); border-radius:10px;">
+						<!-- GRAPH GOES HERE!! -->
+					</div>
+					<p class="text-right">
+						<a class="btn btn-danger btn-xs" href="charts/{{result.GUID}}">Chart</a>
+						<a class="btn btn-warning btn-xs" href="overview/{{result.GUID}}">Overview</a>
+						<a class="btn btn-primary btn-xs" href="map/{{result.GUID}}" ng-show="result.LocationData">Map</a>
+					</p>
+				</div>
 			</div>
 		</div>
 	</div>
