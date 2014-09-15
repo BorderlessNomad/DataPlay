@@ -22,7 +22,6 @@ angular.module('dataplayApp')
 				data: bookmarks
 
 		validateChart: (type, chartId, valFlag) ->
-			console.log "validateChart", type, chartId
 			path = if valFlag then "/chart/#{valFlag}" else "/chart"
 
 			if type is "rid"

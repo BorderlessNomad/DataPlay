@@ -1,6 +1,6 @@
 <div class="title">Observations</div>
 
-<div class="content">
+<div class="content" ng-show="userObservations.length > 0">
 	<div class="media" ng-repeat="obsv in userObservations" id="observation_{{obsv.xy}}">
 		<div class="row">
 			<span class="text-muted"><small>{{obsv.date}}</small></span>
@@ -23,4 +23,6 @@
 	</div>
 </div>
 
-<div class="nothing" ng-hide="userObservations.length > 0"><p class="text-center text-muted">Nothing to show</p></div>
+<div class="nothing" ng-hide="userObservations.length > 0">
+	<p class="text-center text-muted">Oops! It seem like there is no data to show.</p>
+</div>
