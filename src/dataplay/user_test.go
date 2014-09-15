@@ -164,7 +164,7 @@ func TestGetValidatedDiscoveriesHttp(t *testing.T) {
 
 	Convey("Should return validated discoveries", t, func() {
 		result := GetValidatedDiscoveriesHttp(res, req)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 }
 
@@ -175,6 +175,6 @@ func TestGetDiscoveriesHttp(t *testing.T) {
 
 	Convey("Should return discoveries", t, func() {
 		result := GetDiscoveriesHttp(res, req)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 }

@@ -20,6 +20,14 @@ type ProfileDiscovery struct {
 	DiscoveryDate time.Time `json:"discoverydate"`
 }
 
+type ProfileObservation struct {
+	ObservationId int       `json:"observationid"`
+	Title         string    `json:"charttitle"`
+	ApiString     string    `json:"apistring"`
+	DiscoveryDate time.Time `json:"discoverydate"`
+	Comment       string    `json:"comment"`
+}
+
 func ActivityCheck(a string) string {
 	switch a {
 	case "c":
@@ -65,14 +73,48 @@ func GetProfileObservationsHttp(res http.ResponseWriter, req *http.Request) stri
 		return ""
 	}
 
-	comments := []Observation{}
-	err1 := DB.Where("uid = ?", uid).Find(&comments).Error
+	observation := []Observation{}
+	err1 := DB.Where("uid = ?", uid).Find(&observation).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {
 		http.Error(res, "Database query failed", http.StatusInternalServerError)
 		return ""
 	}
 
-	r, err2 := json.Marshal(comments)
+	profileObservations := make([]ProfileObservation, 0)
+
+	for _, o := range observation {
+		var tmp ProfileObservation
+		tmp.ObservationId = o.ObservationId
+		tmp.DiscoveryDate = o.Created
+		tmp.Comment = o.Comment
+
+		discTmp := Discovered{}
+		err := DB.Where("discovered_id = ?", o.DiscoveredId).Find(&discTmp).Error
+		if err != nil && err != gorm.RecordNotFound {
+			http.Error(res, "Database query failed", http.StatusInternalServerError)
+			return ""
+		}
+
+		if discTmp.CorrelationId == 0 {
+			tmp.ApiString = "chart/related/" + discTmp.RelationId
+			var td TableData
+			json.Unmarshal(discTmp.Json, &td)
+			tmp.Title = td.Title
+		} else {
+			cid := strconv.Itoa(discTmp.CorrelationId)
+			tmp.ApiString = "chart/correlated/" + cid
+			var cd CorrelationData
+			json.Unmarshal(discTmp.Json, &cd)
+			tmp.Title = cd.Table1.Title + " correlated with " + cd.Table2.Title
+			if cd.Table3.Title != "" {
+				tmp.Title += " correlated with " + cd.Table3.Title
+			}
+		}
+
+		profileObservations = append(profileObservations, tmp)
+	}
+
+	r, err2 := json.Marshal(profileObservations)
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
 		return ""

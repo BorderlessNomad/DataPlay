@@ -33,4 +33,6 @@ func TestGetPoliticalActivityHttp(t *testing.T) {
 		result := GetPoliticalActivityHttp(res, req, params)
 		So(result, ShouldNotBeNil)
 	})
+
+	WriteCass()
 }

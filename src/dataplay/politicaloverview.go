@@ -34,6 +34,25 @@ type KeyEnt struct {
 	ID   []byte
 }
 
+func WriteCass() {
+	session, _ := GetCassandraConnection("dp") // create connection to cassandra
+	defer session.Close()
+	url := ""
+
+	iter := session.Query(`SELECT url FROM response`).Iter()
+	f, _ := os.OpenFile("dat1.txt", os.O_RDWR|os.O_APPEND, 0666)
+
+	for iter.Scan(&url) {
+		u := []byte(url + "\n")
+		f.Write(u)
+	}
+
+	// check(err)
+	// f, err := os.Create("/tmp/dat2")
+
+	// defer f.Close()
+}
+
 func DepartmentsPoliticalActivity() []PoliticalActivity {
 	var dept []Departments // get all departments from postgres sql table
 	err := DB.Find(&dept).Error

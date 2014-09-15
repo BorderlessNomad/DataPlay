@@ -14,18 +14,18 @@ import (
 // 	})
 // }
 
-func TestValidateChartHttp(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/", nil)
-	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
-	res := httptest.NewRecorder()
-	Convey("Should validate chart", t, func() {
-		params := map[string]string{}
-		params["rcid"] = "114789"
-		params["valflag"] = "false"
-		result := ValidateChartHttp(res, req, params)
-		So(result, ShouldNotBeNil)
-	})
-}
+// func TestValidateChartHttp(t *testing.T) {
+// 	req, _ := http.NewRequest("GET", "/", nil)
+// 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+// 	res := httptest.NewRecorder()
+// 	Convey("Should validate chart", t, func() {
+// 		params := map[string]string{}
+// 		params["rcid"] = "114789"
+// 		params["valflag"] = "false"
+// 		result := ValidateChartHttp(res, req, params)
+// 		So(result, ShouldNotBeNil)
+// 	})
+// }
 
 func TestValidateObservationHttp(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
