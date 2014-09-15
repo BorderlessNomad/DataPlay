@@ -108,10 +108,75 @@ func AttemptCorrelation(m map[string]string) *appError {
 		if errCF != nil {
 			return errCF
 		}
-		if cf != 0 { //Save the correlation if one is generated
-			err := SaveCorrelation(m, c, cf, cd) // save everything to the correlation table
-			if err != nil {
-				return err
+		if cf != 0 { //Save the various permutations of the correlation if one is generated
+
+			if m["method"] == "Pearson" {
+				m["type"] = "bar"
+				err := SaveCorrelation(m, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
+				m["type"] = "column"
+				err = SaveCorrelation(m, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
+				m["type"] = "line"
+				err = SaveCorrelation(m, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
+				m["type"] = "scatter"
+				err = SaveCorrelation(m, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
+
+			} else if m["method"] == "Spurious" {
+				m["type"] = "line"
+				err := SaveCorrelation(m, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
+				m["type"] = "scatter"
+				err = SaveCorrelation(m, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
+				m["type"] = "stacked"
+				err = SaveCorrelation(m, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
+
+			} else if m["method"] == "Visual" {
+				m["type"] = "bar"
+				err := SaveCorrelation(m, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
+				m["type"] = "column"
+				err = SaveCorrelation(m, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
+				m["type"] = "line"
+				err = SaveCorrelation(m, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
+				m["type"] = "scatter"
+				err = SaveCorrelation(m, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
+
+			} else {
+				m["type"] = "unknown"
+				err := SaveCorrelation(m, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -283,6 +348,7 @@ func SaveCorrelation(m map[string]string, c cmeth, cf float64, cd *CorrelationDa
 	}
 
 	(*cd).Method = m["method"]
+	(*cd).ChartType = m["type"]
 	(*cd).Table1.Title = SanitizeString(ind1.Title)
 	(*cd).Table2.Title = SanitizeString(ind2.Title)
 	(*cd).Table1.Desc = SanitizeString(ind1.Notes)

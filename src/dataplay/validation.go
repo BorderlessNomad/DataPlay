@@ -35,20 +35,24 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 	if strings.ContainsAny(rcid, "_") { // if a relation id
 		err := DB.Where("relation_id = ?", rcid).First(&discovered).Error
 		if err != nil && err != gorm.RecordNotFound {
-			return "", &appError{err, "Database query failed (relation_id)", http.StatusInternalServerError}
+			return "", &appError{err, ", database query failed (relation_id)", http.StatusInternalServerError}
 		}
 	} else { // if a correlation id of type int
 		cid, _ := strconv.Atoi(rcid)
 		if err != nil {
-			return "", &appError{err, "Could not convert id to int", http.StatusInternalServerError}
+			return "", &appError{err, ", could not convert id to int", http.StatusInternalServerError}
 		}
 		err := DB.Where("correlation_id= ?", cid).First(&discovered).Error
 		if err != nil && err != gorm.RecordNotFound {
-			return "", &appError{err, "Database query failed (correlation_id)", http.StatusInternalServerError}
+			return "", &appError{err, ", database query failed (correlation_id)", http.StatusInternalServerError}
 		}
 	}
 
-	// err := DB.Where("discovered_id= ?", discovered.DiscoveredId).Where("uid= ?", uid).First(&discovered).Error
+	var vid int
+	err := DB.Model(Validation{}).Where("discovered_id= ?", discovered.DiscoveredId).Where("uid= ?", uid).Pluck("validation_id", &vid).Error
+	if err != gorm.RecordNotFound {
+		skipval = true
+	}
 
 	if !skipval {
 		if valflag {
@@ -65,7 +69,7 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 
 		err1 := DB.Save(&discovered).Error
 		if err1 != nil {
-			return "", &appError{err1, "Database query failed - validate chart (Save discovered)", http.StatusInternalServerError}
+			return "", &appError{err1, ", database query failed - validate chart (Save discovered)", http.StatusInternalServerError}
 		}
 
 		validation.DiscoveredId = discovered.DiscoveredId
@@ -75,7 +79,7 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 
 		err2 := DB.Save(&validation).Error
 		if err2 != nil {
-			return "", &appError{err2, "Database query failed (Save validaition)", http.StatusInternalServerError}
+			return "", &appError{err2, ", database query failed (Save validaition)", http.StatusInternalServerError}
 		}
 	}
 
@@ -85,30 +89,38 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 // increment user discovered total for observation and rerank
 func ValidateObservation(oid int, uid int, valflag bool) *appError {
 	t := time.Now()
-	obs := Observation{}
+	observation := Observation{}
 	validation := Validation{}
 
-	err := DB.Where("observation_id = ?", oid).First(&obs).Error
+	err := DB.Where("observation_id = ?", oid).First(&observation).Error
 	if err != nil && err != gorm.RecordNotFound {
-		return &appError{err, "Database query failed - validate observation (get)", http.StatusInternalServerError}
+		return &appError{err, " Database query failed - validate observation (get)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
-		return &appError{err, "No such observation found!", http.StatusNotFound}
+		return &appError{err, ", no such observation found!", http.StatusNotFound}
+	}
+
+	vid := Validation{}
+	err2 := DB.Where("observation_id= ?", observation.ObservationId).Where("uid= ?", uid).Find(&vid).Error
+	if err2 != nil && err2 != gorm.RecordNotFound {
+		return &appError{err2, ", observation query failed.", http.StatusInternalServerError}
+	} else if vid.ValidationId != 0 {
+		return &appError{err2, ", user has already validated this observation.", http.StatusInternalServerError}
 	}
 
 	if valflag {
-		obs.Valid++
-		Reputation(obs.Uid, obsVal) // add points for observation validation
+		observation.Valid++
+		Reputation(observation.Uid, obsVal) // add points for observation validation
 		AddActivity(uid, "vo", t)
 	} else {
-		obs.Invalid++
-		Reputation(obs.Uid, obsInval) // remove points for observation invalidation
+		observation.Invalid++
+		Reputation(observation.Uid, obsInval) // remove points for observation invalidation
 		AddActivity(uid, "io", t)
 	}
 
-	obs.Rating = RankValidations(obs.Valid, obs.Invalid)
-	err = DB.Save(&obs).Error
+	observation.Rating = RankValidations(observation.Valid, observation.Invalid)
+	err = DB.Save(&observation).Error
 	if err != nil {
-		return &appError{err, "Database query failed - Unable to save an observation.", http.StatusInternalServerError}
+		return &appError{err, ", database query failed - Unable to save an observation.", http.StatusInternalServerError}
 	}
 
 	validation.DiscoveredId = 0 // not a chart
@@ -119,7 +131,7 @@ func ValidateObservation(oid int, uid int, valflag bool) *appError {
 
 	err = DB.Save(&validation).Error
 	if err != nil {
-		return &appError{err, "Database query failed - validate observation (Save validation)", http.StatusInternalServerError}
+		return &appError{err, ", database query failed - validate observation (Save validation)", http.StatusInternalServerError}
 	}
 
 	return nil
