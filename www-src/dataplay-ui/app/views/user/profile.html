@@ -1,30 +1,35 @@
 <h3 class="text-center">Your Profile</h3>
 <form name="profileForm" class="form-profile" role="form" novalidate>
-	<div ng-show="hasError()" class="alert alert-dismissable alert-danger">
-		<button type="button" class="close" ng-click="closeAlert()">×</button>
-		{{user.message}}
-	</div>
 
 	<ul class="nav nav-tabs" role="tablist">
 		<li ng-class="{true: 'active', false: ''}[currentTab == 'profile']">
-			<a href="user/profile" data-toggle="tab" ng-click="changeTab('profile')">Personal Details</a>
+			<a href="user/profile" data-toggle="tab" >Personal Details</a>
 		</li>
 		<li ng-class="{true: 'active', false: ''}[currentTab == 'validdiscoveries']">
-			<a href="user/validdiscoveries" data-toggle="tab" ng-click="changeTab('validdiscoveries')">Valid Discoveries</a>
+			<a href="user/validdiscoveries" data-toggle="tab" >Valid Discoveries</a>
 		</li>
 		<li ng-class="{true: 'active', false: ''}[currentTab == 'discoveries']">
-			<a href="user/discoveries" data-toggle="tab" ng-click="changeTab('discoveries')">Discoveries</a>
+			<a href="user/discoveries" data-toggle="tab" >Discoveries</a>
 		</li>
 		<li ng-class="{true: 'active', false: ''}[currentTab == 'observations']">
-			<a href="user/observations" data-toggle="tab" ng-click="changeTab('observations')">Observations</a>
+			<a href="user/observations" data-toggle="tab" >Observations</a>
 		</li>
 	</ul>
+
+	<div class="row">
+		<div class="col-md-8 col-md-offset-2">
+			<div ng-show="hasError()" class="alert alert-warning">
+				<h4>There seems to be a problem...</h4>
+				<p>{{error.message}}</p>
+			</div>
+		</div>
+	</div>
 
 	<div class="tab-content">
 		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'profile']" id="profile">
 			<div class="row">
 				<div class="col-md-6 col-md-offset-3">
-					<div ng-show="!hasError() && saved.success" class="alert alert-dismissable alert-success">
+					<div ng-show="!error && saved.success" class="alert alert-dismissable alert-success">
 						<button type="button" class="close" ng-click="closeAlert()">×</button>
 						Your profile profile have been updated successfully.
 					</div>
@@ -55,10 +60,10 @@
 					<div ng-repeat="disc in validDiscoveries">
 						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
 						<p class="profile-li">
-							<a href="{{disc.link}}">{{disc.title}}</a>
-							<span ng-show="disc.title2"> correlates with <a href="{{disc.link2}}">{{disc.title2}}</a></span>
+							<a href="{{disc.apistring}}">{{disc.title}}</a>
 						</p>
 					</div>
+					<div ng-show="validDiscoveries.length < 1">Nothing to show</div>
 				</div>
 			</div>
 		</div>
@@ -69,10 +74,10 @@
 					<div ng-repeat="disc in discoveries">
 						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
 						<p class="profile-li">
-							<a href="{{disc.link}}">{{disc.title}}</a>
-							<span ng-show="disc.title2"> correlates with <a href="{{disc.link2}}">{{disc.title2}}</a></span>
+							<a href="{{disc.apistring}}">{{disc.title}}</a>
 						</p>
 					</div>
+					<div ng-show="discoveries.length < 1">Nothing to show</div>
 				</div>
 			</div>
 		</div>
@@ -83,11 +88,11 @@
 					<div ng-repeat="obsv in observations">
 						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
 						<p class="profile-li">
-							<a href="{{obsv.link}}">{{obsv.title}}</a>
-							<span ng-show="obsv.title2"> correlates with <a href="{{obsv.link2}}">{{obsv.title2}}</a></span><br/>
+							<a href="{{obsv.apistring}}">{{obsv.title}}</a><br/>
 							<span class="text-muted">{{obsv.message}}</span>
 						</p>
 					</div>
+					<div ng-show="observations.length < 1">Nothing to show</div>
 				</div>
 			</div>
 		</div>
