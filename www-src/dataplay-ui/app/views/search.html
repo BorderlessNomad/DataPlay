@@ -1,18 +1,45 @@
 <h1>Search</h1>
 
-<form novalidate>
-	<div class="form-group">
-		<input class="form-control" type="search" placeholder="Enter your query here (e.g. gold)" ng-model="query" ng-change="search()">
-	</div>
-</form>
+<div class="row">
+	<div class="col-sm-9 col-xs-12">
+		<form novalidate>
+			<div class="form-group">
+				<input class="form-control" type="search" placeholder="Enter your query here (e.g. gold)" ng-model="query" ng-change="search()">
+			</div>
+		</form>
 
-<div class="list-group" ng-show="results.length > 0">
-	<div class="list-group-item row" ng-repeat="result in results">
-		<span class="col-md-9">{{result.Title}}</span>
-		<span class="col-md-3 text-right">
-			<a class="btn btn-danger btn-xs" href="charts/{{result.GUID}}">Chart</a>
-			<a class="btn btn-warning btn-xs" href="overview/{{result.GUID}}">Overview</a>
-			<a class="btn btn-primary btn-xs" href="map/{{result.GUID}}" ng-show="result.LocationData">Map</a>
-		</span>
+		<div class="list-group" ng-show="results.length > 0">
+			<div class="list-group-item row" ng-repeat="result in results">
+				<span class="col-md-9">{{result.Title}}</span>
+				<span class="col-md-3 text-right">
+					<a class="btn btn-danger btn-xs" href="charts/{{result.GUID}}">Chart</a>
+					<a class="btn btn-warning btn-xs" href="overview/{{result.GUID}}">Overview</a>
+					<a class="btn btn-primary btn-xs" href="map/{{result.GUID}}" ng-show="result.LocationData">Map</a>
+				</span>
+			</div>
+		</div>
+	</div>
+	<div class="col-sm-3 col-xs-0">
+		<div class="sidebar">
+			<div class="title">Overview</div>
+
+				<div class="content">
+					<div class="media" ng-repeat="item in overview">
+						<div class="row">
+							<span class="text-muted"><small>{{item.date}}</small></span>
+						</div>
+						<div class="row">
+							<div class="media-body">
+								<h5 class="media-heading">{{item.title}}</h5>
+								<img class="thumbnail" ng-src="{{item.thumbnail}}" />
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="nothing" ng-hide="overview.length > 0"><p class="text-center text-muted">Nothing to show</p></div>
+
+		</div>
 	</div>
 </div>
+
