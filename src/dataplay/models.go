@@ -45,7 +45,7 @@ type Departments struct {
 	Id      int `primaryKey:"yes"`
 }
 
-func (c Departments) TableName() string {
+func (d Departments) TableName() string {
 	return "priv_departments"
 }
 
@@ -61,7 +61,7 @@ type Discovered struct {
 	RelationId    string
 }
 
-func (v Discovered) TableName() string {
+func (di Discovered) TableName() string {
 	return "priv_discovered"
 }
 
@@ -71,7 +71,7 @@ type Events struct {
 	Id      int `primaryKey:"yes"`
 }
 
-func (c Events) TableName() string {
+func (e Events) TableName() string {
 	return "priv_events"
 }
 
@@ -135,7 +135,7 @@ type Regions struct {
 	Id     int `primaryKey:"yes"`
 }
 
-func (c Regions) TableName() string {
+func (r Regions) TableName() string {
 	return "priv_regions"
 }
 

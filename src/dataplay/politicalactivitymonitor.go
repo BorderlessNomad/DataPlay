@@ -105,6 +105,35 @@ func PopularPoliticalActivity() [3]Popular {
 	popular[0].Category = "Most Popular Keywords"
 	popular[1].Category = "Top Correlated Keywords"
 	popular[2].Category = "Top Discoverers"
+
+	results := []struct {
+		Discovered
+		Username string
+		Counter  int
+	}{}
+
+	// SELECT term, count from priv_searchterms order by count DESC limit 5
+	searchterm := []SearchTerm{}
+	err := DB.Select("term, count").Order("count desc").Limit(5).Find(&searchterm).Error
+	if err != nil && err != gorm.RecordNotFound {
+		return popular
+	}
+
+	err = DB.Select("priv_users.username, count(priv_discovered.uid) as counter").Joins("LEFT JOIN priv_users ON priv_discovered.uid = priv_users.uid").Group("priv_users.username, priv_discovered.uid").Order("counter DESC").Limit(5).Find(&results).Error
+	if err != nil && err != gorm.RecordNotFound {
+		fmt.Println("ROBOSCUD")
+		return popular
+	}
+
+	for i := 0; i < 5; i++ {
+		popular[0].TA[i].Term = searchterm[i].Term
+		popular[1].TA[i].Term = searchterm[i].Term
+		popular[2].TA[i].Term = results[i].Username
+		popular[0].TA[i].Amount = searchterm[i].Count
+		popular[1].TA[i].Amount = searchterm[i].Count
+		popular[2].TA[i].Amount = results[i].Counter
+	}
+
 	return popular
 }
 
