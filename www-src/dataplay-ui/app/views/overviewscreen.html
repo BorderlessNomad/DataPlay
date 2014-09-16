@@ -6,14 +6,13 @@
 		<div class="row">
 			<div class="col-xs-4 overviewscreen-section" ng-repeat="sect in mainsections | limitTo: 3">
 				<h4 class="text-center">{{sect.title}}</h4>
-				<div class="row">
+				<div class="row overviewscreen-sect-graph">
 					<!-- grpah here -->
-					<div style="margin-left: 25%; width: 50%; height: 150px; background-color:rgb(61, 61, 255); border-radius:10px;">
-						<!-- GRAPH GOES HERE!! -->
-					</div>
+					<div ng-if="sect.graph.length > 0" class="dc-chart chartSwitch pie" dc-chart="pieChart" dc-width="150" dc-height="150" dc-margins="{{margin}}" dc-mouse-zoomable="false" dc-brush-on="false" dc-transition-duration="500" dc-colors="d3.scale.category20()" dc-post-setup-chart="renderPie(sect)"
+ ></div>
 				</div>
-				<div class="row overviewscreen-list">
 
+				<div class="row overviewscreen-list">
 					<div class="row overviewscreen-sect-header">
 						<div class="col-xs-8"><small>{{sect.colNameA}}</small></div>
 						<div class="col-xs-4"><small>{{sect.colNameB}}</small></div>

@@ -49,9 +49,16 @@ angular.module('dataplayApp')
           .success (data) ->
             if data instanceof Array
               $scope.mainsections[i].items = data
-              $scope.mainsections[i].items = $scope.mainsections[i].items.map (item) ->
+              $scope.mainsections[i].items.forEach (item) ->
+                total = 0
+                for a in item.graph then total += a.y
+
+                $scope.mainsections[i].graph.push
+                  term: item.term
+                  value: total
+
                 item.id = "#{i.replace(/\W/g, '').toLowerCase()}-#{item.term.replace(/\W/g, '').toLowerCase()}"
-                item
+                return
           .error $scope.handleError i
 
       OverviewScreen.get 'p'
@@ -84,9 +91,7 @@ angular.module('dataplayApp')
           .range [0, 60]
         chart.x xScale
 
-        chart.keyAccessor (d) ->
-          console.log d
-          d.key
+        chart.keyAccessor (d) -> d.key
         chart.valueAccessor (d) -> d.value
 
         chart.xAxis().ticks 0
@@ -96,6 +101,22 @@ angular.module('dataplayApp')
         chart.yAxisLabel false, 0
 
         return
+
+    $scope.renderPie = (details) ->
+      return (chart) ->
+        console.log "renderPie"
+        console.log details
+        graph = details.graph
+
+        entry = crossfilter graph
+        dimension = entry.dimension (d) -> d.term
+        group = dimension.group().reduceSum (d) -> d.value
+
+        chart.dimension dimension
+        chart.group group
+
+        chart.colorAccessor (d, i) -> i + 1
+        chart.renderLabel false
 
     $scope.handleError = (type) ->
       return (err, status) ->
