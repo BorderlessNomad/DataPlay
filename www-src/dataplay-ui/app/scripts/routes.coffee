@@ -56,10 +56,6 @@ angular.module('dataplayApp')
 				templateUrl: 'views/map.html'
 				controller: 'MapCtrl'
 				login: true
-			.when '/user',
-				templateUrl: 'views/user/profile.html'
-				controller: 'ProfileCtrl'
-				login: true
 			.when '/user/login',
 				templateUrl: 'views/user/login.html'
 				login: false
@@ -78,6 +74,10 @@ angular.module('dataplayApp')
 			.when '/user/register',
 				templateUrl: 'views/user/register.html'
 				login: false
+			.when '/user',
+				templateUrl: 'views/user/profile.html'
+				controller: 'ProfileCtrl'
+				login: true
 			.when '/user/:tab',# This must be kept after all /user/* calls to make sure that login and other known pages works.
 				templateUrl: 'views/user/profile.html'
 				controller: 'ProfileCtrl'

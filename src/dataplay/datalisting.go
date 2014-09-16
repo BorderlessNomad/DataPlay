@@ -14,199 +14,9 @@ import (
 	"time"
 )
 
-type Authresponse struct {
-	Username string
-	UserID   int
-}
-
 type mainDateVal struct {
 	DateString string
 	Count      int
-}
-
-//This function is used to gather what is the username is
-// This used to be used on the front page but now it is mainly used as a "noop" call to check if the user is logged in or not.
-func CheckAuth(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	session := params["session"]
-	if len(session) <= 0 {
-		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
-		return ""
-	}
-
-	uid, err := GetUserID(session)
-	if err != nil {
-		http.Error(res, err.Message, err.Code)
-		return ""
-	}
-
-	user := User{}
-	err1 := DB.Where("uid = ?", uid).Find(&user).Error
-	check(err1)
-
-	result := Authresponse{
-		Username: user.Email,
-		UserID:   user.Uid,
-	}
-
-	b, _ := json.Marshal(result)
-
-	return string(b)
-}
-
-type SearchResult struct {
-	Title        string
-	GUID         string
-	LocationData bool
-}
-
-func SearchForDataHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	session := req.Header.Get("X-API-SESSION")
-	if len(session) <= 0 {
-		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
-		return ""
-	}
-
-	uid, err := GetUserID(session)
-	if err != nil {
-		http.Error(res, err.Message, err.Code)
-		return ""
-	}
-
-	result, error := SearchForData(params["s"], uid)
-	if error != nil {
-		http.Error(res, error.Message, error.Code)
-		return ""
-	}
-
-	r, err1 := json.Marshal(result)
-	if err1 != nil {
-		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return ""
-	}
-
-	return string(r)
-}
-
-func SearchForDataQ(params map[string]string) string {
-	if params["user"] == "" {
-		return ""
-	}
-
-	uid, e := strconv.Atoi(params["user"])
-	if e != nil {
-		return ""
-	}
-
-	result, err := SearchForData(params["s"], uid)
-	if err != nil {
-		return ""
-	}
-
-	r, e := json.Marshal(result)
-	if e != nil {
-		return ""
-	}
-
-	return string(r)
-}
-
-/**
- * @brief Search a given term in database
- * @details This method searches for a matching title with following conditions,
- * 		Suffix wildcard
- * 		Prefix & suffix wildcard
- * 		Prefix, suffix & trimmed spaces with wildcard
- * 		Prefix & suffix on previously searched terms
- */
-func SearchForData(str string, uid int) ([]SearchResult, *appError) {
-	if str == "" {
-		return nil, &appError{nil, "There was no search request", http.StatusBadRequest}
-	}
-
-	AddSearchTerm(str) // add to search term count
-
-	Indices := []Index{}
-
-	term := str + "%" // e.g. "nhs" => "nhs%" (What about "%nhs"?)
-
-	Logger.Println("Searching with Suffix Wildcard", term)
-
-	err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&Indices).Error
-	if err != nil && err != gorm.RecordNotFound {
-		return nil, &appError{err, "Database query failed (SUFFIX)", http.StatusServiceUnavailable}
-	}
-
-	Results := ProcessSearchResults(Indices, err)
-	if len(Results) == 0 {
-		term := "%" + str + "%" // e.g. "nhs" => "%nhs%"
-
-		Logger.Println("Searching with Prefix + Suffix Wildcard", term)
-
-		err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&Indices).Error
-		if err != nil && err != gorm.RecordNotFound {
-			return nil, &appError{err, "Database query failed (PREFIX + SUFFIX)", http.StatusServiceUnavailable}
-		}
-
-		Results = ProcessSearchResults(Indices, err)
-		if len(Results) == 0 {
-			term := "%" + strings.Replace(str, " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
-
-			Logger.Println("Searching with Prefix + Suffix + Trim Wildcard", term)
-
-			err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&Indices).Error
-			if err != nil && err != gorm.RecordNotFound {
-				return nil, &appError{err, "Database query failed (PREFIX + SUFFIX + TRIM)", http.StatusServiceUnavailable}
-			}
-
-			Results = ProcessSearchResults(Indices, err)
-			if len(Results) == 0 && (len(str) >= 3 && len(str) < 20) {
-				term := "%" + str + "%" // e.g. "nhs" => "%nhs%"
-
-				Logger.Println("Searching with Prefix + Suffix Wildcard in String Table", term)
-
-				query := DB.Table("priv_stringsearch, priv_onlinedata, index")
-				query = query.Select("DISTINCT ON (priv_onlinedata.guid) priv_onlinedata.guid, index.title")
-				query = query.Where("(LOWER(value) LIKE LOWER(?) OR LOWER(x) LIKE LOWER(?))", term, term)
-				query = query.Where("priv_stringsearch.tablename = priv_onlinedata.tablename")
-				query = query.Where("priv_onlinedata.guid = index.guid")
-				query = query.Where("(owner = ? OR owner = ?)", 0, uid)
-				query = query.Order("priv_onlinedata.guid")
-				query = query.Order("priv_stringsearch.count DESC")
-				query = query.Limit(10)
-				err := query.Find(&Indices).Error
-
-				if err != nil && err != gorm.RecordNotFound {
-					return nil, &appError{err, "Database query failed (PREFIX + SUFFIX + STRING)", http.StatusInternalServerError}
-				}
-
-				Results = ProcessSearchResults(Indices, err)
-			}
-		}
-	}
-
-	return Results, nil
-}
-
-func ProcessSearchResults(rows []Index, e error) []SearchResult {
-	if e != nil && e != gorm.RecordNotFound {
-		check(e)
-	}
-
-	Results := make([]SearchResult, 0)
-
-	for _, row := range rows {
-		Location := HasTableGotLocationData(row.Guid)
-
-		result := SearchResult{
-			Title:        SanitizeString(row.Title),
-			GUID:         SanitizeString(row.Guid),
-			LocationData: Location,
-		}
-
-		Results = append(Results, result)
-	}
-
-	return Results
 }
 
 type DataEntry struct {
@@ -248,10 +58,6 @@ func GetEntry(res http.ResponseWriter, req *http.Request, params martini.Params)
 	return string(b)
 }
 
-func SanitizeString(str string) string {
-	return strings.Replace(str, "Ã‚Â£", "£", -1)
-}
-
 // This function casts everything into what it /Should/ Be
 // But due to a obscureity in mysql / go / DB.SQL\sql
 // everything wants to be a []byte. So I just cast them to that
@@ -283,11 +89,6 @@ func ScanRow(values []interface{}, columns []string) map[string]interface{} {
 	}
 
 	return record
-}
-
-type Dataresponse struct {
-	Results []interface{}
-	Name    string
 }
 
 func DumpTableHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
@@ -959,21 +760,6 @@ func ConvertToFloat(val interface{}) (float64, error) {
 	default:
 		return math.NaN(), errors.New("ConvertToFloat: Unknown value is of incompatible type")
 	}
-}
-
-func AddSearchTerm(str string) {
-	searchterm := SearchTerm{}
-
-	err := DB.Where("term = ?", str).Find(&searchterm).Error
-	if err != nil && err != gorm.RecordNotFound {
-		panic(err)
-	} else if err == gorm.RecordNotFound {
-		searchterm.Count = 0
-		searchterm.Term = str
-	}
-
-	searchterm.Count++
-	err = DB.Save(&searchterm).Error
 }
 
 // RUN ONCE AND POPULATE PRIMARY DATE FIELD IN PRIV_ONLINEDATA WITH MAIN TABLE DATE FOR USE IN SEARCH
