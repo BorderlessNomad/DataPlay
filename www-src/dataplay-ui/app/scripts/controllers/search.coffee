@@ -12,10 +12,11 @@ angular.module('dataplayApp')
 		$scope.query = if $routeParams.query? then $routeParams.query else ""
 		$scope.searchTimeout = null
 		$scope.results = []
+		$scope.rowedResults = [] # split into sub-arrays of 3
 
 		$scope.totalResults = 0
 
-		$scope.rowLimit = 1
+		$scope.rowLimit = 3
 
 		$scope.overview = [
 			{
@@ -30,11 +31,16 @@ angular.module('dataplayApp')
 			}
 		]
 
-		$scope.search = () ->
+		$scope.search = (offset = 0, count = 9) ->
 			return if $scope.query.length < 3
-			User.search $scope.query
+			User.search $scope.query, offset, count
 				.success (data) ->
-					$scope.results = $scope.splitIntoRows data.Results
+					if offset is 0
+						$scope.results = data.Results
+					else
+						$scope.results = $scope.results.concat data.Results
+
+					$scope.rowedResults = $scope.splitIntoRows $scope.results
 					$scope.totalResults = data.Total
 					return
 				.error (status, data) ->
@@ -53,10 +59,10 @@ angular.module('dataplayApp')
 			return twoD
 
 		$scope.showMore = ->
-			$scope.rowLimit++
-			if $scope.results.length < $scope.rowLimit
+			$scope.rowLimit += 2
+			if $scope.rowedResults.length < $scope.rowLimit
 				# get more results
-				console.log 'blah'
+				$scope.search ($scope.rowLimit - 1) * 3, 9
 
 
 		# Initiate search if we have /search/:query
