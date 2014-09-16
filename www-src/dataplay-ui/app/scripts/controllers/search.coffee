@@ -32,16 +32,14 @@ angular.module('dataplayApp')
 
 		$scope.search = () ->
 			return if $scope.query.length < 3
-
 			User.search $scope.query
 				.success (data) ->
-					$scope.results = $scope.splitIntoRows data
-					$scope.totalResults = data.length
+					$scope.results = $scope.splitIntoRows data.Results
+					$scope.totalResults = data.Total
 					return
 				.error (status, data) ->
 					console.log "Search::search::Error:", status
 					return
-
 			return
 
 		$scope.splitIntoRows = (arr, numOfCols = 3) ->

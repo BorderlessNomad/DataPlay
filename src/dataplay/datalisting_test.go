@@ -9,37 +9,6 @@ import (
 	"time"
 )
 
-func TestCheckAuth(t *testing.T) {
-	request, _ := http.NewRequest("POST", "/", strings.NewReader("username=glyn@dataplay.com&password=123456"))
-	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
-	u := UserForm{}
-	u.Username = "glyn@dataplay.com"
-	u.Password = "123456"
-	response := httptest.NewRecorder()
-	NewSessionID := randString(64)
-	c, _ := GetRedisConnection()
-	defer c.Close()
-	c.Cmd("SET", NewSessionID, 1)
-
-	NewCookie := &http.Cookie{
-		Name:    "DPSession",
-		Value:   NewSessionID,
-		Path:    "/",
-		Expires: time.Now().AddDate(1, 0, 0),
-	}
-	http.SetCookie(response, NewCookie)
-	request.Header.Set("Cookie", NewCookie.String())
-	HandleLogin(response, request, u)
-	params := map[string]string{
-		"id": "181",
-	}
-
-	Convey("When user is/isn't logged in", t, func() {
-		CheckAuth(response, request, params)
-		So(response.Code, ShouldNotBeNil)
-	})
-}
-
 func TestSearchForData(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	request.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
@@ -87,13 +56,13 @@ func TestSearchForData(t *testing.T) {
 	})
 	Convey("When bad data parameter is provided", t, func() {
 		params["user"] = "-98"
-		params["s"] = "derpaderp"
+		params["keyword"] = "derpaderp"
 		result = SearchForDataQ(params)
 		So(result, ShouldEqual, "[]")
 	})
 	Convey("When search parameter is 'nhs'", t, func() {
 		params["user"] = "1"
-		params["s"] = "nhs"
+		params["keyword"] = "nhs"
 		result = SearchForDataQ(params)
 		So(result, ShouldNotBeBlank)
 	})
