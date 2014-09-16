@@ -1,0 +1,42 @@
+
+
+<div class="row">
+
+	<div class="col-sm-9 col-xs-12">
+		<div class="row">
+			<div class="col-xs-4" ng-repeat="sect in mainsections">
+				<h4 class="text-center">{{sect.title}}</h4>
+				<div class="row">
+					<!-- grpah here -->
+					graph
+				</div>
+				<div class="row">
+					<!-- list here -->
+					list
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-sm-3 col-xs-0">
+		<div class="sidebar overviewscreen-sb">
+			<div class="title">Overview</div>
+
+			<div class="content">
+				<div class="media" ng-repeat="sect in sidebarsections">
+					<h5>{{sect.title}}</h5>
+					<div class="row" ng-repeat="item in sect.items">
+
+
+						<p class="item"><span class="label label-primary label-purple">{{item.count}}</span>&nbsp;&nbsp;{{item.title}}</p>
+
+
+					</div>
+					<div class="nothing" ng-hide="sect.items.length > 0"><p class="text-center text-muted">Nothing to show</p></div>
+				</div>
+			</div>
+
+
+		</div>
+	</div>
+</div>
