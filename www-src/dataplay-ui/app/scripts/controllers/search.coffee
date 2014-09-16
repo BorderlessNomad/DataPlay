@@ -24,8 +24,14 @@ angular.module('dataplayApp')
 			bottom: 0
 			left: 0
 
+		$scope.init = () ->
+			# Initiate search if we have /search/:query
+			$scope.search()
+			$scope.getNews()
+
 		$scope.search = (offset = 0, count = 9) ->
 			return if $scope.query.length < 3
+
 			User.search $scope.query, offset, count
 				.success (data) ->
 					if offset is 0
@@ -50,6 +56,7 @@ angular.module('dataplayApp')
 
 		$scope.getNews = () ->
 			return if $scope.query.length < 3
+
 			User.getNews $scope.query
 				.success (data) ->
 					if data instanceof Array
@@ -85,12 +92,9 @@ angular.module('dataplayApp')
 		$scope.uncollapse = (item) ->
 			item.show = true
 
-
 		$scope.lineChartPostSetup = (details) ->
-			return (chart) ->
+			(chart) ->
 				data = details.graph
-
-				console.log details, chart
 
 				return unless data and data.values and data.values.length > 0
 
@@ -112,6 +116,7 @@ angular.module('dataplayApp')
 				chart.yAxisLabel false, 0
 
 				chart.x $scope.getXScale data
+
 				return
 
 		$scope.getXScale = (data) ->
@@ -131,14 +136,10 @@ angular.module('dataplayApp')
 
 			xScale
 
-
-		# Initiate search if we have /search/:query
-		$scope.search()
-		$scope.getNews()
-
 		# Watch change to 'query' and do SILENT $location replace [No REFRESH]
 		#	Note: Watch is initiated only after window.ready
 		$scope.$watch "query", ((newVal, oldVal) ->
+			console.log newVal, newVal.length
 			if newVal.length >= 3
 				qs = "/search/#{newVal}"
 				$location.path qs, false

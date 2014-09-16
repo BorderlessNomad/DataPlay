@@ -40,6 +40,7 @@ type DatedTerm struct {
 }
 
 type Popular struct {
+	Id       string     `json:"id"`
 	Category string     `json:"category"`
 	TA       [5]TermAmt `json:"top5"`
 }
@@ -102,8 +103,14 @@ func RegionsPoliticalActivity() []PoliticalActivity {
 
 func PopularPoliticalActivity() [3]Popular {
 	var popular [3]Popular
+
+	popular[0].Id = "most_popular"
 	popular[0].Category = "Most Popular Keywords"
+
+	popular[1].Id = "top_correlated"
 	popular[1].Category = "Top Correlated Keywords"
+
+	popular[2].Id = "top_discoverers"
 	popular[2].Category = "Top Discoverers"
 
 	results := []struct {
@@ -126,10 +133,12 @@ func PopularPoliticalActivity() [3]Popular {
 
 	for i := 0; i < 5; i++ {
 		popular[0].TA[i].Term = searchterm[i].Term
-		popular[1].TA[i].Term = searchterm[i].Term
-		popular[2].TA[i].Term = results[i].Username
 		popular[0].TA[i].Amount = searchterm[i].Count
+
+		popular[1].TA[i].Term = searchterm[i].Term
 		popular[1].TA[i].Amount = searchterm[i].Count
+
+		popular[2].TA[i].Term = results[i].Username
 		popular[2].TA[i].Amount = results[i].Counter
 	}
 

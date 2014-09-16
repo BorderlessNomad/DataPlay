@@ -17,7 +17,7 @@ angular.module('dataplayApp')
       bottom: 0
       left: 0
 
-    $scope.mainsections = {
+    $scope.mainSections = {
       d:
         title: 'Gov Departments/Bodies'
         colNameA: 'Entities'
@@ -41,37 +41,40 @@ angular.module('dataplayApp')
         items: []
     }
 
-    $scope.sidebarsections = []
+    $scope.sidebarSections = []
 
     $scope.init = ->
       (['d', 'e', 'r']).forEach (i) ->
         OverviewScreen.get i
           .success (data) ->
             if data instanceof Array
-              $scope.mainsections[i].items = data
-              $scope.mainsections[i].items.forEach (item) ->
+              $scope.mainSections[i].items = data
+              $scope.mainSections[i].items.forEach (item) ->
                 total = 0
                 for a in item.graph then total += a.y
 
-                $scope.mainsections[i].graph.push
+                $scope.mainSections[i].graph.push
                   term: item.term
                   value: total
 
                 item.id = "#{i.replace(/\W/g, '').toLowerCase()}-#{item.term.replace(/\W/g, '').toLowerCase()}"
+
                 return
           .error $scope.handleError i
 
       OverviewScreen.get 'p'
         .success (data) ->
           if data instanceof Array
-            $scope.sidebarsections = data.map (sect) ->
+            $scope.sidebarSections = data.map (sect) ->
+              sect.url = if sect.id is "top_discoverers" then "user" else "search"
               sect.top5 = sect.top5.filter (item) ->
-                return item.amount > 0
-              return sect
+                item.amount > 0
+
+              sect
         .error $scope.handleError 'p'
 
     $scope.renderLine = (details) ->
-      return (chart) ->
+      (chart) ->
         graph = details.graph
 
         entry = crossfilter graph
@@ -81,7 +84,6 @@ angular.module('dataplayApp')
         ordinals = []
         ordinals.push d.key for d in group.all() when d not in ordinals
         chart.colorAccessor (d, i) -> parseInt(d.y) % ordinals.length
-
 
         chart.dimension dimension
         chart.group group, "Test Title"
@@ -94,8 +96,8 @@ angular.module('dataplayApp')
         chart.keyAccessor (d) -> d.key
         chart.valueAccessor (d) -> d.value
 
-        chart.xAxis().ticks 0
-        chart.yAxis().ticks 0
+        chart.xAxis().ticks(0).tickFormat (v) -> ""
+        chart.yAxis().ticks(0).tickFormat (v) -> ""
 
         chart.xAxisLabel false, 0
         chart.yAxisLabel false, 0
@@ -103,7 +105,7 @@ angular.module('dataplayApp')
         return
 
     $scope.renderPie = (details) ->
-      return (chart) ->
+      (chart) ->
         graph = details.graph
 
         entry = crossfilter graph
@@ -117,8 +119,8 @@ angular.module('dataplayApp')
         chart.renderLabel false
 
     $scope.handleError = (type) ->
-      return (err, status) ->
-        $scope.mainsections[type].error = switch
+      (err, status) ->
+        $scope.mainSections[type].error = switch
           when err and err.message then err.message
           when err and err.data and err.data.message then err.data.message
           when err and err.data then err.data
