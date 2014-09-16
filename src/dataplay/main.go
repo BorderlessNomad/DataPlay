@@ -206,6 +206,7 @@ func initClassicMode() {
 	m.Get("/api/correlated/:tablename/:offset/:count/:search", GetCorrelatedChartsHttp)
 	m.Get("/api/discovered/:tablename/:correlated", GetDiscoveredChartsHttp)
 	m.Get("/api/discovered/:tablename/:correlated/:offset/:count", GetDiscoveredChartsHttp)
+	m.Get("/api/news/search/:terms", SearchForNewsHttp)
 
 	m.Put("/api/chart", binding.Bind(ValidationRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, validation ValidationRequest) string {
 		return ValidateChartHttp(res, req, params, validation)

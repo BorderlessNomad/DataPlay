@@ -38,7 +38,7 @@ func TestGetPoliticalActivityHttp(t *testing.T) {
 
 	Convey("Should return popular PoliticalActivity", t, func() {
 		result := GetPoliticalActivityHttp(res, req, params)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 
 	// WriteCass()
