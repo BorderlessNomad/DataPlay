@@ -13,6 +13,10 @@ angular.module('dataplayApp')
 		$scope.searchTimeout = null
 		$scope.results = []
 
+		$scope.totalResults = 0
+
+		$scope.rowLimit = 1
+
 		$scope.overview = [
 			{
 				date: Overview.humanDate new Date
@@ -29,14 +33,33 @@ angular.module('dataplayApp')
 		$scope.search = () ->
 			return if $scope.query.length < 3
 
-			User.search($scope.query).success((data) ->
-				$scope.results = data
-				return
-			).error (status, data) ->
-				console.log "Search::search::Error:", status
-				return
+			User.search $scope.query
+				.success (data) ->
+					$scope.results = $scope.splitIntoRows data
+					$scope.totalResults = data.length
+					return
+				.error (status, data) ->
+					console.log "Search::search::Error:", status
+					return
 
 			return
+
+		$scope.splitIntoRows = (arr, numOfCols = 3) ->
+			twoD = []
+			for item, key in arr
+				row = Math.floor key / numOfCols
+				col = key % numOfCols
+				if not twoD[row]
+					twoD[row] = []
+				twoD[row][col] = item
+			return twoD
+
+		$scope.showMore = ->
+			$scope.rowLimit++
+			if $scope.results.length < $scope.rowLimit
+				# get more results
+				console.log 'blah'
+
 
 		# Initiate search if we have /search/:query
 		$scope.search()
