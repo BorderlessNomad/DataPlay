@@ -121,7 +121,6 @@ func PopularPoliticalActivity() [3]Popular {
 
 	err = DB.Select("priv_users.username, count(priv_discovered.uid) as counter").Joins("LEFT JOIN priv_users ON priv_discovered.uid = priv_users.uid").Group("priv_users.username, priv_discovered.uid").Order("counter DESC").Limit(5).Find(&results).Error
 	if err != nil && err != gorm.RecordNotFound {
-		fmt.Println("ROBOSCUD")
 		return popular
 	}
 
@@ -314,7 +313,6 @@ func GetPoliticalActivityHttp(res http.ResponseWriter, req *http.Request, params
 			http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
 			return "Unable to parse JSON"
 		}
-
 		return string(r)
 	} else {
 		http.Error(res, "Bad type param", http.StatusInternalServerError)

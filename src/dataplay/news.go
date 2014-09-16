@@ -56,7 +56,44 @@ func SearchForNewsQ(params map[string]string) string {
 }
 
 func SearchForNews(searchterms string) ([]NewsArticle, *appError) {
-	response := []NewsArticle{}
+	newsarticle := []NewsArticle{}
+	session, _ := GetCassandraConnection("dp") // create connection to cassandra
+	defer session.Close()
+
+	searchresponse : =SearchForData(uid int, keyword string, params map[string]string)
+
+	// Select response where date
+	// check description in response and date in response and if match search term get id and original url and use id to get image url
+
+	// SELECT id, original_url, description FROM response WHERE date >= '2010-01-03' AND date < '2010-01-06' ALLOW FILTERING;
+
+	//  select url from image where id = 0x7405b41f61f32f1f3992ba137cbebf82
+
+
+	// // add all dated dateID between -n days and today to array
+	// iter := session.Query(`SELECT id, date FROM response WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
+	// for iter.Scan(&id, &queryDate) {
+	// 	dateID = append(dateID, string(id[:len(id)])+"!"+queryDate.Format(time.RFC3339))
+	// }
+
+	// if err := iter.Close(); err != nil {
+	// 	///return err
+	// }
+
+	// for _, term := range terms {
+	// 	iter := session.Query(`SELECT id FROM keyword WHERE name = ?`, term).Iter()
+	// 	for iter.Scan(&id) {
+	// 		var date time.Time
+	// 		date = DateAndId(id, dateID)
+	// 		if date.Year() > 1 {
+	// 			tmpDT.Term = term
+	// 			tmpDT.ID = id
+	// 			tmpDT.Date = date
+	// 			DatedTerms = append(DatedTerms, tmpDT)
+	// 		}
+	// 	}
+	// }
+
 	return response, nil
 
 }
