@@ -20,19 +20,19 @@ func TestGetPoliticalActivityHttp(t *testing.T) {
 		So(result, ShouldEqual, "")
 	})
 
-	// params["type"] = "e"
+	params["type"] = "e"
 
-	// Convey("Should return events PoliticalActivity", t, func() {
-	// 	result := GetPoliticalActivityHttp(res, req, params)
-	// 	So(result, ShouldEqual, "")
-	// })
+	Convey("Should return events PoliticalActivity", t, func() {
+		result := GetPoliticalActivityHttp(res, req, params)
+		So(result, ShouldEqual, "")
+	})
 
-	// params["type"] = "r"
+	params["type"] = "r"
 
-	// Convey("Should return regions PoliticalActivity", t, func() {
-	// 	result := GetPoliticalActivityHttp(res, req, params)
-	// 	So(result, ShouldEqual, "")
-	// })
+	Convey("Should return regions PoliticalActivity", t, func() {
+		result := GetPoliticalActivityHttp(res, req, params)
+		So(result, ShouldEqual, "")
+	})
 
 	// WriteCass()
 }
