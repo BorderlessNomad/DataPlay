@@ -1,16 +1,22 @@
 <div class="row" ng-init="init()">
 
 	<div class="col-sm-9 col-xs-12">
-		<div class="row">
+		<div class="row overviewscreen">
 			<div class="col-xs-4 overviewscreen-section" ng-repeat="sect in mainsections | limitTo: 3">
 				<h4 class="text-center">{{sect.title}}</h4>
-				<div class="row overviewscreen-sect-graph">
+				<div class="row overviewscreen-sect-graph" ng-if="sect.graph.length > 0 && !sect.error">
 					<!-- grpah here -->
 					<div ng-if="sect.graph.length > 0" class="dc-chart chartSwitch pie" dc-chart="pieChart" dc-width="150" dc-height="150" dc-margins="{{margin}}" dc-mouse-zoomable="false" dc-brush-on="false" dc-transition-duration="500" dc-colors="d3.scale.category20()" dc-post-setup-chart="renderPie(sect)"
  ></div>
 				</div>
 
-				<div class="row overviewscreen-list">
+				<div class="loading" ng-if="sect.items.length == 0 && !sect.error" ng-include="'views/loader.html'"></div>
+				<div class="alert alert-warning" ng-if="sect.error">
+					<h5>Something went wrong</h5>
+					<p>{{sect.error}}</p>
+				</div>
+
+				<div class="row overviewscreen-list" ng-if="sect.items.length > 0 && !sect.error">
 					<div class="row overviewscreen-sect-header">
 						<div class="col-xs-8"><small>{{sect.colNameA}}</small></div>
 						<div class="col-xs-4"><small>{{sect.colNameB}}</small></div>

@@ -19,7 +19,7 @@ angular.module('dataplayApp')
 
     $scope.mainsections = {
       d:
-        title: 'Gov Departments/Boodies'
+        title: 'Gov Departments/Bodies'
         colNameA: 'Entities'
         colNameB: 'Last 30 days'
         error: null
@@ -104,8 +104,6 @@ angular.module('dataplayApp')
 
     $scope.renderPie = (details) ->
       return (chart) ->
-        console.log "renderPie"
-        console.log details
         graph = details.graph
 
         entry = crossfilter graph
