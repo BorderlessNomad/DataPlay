@@ -60,7 +60,7 @@ func SearchForNews(searchterms string) ([]NewsArticle, *appError) {
 	session, _ := GetCassandraConnection("dp") // create connection to cassandra
 	defer session.Close()
 
-	searchresponse : =SearchForData(uid int, keyword string, params map[string]string)
+	// searchresponse := SearchForData(uid int, keyword string, params map[string]string)
 
 	// Select response where date
 	// check description in response and date in response and if match search term get id and original url and use id to get image url
@@ -94,6 +94,6 @@ func SearchForNews(searchterms string) ([]NewsArticle, *appError) {
 	// 	}
 	// }
 
-	return response, nil
+	return newsarticle, nil
 
 }

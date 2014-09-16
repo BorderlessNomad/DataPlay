@@ -127,6 +127,5 @@ angular.module('dataplayApp')
           when err then err
           else ''
 
-    $scope.init()
     return
   ]
