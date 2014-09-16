@@ -15,15 +15,19 @@ import (
 
 const numdays = 30
 
-var Today = time.Date(2010, 2, 1, 0, 0, 0, 0, time.UTC)
+var Today = time.Date(2010, 2, 1, 0, 0, 0, 0, time.UTC) // override today's date
 var FromDate = Today.AddDate(0, 0, -numdays)
 
 type PoliticalActivity struct {
-	Term     string       `json:"term"`
-	Mentions [numdays]int `json:"mentionsperday"`
-	Val      int          `json:"-"`
+	Term     string               `json:"term"`
+	Mentions [numdays]PoliticalXY `json:"graph"`
+	Val      int                  `json:"-"`
 }
 
+type PoliticalXY struct {
+	X int `json:"x"`
+	Y int `json:"y"`
+}
 type DateID struct {
 	ID   []byte
 	Date time.Time
@@ -33,6 +37,16 @@ type DatedTerm struct {
 	Term string
 	Date time.Time
 	ID   []byte
+}
+
+type Popular struct {
+	Category string     `json:"category"`
+	TA       [5]TermAmt `json:"top5"`
+}
+
+type TermAmt struct {
+	Term   string `json:"term"`
+	Amount int    `json:"amount"`
 }
 
 // gets names of all departments, checks for mentions in specified time period and returns ranked array of 15 most popular terms and their 30 day frequencies
@@ -86,6 +100,14 @@ func RegionsPoliticalActivity() []PoliticalActivity {
 	return CheckThese(terms)
 }
 
+func PopularPoliticalActivity() [3]Popular {
+	var popular [3]Popular
+	popular[0].Category = "Most Popular Keywords"
+	popular[1].Category = "Top Correlated Keywords"
+	popular[2].Category = "Top Discoverers"
+	return popular
+}
+
 // takes slice of terms, checks for the total number of occurences and returns a top 15 ranked array
 func CheckThese(terms []string) []PoliticalActivity {
 	politicalActivity := make([]PoliticalActivity, len(terms))
@@ -96,7 +118,7 @@ func CheckThese(terms []string) []PoliticalActivity {
 		for _, dt := range DatedTerm {   // check through all dated terms
 			if term == dt.Term { //if there's a match
 				dayindex := int((Today.Round(time.Hour).Sub(dt.Date.Round(time.Hour)) / 24).Hours() - 1) // get day index
-				politicalActivity[i].Mentions[dayindex]++                                                // increase the count for that term on that day
+				politicalActivity[i].Mentions[dayindex].Y++                                              // increase the count for that term on that day
 			}
 		}
 	}
@@ -173,7 +195,8 @@ func RankPA(activities []PoliticalActivity) []PoliticalActivity {
 	for i, _ := range activities {
 		total := 0
 		for j, _ := range activities[i].Mentions {
-			total += activities[i].Mentions[j]
+			total += activities[i].Mentions[j].Y
+			activities[i].Mentions[j].X = j
 		}
 		activities[i].Val = total
 	}
@@ -201,35 +224,6 @@ func RankPA(activities []PoliticalActivity) []PoliticalActivity {
 	}
 
 	return activities[0:15]
-}
-
-func GetPoliticalActivityHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	session := req.Header.Get("X-API-SESSION")
-	if len(session) <= 0 {
-		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
-	}
-
-	var result []PoliticalActivity
-
-	if params["type"] == "d" {
-		result = DepartmentsPoliticalActivity()
-	} else if params["type"] == "e" {
-		result = EventsPoliticalActivity()
-	} else if params["type"] == "r" {
-		result = RegionsPoliticalActivity()
-	} else {
-		http.Error(res, "Bad type param", http.StatusInternalServerError)
-		return "Bad type param"
-	}
-
-	r, err := json.Marshal(result)
-	if err != nil {
-		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
-	}
-
-	return string(r)
 }
 
 func WriteCass() {
@@ -267,4 +261,42 @@ func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
 	}
 
 	return session, err
+}
+
+func GetPoliticalActivityHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter", http.StatusBadRequest)
+		return "Missing session parameter"
+	}
+
+	var result []PoliticalActivity
+
+	if params["type"] == "d" {
+		result = DepartmentsPoliticalActivity()
+	} else if params["type"] == "e" {
+		result = EventsPoliticalActivity()
+	} else if params["type"] == "r" {
+		result = RegionsPoliticalActivity()
+	} else if params["type"] == "p" {
+		pResult := PopularPoliticalActivity()
+		r, err := json.Marshal(pResult)
+		if err != nil {
+			http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+			return "Unable to parse JSON"
+		}
+
+		return string(r)
+	} else {
+		http.Error(res, "Bad type param", http.StatusInternalServerError)
+		return "Bad type param"
+	}
+
+	r, err := json.Marshal(result)
+	if err != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return "Unable to parse JSON"
+	}
+
+	return string(r)
 }
