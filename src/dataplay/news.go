@@ -3,8 +3,9 @@ package main
 import (
 	"encoding/json"
 	"github.com/codegangsta/martini"
-	// "github.com/jinzhu/gorm"
+	"github.com/pmylund/sortutil"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -13,6 +14,7 @@ type NewsArticle struct {
 	Title    string    `json:"title"`
 	Url      string    `json:"url"`
 	ImageUrl string    `json:"image_url"`
+	Score    int       `json:"SCORE"`
 }
 
 func SearchForNewsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
@@ -56,44 +58,66 @@ func SearchForNewsQ(params map[string]string) string {
 }
 
 func SearchForNews(searchterms string) ([]NewsArticle, *appError) {
-	newsarticle := []NewsArticle{}
+	newsarticles := []NewsArticle{}
+	searchterm := strings.Split(searchterms, "_")
 	session, _ := GetCassandraConnection("dp") // create connection to cassandra
 	defer session.Close()
 
-	searchresponse : =SearchForData(uid int, keyword string, params map[string]string)
-
-	// Select response where date
-	// check description in response and date in response and if match search term get id and original url and use id to get image url
-
-	// SELECT id, original_url, description FROM response WHERE date >= '2010-01-03' AND date < '2010-01-06' ALLOW FILTERING;
-
-	//  select url from image where id = 0x7405b41f61f32f1f3992ba137cbebf82
-
-
-	// // add all dated dateID between -n days and today to array
-	// iter := session.Query(`SELECT id, date FROM response WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
-	// for iter.Scan(&id, &queryDate) {
-	// 	dateID = append(dateID, string(id[:len(id)])+"!"+queryDate.Format(time.RFC3339))
+	/////////// @TODO: Weight based on search date///////////////
+	// searchdate := ""
+	// params := map[string]string{
+	// 	"offset": "0",
+	// 	"count":  "1",
 	// }
+	// searchresponse, _ := SearchForData(1, "gold", params)
+	// onlineData := OnlineData{}
+	// DB.Where("guid = ?", searchresponse.Results[0].GUID).Find(&onlineData)
+	// if onlineData.Primarydate != "" {
+	// 	searchdate = onlineData.Primarydate
+	// }
+
+	var id []byte
+	var date time.Time
+	var originalUrl, title, description, imageUrl string
+	iter := session.Query(`SELECT id, title, original_url, date, description FROM response WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
+	for iter.Scan(&id, &title, &originalUrl, &date, &description) {
+		termcount := 0
+		for _, st := range searchterm {
+			termcount += TermCheck(st, description)
+			termcount += TermCheck(st, title) //if term in title too it adds weight
+		}
+		if termcount > 0 {
+			var tmpNA NewsArticle
+			session.Query(`SELECT url FROM image WHERE id = ? LIMIT 1 ALLOW FILTERING`, id).Scan(&imageUrl)
+			tmpNA.Date = date
+			tmpNA.Title = title
+			tmpNA.Url = originalUrl
+			tmpNA.ImageUrl = imageUrl
+			tmpNA.Score = termcount
+			newsarticles = append(newsarticles, tmpNA)
+		}
+	}
 
 	// if err := iter.Close(); err != nil {
-	// 	///return err
+	// 	return newsarticles, err
 	// }
 
-	// for _, term := range terms {
-	// 	iter := session.Query(`SELECT id FROM keyword WHERE name = ?`, term).Iter()
-	// 	for iter.Scan(&id) {
-	// 		var date time.Time
-	// 		date = DateAndId(id, dateID)
-	// 		if date.Year() > 1 {
-	// 			tmpDT.Term = term
-	// 			tmpDT.ID = id
-	// 			tmpDT.Date = date
-	// 			DatedTerms = append(DatedTerms, tmpDT)
-	// 		}
-	// 	}
-	// }
-
-	return response, nil
-
+	sortutil.DescByField(newsarticles, "Score")
+	return newsarticles, nil
 }
+
+func TermCheck(term string, passage string) int {
+	descriptions := strings.Split(passage, " ")
+	for _, d := range descriptions {
+		if d == term {
+			return 1
+		}
+	}
+	return 0
+}
+
+// sort.Sort(byScore(newsarticles))
+// type byScore []NewsArticle
+// func (v byScore) Len() int      { return len(v) }
+// func (v byScore) Swap(i, j int) { v[i], v[j] = v[j], v[i] }
+// func (v byScore) Less(i, j int) bool { v[i].Score < v[j].Score }
