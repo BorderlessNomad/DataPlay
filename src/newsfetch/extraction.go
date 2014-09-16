@@ -220,10 +220,10 @@ func writeToCass(resp string) {
 		}
 	}
 
-	for _, i := range r.Images {
-		if err := session.Query(`INSERT INTO image (id, caption, url, width, height, entropy, size) 
-			VALUES (?, ?, ?, ?, ?, ?, ?)`,
-			i.ID, i.Caption, i.URL, i.Width, i.Height, i.Entropy, i.Size).Exec(); err != nil {
+	for index, i := range r.Images {
+		if err := session.Query(`INSERT INTO image (pic_index, id, caption, url, width, height, entropy, size) 
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+			index, i.ID, i.Caption, i.URL, i.Width, i.Height, i.Entropy, i.Size).Exec(); err != nil {
 			fmt.Println("HELP5!", err)
 		}
 	}

@@ -45,13 +45,14 @@ type Entity struct {
 }
 
 type Image struct {
-	ID      []byte  `json:"id"`
-	Caption string  `json:"caption"`
-	URL     string  `json:"url"`
-	Width   int     `json:"width"`
-	Height  int     `json:"height"`
-	Entropy float32 `json:"entropy"`
-	Size    int     `json:"size"`
+	ID       []byte  `json:"id"`
+	PicIndex int     `json:"pic_index"`
+	Caption  string  `json:"caption"`
+	URL      string  `json:"url"`
+	Width    int     `json:"width"`
+	Height   int     `json:"height"`
+	Entropy  float32 `json:"entropy"`
+	Size     int     `json:"size"`
 }
 
 type Keyword struct {

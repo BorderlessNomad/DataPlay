@@ -45,7 +45,7 @@ type Departments struct {
 	Id      int `primaryKey:"yes"`
 }
 
-func (d Departments) TableName() string {
+func (dp Departments) TableName() string {
 	return "priv_departments"
 }
 
