@@ -11,101 +11,91 @@ angular.module('dataplayApp')
   .controller 'OverviewScreenCtrl', ['$scope', '$location', '$routeParams', 'OverviewScreen', 'Auth', 'config', ($scope, $location, $routeParams, OverviewScreen, Auth, config) ->
     $scope.params = $routeParams
 
+    $scope.margin =
+      top: 0
+      right: 0
+      bottom: 0
+      left: 0
+
     $scope.mainsections = {
       d:
         title: 'Gov Departments/Boodies'
         colNameA: 'Entities'
         colNameB: 'Last 30 days'
         error: null
-        items: [
-          {
-            title: 'Health'
-            data: [0,1,2,3,4,5,4,3,2,1]
-          }
-          {
-            title: 'Cabinet Office'
-            data: [0,1,2,3,4,5,4,3,2,1]
-          }
-        ]
+        graph: []
+        items: []
       e:
         title: 'Political Events'
         colNameA: 'Event'
         colNameB: 'Last 30 days'
         error: null
-        items: [
-          {
-            title: 'Announcement'
-            data: [0,1,2,3,4,5,4,3,2,1]
-          }
-          {
-            title: 'Protest'
-            data: [0,1,2,3,4,5,4,3,2,1]
-          }
-        ]
+        graph: []
+        items: []
       r:
         title: 'Politically Aware/Active'
         colNameA: 'Location'
         colNameB: 'Last 30 days'
         error: null
-        items: [
-          {
-            title: 'Westminster'
-            data: [0,1,2,3,4,5,4,3,2,1]
-          }
-          {
-            title: 'Westminster'
-            data: [0,1,2,3,4,5,4,3,2,1]
-          }
-        ]
+        graph: []
+        items: []
     }
 
-    $scope.sidebarsections = [
-      {
-        title: 'Most Popular keywords'
-        items: [
-          {
-            title: 'A&E'
-            count: 22241
-          }
-          {
-            title: 'London'
-            count: 22240
-          }
-          {
-            title: 'Alcohol'
-            count: 22239
-          }
-        ]
-      }
-      {
-        title: 'Top Correlated keywords'
-        items: [
-          {
-            title: 'A&E'
-            count: 23241
-          }
-          {
-            title: 'London'
-            count: 23240
-          }
-          {
-            title: 'Alcohol'
-            count: 23239
-          }
-        ]
-      }
-      {
-        title: 'Top Discoverers'
-        items: []
-      }
-    ]
+    $scope.sidebarsections = []
 
     $scope.init = ->
       (['d', 'e', 'r']).forEach (i) ->
         OverviewScreen.get i
           .success (data) ->
-            console.log data
+            if data instanceof Array
+              $scope.mainsections[i].items = data
+              $scope.mainsections[i].items = $scope.mainsections[i].items.map (item) ->
+                item.id = "#{i.replace(/\W/g, '').toLowerCase()}-#{item.term.replace(/\W/g, '').toLowerCase()}"
+                item
           .error $scope.handleError i
+
+      OverviewScreen.get 'p'
+        .success (data) ->
+          if data instanceof Array
+            $scope.sidebarsections = data.map (sect) ->
+              sect.top5 = sect.top5.filter (item) ->
+                return item.amount > 0
+              return sect
+        .error $scope.handleError 'p'
+
+    $scope.renderLine = (details) ->
+      return (chart) ->
+        graph = details.graph
+
+        entry = crossfilter graph
+        dimension = entry.dimension (d) -> d.x
+        group = dimension.group().reduceSum (d) -> d.y
+
+        ordinals = []
+        ordinals.push d.key for d in group.all() when d not in ordinals
+        chart.colorAccessor (d, i) -> parseInt(d.y) % ordinals.length
+
+
+        chart.dimension dimension
+        chart.group group, "Test Title"
+
+        xScale = d3.scale.linear()
+          .domain d3.extent group.all(), (d) -> parseInt d.key
+          .range [0, 60]
+        chart.x xScale
+
+        chart.keyAccessor (d) ->
+          console.log d
+          d.key
+        chart.valueAccessor (d) -> d.value
+
+        chart.xAxis().ticks 0
+        chart.yAxis().ticks 0
+
+        chart.xAxisLabel false, 0
+        chart.yAxisLabel false, 0
+
+        return
 
     $scope.handleError = (type) ->
       return (err, status) ->
