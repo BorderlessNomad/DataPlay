@@ -15,10 +15,14 @@ angular.module('dataplayApp')
 		$scope.rowedResults = [] # split into sub-arrays of 3
 
 		$scope.totalResults = 0
-
-		$scope.rowLimit = 3
-
+		$scope.rowLimit = 1
 		$scope.overview = []
+
+		$scope.margin =
+			top: 0
+			right: 0
+			bottom: 0
+			left: 0
 
 		$scope.search = (offset = 0, count = 9) ->
 			return if $scope.query.length < 3
@@ -28,6 +32,13 @@ angular.module('dataplayApp')
 						$scope.results = data.Results
 					else
 						$scope.results = $scope.results.concat data.Results
+
+					$scope.results.forEach (r) ->
+						r.graph = []
+						# console.log r
+						# Overview.related r
+						# 	.success (data) ->
+						# 		console.log data
 
 					$scope.rowedResults = $scope.splitIntoRows $scope.results
 					$scope.totalResults = data.Total
@@ -73,6 +84,52 @@ angular.module('dataplayApp')
 
 		$scope.uncollapse = (item) ->
 			item.show = true
+
+
+		$scope.lineChartPostSetup = (details) ->
+			return (chart) ->
+				data = details.graph
+
+				console.log details, chart
+
+				return unless data and data.values and data.values.length > 0
+
+				data.entry = crossfilter data.values
+				data.dimension = data.entry.dimension (d) -> d.x
+				data.group = data.dimension.group().reduceSum (d) -> d.y
+
+				chart.dimension data.dimension
+				chart.group data.group
+
+				data.ordinals = []
+				data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
+
+				chart.colorAccessor (d, i) -> parseInt(d.y) % data.ordinals.length
+
+				chart.xAxis().ticks 6
+
+				chart.xAxisLabel false, 0
+				chart.yAxisLabel false, 0
+
+				chart.x $scope.getXScale data
+				return
+
+		$scope.getXScale = (data) ->
+			xScale = switch data.patterns[data.xLabel].valuePattern
+				when 'label'
+					d3.scale.ordinal()
+						.domain data.ordinals
+						.rangeBands [0, $scope.width]
+				when 'date'
+					d3.time.scale()
+						.domain d3.extent data.group.all(), (d) -> d.key
+						.range [0, $scope.width]
+				else
+					d3.scale.linear()
+						.domain d3.extent data.group.all(), (d) -> parseInt d.key
+						.range [0, $scope.width]
+
+			xScale
 
 
 		# Initiate search if we have /search/:query

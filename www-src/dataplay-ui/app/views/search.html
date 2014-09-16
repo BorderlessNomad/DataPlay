@@ -17,9 +17,7 @@
 						<h5>{{result.Title}}</h5>
 					</div>
 					<div class="media-body">
-						<div style="width: 100%; height: 150px; background-color:rgb(61, 61, 255); border-radius:10px;">
-							<!-- GRAPH GOES HERE!! -->
-						</div>
+						<div ng-if="row.graph.length > 0" class="dc-chart chartSwitch line" dc-chart="lineChart" dc-width="200" dc-height="150" dc-margins="{{margin}}" dc-mouse-zoomable="false" dc-brush-on="false" dc-elastic-y="true" dc-transition-duration="500" dc-colors="d3.scale.category20()" dc-render-data-points="true" dc-render-area="true" dc-post-setup-chart="lineChartPostSetup(row)" ></div>
 					</div>
 				</div>
 			</div>
