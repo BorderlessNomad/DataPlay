@@ -102,13 +102,9 @@ func SearchForNews(searchterms string) ([]NewsArticle, *appError) {
 	// 	return newsarticles, err
 	// }
 
-<<<<<<< HEAD
-	return newsarticle, nil
-=======
 	sortutil.DescByField(newsarticles, "Score")
 	return newsarticles, nil
 }
->>>>>>> feature/visualisations
 
 func TermCheck(term string, passage string) int {
 	descriptions := strings.Split(passage, " ")
