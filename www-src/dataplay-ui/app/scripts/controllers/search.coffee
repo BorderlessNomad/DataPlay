@@ -18,18 +18,7 @@ angular.module('dataplayApp')
 
 		$scope.rowLimit = 3
 
-		$scope.overview = [
-			{
-				date: Overview.humanDate new Date
-				title: "Health minister Jeremy Hunt announced new NHS budget for 2014"
-				thumbnail: "http://i3.mirror.co.uk/incoming/article882107.ece/alternates/s615/Culture%20Secretary%20Jeremy%20Hunt%20looks%20on%20as%20Prime%20Minister%20David%20Cameron%20spoke%20during%20Prime%20Minister's%20Questions%20in%20the%20House%20of%20Commons"
-			}
-			{
-				date: Overview.humanDate new Date
-				title: "Ambulance response times improving year over year"
-				thumbnail: "http://upload.wikimedia.org/wikipedia/commons/5/53/East_of_England_emergency_ambulance.jpg"
-			}
-		]
+		$scope.overview = []
 
 		$scope.search = (offset = 0, count = 9) ->
 			return if $scope.query.length < 3
@@ -48,6 +37,21 @@ angular.module('dataplayApp')
 					return
 			return
 
+		$scope.getNews = () ->
+			return if $scope.query.length < 3
+			User.getNews $scope.query
+				.success (data) ->
+					if data instanceof Array
+						$scope.overview = data.map (item) ->
+							date: Overview.humanDate new Date item.date
+							title: item.title
+							url: item.url
+							thumbnail: item['image_url']
+
+				.error (status, data) ->
+					console.log "Search::getNews::Error:", status
+					return
+
 		$scope.splitIntoRows = (arr, numOfCols = 3) ->
 			twoD = []
 			for item, key in arr
@@ -64,9 +68,16 @@ angular.module('dataplayApp')
 				# get more results
 				$scope.search ($scope.rowLimit - 1) * 3, 9
 
+		$scope.collapse = (item) ->
+			item.show = false
+
+		$scope.uncollapse = (item) ->
+			item.show = true
+
 
 		# Initiate search if we have /search/:query
 		$scope.search()
+		$scope.getNews()
 
 		# Watch change to 'query' and do SILENT $location replace [No REFRESH]
 		#	Note: Watch is initiated only after window.ready

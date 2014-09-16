@@ -36,11 +36,13 @@
 				<div class="media" ng-repeat="item in overview">
 					<div class="row">
 						<span class="text-muted"><small>{{item.date}}</small></span>
+						<span class="pull-right collapsebtn" ng-show="item.show" ng-click="collapse(item)"><small><i class="glyphicon glyphicon-minus-sign"></i></small></span>
+						<span class="pull-right collapsebtn" ng-show="!item.show" ng-click="uncollapse(item)"><small><i class="glyphicon glyphicon-plus-sign"></i></small></span>
 					</div>
 					<div class="row">
 						<div class="media-body">
-							<h5 class="media-heading">{{item.title}}</h5>
-							<img class="thumbnail" ng-src="{{item.thumbnail}}" />
+							<h5 class="media-heading"><a ng-href="{{item.url}}">{{item.title}}</a></h5>
+							<a ng-show="item.show" ng-href="{{item.url}}"><img class="thumbnail" ng-src="{{item.thumbnail}}" /></a>
 						</div>
 					</div>
 				</div>

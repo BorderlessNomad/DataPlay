@@ -53,4 +53,9 @@ angular.module('dataplayApp')
 				if count?
 					path += "/#{count}"
 			$http.get config.api.base_url + path
+
+		getNews: (query) ->
+			if query instanceof Array
+				query = query.join '_'
+			$http.get config.api.base_url + "/news/search/#{query}"
 	]
