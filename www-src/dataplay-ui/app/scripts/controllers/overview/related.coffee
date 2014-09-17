@@ -20,7 +20,7 @@ angular.module('dataplayApp')
 			related: false
 		$scope.max =
 			related: 0
-		$scope.chartsRelated = {}
+		$scope.chartsRelated = []
 
 		$scope.xTicks = 6
 		$scope.width = 350
@@ -30,6 +30,13 @@ angular.module('dataplayApp')
 			right: 10
 			bottom: 30
 			left: 70
+
+		$scope.findById = (id) ->
+			data = _.where($scope.chartsRelated,
+				id: id
+			)
+
+			if data?[0]? then data[0] else null
 
 		$scope.isPlotAllowed = (type) ->
 			if type in $scope.allowed then true else false
@@ -79,7 +86,7 @@ angular.module('dataplayApp')
 									valuePattern: PatternMatcher.getPattern chart.values[0]['y']
 									keyPattern: PatternMatcher.getKeyPattern chart.values[0]['y']
 
-							$scope.chartsRelated[chart.id] = chart if PatternMatcher.includePattern(
+							$scope.chartsRelated.push chart if PatternMatcher.includePattern(
 								chart.patterns[chart.xLabel].valuePattern,
 								chart.patterns[chart.xLabel].keyPattern
 							)
@@ -87,6 +94,8 @@ angular.module('dataplayApp')
 						$scope.offset.related += count
 						if $scope.offset.related >= $scope.max.related
 							$scope.limit.related = true
+
+						console.log $scope.chartsRelated
 
 						Overview.charts 'related', $scope.offset.related
 					return
@@ -141,7 +150,7 @@ angular.module('dataplayApp')
 			yScale
 
 		$scope.lineChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[chart.anchorName()]
+			data = $scope.findById chart.anchorName()
 
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) -> d.x
@@ -165,7 +174,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.rowChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[chart.anchorName()]
+			data = $scope.findById chart.anchorName()
 
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) -> d.x
@@ -188,7 +197,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.columnChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[chart.anchorName()]
+			data = $scope.findById chart.anchorName()
 
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) -> d.x
@@ -202,6 +211,8 @@ angular.module('dataplayApp')
 
 			chart.colorAccessor (d, i) -> i + 1
 
+			chart.xAxis().ticks $scope.xTicks
+
 			chart.x $scope.getXScale data
 
 			chart.xUnits $scope.getXUnits data if data.ordinals?.length > 0
@@ -209,7 +220,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.pieChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[chart.anchorName()]
+			data = $scope.findById chart.anchorName()
 
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) ->
@@ -228,19 +239,19 @@ angular.module('dataplayApp')
 			chart.colorAccessor (d, i) -> i + 1
 
 			chart.renderLabel false
-			chart.label (d) ->
-				percent = d.value / data.groupSum * 100
-				"#{d.key} (#{Math.floor percent}%)"
+			# chart.label (d) ->
+			# 	percent = d.value / data.groupSum * 100
+			# 	"#{d.key} (#{Math.floor percent}%)"
 
-			chart.renderTitle false
-			chart.title (d) ->
-				percent = d.value / data.groupSum * 100
-				"#{d.key}: #{d.value} [#{Math.floor percent}%]"
+			# chart.renderTitle true
+			# chart.title (d) ->
+			# 	percent = d.value / data.groupSum * 100
+			# 	"#{d.key}: #{d.value} [#{Math.floor percent}%]"
 
 			return
 
 		$scope.bubbleChartPostSetup = (chart) ->
-			data = $scope.chartsRelated[chart.anchorName()]
+			data = $scope.findById chart.anchorName()
 
 			minR = null
 			maxR = null
@@ -303,6 +314,8 @@ angular.module('dataplayApp')
 			rScale = d3.scale.linear()
 				.domain d3.extent data.group.all(), (d) -> Math.abs parseInt d.key.split("|")[2]
 			chart.r rScale
+
+			chart.xAxis().ticks $scope.xTicks
 
 			# chart.label (d) -> x = d.key.split("|")[0]
 

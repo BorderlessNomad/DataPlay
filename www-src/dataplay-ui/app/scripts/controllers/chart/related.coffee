@@ -23,6 +23,7 @@ angular.module('dataplayApp')
 			right: 10
 			bottom: 50
 			left: 110
+		$scope.xTicks = 8
 
 		$scope.chartRendered = null
 		$scope.chart =
@@ -436,8 +437,7 @@ angular.module('dataplayApp')
 
 			chart.colorAccessor (d, i) -> (i + 1) % 20
 
-			chart.xAxis()
-				.ticks $scope.xTicks
+			chart.xAxis().ticks $scope.xTicks
 
 			chart.x $scope.getYScale data
 
@@ -467,6 +467,8 @@ angular.module('dataplayApp')
 			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
 
 			chart.colorAccessor (d, i) -> i + 1
+
+			chart.yAxis().ticks $scope.xTicks
 
 			chart.x $scope.getXScale data
 
@@ -502,16 +504,16 @@ angular.module('dataplayApp')
 			chart.colorAccessor (d, i) -> i + 1
 
 			chart.renderLabel false
-			chart.label (d) ->
-				percent = d.value / data.groupSum * 100
-				"#{d.key} (#{Math.floor percent}%)"
+			# chart.label (d) ->
+			# 	percent = d.value / data.groupSum * 100
+			# 	"#{d.key} (#{Math.floor percent}%)"
 
-			chart.renderTitle false
+			chart.renderTitle true
 			chart.title (d) ->
 				percent = d.value / data.groupSum * 100
 				"#{d.key}: #{d.value} [#{Math.floor percent}%]"
 
-			chart.legend dc.legend()
+			chart.legend dc.legend().x(0).y(350)
 
 			chart.minAngleForLabel 0
 			chart.innerRadius 75
@@ -588,6 +590,7 @@ angular.module('dataplayApp')
 				.domain d3.extent data.group.all(), (d) -> Math.abs parseInt d.key.split("|")[2]
 			chart.r rScale
 
+			chart.xAxis().ticks $scope.xTicks
 			chart.label (d) -> x = d.key.split("|")[0]
 
 			chart.title (d) ->

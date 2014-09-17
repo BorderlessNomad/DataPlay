@@ -20,7 +20,7 @@ angular.module('dataplayApp')
 			correlated: false
 		$scope.max =
 			correlated: 0
-		$scope.chartsCorrelated = {}
+		$scope.chartsCorrelated = []
 
 		$scope.xTicks = 6
 		$scope.width = 350
@@ -30,6 +30,13 @@ angular.module('dataplayApp')
 			right: 10
 			bottom: 30
 			left: 70
+
+		$scope.findById = (id) ->
+			data = _.where($scope.chartsCorrelated,
+				id: id
+			)
+
+			if data?[0]? then data[0] else null
 
 		$scope.isPlotAllowed = (type) ->
 			if type in $scope.allowed then true else false
@@ -85,7 +92,7 @@ angular.module('dataplayApp')
 									valuePattern: PatternMatcher.getPattern chart.table1.values[0]['y']
 									keyPattern: PatternMatcher.getKeyPattern chart.table1.values[0]['y']
 
-							$scope.chartsCorrelated[chart.id] = chart if PatternMatcher.includePattern(
+							$scope.chartsCorrelated.push chart if PatternMatcher.includePattern(
 								chart.patterns[chart.table1.xLabel].valuePattern,
 								chart.patterns[chart.table1.xLabel].keyPattern
 							)
@@ -150,7 +157,7 @@ angular.module('dataplayApp')
 			yScale
 
 		$scope.lineChartPostSetup = (chart) ->
-			data = $scope.chartsCorrelated[chart.anchorName()]
+			data = $scope.findById chart.anchorName()
 
 			data.xDomain = [new Date(data.from), new Date(data.to)]
 			data.entry = crossfilter data.table1.values
@@ -180,7 +187,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.rowChartPostSetup = (chart) ->
-			data = $scope.chartsCorrelated[chart.anchorName()]
+			data = $scope.findById chart.anchorName()
 
 			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> d.x
@@ -207,7 +214,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.columnChartPostSetup = (chart) ->
-			data = $scope.chartsCorrelated[chart.anchorName()]
+			data = $scope.findById chart.anchorName()
 
 			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> d.x
@@ -233,7 +240,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.stackedChartPostSetup = (chart) ->
-			data = $scope.chartsCorrelated[chart.anchorName()]
+			data = $scope.findById chart.anchorName()
 
 			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> d.x
@@ -259,7 +266,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.bubbleChartPostSetup = (chart) ->
-			data = $scope.chartsCorrelated[chart.anchorName()]
+			data = $scope.findById chart.anchorName()
 
 			minR = null
 			maxR = null
@@ -340,7 +347,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.scatterChartPostSetup = (chart) ->
-			data = $scope.chartsCorrelated[chart.anchorName()]
+			data = $scope.findById chart.anchorName()
 
 			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> "#{d.x}|#{d.y}|#{d.z}"
