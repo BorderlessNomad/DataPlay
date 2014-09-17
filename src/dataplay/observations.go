@@ -76,14 +76,17 @@ func AddObservation(did int, uid int, comment string, x string, y string) (strin
 
 // get all observations for a particular chart
 func GetObservations(did int) ([]Observations, *appError) {
-	discovered := make([]Discovered, 0)
-	err := DB.Where("discovered_id = ?", did).Find(&discovered).Error
-	if err != nil {
-		return nil, &appError{err, "Database query failed - get observation (find discovered)", http.StatusInternalServerError}
-	}
-
 	observation := make([]Observation, 0)
 	obsData := make([]Observations, 0)
+	discovered := make([]Discovered, 0)
+
+	err := DB.Where("discovered_id = ?", did).Find(&discovered).Error
+	if err != nil && err != gorm.RecordNotFound {
+		return nil, &appError{err, "Database query failed - get observation (find discovered)", http.StatusInternalServerError}
+	} else if err == gorm.RecordNotFound {
+		return obsData, nil //Empty map
+	}
+
 	var tmpOD Observations
 
 	err1 := DB.Where("discovered_id = ?", did).Order("observation_id ASC").Find(&observation).Error
@@ -146,13 +149,13 @@ func AddObservationHttp(res http.ResponseWriter, req *http.Request, observation 
 	uid, err1 := GetUserID(session)
 	if err1 != nil {
 		http.Error(res, err1.Message, err1.Code)
-		return err1.Message
+		return ""
 	}
 
 	result, err2 := AddObservation(did, uid, observation.Comment, observation.X, observation.Y)
 	if err2 != nil {
 		http.Error(res, err2.Message, http.StatusBadRequest)
-		return err2.Message
+		return ""
 	}
 
 	return result
@@ -166,13 +169,14 @@ func GetObservationsHttp(res http.ResponseWriter, req *http.Request, params mart
 	}
 
 	if params["did"] == "" {
-		return "no discovered id"
+		http.Error(res, "No discovered id.", http.StatusBadRequest)
+		return ""
 	}
 
 	did, err := strconv.Atoi(params["did"])
 	if err != nil {
 		http.Error(res, "bad discovered id", http.StatusBadRequest)
-		return "bad discovered id"
+		return ""
 	}
 
 	obs, err1 := GetObservations(did)
@@ -184,7 +188,7 @@ func GetObservationsHttp(res http.ResponseWriter, req *http.Request, params mart
 	r, err2 := json.Marshal(obs)
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
+		return ""
 	}
 
 	return string(r)

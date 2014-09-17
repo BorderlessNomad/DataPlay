@@ -86,7 +86,7 @@ angular.module('dataplayApp')
         chart.colorAccessor (d, i) -> parseInt(d.y) % ordinals.length
 
         chart.dimension dimension
-        chart.group group, "Test Title"
+        chart.group group
 
         xScale = d3.scale.linear()
           .domain d3.extent group.all(), (d) -> parseInt d.key

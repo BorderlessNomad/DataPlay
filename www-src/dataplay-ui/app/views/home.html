@@ -1,15 +1,15 @@
 <h1 ng-init="getLastVisited()">Welcome back <em>{{username}}</em></h1>
 
-<div class="list-group" ng-show="lastVisited.length > 0">
+<div class="home list-group" ng-show="lastVisited.length > 0">
 	<p>You where last viewing:</p>
-	<div class="list-group-item row" ng-repeat="item in lastVisited">
+	<a class="list-group-item row" ng-repeat="item in lastVisited" href="overview/{{item.guid}}">
 		<span class="col-md-9">{{item.title}}</span>
 		<span class="col-md-3 text-right">
-			<a class="btn btn-danger btn-xs" href="charts/{{item.guid}}/{{item.info.type}}/{{item.info.x}}/{{item.info.y}}" ng-show="item.info != null">Chart</a>
-			<a class="btn btn-warning btn-xs" href="overview/{{item.guid}}">Overview</a>
-			<a class="btn btn-primary btn-xs" href="map/{{item.guid}}" ng-show="item.map">Map</a>
+			<!-- <a class="btn btn-danger btn-xs" href="charts/{{item.guid}}/{{item.info.type}}/{{item.info.x}}/{{item.info.y}}" ng-show="item.info != null">Chart</a> -->
+			<!-- <a class="btn btn-warning btn-xs" href="overview/{{item.guid}}">Overview</a> -->
+			<!-- <a class="btn btn-primary btn-xs" href="map/{{item.guid}}" ng-show="item.map">Map</a> -->
 		</span>
-	</div>
+	</a>
 </div>
 
 <div ng-show="lastVisited.length <= 0">
