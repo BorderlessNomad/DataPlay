@@ -17,6 +17,9 @@
 						dc-brush-on="false"
 						dc-transition-duration="500"
 						dc-colors="d3.scale.category20()"
+						dc-render-label="false"
+						dc-render-title="true"
+
 						dc-post-setup-chart="renderPie(sect)"
  					></div>
 				</div>
@@ -38,7 +41,9 @@
 						<div class="col-xs-4">
 							<span>
 								<div class="dc-chart chartSwitch line"
+
 									ng-attr-id="linegraph-{{item.id}}"
+
 									dc-chart="lineChart"
 									dc-width="60"
 									dc-height="20"
@@ -50,6 +55,7 @@
 									dc-colors="d3.scale.category20()"
 									dc-render-data-points="false"
 									dc-render-area="true"
+
 									dc-post-setup-chart="renderLine(item)"
 								></div>
 							</span>
@@ -58,6 +64,11 @@
 				</div>
 			</div>
 		</div>
+	</div>
+
+	<div id="pie-tooltip" class="tooltip top hidden">
+		<!-- <div class="tooltip-arrow"></div> -->
+		<div class="tooltip-inner"></div>
 	</div>
 
 	<div class="col-sm-3 col-xs-0">
