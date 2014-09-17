@@ -5,7 +5,7 @@
 .overviewscreen {
 	padding: 30px 0 0 0;
 
-	.overviewscreen-section {
+	.section {
 		padding: 0 5px;
 		vertical-align: middle;
 
@@ -13,7 +13,7 @@
 			margin: 0 auto;
 		}
 
-		.overviewscreen-list {
+		.list {
 			margin: 0;
 
 			svg {
@@ -21,17 +21,25 @@
 			}
 		}
 
-		.overviewscreen-li {
+		.li {
 			margin: 0;
 			vertical-align: middle;
 			border-top: 1px solid rgba(0, 0, 0, 0.15);
+
+			.label-container {
+				padding-left: 0;
+
+				.label {
+					margin-right: 5px;
+				}
+			}
 		}
 
-		.overviewscreen-sect-header {
+		.sect-header {
 			font-weight: bold;
 		}
 
-		.overviewscreen-sect-graph {
+		.sect-graph {
 			height: 200px;
 			padding: 25px 0 0 0;
 		}
@@ -48,10 +56,9 @@
 		}
 	}
 
-}
-.overviewscreen-sb {
-	.item {
-		margin: 0;
+	.sidebar {
+		.item {
+			margin: 0;
+		}
 	}
 }
-

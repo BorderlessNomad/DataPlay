@@ -41,6 +41,8 @@ angular.module('dataplayApp')
 				items: []
 		}
 
+		$scope.colourMap = {}
+
 		$scope.sidebarSections = []
 
 		$scope.init = ->
@@ -53,11 +55,12 @@ angular.module('dataplayApp')
 								total = 0
 								for a in item.graph then total += a.y
 
+								item.id = "#{i.replace(/\W/g, '').toLowerCase()}-#{item.term.replace(/\W/g, '').toLowerCase()}"
+
 								$scope.mainSections[i].graph.push
+									id: item.id
 									term: item.term
 									value: total
-
-								item.id = "#{i.replace(/\W/g, '').toLowerCase()}-#{item.term.replace(/\W/g, '').toLowerCase()}"
 
 								return
 					.error $scope.handleError i
@@ -109,7 +112,11 @@ angular.module('dataplayApp')
 				graph = details.graph
 
 				entry = crossfilter graph
-				dimension = entry.dimension (d) -> d.term
+
+				dimensionMap = {}
+				dimension = entry.dimension (d) ->
+					dimensionMap["#{d.term}-#{d.value}"] = d.id
+					d.term
 
 				groupSum = 0
 				group = dimension.group().reduceSum (d) ->
@@ -124,17 +131,43 @@ angular.module('dataplayApp')
 				chart.renderlet (c) ->
 					svg = d3.select 'svg'
 					slices = c.svg().selectAll "g.pie-slice"
+
+					slices.each (d) ->
+						id = dimensionMap["#{d.data.key}-#{d.data.value}"]
+						slice = d3.select @
+						slice.attr "id", "slice-#{id}"
+
+						color = slice.select("path").attr("fill")
+
+						$scope.colourMap[id] = color
+						# legend = angular.element document.querySelector "legend-#{id}"
+
 					slices.on "mouseover", (d) ->
+						slice = d3.select @
+
+						x = d3.event.pageX - 400
+						y = d3.event.pageY - 55
+
 						percent = (d.data.value / groupSum * 100).toFixed(2)
+
 						d3.select "#pie-tooltip"
-							.style "left", "#{d3.event.pageX - 400}px"
-							.style "top", "#{d3.event.pageY - 55}px"
+							.style "left", "#{x}px"
+							.style "top", "#{y}px"
 							.attr "class", "tooltip fade top in"
 							.select ".tooltip-inner"
 								.text "#{d.data.key}: #{d.data.value} (#{percent}%)"
+
 					slices.on "mouseout", (d) ->
 						d3.select "#pie-tooltip"
 							.attr "class", "tooltip top hidden"
+
+		$scope.highlightPieSlice = (id) ->
+			slice = document.getElementById("slice-#{id}")
+			if not slice?
+				return null
+
+			# elem = $("#legend-#{id}").tooltip "HelloWOrld!"
+			return
 
 		$scope.handleError = (type) ->
 			(err, status) ->
