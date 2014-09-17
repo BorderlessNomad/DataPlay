@@ -22,7 +22,7 @@ type Observations struct {
 }
 
 type UserData struct {
-	Username   string `json:"name, omitempty"`
+	Username   string `json:"username, omitempty"`
 	Reputation int    `json:"reputation, omitempty"`
 	Avatar     string `json:"avatar, omitempty"`
 	Discoverer bool   `json:"discoverer, omitempty"`
@@ -34,6 +34,13 @@ type ObservationComment struct {
 	X           string `json:"x" binding:"required"`
 	Y           string `json:"y" binding:"required"`
 	Comment     string `json:"comment" binding:"required"`
+}
+
+type CommunityObservation struct {
+	Username  string `json:"username"`
+	Avatar    string `json:"avatar, omitempty"`
+	Comment   string `json:"comment"`
+	PatternID int    `json:"patternid"`
 }
 
 // add observation
@@ -205,6 +212,43 @@ func GetObservationsQ(params map[string]string) string {
 	r, err2 := json.Marshal(result)
 	if err2 != nil {
 		return "json error"
+	}
+
+	return string(r)
+}
+
+func GetRecentObservationsHttp(res http.ResponseWriter, req *http.Request) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+		return ""
+	}
+
+	observations := []Observation{}
+	err := DB.Order("created desc").Limit(5).Find(&observations).Error
+	if err != nil {
+		return "not found"
+	}
+
+	var tmpCO CommunityObservation
+	var communityObservations []CommunityObservation
+	for _, o := range observations {
+		user := User{}
+		err1 := DB.Where("uid= ?", o.Uid).Find(&user).Error
+		if err1 != nil {
+			return "not found"
+		}
+		tmpCO.Username = user.Username
+		tmpCO.Avatar = user.Avatar
+		tmpCO.Comment = o.Comment
+		tmpCO.PatternID = o.DiscoveredId
+		communityObservations = append(communityObservations, tmpCO)
+	}
+
+	r, err2 := json.Marshal(communityObservations)
+	if err2 != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return "Unable to parse JSON"
 	}
 
 	return string(r)
