@@ -34,6 +34,11 @@ type DataExpert struct {
 	Reputation int    `json:"reputation"`
 }
 
+type UserActivity struct {
+	Activity  string `json:"activity"`
+	PatternId int    `json:"patternid"`
+}
+
 func ActivityCheck(a string) string {
 	switch a {
 	case "c":
@@ -347,24 +352,98 @@ func GetDataExpertsHttp(res http.ResponseWriter, req *http.Request) string {
 	return string(r)
 }
 
-// func GetActivityStreamHttp(res http.ResponseWriter, req *http.Request) string {
-// 	session := req.Header.Get("X-API-SESSION")
-// 	if len(session) <= 0 {
-// 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-// 		return "Missing session parameter"
-// 	}
+func GetActivityStreamHttp(res http.ResponseWriter, req *http.Request) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter", http.StatusBadRequest)
+		return "Missing session parameter"
+	}
 
-// 	uid, err := GetUserID(session)
-// 	if err != nil {
-// 		http.Error(res, err.Message, err.Code)
-// 		return "Could not validate user"
-// 	}
-// }
+	uid, err := GetUserID(session)
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
+		return "Could not validate user"
+	}
 
-// func HappenedTo(uid int) ? {
+	var activities []UserActivity
+	activities = AddHappenedTo(uid, activities)
+	activities = AddInstigated(uid, activities)
+	n := 5
+	if len(activities) < 5 {
+		n = len(activities)
+	}
+	r, err2 := json.Marshal(activities[:n])
+	if err2 != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return "Unable to parse JSON"
+	}
 
-// }
+	return string(r)
+}
 
-// func Instigated(uid int) ? {
+func AddInstigated(uid int, activities []UserActivity) []UserActivity {
+	activity := []Activity{}
 
-// }
+	err := DB.Order("created desc").Where("uid = ?", uid).Limit(5).Find(&activity).Error
+	if err != nil {
+		return activities
+	}
+
+	for _, a := range activity {
+		tmpA := UserActivity{}
+		if a.Type == "Comment" {
+			tmpA.Activity = "You commented on pattern "
+			tmpA.PatternId = a.DiscoveredId
+		} else if a.Type == "Validated Observation" {
+			obs := Observation{}
+			err = DB.Where("observation_id = ?", a.ObservationId).Find(&obs).Error
+			if err != nil {
+				tmpA.Activity = "Bad validated observation activity 1"
+				tmpA.PatternId = 0
+			}
+			user := User{}
+			err = DB.Where("uid = ?", obs.Uid).Find(&user).Error
+			if err != nil {
+				tmpA.Activity = "Bad validated observation activity 2"
+				tmpA.PatternId = 0
+			}
+			tmpA.Activity = "You agreed with " + user.Username + "'s observation on pattern "
+			tmpA.PatternId = obs.DiscoveredId
+		} else if a.Type == "Invalidated Observation" {
+			obs := Observation{}
+			err := DB.Where("observation_id = ?", a.ObservationId).Find(&obs).Error
+			if err != nil {
+				tmpA.Activity = "Bad invalidated observation activity 1"
+				tmpA.PatternId = 0
+			}
+			user := User{}
+			err = DB.Where("uid = ?", obs.Uid).Find(&user).Error
+			if err != nil {
+				tmpA.Activity = "Bad invalidated observation activity 2"
+				tmpA.PatternId = 0
+			}
+			tmpA.Activity = "You disagreed with " + user.Username + "'s observation on pattern "
+			tmpA.PatternId = obs.DiscoveredId
+		} else if a.Type == "Validated Chart" {
+			tmpA.Activity = "You validated pattern "
+			tmpA.PatternId = a.DiscoveredId
+
+		} else if a.Type == "Invalidated Chart" {
+			tmpA.Activity = "You invalidated pattern "
+			tmpA.PatternId = a.DiscoveredId
+
+		} else {
+			tmpA.Activity = "No activity"
+			tmpA.PatternId = 0
+		}
+
+		activities = append(activities, tmpA)
+	}
+	return activities
+
+}
+
+func AddHappenedTo(uid int, activities []UserActivity) []UserActivity {
+	return activities
+
+}
