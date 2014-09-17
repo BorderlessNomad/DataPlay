@@ -51,6 +51,6 @@ func TestGetRecentObservationsHttp(t *testing.T) {
 
 	Convey("Should get observations", t, func() {
 		result := GetRecentObservationsHttp(res, req)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 }

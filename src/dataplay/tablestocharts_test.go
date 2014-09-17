@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestGetChartHttp(t *testing.T) {
@@ -63,21 +65,25 @@ func TestGetChartCorrelatedHttp(t *testing.T) {
 // 	})
 // }
 
-// func TestGetCorrelatedChartsHttp(t *testing.T) {
-// 	req, _ := http.NewRequest("GET", "/", nil)
-// 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
-// 	res := httptest.NewRecorder()
-// 	params := map[string]string{
-// 		"tablename": "gold",
-// 		"offset":    "0",
-// 		"count":     "20",
-// 		"search":    "true",
-// 	}
-// 	Convey("Should return correlated chartlist", t, func() {
-// 		result := GetCorrelatedChartsHttp(res, req, params)
-// 		So(result, ShouldNotBeNil)
-// 	})
-// }
+func TestGetCorrelatedChartsHttp(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+	res := httptest.NewRecorder()
+	params := map[string]string{
+		"tablename": "gdp",
+		"offset":    "0",
+		"count":     "20",
+		"search":    "true",
+	}
+	Convey("Should return correlated chartlist", t, func() {
+		x := time.Now()
+		result := GetCorrelatedChartsHttp(res, req, params)
+		y := time.Now()
+		fmt.Println("ROBOCOP0", y.Sub(x).Seconds())
+		So(result, ShouldEqual, "")
+
+	})
+}
 
 func TestGetDiscoveredChartsHttp(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)

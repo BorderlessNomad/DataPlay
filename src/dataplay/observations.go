@@ -61,7 +61,7 @@ func AddObservation(did int, uid int, comment string, x string, y string) (strin
 
 	Reputation(discovered.Uid, discObs) // add points to rep of user who discovered chart when their discovery receives an observation
 
-	err1 := AddActivity(uid, "c", observation.Created) // add to activities
+	err1 := AddActivity(uid, "c", observation.Created, did, 0) // add to activities
 	if err1 != nil {
 		return "", err1
 	}

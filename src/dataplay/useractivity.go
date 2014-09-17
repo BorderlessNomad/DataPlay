@@ -51,7 +51,7 @@ func ActivityCheck(a string) string {
 	}
 }
 
-func AddActivity(uid int, atype string, ts time.Time) *appError {
+func AddActivity(uid int, atype string, ts time.Time, disid int, obsid int) *appError {
 	act := Activity{
 		Uid:     uid,
 		Type:    ActivityCheck(atype),
@@ -346,3 +346,25 @@ func GetDataExpertsHttp(res http.ResponseWriter, req *http.Request) string {
 
 	return string(r)
 }
+
+// func GetActivityStreamHttp(res http.ResponseWriter, req *http.Request) string {
+// 	session := req.Header.Get("X-API-SESSION")
+// 	if len(session) <= 0 {
+// 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
+// 		return "Missing session parameter"
+// 	}
+
+// 	uid, err := GetUserID(session)
+// 	if err != nil {
+// 		http.Error(res, err.Message, err.Code)
+// 		return "Could not validate user"
+// 	}
+// }
+
+// func HappenedTo(uid int) ? {
+
+// }
+
+// func Instigated(uid int) ? {
+
+// }

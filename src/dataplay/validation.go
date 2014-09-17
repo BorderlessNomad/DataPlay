@@ -68,11 +68,11 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 		if valflag {
 			discovered.Valid++
 			Reputation(discovered.Uid, discVal) // add points for discovery validation
-			AddActivity(uid, "vc", t)
+			AddActivity(uid, "vc", t, discovered.DiscoveredId, 0)
 		} else {
 			discovered.Invalid++
 			Reputation(discovered.Uid, discInval) // remove points for discovery invalidation
-			AddActivity(uid, "ic", t)
+			AddActivity(uid, "ic", t, discovered.DiscoveredId, 0)
 		}
 
 		discovered.Rating = RankValidations(discovered.Valid, discovered.Invalid)
@@ -120,11 +120,11 @@ func ValidateObservation(oid int, uid int, valflag bool) *appError {
 	if valflag {
 		observation.Valid++
 		Reputation(observation.Uid, obsVal) // add points for observation validation
-		AddActivity(uid, "vo", t)
+		AddActivity(uid, "vo", t, 0, observation.ObservationId)
 	} else {
 		observation.Invalid++
 		Reputation(observation.Uid, obsInval) // remove points for observation invalidation
-		AddActivity(uid, "io", t)
+		AddActivity(uid, "io", t, 0, observation.ObservationId)
 	}
 
 	observation.Rating = RankValidations(observation.Valid, observation.Invalid)
