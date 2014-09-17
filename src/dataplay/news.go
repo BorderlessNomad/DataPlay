@@ -88,7 +88,7 @@ func SearchForNews(searchterms string) ([]NewsArticle, *appError) {
 		}
 		if termcount > 0 {
 			var tmpNA NewsArticle
-			session.Query(`SELECT url FROM image WHERE id = ? LIMIT 1 ALLOW FILTERING`, id).Scan(&imageUrl)
+			session.Query(`SELECT url FROM image WHERE id = ? LIMIT 1 ALLOW FILTERING`, id).Scan(&imageUrl) ///@TODO: change to WHERE pic_index = 0 for top pic
 			tmpNA.Date = date
 			tmpNA.Title = title
 			tmpNA.Url = originalUrl

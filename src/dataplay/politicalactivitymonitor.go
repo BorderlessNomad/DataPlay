@@ -88,14 +88,14 @@ func EventsPoliticalActivity() []PoliticalActivity {
 func RegionsPoliticalActivity() []PoliticalActivity {
 	var region []Regions
 	var terms []string
-	err := DB.Find(&region).Error
+	err := DB.Select("DISTINCT county").Find(&region).Error
 
 	if err != nil && err != gorm.RecordNotFound {
 		return nil
 	}
 
 	for _, r := range region {
-		terms = append(terms, r.Town)
+		terms = append(terms, r.County)
 	}
 
 	return CheckThese(terms)

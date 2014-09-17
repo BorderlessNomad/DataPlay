@@ -43,3 +43,14 @@ func TestGetObservationsHttp(t *testing.T) {
 		So(result, ShouldNotBeNil)
 	})
 }
+
+func TestGetRecentObservationsHttp(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+	res := httptest.NewRecorder()
+
+	Convey("Should get observations", t, func() {
+		result := GetRecentObservationsHttp(res, req)
+		So(result, ShouldEqual, "")
+	})
+}
