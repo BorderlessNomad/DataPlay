@@ -1,0 +1,56 @@
+<div class="row" ng-init="init()">
+
+	<div class="col-sm-9 col-xs-12">
+		<div class="row overviewscreen">
+			<div class="col-xs-4 overviewscreen-section" ng-repeat="sect in mainsections | limitTo: 3">
+				<h4 class="text-center">{{sect.title}}</h4>
+				<div class="row overviewscreen-sect-graph" ng-if="sect.graph.length > 0 && !sect.error">
+					<!-- grpah here -->
+					<div ng-if="sect.graph.length > 0" class="dc-chart chartSwitch pie" dc-chart="pieChart" dc-width="150" dc-height="150" dc-margins="{{margin}}" dc-mouse-zoomable="false" dc-brush-on="false" dc-transition-duration="500" dc-colors="d3.scale.category20()" dc-post-setup-chart="renderPie(sect)"
+ ></div>
+				</div>
+
+				<div class="loading" ng-if="sect.items.length == 0 && !sect.error" ng-include="'views/loader.html'"></div>
+				<div class="alert alert-warning" ng-if="sect.error">
+					<h5>Something went wrong</h5>
+					<p>{{sect.error}}</p>
+				</div>
+
+				<div class="row overviewscreen-list" ng-if="sect.items.length > 0 && !sect.error">
+					<div class="row overviewscreen-sect-header">
+						<div class="col-xs-8"><small>{{sect.colNameA}}</small></div>
+						<div class="col-xs-4"><small>{{sect.colNameB}}</small></div>
+					</div>
+
+					<div class="row overviewscreen-li" ng-repeat="item in sect.items">
+						<div class="col-xs-8"><small>{{item.term}}</small></div>
+						<div class="col-xs-4">
+							<span>
+								<div class="dc-chart chartSwitch line" ng-attr-id="linegraph-{{item.id}}" dc-chart="lineChart" dc-width="60" dc-height="20" dc-margins="{{margin}}" dc-mouse-zoomable="false" dc-brush-on="false" dc-elastic-y="true" dc-transition-duration="500" dc-colors="d3.scale.category20()" dc-render-data-points="true" dc-render-area="true" dc-post-setup-chart="renderLine(item)"></div>
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-sm-3 col-xs-0">
+		<div class="sidebar overviewscreen-sb">
+			<div class="title">Overview</div>
+
+			<div class="content">
+				<div class="media" ng-repeat="sect in sidebarsections">
+					<h5>{{sect.category}}</h5>
+					<div class="row" ng-repeat="item in sect.top5">
+						<p class="item" ng-show="item.amount > 0"><span class="label label-primary label-purple">{{item.amount}}</span>&nbsp;&nbsp;{{item.term}}</p>
+					</div>
+					<div class="nothing" ng-hide="sect.top5.length > 0"><p class="text-center text-muted">Nothing to show</p></div>
+				</div>
+				<div class="nothing" ng-hide="sidebarsections.length > 0"><p class="text-center text-muted">Nothing to show</p></div>
+			</div>
+
+
+		</div>
+	</div>
+</div>

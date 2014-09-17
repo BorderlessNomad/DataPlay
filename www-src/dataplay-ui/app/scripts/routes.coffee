@@ -28,6 +28,10 @@ angular.module('dataplayApp')
 				templateUrl: 'views/search.html'
 				controller: 'SearchCtrl'
 				login: true
+			.when '/overview',
+				templateUrl: 'views/overviewscreen.html'
+				controller: 'OverviewScreenCtrl'
+				login: true
 			.when '/overview/:id',
 				templateUrl: 'views/overview.html'
 				controller: 'OverviewRelatedCtrl'
