@@ -28,6 +28,12 @@ type ProfileObservation struct {
 	Comment       string    `json:"comment"`
 }
 
+type DataExpert struct {
+	Username   string `json:"username"`
+	Avatar     string `json:"avatar"`
+	Reputation int    `json:"reputation"`
+}
+
 func ActivityCheck(a string) string {
 	switch a {
 	case "c":
@@ -308,4 +314,35 @@ func GetAmountDiscoveriesHttp(res http.ResponseWriter, req *http.Request) string
 	}
 
 	return string(count)
+}
+
+func GetDataExpertsHttp(res http.ResponseWriter, req *http.Request) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter", http.StatusBadRequest)
+		return "Missing session parameter"
+	}
+
+	users := []User{}
+	err1 := DB.Order("reputation desc").Limit(5).Find(&users).Error
+	if err1 != nil {
+		return "not found"
+	}
+
+	var tmpDE DataExpert
+	var dataExperts []DataExpert
+	for _, u := range users {
+		tmpDE.Username = u.Username
+		tmpDE.Avatar = u.Avatar
+		tmpDE.Reputation = u.Reputation
+		dataExperts = append(dataExperts, tmpDE)
+	}
+
+	r, err2 := json.Marshal(dataExperts)
+	if err2 != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return "Unable to parse JSON"
+	}
+
+	return string(r)
 }
