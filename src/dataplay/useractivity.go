@@ -248,11 +248,11 @@ func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request) str
 }
 
 func GetHomePageDataHttp(res http.ResponseWriter, req *http.Request) string {
-	session := req.Header.Get("X-API-SESSION")
-	if len(session) <= 0 {
-		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
-	}
+	// session := req.Header.Get("X-API-SESSION")
+	// if len(session) <= 0 {
+	// 	http.Error(res, "Missing session parameter", http.StatusBadRequest)
+	// 	return "Missing session parameter"
+	// }
 
 	var result [3]HomeData
 	result[0].Label = "players"
