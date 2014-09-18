@@ -19,10 +19,9 @@ angular.module('dataplayApp')
     $scope.init = ->
       User.getStats()
         .success (data) ->
-          console.log data
-          # $scope.stats.players = "200,000"
-          # $scope.stats.discoveries = "200,000"
-          # $scope.stats.datasets = "200,000"
+          if data instanceof Array
+            data.forEach (d) ->
+              $scope.stats[d.Label] = $scope.commarise d.Value
 
     $scope.commarise = (num) ->
       Number(num).toLocaleString()
