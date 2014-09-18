@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const sd = 200
+const sd = 100
 
 type RelatedCharts struct {
 	Charts []TableData `json:"charts"`

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"math"
 	"math/rand"
@@ -10,68 +11,6 @@ import (
 	"strings"
 	"time"
 )
-
-// generate some random tables and columns, amount dependent on correlation type
-func GetRandomNameMap(m map[string]string) bool {
-
-	m["guid1"] = NameToGuid(m["table1"])
-	if m["guid1"] == "" {
-		return false
-	}
-	m["table2"] = RandomTableName()
-	m["guid2"] = NameToGuid(m["table2"])
-	if m["guid2"] == "" {
-		return false
-	}
-	cols1 := FetchTableCols(m["guid1"])
-	cols2 := FetchTableCols(m["guid2"])
-	m["dateCol1"] = RandomDateColumn(cols1)
-	m["valCol1"] = RandomValueColumn(cols1)
-	m["dateCol2"] = RandomDateColumn(cols2)
-	m["valCol2"] = RandomValueColumn(cols2)
-
-	if m["table1"] == m["table2"] || m["table1"] == "" || m["table2"] == "" || m["valCol1"] == "" || m["valCol2"] == "" || m["dateCol1"] == "" || m["dateCol2"] == "" {
-		return false
-	}
-
-	r := rand.Intn(7) ///??????????????????? <- Does Spurious cost too much?
-
-	if r == 0 {
-		m["method"] = "Pearson"
-	} else if r == 1 {
-		m["method"] = "Visual"
-	} else {
-		m["method"] = "Spurious"
-		m["table3"] = RandomTableName()
-		m["guid3"] = NameToGuid(m["table3"])
-		if m["guid3"] == "" {
-			return false
-		}
-		cols3 := FetchTableCols(m["guid3"])
-		m["dateCol3"] = RandomDateColumn(cols3)
-		m["valCol3"] = RandomValueColumn(cols3)
-		if m["table1"] == m["table3"] || m["table2"] == m["table3"] || m["table3"] == "" || m["valCol3"] == "" || m["dateCol3"] == "" {
-			return false
-		}
-	}
-
-	return true
-}
-
-// convert table name to guid
-func NameToGuid(tablename string) string {
-	if tablename == "" {
-		return ""
-	}
-
-	onlineData := OnlineData{}
-	err := DB.Where("tablename = ?", tablename).Find(&onlineData).Error
-	if err != nil {
-		return ""
-	}
-
-	return onlineData.Guid
-}
 
 // generate a random value column if one exists
 func RandomValueColumn(cols []ColType) string {
@@ -122,16 +61,6 @@ func RandomDateColumn(cols []ColType) string {
 	} else {
 		return ""
 	}
-}
-
-// generate a random table name
-func RandomTableName() string {
-	var name []string
-	err := DB.Model(OnlineData{}).Order("random()").Limit(1).Pluck("tablename", &name).Error
-	if err != nil && err != gorm.RecordNotFound {
-		return ""
-	}
-	return name[0]
 }
 
 /// return date and value columns combined within struct from table
@@ -300,14 +229,33 @@ func GetValues(vals []DateVal, from time.Time, to time.Time) ([]XYVal, bool) {
 	values := make([]XYVal, 0)
 	var tmpXY XYVal
 	hasVals := false
+	fromchk, tochk := false, false // check whether to and from dates are included, if not add dummies at the end
 
 	for _, v := range vals {
 		if v.Between(from, to) {
 			hasVals = true // at least 1 value within range exists
+			if v.Date.Equal(from) {
+				fromchk = true
+			}
+			if v.Date.Equal(to.AddDate(0, 0, -1)) {
+				tochk = true
+			}
 			tmpXY.X = (v.Date.String()[0:10])
 			tmpXY.Y = FloatToString(v.Value)
 			values = append(values, tmpXY)
 		}
+	}
+
+	if !fromchk {
+		tmpXY.X = (from.String()[0:10])
+		tmpXY.Y = "0"
+		values = append(values, tmpXY)
+	}
+
+	if !tochk {
+		tmpXY.X = (to.AddDate(0, 0, -1).String()[0:10])
+		tmpXY.Y = "0"
+		values = append(values, tmpXY)
 	}
 
 	return values, hasVals
@@ -327,5 +275,31 @@ func MostlyEmpty(slice []float64) bool {
 		return true
 	} else {
 		return false
+	}
+}
+
+func GetGuid(tablename string) (string, error) {
+	if tablename == "" {
+		return "", fmt.Errorf("Invalid tablename")
+	}
+
+	data := OnlineData{}
+	err := DB.Where("tablename = ?", tablename).Find(&data).Error
+	if err == gorm.RecordNotFound {
+		return "", fmt.Errorf("Could not find table")
+	}
+
+	return data.Guid, err
+}
+
+func RandomMethod() string {
+	rand.Seed(time.Now().UTC().UnixNano())
+	x := rand.Intn(5)
+	if x == 0 {
+		return "Pearson"
+	} else if x == 1 {
+		return "Visual"
+	} else {
+		return "Spurious"
 	}
 }

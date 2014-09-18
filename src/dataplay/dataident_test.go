@@ -86,7 +86,7 @@ func TestContainsTableCol(t *testing.T) {
 
 func TestGetSQLTableSchema(t *testing.T) {
 	Convey("When dbname > 0", t, func() {
-		result := GetSQLTableSchema("test_table", "test_db")
+		result := GetSQLTableSchema("test_table")
 		So(result, ShouldNotBeNil)
 	})
 }
