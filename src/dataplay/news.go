@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/pmylund/sortutil"
 	"net/http"
@@ -63,6 +64,12 @@ func SearchForNews(searchterms string) ([]NewsArticle, *appError) {
 	session, _ := GetCassandraConnection("dp") // create connection to cassandra
 	defer session.Close()
 
+	iurl := ""
+	iter1 := session.Query(`SELECT url FROM image`).Iter()
+	for iter1.Scan(&iurl) {
+		fmt.Println("strongtea", iurl)
+	}
+	fmt.Println("strongtea", iurl)
 	/////////// @TODO: Weight based on search date///////////////
 	// searchdate := ""
 	// params := map[string]string{
@@ -78,7 +85,7 @@ func SearchForNews(searchterms string) ([]NewsArticle, *appError) {
 
 	var id []byte
 	var date time.Time
-	var originalUrl, title, description, imageUrl string
+	var originalUrl, title, description string
 	iter := session.Query(`SELECT id, title, original_url, date, description FROM response WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
 	for iter.Scan(&id, &title, &originalUrl, &date, &description) {
 		termcount := 0
@@ -87,12 +94,15 @@ func SearchForNews(searchterms string) ([]NewsArticle, *appError) {
 			termcount += TermCheck(st, title) //if term in title too it adds weight
 		}
 		if termcount > 0 {
+			imageUrl := ""
+			session.Query(`SELECT url FROM image WHERE id = ? ALLOW FILTERING`, id).Scan(&imageUrl) ///@TODO: change to WHERE pic_index = 0 for top pic
+			image := strings.SplitAfter(imageUrl, "jpg")
+			fmt.Println("RUGMAN", image[0], id)
 			var tmpNA NewsArticle
-			session.Query(`SELECT url FROM image WHERE id = ? LIMIT 1 ALLOW FILTERING`, id).Scan(&imageUrl) ///@TODO: change to WHERE pic_index = 0 for top pic
 			tmpNA.Date = date
 			tmpNA.Title = title
 			tmpNA.Url = originalUrl
-			tmpNA.ImageUrl = imageUrl
+			tmpNA.ImageUrl = image[0]
 			tmpNA.Score = termcount
 			newsarticles = append(newsarticles, tmpNA)
 		}

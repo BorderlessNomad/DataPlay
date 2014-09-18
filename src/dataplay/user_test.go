@@ -197,6 +197,6 @@ func TestGetActivityStreamHttp(t *testing.T) {
 
 	Convey("Should return discoveries", t, func() {
 		result := GetActivityStreamHttp(res, req)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 }
