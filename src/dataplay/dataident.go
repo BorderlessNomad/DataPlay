@@ -124,18 +124,9 @@ func ContainsTableCol(cols []ColType, target string) bool {
  * @param string <Table Name>
  * @return <Table Schema>
  */
-func GetSQLTableSchema(table string, databaseName ...string) []ColType {
-	database := "dataplay"
-	if len(databaseName) > 0 {
-		database = databaseName[0]
-	}
-
+func GetSQLTableSchema(table string) []ColType {
 	tableSchema := []TableSchema{}
-	err := DB.Select("column_name, data_type").Where("table_catalog = ?", database).Where("table_name = ?", table).Find(&tableSchema).Error
-
-	if err != gorm.RecordNotFound {
-		check(err)
-	}
+	DB.Select("column_name, data_type").Where("table_name = ?", table).Find(&tableSchema)
 
 	schema := make([]ColType, 0)
 
@@ -153,7 +144,6 @@ func GetSQLTableSchema(table string, databaseName ...string) []ColType {
 
 		schema = append(schema, NewCol)
 	}
-
 	return schema
 }
 

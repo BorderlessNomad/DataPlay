@@ -189,3 +189,14 @@ func TestGetDataExpertsHttp(t *testing.T) {
 		So(result, ShouldNotBeNil)
 	})
 }
+
+func TestGetActivityStreamHttp(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+	res := httptest.NewRecorder()
+
+	Convey("Should return discoveries", t, func() {
+		result := GetActivityStreamHttp(res, req)
+		So(result, ShouldEqual, "")
+	})
+}

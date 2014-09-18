@@ -11,10 +11,12 @@ type appError struct {
 }
 
 type Activity struct {
-	ActivityId int `primaryKey:"yes"`
-	Type       string
-	Created    time.Time
-	Uid        int
+	ActivityId    int `primaryKey:"yes"`
+	Type          string
+	Created       time.Time
+	Uid           int
+	DiscoveredId  int
+	ObservationId int
 }
 
 func (a Activity) TableName() string {
