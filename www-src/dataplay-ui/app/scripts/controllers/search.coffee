@@ -15,7 +15,7 @@ angular.module('dataplayApp')
 		$scope.rowedResults = [] # split into sub-arrays of 3
 
 		$scope.totalResults = 0
-		$scope.rowLimit = 1
+		$scope.rowLimit = 3
 		$scope.overview = []
 
 		$scope.margin =
