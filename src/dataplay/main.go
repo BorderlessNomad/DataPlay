@@ -229,7 +229,7 @@ func initClassicMode() {
 	m.Get("/api/user/experts", GetDataExpertsHttp)
 	m.Get("/api/news/search/:terms", SearchForNewsHttp)
 	m.Get("/api/observations/recent", GetRecentObservationsHttp)
-	// m.Get("/api/user/activitystream", GetActivityStreamHttp)
+	m.Get("/api/user/activitystream", GetActivityStreamHttp)
 
 	m.Use(JsonApiHandler)
 

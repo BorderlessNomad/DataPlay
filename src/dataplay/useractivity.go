@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	// "fmt"
 	"github.com/jinzhu/gorm"
+	"github.com/pmylund/sortutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -35,8 +37,10 @@ type DataExpert struct {
 }
 
 type UserActivity struct {
-	Activity  string `json:"activity"`
-	PatternId int    `json:"patternid"`
+	ActivityStr1 string    `json:"string"`
+	PatternId    int       `json:"patternid"`
+	Created      float64   `json:"-"`
+	Time         time.Time `json:"time"`
 }
 
 func ActivityCheck(a string) string {
@@ -366,12 +370,16 @@ func GetActivityStreamHttp(res http.ResponseWriter, req *http.Request) string {
 	}
 
 	var activities []UserActivity
-	activities = AddHappenedTo(uid, activities)
-	activities = AddInstigated(uid, activities)
+	t := time.Now()
+	activities = AddHappenedTo(uid, activities, t)
+	activities = AddInstigated(uid, activities, t)
+	sortutil.AscByField(activities, "Created")
+
 	n := 5
 	if len(activities) < 5 {
 		n = len(activities)
 	}
+
 	r, err2 := json.Marshal(activities[:n])
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
@@ -381,10 +389,10 @@ func GetActivityStreamHttp(res http.ResponseWriter, req *http.Request) string {
 	return string(r)
 }
 
-func AddInstigated(uid int, activities []UserActivity) []UserActivity {
+func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivity {
 	activity := []Activity{}
 
-	err := DB.Order("created desc").Where("uid = ?", uid).Limit(5).Find(&activity).Error
+	err := DB.Order("created desc").Where("uid = ?", uid).Find(&activity).Error
 	if err != nil {
 		return activities
 	}
@@ -392,58 +400,143 @@ func AddInstigated(uid int, activities []UserActivity) []UserActivity {
 	for _, a := range activity {
 		tmpA := UserActivity{}
 		if a.Type == "Comment" {
-			tmpA.Activity = "You commented on pattern "
+			tmpA.ActivityStr1 = "You commented on pattern "
 			tmpA.PatternId = a.DiscoveredId
 		} else if a.Type == "Validated Observation" {
 			obs := Observation{}
 			err = DB.Where("observation_id = ?", a.ObservationId).Find(&obs).Error
 			if err != nil {
-				tmpA.Activity = "Bad validated observation activity 1"
+				tmpA.ActivityStr1 = "Bad validated observation activity 1"
 				tmpA.PatternId = 0
 			}
 			user := User{}
 			err = DB.Where("uid = ?", obs.Uid).Find(&user).Error
 			if err != nil {
-				tmpA.Activity = "Bad validated observation activity 2"
+				tmpA.ActivityStr1 = "Bad validated observation activity 2"
 				tmpA.PatternId = 0
 			}
-			tmpA.Activity = "You agreed with " + user.Username + "'s observation on pattern "
+			tmpA.ActivityStr1 = "You agreed with " + user.Username + "'s observation on pattern "
 			tmpA.PatternId = obs.DiscoveredId
 		} else if a.Type == "Invalidated Observation" {
 			obs := Observation{}
 			err := DB.Where("observation_id = ?", a.ObservationId).Find(&obs).Error
 			if err != nil {
-				tmpA.Activity = "Bad invalidated observation activity 1"
-				tmpA.PatternId = 0
+				tmpA.ActivityStr1 = "Bad invalidated observation activity 1"
 			}
 			user := User{}
 			err = DB.Where("uid = ?", obs.Uid).Find(&user).Error
 			if err != nil {
-				tmpA.Activity = "Bad invalidated observation activity 2"
-				tmpA.PatternId = 0
+				tmpA.ActivityStr1 = "Bad invalidated observation activity 2"
 			}
-			tmpA.Activity = "You disagreed with " + user.Username + "'s observation on pattern "
+			tmpA.ActivityStr1 = "You disagreed with " + user.Username + "'s observation on pattern "
 			tmpA.PatternId = obs.DiscoveredId
 		} else if a.Type == "Validated Chart" {
-			tmpA.Activity = "You validated pattern "
+			tmpA.ActivityStr1 = "You validated pattern "
 			tmpA.PatternId = a.DiscoveredId
 
 		} else if a.Type == "Invalidated Chart" {
-			tmpA.Activity = "You invalidated pattern "
+			tmpA.ActivityStr1 = "You invalidated pattern "
 			tmpA.PatternId = a.DiscoveredId
 
 		} else {
-			tmpA.Activity = "No activity"
+			tmpA.ActivityStr1 = "No activity"
 			tmpA.PatternId = 0
 		}
-
+		tmpA.Created = t.Sub(a.Created).Seconds()
+		tmpA.Time = a.Created
 		activities = append(activities, tmpA)
 	}
 	return activities
 
 }
 
-func AddHappenedTo(uid int, activities []UserActivity) []UserActivity {
+func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivity {
+	vDisc := []Validation{}
+
+	err = DB.Select("priv_validations.discovered_id, priv_validations.created, priv_validations.uid, priv_validations.valflag").Joins("LEFT JOIN priv_discovered AS d ON priv_validations.discovered_id = d.discovered_id").Where("d.uid = ?", uid).Where("priv_validations.discovered_id > ?", 0).Order("priv_validations.created DESC").Find(&vDisc).Error
+	if err != nil && err != gorm.RecordNotFound {
+		return activities
+	}
+
+	vObs := []struct {
+		Validation
+		Comment string
+		Did     int
+	}{}
+
+	err = DB.Select("o.discovered_id as did, o.comment as comment, priv_validations.created, priv_validations.uid, priv_validations.valflag").Joins("LEFT JOIN priv_observations AS o ON priv_validations.observation_id = o.observation_id").Where("o.uid = ?", uid).Where("priv_validations.observation_id > ?", 0).Order("priv_validations.created DESC").Find(&vObs).Error
+	if err != nil && err != gorm.RecordNotFound {
+		return activities
+	}
+
+	activity := []Activity{}
+
+	err = DB.Select("priv_activity.discovered_id, priv_activity.created, priv_activity.uid").Joins("LEFT JOIN priv_discovered as d ON priv_activity.discovered_id = d.discovered_id").Where("d.uid = ?", uid).Where("priv_activity.type = ?", "Comment").Order("priv_activity.created DESC").Find(&activity).Error
+	if err != nil && err != gorm.RecordNotFound {
+		return activities
+	}
+
+	for _, d := range vDisc {
+		tmpA := UserActivity{}
+		user := User{}
+		err = DB.Where("uid = ?", d.Uid).Find(&user).Error
+		if err != nil {
+			tmpA.ActivityStr1 = "Bad invalidated observation activity 2"
+		}
+
+		if d.Valflag == true {
+			tmpA.ActivityStr1 = "You gained " + strconv.Itoa(discVal) + " reputation when " + user.Username + " validated your pattern "
+			tmpA.PatternId = d.DiscoveredId
+			tmpA.Created = t.Sub(d.Created).Seconds()
+			tmpA.Time = d.Created
+		} else {
+			tmpA.ActivityStr1 = "You lost " + strconv.Itoa(discInval) + " reputation when " + user.Username + " invalidated your pattern "
+			tmpA.PatternId = d.DiscoveredId
+			tmpA.Created = t.Sub(d.Created).Seconds()
+			tmpA.Time = d.Created
+		}
+
+		activities = append(activities, tmpA)
+	}
+
+	for _, o := range vObs {
+		tmpA := UserActivity{}
+		user := User{}
+		err = DB.Where("uid = ?", o.Uid).Find(&user).Error
+		if err != nil {
+			tmpA.ActivityStr1 = "Bad invalidated observation activity 2"
+		}
+
+		if o.Valflag == true {
+			tmpA.ActivityStr1 = "You gained " + strconv.Itoa(obsVal) + " reputation when " + user.Username + " validated your observation on pattern "
+			tmpA.PatternId = o.Did
+			tmpA.Created = t.Sub(o.Created).Seconds()
+			tmpA.Time = o.Created
+		} else {
+			tmpA.ActivityStr1 = "You lost " + strconv.Itoa(obsInval) + " reputation when " + user.Username + " invalidated your observation on pattern "
+			tmpA.PatternId = o.Did
+			tmpA.Created = t.Sub(o.Created).Seconds()
+			tmpA.Time = o.Created
+		}
+
+		activities = append(activities, tmpA)
+	}
+
+	for _, a := range activity {
+		tmpA := UserActivity{}
+		user := User{}
+		err = DB.Where("uid = ?", a.Uid).Find(&user).Error
+		if err != nil {
+			tmpA.ActivityStr1 = "Bad invalidated observation activity 2"
+		}
+
+		tmpA.ActivityStr1 = "You gained " + strconv.Itoa(discObs) + " reputation when " + user.Username + " commented on your pattern "
+		tmpA.PatternId = a.DiscoveredId
+		tmpA.Created = t.Sub(a.Created).Seconds()
+		tmpA.Time = a.Created
+		activities = append(activities, tmpA)
+	}
+
 	return activities
 
 }

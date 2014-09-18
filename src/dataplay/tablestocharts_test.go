@@ -80,7 +80,7 @@ func TestGetCorrelatedChartsHttp(t *testing.T) {
 		result := GetCorrelatedChartsHttp(res, req, params)
 		y := time.Now()
 		fmt.Println("ROBOCOP0", y.Sub(x).Seconds())
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 
 	})
 }
