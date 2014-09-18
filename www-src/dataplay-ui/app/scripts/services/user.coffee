@@ -58,4 +58,8 @@ angular.module('dataplayApp')
 			if query instanceof Array
 				query = query.join '_'
 			$http.get config.api.base_url + "/news/search/#{query}"
+
+		# for landing page
+		getStats: () ->
+			$http.get config.api.base_url + "/home/data"
 	]

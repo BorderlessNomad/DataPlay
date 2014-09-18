@@ -17,9 +17,13 @@ angular.module('dataplayApp')
 
 		$routeProvider
 			.when '/',
-				templateUrl: 'views/home.html'
-				controller: 'HomeCtrl'
+				templateUrl: 'views/recent.html'
+				controller: 'RecentCtrl'
 				login: true
+			.when '/',
+				templateUrl: 'views/landing.html'
+				controller: 'LandingCtrl'
+				login: false
 			.when '/search',
 				templateUrl: 'views/search.html'
 				controller: 'SearchCtrl'

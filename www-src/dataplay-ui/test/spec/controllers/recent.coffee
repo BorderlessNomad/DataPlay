@@ -1,17 +1,17 @@
 'use strict'
 
-describe 'Controller: HomeCtrl', ->
+describe 'Controller: RecentCtrl', ->
 
   # load the controller's module
   beforeEach module 'dataplayApp'
 
-  HomeCtrl = {}
+  RecentCtrl = {}
   scope = {}
 
   # Initialize the controller and a mock scope
   beforeEach inject ($controller, $rootScope) ->
     scope = $rootScope.$new()
-    HomeCtrl = $controller 'HomeCtrl', {
+    RecentCtrl = $controller 'RecentCtrl', {
       $scope: scope
     }
 
