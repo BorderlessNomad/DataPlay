@@ -2,13 +2,13 @@
 
 ###*
  # @ngdoc function
- # @name dataplayApp.controller:HomeCtrl
+ # @name dataplayApp.controller:RecentCtrl
  # @description
- # # HomeCtrl
+ # # RecentCtrl
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'HomeCtrl', ['$scope', '$location', 'User', 'Auth', 'Overview', 'config', ($scope, $location, User, Auth, Overview, config) ->
+	.controller 'RecentCtrl', ['$scope', '$location', 'User', 'Auth', 'Overview', 'config', ($scope, $location, User, Auth, Overview, config) ->
 		$scope.Auth = Auth
 		$scope.username = Auth.get config.userName
 		$scope.config = config

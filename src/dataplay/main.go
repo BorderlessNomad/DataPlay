@@ -409,6 +409,7 @@ func SessionApiHandler(res http.ResponseWriter, req *http.Request) {
 		"/api/user/check":  true,
 		"/api/user/forgot": true,
 		"/api/user/reset":  true,
+		"/api/home/data":   true,
 	}
 
 	pathTrimmed := strings.TrimLeft(req.URL.Path, "/")
