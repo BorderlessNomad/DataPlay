@@ -197,12 +197,15 @@ angular.module('dataplayApp')
 
 			chart.dimension data.dimension
 			chart.group data.group, data.table1.title
-			# chart.stack data.group2, data.table2.title
+			chart.stack data.group2, data.table2.title
+
+			chart.legend dc.legend()
 
 			data.ordinals = []
 			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
 
-			chart.colorAccessor (d, i) -> parseInt(d.y) % data.ordinals.length
+			# chart.colorAccessor (d, i) -> parseInt(d.y) % data.ordinals.length
+			chart.colors d3.scale.category10()
 
 			chart.xAxis().ticks $scope.xTicks
 

@@ -104,15 +104,18 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	}
 
 	validators := make([]string, 0)
-	validatorsUsers := []struct {
+	validatingUsers := []struct {
 		Validation
 		Username string
 	}{}
-	err5 := DB.Select("DISTINCT uid, (SELECT priv_users.username FROM priv_users WHERE priv_users.uid = priv_validations.uid) as username").Where("discovered_id = ?", discovered.DiscoveredId).Where("valflag = ?", true).Find(&validatorsUsers).Error
+	query := DB.Select("DISTINCT uid, (SELECT priv_users.username FROM priv_users WHERE priv_users.uid = priv_validations.uid) as username")
+	query = query.Where("discovered_id = ?", discovered.DiscoveredId)
+	query = query.Where("valflag = ?", true)
+	err5 := query.Find(&validatingUsers).Error
 	if err5 != nil && err5 != gorm.RecordNotFound {
 		return pattern, &appError{err5, "find validators failed", http.StatusInternalServerError}
 	} else {
-		for _, vu := range validatorsUsers {
+		for _, vu := range validatingUsers {
 			validators = append(validators, vu.Username)
 		}
 	}
@@ -148,8 +151,8 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	pattern := PatternInfo{}
 	var chart []string
 	var cd CorrelationData
-	err := DB.Model(Correlation{}).Where("correlation_id = ?", cid).Pluck("json", &chart).Error
 
+	err := DB.Model(Correlation{}).Where("correlation_id = ?", cid).Pluck("json", &chart).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return pattern, &appError{err, "Database query failed (ID)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
@@ -170,15 +173,19 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	}
 
 	validators := make([]string, 0)
-	validatorsUsers := []struct {
+	validatingUsers := []struct {
 		Validation
 		Username string
 	}{}
-	err3 := DB.Select("DISTINCT uid, (SELECT priv_users.username FROM priv_users WHERE priv_users.uid = priv_validations.uid) as username").Where("discovered_id = ?", discovered.DiscoveredId).Where("valflag = ?", true).Find(&validatorsUsers).Error
+
+	query := DB.Select("DISTINCT uid, (SELECT priv_users.username FROM priv_users WHERE priv_users.uid = priv_validations.uid) as username")
+	query = query.Where("discovered_id = ?", discovered.DiscoveredId)
+	query = query.Where("valflag = ?", true)
+	err3 := query.Find(&validatingUsers).Error
 	if err3 != nil && err3 != gorm.RecordNotFound {
 		return pattern, &appError{err3, "find validators failed", http.StatusInternalServerError}
 	} else {
-		for _, vu := range validatorsUsers {
+		for _, vu := range validatingUsers {
 			validators = append(validators, vu.Username)
 		}
 	}
@@ -268,7 +275,6 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 	}
 
 	for _, v := range xyNames { /// create all other types of chart
-
 		if v.Xtype == "varchar" && v.Ytype == "varchar" { // stacked or scatter charts if string v string values
 			GenerateChartData("stacked column", guid, v, &charts, index)
 			GenerateChartData("scatter", guid, v, &charts, index)
@@ -377,8 +383,10 @@ func GetDiscoveredCharts(tableName string, correlated bool, offset int, count in
 	if correlated {
 		c := Correlation{}
 		d := Discovered{}
+
 		joinStr := "LEFT JOIN " + c.TableName() + " ON " + d.TableName() + ".correlation_id = " + c.TableName() + ".correlation_id"
 		whereStr := c.TableName() + ".tbl1 = ?"
+
 		err := DB.Joins(joinStr).Where(whereStr, tableName).Order("rating DESC").Find(&discovered).Error
 		if err != nil && err != gorm.RecordNotFound {
 			return DiscoveredCharts{nil, 0}, &appError{nil, "Database query failed (JOIN)", http.StatusInternalServerError}
@@ -402,6 +410,7 @@ func GetDiscoveredCharts(tableName string, correlated bool, offset int, count in
 			if err1 != nil {
 				return DiscoveredCharts{nil, 0}, &appError{err1, "Json failed", http.StatusInternalServerError}
 			}
+
 			correlationData.CorrelationId = discovered[i].CorrelationId
 			charts = append(charts, correlationData)
 		} else {
@@ -410,6 +419,7 @@ func GetDiscoveredCharts(tableName string, correlated bool, offset int, count in
 			if err1 != nil {
 				return DiscoveredCharts{nil, 0}, &appError{err1, "Json failed", http.StatusInternalServerError}
 			}
+
 			tableData.RelationId = discovered[i].RelationId
 			charts = append(charts, tableData)
 		}
@@ -439,12 +449,13 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 	tmpTD.Title = SanitizeString(ind.Title)
 	tmpTD.Desc = SanitizeString(ind.Notes)
 	tmpTD.LabelX = names.X
+
 	var dx, dy time.Time
 	var fx, fy, fz float64
 	var vx, vy string
 	pieSlices, rowAmt := 0, 0
-	sql := ""
 
+	sql := ""
 	if chartType == "pie" {
 		if names.Xtype == "float" {
 			sql = fmt.Sprintf("SELECT %s AS x, SUM(%s) AS y FROM %s GROUP BY %s", names.X, names.X, guid, names.X)
@@ -465,8 +476,8 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 	if chartType == "bubble" {
 		tmpTD.LabelY = names.Y
 		tmpTD.LabelZ = names.Z
-		for rows.Next() {
 
+		for rows.Next() {
 			if (names.Xtype == "float" || names.Xtype == "integer") && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
 				rows.Scan(&fx, &fy, &fz)
 				tmpXY.X = FloatToString(fx)
@@ -496,7 +507,6 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 		if ValueCheck(tmpTD) && NegCheck(tmpTD) {
 			*charts = append(*charts, tmpTD)
 		}
-
 	} else if chartType == "pie" { // single column pie chart x = type, y = count
 		for rows.Next() {
 			pieSlices++
@@ -528,11 +538,10 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 				*charts = append(*charts, tmpTD)
 			}
 		}
-
 	} else { // for all other types of chart
 		tmpTD.LabelY = names.Y
-		for rows.Next() {
 
+		for rows.Next() {
 			if chartType == "row" {
 				rowAmt++
 			}
@@ -621,6 +630,7 @@ func XYPermutations(columns []ColType, bubble bool) []XYVal {
 			}
 		}
 	}
+
 	// if bubble chart add xyz permutations
 	if bubble {
 		for _, v := range xyNames {
@@ -636,6 +646,7 @@ func XYPermutations(columns []ColType, bubble bool) []XYVal {
 				}
 			}
 		}
+
 		return xyzNames
 	}
 
@@ -671,6 +682,7 @@ func NegCheck(t TableData) bool {
 			return false
 		}
 	}
+
 	return true
 }
 

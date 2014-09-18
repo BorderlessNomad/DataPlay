@@ -19,67 +19,10 @@
 	<!-- <a class="btn btn-warning pull-right reset" ng-click="resetAll()">Reset all</a> -->
 
 	<!-- Related -->
-	<div class="row related" ng-init="getRelatedCharts()">
-		<div class="col-md-12"><h4>Relation within <a href="overview/{{params.id}}">{{params.id}}</a></h4></div>
-
-		<div class="col-md-4" ng-repeat="chart in chartsRelated" id="{{chart.id}}" ng-show="hasRelatedCharts() > 0">
-			<a class="related" href="{{chart.url}}">
-				<span ng-include="'views/charts/related/line.html'"></span>
-				<span ng-include="'views/charts/related/row.html'"></span>
-				<span ng-include="'views/charts/related/column.html'"></span>
-				<span ng-include="'views/charts/related/pie.html'"></span>
-				<span ng-include="'views/charts/related/bubble.html'"></span>
-			</a>
-
-			<div class="chartSwitch" ng-if="!isPlotAllowed(chart.type)">
-				<div class="well text-center">Oops! nothing to plot.</div>
-			</div>
-		</div>
-
-		<div class="col-md-12" ng-show="loading.related" ng-include="'views/loader.html'"></div>
-
-		<div class="col-md-12" ng-show="!loading.related && hasRelatedCharts() <= 0">
-			<div class="jumbotron">
-				<p class="text-center">Sorry we are unable to generate any Related data for given set.</p>
-			</div>
-		</div>
-
-		<div class="col-md-12">
-			<a id="getRelated" href="#" class="btn btn-default btn-block" ng-click="getRelated()" ng-hide="limit.related || loading.related || hasRelatedCharts() <= 0">Show more ({{max.related - offset.related}}) <span class="caret"></span></a>
-		</div>
-	</div>
+	<!-- <div class="row related" ng-init="getRelatedCharts()" ng-include="'views/overview/related.html'"></div> -->
 
 	<hr/>
 
 	<!-- Correlated -->
-	<div class="row" ng-controller="OverviewCorrelatedCtrl" ng-init="getCorrelatedCharts()">
-		<div class="col-md-12"><h4>Correlation within <a href="overview/{{params.id}}">{{params.id}}</a></h4></div>
-
-		<div class="col-md-4" ng-repeat="chart in chartsCorrelated" id="{{chart.id}}" ng-show="hasCorrelatedCharts() > 0">
-			<a class="correlated" href="{{chart.url}}">
-				<span ng-include="'views/charts/correlated/line.html'"></span>
-				<span ng-include="'views/charts/correlated/row.html'"></span>
-				<span ng-include="'views/charts/correlated/column.html'"></span>
-				<span ng-include="'views/charts/correlated/stacked.html'"></span>
-				<span ng-include="'views/charts/correlated/bubble.html'"></span>
-				<span ng-include="'views/charts/correlated/scatter.html'"></span>
-			</a>
-
-			<div class="chartSwitch" ng-if="!isPlotAllowed(chart.type)">
-				<div class="well text-center">Oops! nothing to plot.</div>
-			</div>
-		</div>
-
-		<div class="col-md-12" ng-show="loading.correlated" ng-include="'views/loader.html'"></div>
-
-		<div class="col-md-12" ng-show="!loading.correlated && hasCorrelatedCharts() <= 0">
-			<div class="jumbotron">
-				<p>Sorry we are unable to generate any Correlated data for given set.</p>
-			</div>
-		</div>
-
-		<div class="col-md-12">
-			<a id="getCorrelated" href="#" class="btn btn-default btn-block" ng-click="getCorrelated()" ng-hide="limit.correlated || loading.correlated || hasCorrelatedCharts() <= 0">Show more ({{max.correlated - offset.correlated}}) <span class="caret"></span></a>
-		</div>
-	</div>
+	<div class="row correlated" ng-controller="OverviewCorrelatedCtrl" ng-init="getCorrelatedCharts()" ng-include="'views/overview/correlated.html'"></div>
 </div>
