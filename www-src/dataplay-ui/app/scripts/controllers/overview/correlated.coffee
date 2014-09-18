@@ -52,13 +52,15 @@ angular.module('dataplayApp')
 		$scope.getCorrelated = (count) ->
 			$scope.loading.correlated = true
 
-			if not count?
+			if not count? or count is 0
 				count = $scope.max.correlated - $scope.offset.correlated
 				count = if $scope.max.correlated and count < $scope.count then count else $scope.count
+			else
+				generate = true
 
-			depth = if $scope.max.correlated then false else true
+			generate = if generate or $scope.max.correlated then false else true
 
-			Overview.correlated $scope.params.id, $scope.offset.correlated, count, depth
+			Overview.correlated $scope.params.id, $scope.offset.correlated, count, generate
 				.success (data) ->
 					if data? and data.charts? and data.charts.length > 0
 						$scope.loading.correlated = false
@@ -66,8 +68,8 @@ angular.module('dataplayApp')
 						$scope.max.correlated = data.count
 
 						for key, chart of data.charts
-							# continue unless $scope.isPlotAllowed chart.type
-							continue unless chart.type is 'line'
+							continue unless $scope.isPlotAllowed chart.type
+							# continue unless chart.type is 'line'
 
 							key = parseInt(key)
 							chart.key = key
@@ -160,11 +162,8 @@ angular.module('dataplayApp')
 			data = $scope.findById chart.anchorName()
 
 			data.xDomain = [new Date(data.from), new Date(data.to)]
-			console.log "xDomain", data.xDomain
 			data.entry = crossfilter data.table1.values
-			data.dimension = data.entry.dimension (d) ->
-				console.log "dimension", d.x, d.y
-				d.x
+			data.dimension = data.entry.dimension (d) -> d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			data.entry2 = crossfilter data.table2.values
@@ -172,13 +171,15 @@ angular.module('dataplayApp')
 			data.group2 = data.dimension2.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
-			chart.group data.group
-			chart.stack data.group2
+			chart.group data.group, data.table1.title
+			chart.stack data.group2, data.table2.title
 
 			data.ordinals = []
 			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
 
-			chart.colorAccessor (d, i) -> parseInt(d.y) % data.ordinals.length
+			# chart.colorAccessor (d, i) -> parseInt(d.y) % data.ordinals.length
+
+			chart.legend dc.legend()
 
 			chart.xAxis().ticks $scope.xTicks
 

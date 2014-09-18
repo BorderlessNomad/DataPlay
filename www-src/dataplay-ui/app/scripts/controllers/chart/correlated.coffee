@@ -23,6 +23,7 @@ angular.module('dataplayApp')
 			right: 10
 			bottom: 50
 			left: 110
+		$scope.xTicks = 8
 
 		$scope.chartRendered = null
 		$scope.chart =
@@ -186,6 +187,13 @@ angular.module('dataplayApp')
 		$scope.lineChartPostSetup = (chart) ->
 			data = $scope.chart
 
+			# tableData = []
+			# _.merge tableData, data.table1.values
+			# _.merge tableData, data.table2.values
+			# console.log "tableData", tableData
+
+			# _.merge data.table2.values, data.table1.values
+
 			data.xDomain = [new Date(data.from), new Date(data.to)]
 			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> d.x
@@ -207,7 +215,9 @@ angular.module('dataplayApp')
 			# chart.colorAccessor (d, i) -> parseInt(d.y) % data.ordinals.length
 			chart.colors d3.scale.category10()
 
-			chart.xAxis().ticks $scope.xTicks
+			chart.xAxis()
+				.ticks $scope.xTicks
+				# .tickFormat customTimeFormat
 
 			xScale = d3.time.scale()
 				.domain data.xDomain
@@ -286,7 +296,10 @@ angular.module('dataplayApp')
 
 			chart.colorAccessor (d, i) -> i + 1
 
-			chart.x $scope.getXScale data
+			xScale = d3.time.scale()
+				.domain data.xDomain
+				.range [0, $scope.width]
+			chart.x xScale
 
 			if ordinals? and ordinals.length > 0
 				chart.xUnits switch data.patterns[data.table1.xLabel].valuePattern
@@ -397,53 +410,40 @@ angular.module('dataplayApp')
 		$scope.scatterChartPostSetup = (chart) ->
 			data = $scope.chart
 
+			data.xDomain = [new Date(data.from), new Date(data.to)]
 			data.entry = crossfilter data.table1.values
-			data.dimension = data.entry.dimension (d) -> "#{d.x}|#{d.y}|#{d.z}"
+			data.dimension = data.entry.dimension (d) -> d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			chart.dimension data.dimension
 			chart.group data.group
 
-			data.ordinals = []
-			data.ordinals.push d.key.split("|")[0] for d in data.group.all() when d not in data.ordinals
+			chart.keyAccessor (d) -> d.key
+			chart.valueAccessor (d) -> d.value
 
-			chart.keyAccessor (d) -> d.key.split("|")[0]
-			chart.valueAccessor (d) -> d.key.split("|")[1]
+			xScale = d3.time.scale()
+				.domain data.xDomain
+				.range [0, $scope.width]
+			chart.x xScale
 
-			chart.x switch data.patterns[data.table1.xLabel].valuePattern
-				when 'label'
-					d3.scale.ordinal()
-						.domain data.ordinals
-						.rangeBands [0, $scope.width]
-				when 'date'
-					d3.time.scale()
-						.domain d3.extent data.group.all(), (d) -> d.key.split("|")[0]
-						.range [0, $scope.width]
-				else
-					d3.scale.linear()
-						.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[0]
-						.range [0, $scope.width]
+			chart.xAxis().ticks $scope.xTicks
 
-			chart.y switch data.patterns[data.table1.xLabel].valuePattern
-				when 'label'
-					d3.scale.ordinal()
-						.domain data.ordinals
-						.rangeBands [0, $scope.height]
-				when 'date'
-					d3.time.scale()
-						.domain d3.extent data.group.all(), (d) -> d.key.split("|")[1]
-						.range [0, $scope.height]
-				else
-					d3.scale.linear()
-						.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[1]
-						.range [0, $scope.height]
+			yScale = d3.scale.linear()
+				.domain d3.extent data.group.all(), (d) -> d.value
+				.range [$scope.height, 0]
+			chart.y yScale
 
-			chart.label (d) -> x = d.key.split("|")[0]
+			chart.zoomOutRestrict true
+			chart.mouseZoomable true
 
-			chart.title (d) ->
-				x = d.key.split("|")[0]
-				y = d.key.split("|")[1]
-				"#{data.table1.xLabel}: #{x}\n#{data.yLabel}: #{y}"
+			chart.title (d) -> "#{data.table1.xLabel}: #{d.key}\n#{data.table1.yLabel}: #{d.value}"
+
+			# chart.colors d3.scale.category20()
+
+			# chart.title (d) ->
+			# 	x = d.key.split("|")[0]
+			# 	y = d.key.split("|")[1]
+			# 	"#{data.table1.xLabel}: #{x}\n#{data.yLabel}: #{y}"
 
 			return
 
