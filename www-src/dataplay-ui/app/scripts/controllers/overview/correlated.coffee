@@ -56,7 +56,7 @@ angular.module('dataplayApp')
 				count = $scope.max.correlated - $scope.offset.correlated
 				count = if $scope.max.correlated and count < $scope.count then count else $scope.count
 
-			depth = if $scope.max.correlated then 0 else 100
+			depth = if $scope.max.correlated then false else true
 
 			Overview.correlated $scope.params.id, $scope.offset.correlated, count, depth
 				.success (data) ->
@@ -66,14 +66,14 @@ angular.module('dataplayApp')
 						$scope.max.correlated = data.count
 
 						for key, chart of data.charts
-							continue unless $scope.isPlotAllowed chart.type
-							# continue unless chart.type is 'line'
+							# continue unless $scope.isPlotAllowed chart.type
+							continue unless chart.type is 'line'
 
 							key = parseInt(key)
 							chart.key = key
 							chart.id = "correlated-#{$scope.params.id}-#{chart.key + $scope.offset.correlated}-#{chart.type}"
 							chart.url = "charts/correlated/#{$scope.params.id}/#{chart.correlationid}/#{chart.type}/#{chart.table1.xLabel}/#{chart.table1.yLabel}"
-							chart.url += "/#{chart.table1.zLabel}" if chart.type is 'bubble' or chart.type is 'scatter'
+							chart.url += "/#{chart.table1.zLabel}" if chart.type is 'bubble'
 
 							chart.patterns = {}
 							chart.patterns[chart.table1.xLabel] =
@@ -160,8 +160,11 @@ angular.module('dataplayApp')
 			data = $scope.findById chart.anchorName()
 
 			data.xDomain = [new Date(data.from), new Date(data.to)]
+			console.log "xDomain", data.xDomain
 			data.entry = crossfilter data.table1.values
-			data.dimension = data.entry.dimension (d) -> d.x
+			data.dimension = data.entry.dimension (d) ->
+				console.log "dimension", d.x, d.y
+				d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			data.entry2 = crossfilter data.table2.values
@@ -170,7 +173,7 @@ angular.module('dataplayApp')
 
 			chart.dimension data.dimension
 			chart.group data.group
-			# chart.stack data.group2
+			chart.stack data.group2
 
 			data.ordinals = []
 			data.ordinals.push d.key for d in data.group.all() when d not in data.ordinals
@@ -178,6 +181,9 @@ angular.module('dataplayApp')
 			chart.colorAccessor (d, i) -> parseInt(d.y) % data.ordinals.length
 
 			chart.xAxis().ticks $scope.xTicks
+
+			chart.xAxisLabel false, 0
+			chart.yAxisLabel false, 0
 
 			xScale = d3.time.scale()
 				.domain data.xDomain
@@ -233,6 +239,11 @@ angular.module('dataplayApp')
 
 			chart.colorAccessor (d, i) -> i + 1
 
+			chart.xAxis().ticks $scope.xTicks
+
+			chart.xAxisLabel false, 0
+			chart.yAxisLabel false, 0
+
 			chart.x $scope.getXScale data
 
 			chart.xUnits $scope.getXUnits data if data.ordinals?.length > 0
@@ -260,6 +271,9 @@ angular.module('dataplayApp')
 			chart.colorAccessor (d, i) -> i + 1
 
 			chart.x $scope.getXScale data
+
+			chart.xAxisLabel false, 0
+			chart.yAxisLabel false, 0
 
 			chart.xUnits $scope.getXUnits data if data.ordinals?.length > 0
 
@@ -330,6 +344,11 @@ angular.module('dataplayApp')
 				.domain d3.extent data.group.all(), (d) -> Math.abs parseInt d.key.split("|")[2]
 			chart.r rScale
 
+			chart.xAxis().ticks $scope.xTicks
+
+			chart.xAxisLabel false, 0
+			chart.yAxisLabel false, 0
+
 			# chart.label (d) -> x = d.key.split("|")[0]
 
 			chart.title (d) ->
@@ -348,6 +367,8 @@ angular.module('dataplayApp')
 
 		$scope.scatterChartPostSetup = (chart) ->
 			data = $scope.findById chart.anchorName()
+
+			console.log "scatterChartPostSetup", data
 
 			data.entry = crossfilter data.table1.values
 			data.dimension = data.entry.dimension (d) -> "#{d.x}|#{d.y}|#{d.z}"
@@ -390,6 +411,11 @@ angular.module('dataplayApp')
 					d3.scale.linear()
 						.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[1]
 						.range [0, $scope.height]
+
+			chart.xAxis().ticks $scope.xTicks
+
+			chart.xAxisLabel false, 0
+			chart.yAxisLabel false, 0
 
 			chart.label (d) -> x = d.key.split("|")[0]
 
