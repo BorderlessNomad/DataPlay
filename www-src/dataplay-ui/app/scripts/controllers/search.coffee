@@ -15,7 +15,7 @@ angular.module('dataplayApp')
 		$scope.rowedResults = [] # split into sub-arrays of 3
 
 		$scope.totalResults = 0
-		$scope.rowLimit = 1
+		$scope.rowLimit = 3
 		$scope.overview = []
 
 		$scope.margin =
@@ -41,10 +41,19 @@ angular.module('dataplayApp')
 
 					$scope.results.forEach (r) ->
 						r.graph = []
-						# console.log r
-						# Overview.related r
-						# 	.success (data) ->
-						# 		console.log data
+						r.error = null
+						console.log r
+						# Overview.related r.GUID
+						# 	.success (graphdata) ->
+						# 		console.log graphdata
+						# 	.error (err, status) ->
+						# 		r.error = switch
+						# 			when err and err.message then err.message
+						# 			when err and err.data and err.data.message then err.data.message
+						# 			when err and err.data then err.data
+						# 			when err then err
+						# 			else ''
+						# 		console.log "Search::search::getGraph::Error:", status
 
 					$scope.rowedResults = $scope.splitIntoRows $scope.results
 					$scope.totalResults = data.Total
