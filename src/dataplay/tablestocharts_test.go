@@ -191,7 +191,7 @@ func TestGetTopRatedChartsHttp(t *testing.T) {
 
 	Convey("Should return chartlist", t, func() {
 		result := GetTopRatedChartsHttp(res, req)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 }
 
@@ -202,6 +202,6 @@ func TestGetAwaitingValidationHttp(t *testing.T) {
 
 	Convey("Should return chartlist", t, func() {
 		result := GetAwaitingValidationHttp(res, req)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 }

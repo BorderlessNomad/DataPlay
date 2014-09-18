@@ -131,13 +131,25 @@ func PopularPoliticalActivity() [3]Popular {
 		return popular
 	}
 
-	for i := 0; i < 5; i++ {
+	n := 5
+	if len(searchterm) < 5 {
+		n = len(searchterm)
+	}
+
+	for i := 0; i < n; i++ {
 		popular[0].TA[i].Term = searchterm[i].Term
 		popular[0].TA[i].Amount = searchterm[i].Count
 
 		popular[1].TA[i].Term = searchterm[i].Term
 		popular[1].TA[i].Amount = searchterm[i].Count
+	}
 
+	n = 5
+	if len(results) < 5 {
+		n = len(results)
+	}
+	fmt.Println("ROBOCOP", results)
+	for i := 0; i < n; i++ {
 		popular[2].TA[i].Term = results[i].Username
 		popular[2].TA[i].Amount = results[i].Counter
 	}
