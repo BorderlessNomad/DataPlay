@@ -331,7 +331,6 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth int) (CorrelatedCharts, *appError) {
 	correlation := make([]Correlation, 0)
 	charts := make([]CorrelationData, 0) ///empty slice for adding all possible charts
-	var cd CorrelationData
 
 	GenerateCorrelations(tableName, searchDepth)
 
@@ -343,6 +342,7 @@ func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth in
 	}
 
 	for _, c := range correlation {
+		var cd CorrelationData
 		json.Unmarshal(c.Json, &cd)
 		cd.CorrelationId = c.CorrelationId
 		charts = append(charts, cd)

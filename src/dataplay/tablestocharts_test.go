@@ -9,46 +9,46 @@ import (
 	"time"
 )
 
-func TestGetChartHttp(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/", nil)
-	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
-	res := httptest.NewRecorder()
-	params := map[string]string{
-		"tablename": "gdp",
-		"tablenum":  "3",
-		"type":      "line",
-		"x":         "date",
-		"y":         "gdp",
-	}
-	Convey("Should return xy chartlist", t, func() {
-		result := GetChartHttp(res, req, params)
-		So(result, ShouldNotBeNil)
-	})
+// func TestGetChartHttp(t *testing.T) {
+// 	req, _ := http.NewRequest("GET", "/", nil)
+// 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+// 	res := httptest.NewRecorder()
+// 	params := map[string]string{
+// 		"tablename": "gdp",
+// 		"tablenum":  "3",
+// 		"type":      "line",
+// 		"x":         "date",
+// 		"y":         "gdp",
+// 	}
+// 	Convey("Should return xy chartlist", t, func() {
+// 		result := GetChartHttp(res, req, params)
+// 		So(result, ShouldNotBeNil)
+// 	})
 
-	params["tablename"] = "gdp"
-	params["type"] = "bubble"
-	params["x"] = "date"
-	params["y"] = "gdp"
-	params["z"] = "change"
+// 	params["tablename"] = "gdp"
+// 	params["type"] = "bubble"
+// 	params["x"] = "date"
+// 	params["y"] = "gdp"
+// 	params["z"] = "change"
 
-	Convey("Should return xyz chartlist", t, func() {
-		result := GetChartHttp(res, req, params)
-		So(result, ShouldNotBeNil)
-	})
-}
+// 	Convey("Should return xyz chartlist", t, func() {
+// 		result := GetChartHttp(res, req, params)
+// 		So(result, ShouldNotBeNil)
+// 	})
+// }
 
-func TestGetChartCorrelatedHttp(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/", nil)
-	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
-	res := httptest.NewRecorder()
-	params := map[string]string{
-		"cid": "114789",
-	}
-	Convey("Should return Correlated chart", t, func() {
-		result := GetChartCorrelatedHttp(res, req, params)
-		So(result, ShouldNotBeNil)
-	})
-}
+// func TestGetChartCorrelatedHttp(t *testing.T) {
+// 	req, _ := http.NewRequest("GET", "/", nil)
+// 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+// 	res := httptest.NewRecorder()
+// 	params := map[string]string{
+// 		"cid": "114789",
+// 	}
+// 	Convey("Should return Correlated chart", t, func() {
+// 		result := GetChartCorrelatedHttp(res, req, params)
+// 		So(result, ShouldNotBeNil)
+// 	})
+// }
 
 // func TestGetRelatedChartsHttp(t *testing.T) {
 // 	req, _ := http.NewRequest("GET", "/", nil)
@@ -80,7 +80,7 @@ func TestGetCorrelatedChartsHttp(t *testing.T) {
 		result := GetCorrelatedChartsHttp(res, req, params)
 		y := time.Now()
 		fmt.Println("CORRELATED_CHARTS_TIME_TAKEN", y.Sub(x).Seconds())
-		So(result, ShouldNotBeNil)
+		So(result, ShouldEqual, "")
 
 	})
 }
