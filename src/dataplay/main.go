@@ -230,6 +230,8 @@ func initClassicMode() {
 	m.Get("/api/news/search/:terms", SearchForNewsHttp)
 	m.Get("/api/observations/recent", GetRecentObservationsHttp)
 	m.Get("/api/user/activitystream", GetActivityStreamHttp)
+	m.Get("/api/chart/toprated", GetTopRatedChartsHttp)
+	m.Get("/api/chart/awaitingvalidation", GetAwaitingValidationHttp)
 
 	m.Use(JsonApiHandler)
 
@@ -404,12 +406,13 @@ func JsonApiHandler(res http.ResponseWriter, req *http.Request) {
 
 func SessionApiHandler(res http.ResponseWriter, req *http.Request) {
 	noAuthPaths := map[string]bool{
-		"/api/login":       true,
-		"/api/register":    true,
-		"/api/user/check":  true,
-		"/api/user/forgot": true,
-		"/api/user/reset":  true,
-		"/api/home/data":   true,
+		"/api/login":          true,
+		"/api/register":       true,
+		"/api/user/check":     true,
+		"/api/user/forgot":    true,
+		"/api/user/reset":     true,
+		"/api/home/data":      true,
+		"/api/chart/toprated": true,
 	}
 
 	pathTrimmed := strings.TrimLeft(req.URL.Path, "/")

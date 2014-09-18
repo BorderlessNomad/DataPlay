@@ -80,7 +80,7 @@ func TestGetCorrelatedChartsHttp(t *testing.T) {
 		result := GetCorrelatedChartsHttp(res, req, params)
 		y := time.Now()
 		fmt.Println("CORRELATED_CHARTS_TIME_TAKEN", y.Sub(x).Seconds())
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 
 	})
 }
@@ -183,3 +183,25 @@ func TestGetDiscoveredChartsHttp(t *testing.T) {
 // 		So(result, ShouldNotBeNil)
 // 	})
 // }
+
+func TestGetTopRatedChartsHttp(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+	res := httptest.NewRecorder()
+
+	Convey("Should return chartlist", t, func() {
+		result := GetTopRatedChartsHttp(res, req)
+		So(result, ShouldEqual, "")
+	})
+}
+
+func TestGetAwaitingValidationHttp(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+	res := httptest.NewRecorder()
+
+	Convey("Should return chartlist", t, func() {
+		result := GetAwaitingValidationHttp(res, req)
+		So(result, ShouldEqual, "")
+	})
+}
