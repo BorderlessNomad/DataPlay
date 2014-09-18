@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"github.com/pmylund/sortutil"
 	"math"
 	"math/rand"
 	"net/http"
@@ -248,15 +249,17 @@ func GetValues(vals []DateVal, from time.Time, to time.Time) ([]XYVal, bool) {
 
 	if !fromchk {
 		tmpXY.X = (from.String()[0:10])
-		tmpXY.Y = "0"
+		tmpXY.Y = "0" // @NOTE - Can also be neighbour value = values[0].Y
 		values = append(values, tmpXY)
 	}
 
 	if !tochk {
 		tmpXY.X = (to.AddDate(0, 0, -1).String()[0:10])
-		tmpXY.Y = "0"
+		tmpXY.Y = "0" // @NOTE - Can also be neighbour value = values[len(values)-1].Y
 		values = append(values, tmpXY)
 	}
+
+	sortutil.AscByField(values, "X")
 
 	return values, hasVals
 }
