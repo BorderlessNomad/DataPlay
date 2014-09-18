@@ -24,6 +24,16 @@ angular.module('dataplayApp')
 			"Nov"
 			"Dec"
 		]
+		timeFormatter = d3.time.format.multi([
+			[".%L", (d) -> d.getMilliseconds()]
+			[":%S", (d) -> d.getSeconds()]
+			["%I:%M", (d) -> d.getMinutes()]
+			["%I %p", (d) -> d.getHours()]
+			["%a %d", (d) -> d.getDay() and d.getDate() isnt 1]
+			["%b %d", (d) -> d.getDate() isnt 1]
+			["%B", (d) -> d.getMonth()]
+			["%Y", (d) -> true]
+		])
 		reducedData: (guid, percent, min) ->
 			$http.get config.api.base_url + "/getreduceddata/#{guid}/#{percent}/#{min}"
 		related: (guid, offset, count) ->

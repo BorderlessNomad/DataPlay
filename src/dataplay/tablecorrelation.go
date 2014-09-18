@@ -152,15 +152,14 @@ func AttemptCorrelation(tableCols TableCols) *appError {
 		}
 
 		if cf != 0 { //Save the various permutations of the correlation if one is generated
-
 			if tableCols.ctype == "Pearson" {
-				tableCols.chart = "bar"
-				err := SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
-				if err != nil {
-					return err
-				}
+				// tableCols.chart = "bar"
+				// err := SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
+				// if err != nil {
+				// 	return err
+				// }
 				tableCols.chart = "column"
-				err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
+				err := SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
 				if err != nil {
 					return err
 				}
@@ -193,13 +192,13 @@ func AttemptCorrelation(tableCols TableCols) *appError {
 				}
 
 			} else if tableCols.ctype == "Visual" {
-				tableCols.chart = "bar"
-				err := SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
-				if err != nil {
-					return err
-				}
+				// tableCols.chart = "bar"
+				// err := SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
+				// if err != nil {
+				// 	return err
+				// }
 				tableCols.chart = "column"
-				err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
+				err := SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
 				if err != nil {
 					return err
 				}
@@ -223,6 +222,7 @@ func AttemptCorrelation(tableCols TableCols) *appError {
 			}
 		}
 	}
+
 	return nil
 }
 
