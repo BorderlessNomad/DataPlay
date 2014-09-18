@@ -56,7 +56,7 @@ angular.module('dataplayApp')
 				count = $scope.max.correlated - $scope.offset.correlated
 				count = if $scope.max.correlated and count < $scope.count then count else $scope.count
 
-			depth = if $scope.max.correlated then 0 else 100
+			depth = if $scope.max.correlated then false else true
 
 			Overview.correlated $scope.params.id, $scope.offset.correlated, count, depth
 				.success (data) ->
@@ -160,8 +160,11 @@ angular.module('dataplayApp')
 			data = $scope.findById chart.anchorName()
 
 			data.xDomain = [new Date(data.from), new Date(data.to)]
+			console.log "xDomain", data.xDomain
 			data.entry = crossfilter data.table1.values
-			data.dimension = data.entry.dimension (d) -> d.x
+			data.dimension = data.entry.dimension (d) ->
+				console.log "dimension", d.x, d.y
+				d.x
 			data.group = data.dimension.group().reduceSum (d) -> d.y
 
 			data.entry2 = crossfilter data.table2.values
