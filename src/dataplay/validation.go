@@ -32,7 +32,7 @@ func RankValidations(valid int, invalid int) float64 {
 }
 
 // increment user discovered total for chart and rerank, return discovered id
-func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *appError) {
+func ValidateChart(rcid string, uid int, valflag bool, skipvalidation bool) (string, *appError) {
 	t := time.Now()
 	discovered := Discovered{}
 	validation := Validation{}
@@ -59,12 +59,12 @@ func ValidateChart(rcid string, uid int, valflag bool, skipval bool) (string, *a
 	if err != nil && err != gorm.RecordNotFound {
 		return "", &appError{err, "Database query failed (Find discovered)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
-		skipval = false
+		skipvalidation = false
 	} else {
-		skipval = true
+		skipvalidation = true
 	}
 
-	if !skipval {
+	if !skipvalidation {
 		if valflag {
 			discovered.Valid++
 			Reputation(discovered.Uid, discVal) // add points for discovery validation
@@ -107,6 +107,10 @@ func ValidateObservation(oid int, uid int, valflag bool) *appError {
 		return &appError{err, " Database query failed - validate observation (get)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
 		return &appError{err, ", no such observation found!", http.StatusNotFound}
+	}
+
+	if observation.Uid == uid {
+		return &appError{err, ", you cannot validate your own comment", http.StatusNotFound}
 	}
 
 	vid := Validation{}
@@ -155,11 +159,11 @@ func ValidateChartHttp(res http.ResponseWriter, req *http.Request, params martin
 		return "Missing session parameter"
 	}
 
-	skipval := false
+	skipvalidation := false
 	valflag := false
 
 	if params["valflag"] == "" { // if no valflag then skip validation and just return discovered id
-		skipval = true
+		skipvalidation = true
 	} else {
 		valflag, _ = strconv.ParseBool(params["valflag"])
 	}
@@ -180,12 +184,12 @@ func ValidateChartHttp(res http.ResponseWriter, req *http.Request, params martin
 		return ""
 	}
 
-	result, err2 := ValidateChart(rcid, uid, valflag, skipval)
+	result, err2 := ValidateChart(rcid, uid, valflag, skipvalidation)
 	if err2 != nil {
 		msg := ""
 		if valflag {
 			msg = "Could not validate chart" + err2.Message
-		} else if valflag == false && skipval == false {
+		} else if valflag == false && skipvalidation == false {
 			msg = "Could not invalidate chart" + err2.Message
 		} else {
 			msg = "Could not do that sorry bro :P"

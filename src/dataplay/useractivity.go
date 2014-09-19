@@ -385,7 +385,12 @@ func GetActivityStreamHttp(res http.ResponseWriter, req *http.Request) string {
 		return "Unable to parse JSON"
 	}
 
-	return string(r)
+	if r == nil {
+		return "There is no activity for this user yet"
+	} else {
+		return string(r)
+	}
+
 }
 
 func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivity {
