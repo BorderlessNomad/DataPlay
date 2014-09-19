@@ -4,7 +4,7 @@
  # @ngdoc function
  # @name dataplayApp.controller:OverviewRelatedCtrl
  # @description
- # # OverviewCtrl
+ # # OverviewRelatedCtrl
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
@@ -58,9 +58,9 @@ angular.module('dataplayApp')
 
 			Overview.related $scope.params.id, $scope.offset.related, count
 				.success (data) ->
-					if data? and data.charts? and data.charts.length > 0
-						$scope.loading.related = false
+					$scope.loading.related = false
 
+					if data? and data.charts? and data.charts.length > 0
 						$scope.max.related = data.count
 
 						for key, chart of data.charts

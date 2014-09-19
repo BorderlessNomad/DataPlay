@@ -4,7 +4,7 @@
  # @ngdoc function
  # @name dataplayApp.controller:OverviewCorrelatedCtrl
  # @description
- # # OverviewCtrl
+ # # OverviewCorrelatedCtrl
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
@@ -62,9 +62,9 @@ angular.module('dataplayApp')
 
 			Overview.correlated $scope.params.id, $scope.offset.correlated, count, generate
 				.success (data) ->
-					if data? and data.charts? and data.charts.length > 0
-						$scope.loading.correlated = false
+					$scope.loading.correlated = false
 
+					if data? and data.charts? and data.charts.length > 0
 						$scope.max.correlated = data.count
 
 						for key, chart of data.charts

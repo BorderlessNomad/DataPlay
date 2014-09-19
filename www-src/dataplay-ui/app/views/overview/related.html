@@ -1,5 +1,3 @@
-<div class="col-md-12"><h4>Relation within <a href="overview/{{params.id}}">{{params.id}}</a></h4></div>
-
 <div class="col-md-4" ng-repeat="chart in chartsRelated" id="{{chart.id}}" ng-show="hasRelatedCharts() > 0">
 	<a class="related" href="{{chart.url}}">
 		<span ng-include="'views/charts/related/line.html'"></span>
