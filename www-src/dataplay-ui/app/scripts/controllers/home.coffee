@@ -34,9 +34,9 @@ angular.module('dataplayApp')
       }
     ]
 
-    $scope.myActivity = []
-    $scope.recentObservations = []
-    $scope.dataExperts = []
+    $scope.myActivity = null
+    $scope.recentObservations = null
+    $scope.dataExperts = null
 
     $scope.init = ->
       Home.getActivityStream()
@@ -44,7 +44,11 @@ angular.module('dataplayApp')
           if data instanceof Array
             $scope.myActivity = data.map (d) ->
               date: Overview.humanDate new Date d.time
-              text: d.string
+              pretext: d.activitystring
+              linktext: d.patternid
+              url: '/' + d.linkstring
+        .error ->
+          $scope.myActivity = []
 
       Home.getRecentObservations()
         .success (data) ->
@@ -54,6 +58,8 @@ angular.module('dataplayApp')
                 name: d.username
                 avatar: "http://www.gravatar.com/avatar/#{d.MD5email}?d=identicon"
               text: d.comment
+        .error ->
+          $scope.recentObservations = []
 
       Home.getDataExperts()
         .success (data) ->
@@ -71,6 +77,8 @@ angular.module('dataplayApp')
               if obj.rank <= 3 then obj.rankclass = medals[obj.rank - 1]
 
               obj
+        .error ->
+          $scope.dataExperts = []
 
     $scope.search = ->
       $location.path "/search/#{$scope.searchquery}"

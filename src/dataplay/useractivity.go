@@ -38,10 +38,11 @@ type DataExpert struct {
 }
 
 type UserActivity struct {
-	ActivityStr1 string    `json:"string"`
-	PatternId    int       `json:"patternid"`
-	Created      float64   `json:"-"`
-	Time         time.Time `json:"time"`
+	Activity  string    `json:"activitystring"`
+	Link      string    `json:"linkstring"`
+	PatternId int       `json:"patternid"`
+	Created   float64   `json:"-"`
+	Time      time.Time `json:"time"`
 }
 
 func ActivityCheck(a string) string {
@@ -399,49 +400,100 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 		tmpA := UserActivity{}
 
 		if a.Type == "Comment" {
-			tmpA.ActivityStr1 = "You commented on pattern "
+			tmpA.Activity = "You commented on pattern "
 			tmpA.PatternId = a.DiscoveredId
+			discovered := Discovered{}
+			err = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
+			if err != nil && err != gorm.RecordNotFound {
+				return activities
+			}
+			if discovered.CorrelationId == 0 {
+				tmpA.Link = "charts/related/" + discovered.RelationId
+			} else {
+				tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
+			}
 		} else if a.Type == "Validated Observation" {
 			obs := Observation{}
 			err = DB.Where("observation_id = ?", a.ObservationId).Find(&obs).Error
 			if err != nil {
-				tmpA.ActivityStr1 = "Bad validated observation activity 1"
+				tmpA.Activity = "Bad validated observation activity 1"
 				tmpA.PatternId = 0
 			}
 
 			user := User{}
 			err = DB.Where("uid = ?", obs.Uid).Find(&user).Error
 			if err != nil {
-				tmpA.ActivityStr1 = "Bad validated observation activity 2"
+				tmpA.Activity = "Bad validated observation activity 2"
 				tmpA.PatternId = 0
 			}
+			tmpA.Activity = "You agreed with " + user.Username + "'s observation on pattern "
 
-			tmpA.ActivityStr1 = "You agreed with " + user.Username + "'s observation on pattern "
 			tmpA.PatternId = obs.DiscoveredId
+			discovered := Discovered{}
+			err = DB.Where("discovered_id = ?", obs.DiscoveredId).Find(&discovered).Error
+			if err != nil && err != gorm.RecordNotFound {
+				return activities
+			}
+			if discovered.CorrelationId == 0 {
+				tmpA.Link = "charts/related/" + discovered.RelationId
+			} else {
+				tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
+			}
 		} else if a.Type == "Invalidated Observation" {
 			obs := Observation{}
 			err := DB.Where("observation_id = ?", a.ObservationId).Find(&obs).Error
 			if err != nil {
-				tmpA.ActivityStr1 = "Bad invalidated observation activity 1"
+				tmpA.Activity = "Bad invalidated observation activity 1"
 			}
 
 			user := User{}
 			err = DB.Where("uid = ?", obs.Uid).Find(&user).Error
 			if err != nil {
-				tmpA.ActivityStr1 = "Bad invalidated observation activity 2"
+				tmpA.Activity = "Bad invalidated observation activity 2"
+			}
+			tmpA.Activity = "You disagreed with " + user.Username + "'s observation on pattern "
+
+			tmpA.PatternId = obs.DiscoveredId
+			discovered := Discovered{}
+			err = DB.Where("discovered_id = ?", obs.DiscoveredId).Find(&discovered).Error
+			if err != nil && err != gorm.RecordNotFound {
+				return activities
+			}
+			if discovered.CorrelationId == 0 {
+				tmpA.Link = "charts/related/" + discovered.RelationId
+			} else {
+				tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
+			}
+		} else if a.Type == "Validated Chart" {
+			tmpA.Activity = "You validated pattern "
+			tmpA.PatternId = a.DiscoveredId
+			discovered := Discovered{}
+			err = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
+			if err != nil && err != gorm.RecordNotFound {
+				return activities
+			}
+			if discovered.CorrelationId == 0 {
+				tmpA.Link = "charts/related/" + discovered.RelationId
+			} else {
+				tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
 			}
 
-			tmpA.ActivityStr1 = "You disagreed with " + user.Username + "'s observation on pattern "
-			tmpA.PatternId = obs.DiscoveredId
-		} else if a.Type == "Validated Chart" {
-			tmpA.ActivityStr1 = "You validated pattern "
-			tmpA.PatternId = a.DiscoveredId
-
 		} else if a.Type == "Invalidated Chart" {
-			tmpA.ActivityStr1 = "You invalidated pattern "
+			tmpA.Activity = "You invalidated pattern "
 			tmpA.PatternId = a.DiscoveredId
+			discovered := Discovered{}
+			err = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
+			if err != nil && err != gorm.RecordNotFound {
+				return activities
+			}
+			if discovered.CorrelationId == 0 {
+				tmpA.Link = "charts/related/" + discovered.RelationId
+			} else {
+				tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
+			}
+
 		} else {
-			tmpA.ActivityStr1 = "No activity"
+			tmpA.Activity = "No activity"
 			tmpA.PatternId = 0
 		}
 
@@ -484,21 +536,31 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		user := User{}
 		err = DB.Where("uid = ?", d.Uid).Find(&user).Error
 		if err != nil {
-			tmpA.ActivityStr1 = "Bad invalidated observation activity 2"
+			tmpA.Activity = "Bad invalidated observation activity 2"
 		}
 
 		if d.Valflag == true {
-			tmpA.ActivityStr1 = "You gained " + strconv.Itoa(discVal) + " reputation when " + user.Username + " validated your pattern "
+			tmpA.Activity = "You gained " + strconv.Itoa(discVal) + " reputation when " + user.Username + " validated your pattern "
 			tmpA.PatternId = d.DiscoveredId
 			tmpA.Created = t.Sub(d.Created).Seconds()
 			tmpA.Time = d.Created
 		} else {
-			tmpA.ActivityStr1 = "You lost " + strconv.Itoa(discInval) + " reputation when " + user.Username + " invalidated your pattern "
+			tmpA.Activity = "You lost " + strconv.Itoa(discInval) + " reputation when " + user.Username + " invalidated your pattern "
 			tmpA.PatternId = d.DiscoveredId
 			tmpA.Created = t.Sub(d.Created).Seconds()
 			tmpA.Time = d.Created
 		}
 
+		discovered := Discovered{}
+		err = DB.Where("discovered_id = ?", d.DiscoveredId).Find(&discovered).Error
+		if err != nil && err != gorm.RecordNotFound {
+			return activities
+		}
+		if discovered.CorrelationId == 0 {
+			tmpA.Link = "charts/related/" + discovered.RelationId
+		} else {
+			tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
+		}
 		activities = append(activities, tmpA)
 	}
 
@@ -507,19 +569,30 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		user := User{}
 		err = DB.Where("uid = ?", o.Uid).Find(&user).Error
 		if err != nil {
-			tmpA.ActivityStr1 = "Bad invalidated observation activity 2"
+			tmpA.Activity = "Bad invalidated observation activity 2"
 		}
 
 		if o.Valflag == true {
-			tmpA.ActivityStr1 = "You gained " + strconv.Itoa(obsVal) + " reputation when " + user.Username + " validated your observation on pattern "
+			tmpA.Activity = "You gained " + strconv.Itoa(obsVal) + " reputation when " + user.Username + " validated your observation on pattern "
 			tmpA.PatternId = o.Did
 			tmpA.Created = t.Sub(o.Created).Seconds()
 			tmpA.Time = o.Created
 		} else {
-			tmpA.ActivityStr1 = "You lost " + strconv.Itoa(obsInval) + " reputation when " + user.Username + " invalidated your observation on pattern "
+			tmpA.Activity = "You lost " + strconv.Itoa(obsInval) + " reputation when " + user.Username + " invalidated your observation on pattern "
 			tmpA.PatternId = o.Did
 			tmpA.Created = t.Sub(o.Created).Seconds()
 			tmpA.Time = o.Created
+		}
+
+		discovered := Discovered{}
+		err = DB.Where("discovered_id = ?", o.Did).Find(&discovered).Error
+		if err != nil && err != gorm.RecordNotFound {
+			return activities
+		}
+		if discovered.CorrelationId == 0 {
+			tmpA.Link = "charts/related/" + discovered.RelationId
+		} else {
+			tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
 		}
 
 		activities = append(activities, tmpA)
@@ -530,13 +603,25 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		user := User{}
 		err = DB.Where("uid = ?", a.Uid).Find(&user).Error
 		if err != nil {
-			tmpA.ActivityStr1 = "Bad invalidated observation activity 2"
+			tmpA.Activity = "Bad invalidated observation activity 2"
 		}
 
-		tmpA.ActivityStr1 = "You gained " + strconv.Itoa(discObs) + " reputation when " + user.Username + " commented on your pattern "
+		tmpA.Activity = "You gained " + strconv.Itoa(discObs) + " reputation when " + user.Username + " commented on your pattern "
 		tmpA.PatternId = a.DiscoveredId
 		tmpA.Created = t.Sub(a.Created).Seconds()
 		tmpA.Time = a.Created
+
+		discovered := Discovered{}
+		err = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
+		if err != nil && err != gorm.RecordNotFound {
+			return activities
+		}
+		if discovered.CorrelationId == 0 {
+			tmpA.Link = "charts/related/" + discovered.RelationId
+		} else {
+			tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
+		}
+
 		activities = append(activities, tmpA)
 	}
 

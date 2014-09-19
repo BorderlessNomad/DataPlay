@@ -27,27 +27,29 @@
 			<div class="row">
 				<div class="col-xs-4">
 					<h4>My Activity Stream</h4>
-					<div class="row myActivity" ng-repeat="item in myActivity">
-						{{item.text}}
+					<div class="row myActivity" ng-if="myActivity" ng-repeat="item in myActivity">
+						{{item.pretext}}<a ng-href="{{item.url}}">{{item.linktext}}</a>
 					</div>
+					<div ng-if="!myActivity" ng-include="'views/loader.html'"></div>
 				</div>
 
 				<div class="col-xs-4">
 					<h4>Recent Community Observations</h4>
-					<div class="row recentObservations" ng-repeat="item in recentObservations">
+					<div class="row recentObservations" ng-if="recentObservations" ng-repeat="item in recentObservations">
 						<div class="col-xs-2 text-center"><img class="avatar" ng-src="{{item.user.avatar}}" /></div>
 						<div class="col-xs-10">
 							<p>{{item.text|truncate:25}}</p>
 							<p class="italic">posted by {{item.user.name}}</p>
 						</div>
 					</div>
+					<div ng-if="!recentObservations" ng-include="'views/loader.html'"></div>
 				</div>
 
 				<div class="col-xs-4">
 					<h4>Current Data Experts</h4>
-					<div class="row dataExperts" ng-repeat="item in dataExperts">
+					<div class="row dataExperts" ng-if="dataExperts" ng-repeat="item in dataExperts">
 						<div class="col-xs-2 text-center" ng-class="item.rankclass">
-							<i class="glyphicon glyphicon-tower" ng-if="item.rankclass"></i>
+							<i class="fa fa-trophy fa-lg" ng-if="item.rankclass"></i>
 							<span class="bold" ng-if="!item.rankclass">#{{item.rank}}</span>
 						</div>
 						<div class="col-xs-2 text-center"><img class="avatar" ng-src="{{item.avatar}}" /></div>
@@ -57,6 +59,7 @@
 							<span>{{item.score}}</span>
 						</div>
 					</div>
+					<div ng-if="!dataExperts" ng-include="'views/loader.html'"></div>
 				</div>
 			</div>
 		</div>

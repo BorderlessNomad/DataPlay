@@ -182,7 +182,7 @@ func keywords(terms []string) []DatedTerm {
 	var DatedTerms []DatedTerm
 	var tmpDT DatedTerm
 
-	session, _ := GetCassandraConnection("dp") // create connection to cassandra
+	session, _ := GetCassandraConnection("dataplay_alpha") // create connection to cassandra
 	defer session.Close()
 
 	// add all dated dateID between -n days and today to array
@@ -276,7 +276,7 @@ func RankPA(activities []PoliticalActivity) []PoliticalActivity {
 }
 
 func WriteCass() {
-	session, _ := GetCassandraConnection("dp") // create connection to cassandra
+	session, _ := GetCassandraConnection("dataplay_alpha") // create connection to cassandra
 	defer session.Close()
 	url := ""
 
