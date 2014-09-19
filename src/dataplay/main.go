@@ -228,7 +228,7 @@ func initClassicMode() {
 	m.Get("/api/user/discoveries", GetAmountDiscoveriesHttp)
 	m.Get("/api/user/experts", GetDataExpertsHttp)
 	m.Get("/api/news/search/:terms", SearchForNewsHttp)
-	m.Get("/api/observations/recent", GetRecentObservationsHttp)
+	m.Get("/api/recentobservations", GetRecentObservationsHttp)
 	m.Get("/api/user/activitystream", GetActivityStreamHttp)
 	m.Get("/api/chart/toprated", GetTopRatedChartsHttp)
 	m.Get("/api/chart/awaitingvalidation", GetAwaitingValidationHttp)
