@@ -408,7 +408,7 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 				return activities
 			}
 			if discovered.CorrelationId == 0 {
-				tmpA.Link = "chart/" + discovered.RelationId
+				tmpA.Link = "charts/related/" + discovered.RelationId
 			} else {
 				tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
 			}
@@ -435,7 +435,7 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 				return activities
 			}
 			if discovered.CorrelationId == 0 {
-				tmpA.Link = "chart/" + discovered.RelationId
+				tmpA.Link = "charts/related/" + discovered.RelationId
 			} else {
 				tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
 			}
@@ -460,7 +460,7 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 				return activities
 			}
 			if discovered.CorrelationId == 0 {
-				tmpA.Link = "chart/" + discovered.RelationId
+				tmpA.Link = "charts/related/" + discovered.RelationId
 			} else {
 				tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
 			}
@@ -473,7 +473,7 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 				return activities
 			}
 			if discovered.CorrelationId == 0 {
-				tmpA.Link = "chart/" + discovered.RelationId
+				tmpA.Link = "charts/related/" + discovered.RelationId
 			} else {
 				tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
 			}
@@ -487,7 +487,7 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 				return activities
 			}
 			if discovered.CorrelationId == 0 {
-				tmpA.Link = "chart/" + discovered.RelationId
+				tmpA.Link = "charts/related/" + discovered.RelationId
 			} else {
 				tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
 			}
@@ -557,7 +557,7 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 			return activities
 		}
 		if discovered.CorrelationId == 0 {
-			tmpA.Link = "chart/" + discovered.RelationId
+			tmpA.Link = "charts/related/" + discovered.RelationId
 		} else {
 			tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
 		}
@@ -590,7 +590,7 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 			return activities
 		}
 		if discovered.CorrelationId == 0 {
-			tmpA.Link = "chart/" + discovered.RelationId
+			tmpA.Link = "charts/related/" + discovered.RelationId
 		} else {
 			tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
 		}
@@ -617,7 +617,7 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 			return activities
 		}
 		if discovered.CorrelationId == 0 {
-			tmpA.Link = "chart/" + discovered.RelationId
+			tmpA.Link = "charts/related/" + discovered.RelationId
 		} else {
 			tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
 		}
