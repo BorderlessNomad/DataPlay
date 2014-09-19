@@ -35,57 +35,8 @@ angular.module('dataplayApp')
     ]
 
     $scope.myActivity = []
-
-    $scope.recentObservations = [
-      {
-        user:
-          name: "Tom MySpace"
-          avatar: "https://pbs.twimg.com/profile_images/1237550450/mstom_400x400.jpg"
-        text: "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-      }
-      {
-        user:
-          name: "Tom MySpace"
-          avatar: "https://pbs.twimg.com/profile_images/1237550450/mstom_400x400.jpg"
-        text: "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-      }
-    ]
-
-    $scope.dataExperts = [
-      {
-        rank: 1
-        name: "Tom MySpace"
-        avatar: "https://pbs.twimg.com/profile_images/1237550450/mstom_400x400.jpg"
-        score: 205
-        rankclass: 'gold'
-      }
-      {
-        rank: 2
-        name: "Tom MySpace"
-        avatar: "https://pbs.twimg.com/profile_images/1237550450/mstom_400x400.jpg"
-        score: 204
-        rankclass: 'silver'
-      }
-      {
-        rank: 3
-        name: "Tom MySpace"
-        avatar: "https://pbs.twimg.com/profile_images/1237550450/mstom_400x400.jpg"
-        score: 203
-        rankclass: 'bronze'
-      }
-      {
-        rank: 4
-        name: "Tom MySpace"
-        avatar: "https://pbs.twimg.com/profile_images/1237550450/mstom_400x400.jpg"
-        score: 202
-      }
-      {
-        rank: 5
-        name: "Tom MySpace"
-        avatar: "https://pbs.twimg.com/profile_images/1237550450/mstom_400x400.jpg"
-        score: 201
-      }
-    ]
+    $scope.recentObservations = []
+    $scope.dataExperts = []
 
     $scope.init = ->
       Home.getActivityStream()
@@ -97,7 +48,12 @@ angular.module('dataplayApp')
 
       Home.getRecentObservations()
         .success (data) ->
-          console.log 'getRecentObservations', data
+          if data instanceof Array
+            $scope.recentObservations = data.map (d) ->
+              user:
+                name: d.username
+                avatar: "http://www.gravatar.com/avatar/#{d.MD5email}?d=identicon"
+              text: d.comment
 
       Home.getDataExperts()
         .success (data) ->
@@ -109,7 +65,7 @@ angular.module('dataplayApp')
               obj =
                 rank: key + 1
                 name: d.username
-                avatar: ''
+                avatar: "http://www.gravatar.com/avatar/#{d.MD5email}?d=identicon"
                 score: d.reputation
 
               if obj.rank <= 3 then obj.rankclass = medals[obj.rank - 1]
