@@ -8,7 +8,7 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-  .controller 'HomeCtrl', ['$scope', '$location', 'User', 'Auth', 'Overview', 'config', ($scope, $location, User, Auth, Overview, config) ->
+  .controller 'HomeCtrl', ['$scope', '$location', 'Home', 'Auth', 'Overview', 'config', ($scope, $location, Home, Auth, Overview, config) ->
     $scope.config = config
 
     $scope.searchquery = ''
@@ -34,14 +34,7 @@ angular.module('dataplayApp')
       }
     ]
 
-    $scope.myActivity = [
-      {
-        text: "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-      }
-      {
-        text: "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-      }
-    ]
+    $scope.myActivity = []
 
     $scope.recentObservations = [
       {
@@ -95,7 +88,33 @@ angular.module('dataplayApp')
     ]
 
     $scope.init = ->
-      console.log "is home"
+      Home.getActivityStream()
+        .success (data) ->
+          if data instanceof Array
+            $scope.myActivity = data.map (d) ->
+              date: Overview.humanDate new Date d.time
+              text: d.string
+
+      Home.getRecentObservations()
+        .success (data) ->
+          console.log 'getRecentObservations', data
+
+      Home.getDataExperts()
+        .success (data) ->
+          if data instanceof Array
+
+            medals = ['gold', 'silver', 'bronze']
+
+            $scope.dataExperts = data.map (d, key) ->
+              obj =
+                rank: key + 1
+                name: d.username
+                avatar: ''
+                score: d.reputation
+
+              if obj.rank <= 3 then obj.rankclass = medals[obj.rank - 1]
+
+              obj
 
     $scope.search = ->
       $location.path "/search/#{$scope.searchquery}"

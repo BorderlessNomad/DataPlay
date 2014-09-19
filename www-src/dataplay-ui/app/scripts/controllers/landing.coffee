@@ -8,7 +8,7 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-  .controller 'LandingCtrl', ['$scope', '$location', 'User', 'Auth', 'Overview', 'config', ($scope, $location, User, Auth, Overview, config) ->
+  .controller 'LandingCtrl', ['$scope', '$location', 'Home', 'Auth', 'Overview', 'config', ($scope, $location, Home, Auth, Overview, config) ->
     $scope.config = config
     $scope.Auth = Auth
     $scope.username = Auth.get config.userName
@@ -22,7 +22,7 @@ angular.module('dataplayApp')
       datasets: null
 
     $scope.init = ->
-      User.getStats()
+      Home.getStats()
         .success (data) ->
           if data instanceof Array
             data.forEach (d) ->
