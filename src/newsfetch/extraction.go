@@ -179,7 +179,7 @@ func Hash(str string) []byte {
 
 // write json string to cassandra
 func writeToCass(resp string) {
-	session, _ := GetCassandraConnection("dp")
+	session, _ := GetCassandraConnection("dataplay")
 	defer session.Close()
 
 	var r Response
@@ -239,7 +239,7 @@ func writeToCass(resp string) {
 
 //////////////////////////////////////////////////////////////////////
 func outputSomething(u string) {
-	session, _ := GetCassandraConnection("dp")
+	session, _ := GetCassandraConnection("dataplay")
 	defer session.Close()
 
 	var url string
