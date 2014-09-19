@@ -32,7 +32,7 @@ func RankValidations(valid int, invalid int) float64 {
 }
 
 // increment user discovered total for chart and rerank, return discovered id
-func ValidateChart(rcid string, uid int, valflag bool, skipvalidation bool) (string, *appError) {
+func ValidateChart(rcid string, uid int, valflag bool) (string, *appError) {
 	t := time.Now()
 	discovered := Discovered{}
 	validation := Validation{}
@@ -54,43 +54,31 @@ func ValidateChart(rcid string, uid int, valflag bool, skipvalidation bool) (str
 		}
 	}
 
-	vid := Validation{}
-	err := DB.Where("discovered_id = ?", discovered.DiscoveredId).Where("uid = ?", uid).Find(&vid).Error
-	if err != nil && err != gorm.RecordNotFound {
-		return "", &appError{err, "Database query failed (Find discovered)", http.StatusInternalServerError}
-	} else if err == gorm.RecordNotFound {
-		skipvalidation = false
-	} else {
-		skipvalidation = true
+	if discovered.Uid == uid {
+		return "", &appError{err, ", user cannot validate own discovery.", http.StatusInternalServerError}
 	}
 
-	if !skipvalidation {
-		if valflag {
-			discovered.Valid++
-			Reputation(discovered.Uid, discVal) // add points for discovery validation
-			AddActivity(uid, "vc", t, discovered.DiscoveredId, 0)
-		} else {
-			discovered.Invalid++
-			Reputation(discovered.Uid, discInval) // remove points for discovery invalidation
-			AddActivity(uid, "ic", t, discovered.DiscoveredId, 0)
-		}
-
-		discovered.Rating = RankValidations(discovered.Valid, discovered.Invalid)
-
-		err1 := DB.Save(&discovered).Error
-		if err1 != nil {
-			return "", &appError{err1, ", database query failed - validate chart (Save discovered)", http.StatusInternalServerError}
-		}
-
-		validation.DiscoveredId = discovered.DiscoveredId
-		validation.Uid = uid
-		validation.Created = t
-		validation.ObservationId = 0 // not an observation
-
-		err2 := DB.Save(&validation).Error
-		if err2 != nil {
-			return "", &appError{err2, ", database query failed (Save validaition)", http.StatusInternalServerError}
-		}
+	if valflag {
+		discovered.Valid++
+		Reputation(discovered.Uid, discVal) // add points for discovery validation
+		AddActivity(uid, "vc", t, discovered.DiscoveredId, 0)
+	} else {
+		discovered.Invalid++
+		Reputation(discovered.Uid, discInval) // remove points for discovery invalidation
+		AddActivity(uid, "ic", t, discovered.DiscoveredId, 0)
+	}
+	discovered.Rating = RankValidations(discovered.Valid, discovered.Invalid)
+	err1 := DB.Save(&discovered).Error
+	if err1 != nil {
+		return "", &appError{err1, ", database query failed - validate chart (Save discovered)", http.StatusInternalServerError}
+	}
+	validation.DiscoveredId = discovered.DiscoveredId
+	validation.Uid = uid
+	validation.Created = t
+	validation.ObservationId = 0 // not an observation
+	err2 := DB.Save(&validation).Error
+	if err2 != nil {
+		return "", &appError{err2, ", database query failed (Save validaition)", http.StatusInternalServerError}
 	}
 
 	return strconv.Itoa(discovered.DiscoveredId), nil
@@ -159,11 +147,11 @@ func ValidateChartHttp(res http.ResponseWriter, req *http.Request, params martin
 		return "Missing session parameter"
 	}
 
-	skipvalidation := false
 	valflag := false
 
 	if params["valflag"] == "" { // if no valflag then skip validation and just return discovered id
-		skipvalidation = true
+		http.Error(res, "Missing valflag", http.StatusBadRequest)
+		return ""
 	} else {
 		valflag, _ = strconv.ParseBool(params["valflag"])
 	}
@@ -184,15 +172,13 @@ func ValidateChartHttp(res http.ResponseWriter, req *http.Request, params martin
 		return ""
 	}
 
-	result, err2 := ValidateChart(rcid, uid, valflag, skipvalidation)
+	result, err2 := ValidateChart(rcid, uid, valflag)
 	if err2 != nil {
 		msg := ""
 		if valflag {
 			msg = "Could not validate chart" + err2.Message
-		} else if valflag == false && skipvalidation == false {
-			msg = "Could not invalidate chart" + err2.Message
 		} else {
-			msg = "Could not do that sorry bro :P"
+			msg = "Could not invalidate chart" + err2.Message
 		}
 
 		http.Error(res, err2.Message+msg, http.StatusBadRequest)

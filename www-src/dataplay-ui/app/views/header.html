@@ -21,6 +21,9 @@
 	</div>
 
 	<div class="navbar-collapse collapse" ng-if="!Auth.isAuthenticated()">
+		<ul class="nav navbar-nav">
+			<li ng-class="{active: isActive('/about')}"><a href="about">About</a></li>
+		</ul>
 		<ul class="nav navbar-nav navbar-right">
 			<li ng-class="{active: isActive('/user/login')}"><a href="user/login">Login</a></li>
 			<li ng-class="{active: isActive('/user/register')}"><a href="user/register">Register</a></li>
