@@ -257,5 +257,9 @@ func GetRecentObservationsHttp(res http.ResponseWriter, req *http.Request) strin
 		return "Unable to parse JSON"
 	}
 
-	return string(r)
+	if r == nil {
+		return "No observations have been made yet"
+	} else {
+		return string(r)
+	}
 }

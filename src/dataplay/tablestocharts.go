@@ -1132,9 +1132,11 @@ func GetAwaitingValidationHttp(res http.ResponseWriter, req *http.Request) strin
 	discovered := []Discovered{}
 	charts := make([]interface{}, 0)
 	err1 := DB.Select("json, priv_discovered.correlation_id, priv_discovered.relation_id, priv_discovered.discovered_id").Joins("LEFT JOIN priv_validations ON priv_discovered.discovered_id = priv_validations.discovered_id").Where("priv_validations.uid != ?", uid).Order("random()").Limit(6).Find(&discovered).Error
-	if err1 != nil {
+	if err1 != nil && err1 != gorm.RecordNotFound {
 		http.Error(res, "Failed to find discovered charts", http.StatusBadRequest)
 		return "Failed to find discovered charts"
+	} else {
+		return "There are no charts currently awaiting validation"
 	}
 
 	for _, d := range discovered {
