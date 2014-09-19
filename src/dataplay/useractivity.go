@@ -403,7 +403,7 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 	for _, a := range activity {
 		tmpA := UserActivity{}
 		if a.Type == "Comment" {
-			tmpA.Activity = "You commented on pattern "
+			tmpA.Activity = "code1 You commented on pattern "
 			tmpA.PatternId = a.DiscoveredId
 			discovered := Discovered{}
 			err = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
@@ -428,7 +428,7 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 				tmpA.Activity = "Bad validated observation activity 2"
 				tmpA.PatternId = 0
 			}
-			tmpA.Activity = "You agreed with " + user.Username + "'s observation on pattern "
+			tmpA.Activity = "code2 You agreed with " + user.Username + "'s observation on pattern "
 			tmpA.PatternId = obs.DiscoveredId
 			discovered := Discovered{}
 			err = DB.Where("discovered_id = ?", obs.DiscoveredId).Find(&discovered).Error
@@ -451,7 +451,7 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			if err != nil {
 				tmpA.Activity = "Bad invalidated observation activity 2"
 			}
-			tmpA.Activity = "You disagreed with " + user.Username + "'s observation on pattern "
+			tmpA.Activity = "code3 You disagreed with " + user.Username + "'s observation on pattern "
 			tmpA.PatternId = obs.DiscoveredId
 			discovered := Discovered{}
 			err = DB.Where("discovered_id = ?", obs.DiscoveredId).Find(&discovered).Error
@@ -464,7 +464,7 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 				tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
 			}
 		} else if a.Type == "Validated Chart" {
-			tmpA.Activity = "You validated pattern "
+			tmpA.Activity = "code4 You validated pattern "
 			tmpA.PatternId = a.DiscoveredId
 			discovered := Discovered{}
 			err = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
@@ -478,7 +478,7 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			}
 
 		} else if a.Type == "Invalidated Chart" {
-			tmpA.Activity = "You invalidated pattern "
+			tmpA.Activity = "code5 You invalidated pattern "
 			tmpA.PatternId = a.DiscoveredId
 			discovered := Discovered{}
 			err = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
@@ -492,7 +492,7 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			}
 
 		} else {
-			tmpA.Activity = "No activity"
+			tmpA.Activity = "code6 No activity"
 			tmpA.PatternId = 0
 		}
 		tmpA.Created = t.Sub(a.Created).Seconds()
@@ -538,12 +538,12 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		}
 
 		if d.Valflag == true {
-			tmpA.Activity = "You gained " + strconv.Itoa(discVal) + " reputation when " + user.Username + " validated your pattern "
+			tmpA.Activity = "code7 You gained " + strconv.Itoa(discVal) + " reputation when " + user.Username + " validated your pattern "
 			tmpA.PatternId = d.DiscoveredId
 			tmpA.Created = t.Sub(d.Created).Seconds()
 			tmpA.Time = d.Created
 		} else {
-			tmpA.Activity = "You lost " + strconv.Itoa(discInval) + " reputation when " + user.Username + " invalidated your pattern "
+			tmpA.Activity = "code8 You lost " + strconv.Itoa(discInval) + " reputation when " + user.Username + " invalidated your pattern "
 			tmpA.PatternId = d.DiscoveredId
 			tmpA.Created = t.Sub(d.Created).Seconds()
 			tmpA.Time = d.Created
@@ -571,12 +571,12 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		}
 
 		if o.Valflag == true {
-			tmpA.Activity = "You gained " + strconv.Itoa(obsVal) + " reputation when " + user.Username + " validated your observation on pattern "
+			tmpA.Activity = "code9 You gained " + strconv.Itoa(obsVal) + " reputation when " + user.Username + " validated your observation on pattern "
 			tmpA.PatternId = o.Did
 			tmpA.Created = t.Sub(o.Created).Seconds()
 			tmpA.Time = o.Created
 		} else {
-			tmpA.Activity = "You lost " + strconv.Itoa(obsInval) + " reputation when " + user.Username + " invalidated your observation on pattern "
+			tmpA.Activity = "codeA You lost " + strconv.Itoa(obsInval) + " reputation when " + user.Username + " invalidated your observation on pattern "
 			tmpA.PatternId = o.Did
 			tmpA.Created = t.Sub(o.Created).Seconds()
 			tmpA.Time = o.Created
@@ -604,7 +604,7 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 			tmpA.Activity = "Bad invalidated observation activity 2"
 		}
 
-		tmpA.Activity = "You gained " + strconv.Itoa(discObs) + " reputation when " + user.Username + " commented on your pattern "
+		tmpA.Activity = "codeB You gained " + strconv.Itoa(discObs) + " reputation when " + user.Username + " commented on your pattern "
 		tmpA.PatternId = a.DiscoveredId
 		tmpA.Created = t.Sub(a.Created).Seconds()
 		tmpA.Time = a.Created
