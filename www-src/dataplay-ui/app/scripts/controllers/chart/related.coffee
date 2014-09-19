@@ -54,7 +54,6 @@ angular.module('dataplayApp')
 			strength: ''
 
 		$scope.init = () ->
-			$scope.initValidation()
 			$scope.initChart()
 
 			return
@@ -74,6 +73,7 @@ angular.module('dataplayApp')
 
 					if data?
 						$scope.info.patternId = data.patternid or ''
+						$scope.info.discoveredId = data.discoveredid or ''
 						$scope.info.discoverer = data.discoveredby or ''
 						$scope.info.discoverDate = if data.discoverydate then Overview.humanDate new Date( data.discoverydate ) else ''
 						$scope.info.validators = data.validatedby or ''
@@ -83,6 +83,8 @@ angular.module('dataplayApp')
 						$scope.info.strength = data.statstrength
 
 					console.log "Chart", $scope.chart
+
+					$scope.initValidation()
 
 					# Track a page visit
 					Tracker.visited $scope.params.id, $scope.params.key, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
@@ -96,41 +98,37 @@ angular.module('dataplayApp')
 			id = "#{$scope.params.id}/#{$scope.params.key}/#{$scope.params.type}/#{$scope.params.x}/#{$scope.params.y}"
 			id += "/#{$scope.params.z}" if $scope.params.z?.length > 0
 
-			Charts.validateChart "rid", id
-				.then (validate) ->
-					$scope.info.discoveredId = validate.data
-					Charts.getObservations $scope.info.discoveredId
-						.then (res) ->
-							$scope.userObservations.splice 0, $scope.userObservations.length
+			Charts.getObservations $scope.info.discoveredId
+				.then (res) ->
+					$scope.userObservations.splice 0, $scope.userObservations.length
 
-							res.data?.forEach? (obsv) ->
-								x = obsv.x
-								y = obsv.y
-								if $scope.chart.patterns[$scope.chart.xLabel].valuePattern is 'date'
-									if not(x instanceof Date) and (typeof x is 'string')
-										xdate = new Date x
-										if xdate.toString() isnt 'Invalid Date' then x = xdate
-									x = Overview.humanDate x
+					res.data?.forEach? (obsv) ->
+						x = obsv.x
+						y = obsv.y
+						if $scope.chart.patterns[$scope.chart.xLabel].valuePattern is 'date'
+							if not(x instanceof Date) and (typeof x is 'string')
+								xdate = new Date x
+								if xdate.toString() isnt 'Invalid Date' then x = xdate
+							x = Overview.humanDate x
 
-								xy = "#{x.replace(/\W/g, '')}-#{y.replace(/\W/g, '')}"
-								$scope.userObservationsMessage[xy] = obsv.comment
-								$scope.userObservations.push
-									xy: xy
-									oid : obsv['observation_id']
-									user: obsv.user
-									validationCount: parseInt(obsv.validations - obsv.invalidations) || 0
-									message: obsv.comment
-									date: Overview.humanDate new Date(obsv.created)
-									coor:
-										x: obsv.x
-										y: obsv.y
+						xy = "#{x.replace(/\W/g, '')}-#{y.replace(/\W/g, '')}"
+						$scope.userObservationsMessage[xy] = obsv.comment
+						$scope.userObservations.push
+							xy: xy
+							oid : obsv['observation_id']
+							user: obsv.user
+							validationCount: parseInt(obsv.validations - obsv.invalidations) || 0
+							message: obsv.comment
+							date: Overview.humanDate new Date(obsv.created)
+							coor:
+								x: obsv.x
+								y: obsv.y
 
-							if redraw? and redraw
-								$scope.redrawObservationIcons()
+					if redraw? and redraw
+						$scope.redrawObservationIcons()
 
-								newObservations = d3.select 'g.stack-list > .observations.new'
-								$scope.renderObservationIcons $scope.xScale, $scope.yDomain, $scope.chart, newObservations
-						, $scope.handleError
+						newObservations = d3.select 'g.stack-list > .observations.new'
+						$scope.renderObservationIcons $scope.xScale, $scope.yDomain, $scope.chart, newObservations
 				, $scope.handleError
 			return
 

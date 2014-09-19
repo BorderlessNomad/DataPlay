@@ -36,7 +36,7 @@ angular.module('dataplayApp')
 
 		createObservation: (did, x, y, message) ->
 			$http.put config.api.base_url + "/observations",
-				did: did
+				did: '' + did
 				x: "#{x}"
 				y: "#{y}"
 				comment: message
