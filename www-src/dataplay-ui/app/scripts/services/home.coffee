@@ -17,7 +17,7 @@ angular.module('dataplayApp')
       $http.get config.api.base_url + "/user/activitystream"
 
     getRecentObservations: () ->
-      $http.get config.api.base_url + "/observations/recent"
+      $http.get config.api.base_url + "/recentobservations"
 
     getDataExperts: () ->
       $http.get config.api.base_url + "/user/experts"
