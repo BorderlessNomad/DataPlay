@@ -44,7 +44,9 @@ angular.module('dataplayApp')
           if data instanceof Array
             $scope.myActivity = data.map (d) ->
               date: Overview.humanDate new Date d.time
-              text: d.string
+              pretext: d.activitystring
+              linktext: d.patternid
+              url: '/' + d.linkstring
         .error ->
           $scope.myActivity = []
 
