@@ -13,32 +13,21 @@ angular.module('dataplayApp')
 
     $scope.searchquery = ''
 
-    $scope.validatePatterns = [
-      {
-        title: "A&E waiting times"
-      }
-      {
-        title: "Crime Rate London"
-      }
-      {
-        title: "GDP Prices"
-      }
-      {
-        title: "Gold Prices"
-      }
-      {
-        title: "NHS Spending"
-      }
-      {
-        title: "Crime Rate London"
-      }
-    ]
+    $scope.validatePatterns = null
 
     $scope.myActivity = null
     $scope.recentObservations = null
     $scope.dataExperts = null
 
     $scope.init = ->
+      Home.getAwaitingValidation()
+        .success (data) ->
+          $scope.validatePatterns = []
+          console.log data
+        .error ->
+          $scope.validatePatterns = []
+
+
       Home.getActivityStream()
         .success (data) ->
           if data instanceof Array
@@ -47,6 +36,8 @@ angular.module('dataplayApp')
               pretext: d.activitystring
               linktext: d.patternid
               url: d.linkstring
+          else
+            $scope.myActivity = []
         .error ->
           $scope.myActivity = []
 
@@ -58,6 +49,8 @@ angular.module('dataplayApp')
                 name: d.username
                 avatar: "http://www.gravatar.com/avatar/#{d.MD5email}?d=identicon"
               text: d.comment
+          else
+            $scope.recentObservations = []
         .error ->
           $scope.recentObservations = []
 
@@ -77,6 +70,8 @@ angular.module('dataplayApp')
               if obj.rank <= 3 then obj.rankclass = medals[obj.rank - 1]
 
               obj
+          else
+            $scope.dataExperts = []
         .error ->
           $scope.dataExperts = []
 

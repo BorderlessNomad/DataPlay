@@ -14,10 +14,11 @@
 		<div class="col-xs-12">
 			<h3 class="text-center"><i class="glyphicon glyphicon-flag purple-flag"></i> Patterns awaiting your validation</h3>
 			<div class="row" id="validation">
-				<div class="col-xs-2" ng-repeat="patt in validatePatterns">
+				<div class="col-xs-2" ng-if="validatePatterns" ng-repeat="patt in validatePatterns">
 					<p>{{patt.title}}</p>
 					<div style="background-color: lightblue; width: 100%; height: 100px;"></div>
 				</div>
+				<div class="col-xs-12" ng-if="!validatePatterns" ng-include="'views/loader.html'"></div>
 			</div>
 		</div>
 	</div>
