@@ -46,7 +46,7 @@ angular.module('dataplayApp')
               date: Overview.humanDate new Date d.time
               pretext: d.activitystring
               linktext: d.patternid
-              url: '/' + d.linkstring
+              url: d.linkstring
         .error ->
           $scope.myActivity = []
 
