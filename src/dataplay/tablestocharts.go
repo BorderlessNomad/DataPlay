@@ -139,8 +139,6 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	pattern.DiscoveryDate = discovered.Created
 	pattern.Validators = validators
 	pattern.PrimarySource = SanitizeString(index.Title)
-	// pattern.SecondarySource = ""
-	// pattern.Strength = 0
 	pattern.Observations = count
 
 	return pattern, nil
