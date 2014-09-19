@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/pmylund/sortutil"
 	"net/http"
@@ -61,15 +60,9 @@ func SearchForNewsQ(params map[string]string) string {
 func SearchForNews(searchterms string) ([]NewsArticle, *appError) {
 	newsarticles := []NewsArticle{}
 	searchterm := strings.Split(searchterms, "_")
-	session, _ := GetCassandraConnection("dp") // create connection to cassandra
+	session, _ := GetCassandraConnection("dataplay_alpha") // create connection to cassandra
 	defer session.Close()
 
-	iurl := ""
-	iter1 := session.Query(`SELECT url FROM image`).Iter()
-	for iter1.Scan(&iurl) {
-		fmt.Println("strongtea", iurl)
-	}
-	fmt.Println("strongtea", iurl)
 	/////////// @TODO: Weight based on search date///////////////
 	// searchdate := ""
 	// params := map[string]string{
@@ -94,15 +87,18 @@ func SearchForNews(searchterms string) ([]NewsArticle, *appError) {
 			termcount += TermCheck(st, title) //if term in title too it adds weight
 		}
 		if termcount > 0 {
-			imageUrl := ""
-			session.Query(`SELECT url FROM image WHERE id = ? ALLOW FILTERING`, id).Scan(&imageUrl) ///@TODO: change to WHERE pic_index = 0 for top pic
-			image := strings.SplitAfter(imageUrl, "jpg")
-			fmt.Println("RUGMAN", image[0], id)
 			var tmpNA NewsArticle
+			imageUrl := ""
+			picIndex := 1000000
+			iter2 := session.Query(`SELECT url, pic_index FROM image WHERE id = ? ALLOW FILTERING`, id).Iter()
+			for iter2.Scan(&imageUrl, &picIndex) {
+				if picIndex == 0 {
+					tmpNA.ImageUrl = imageUrl
+				}
+			}
 			tmpNA.Date = date
 			tmpNA.Title = title
 			tmpNA.Url = originalUrl
-			tmpNA.ImageUrl = image[0]
 			tmpNA.Score = termcount
 			newsarticles = append(newsarticles, tmpNA)
 		}
@@ -125,9 +121,3 @@ func TermCheck(term string, passage string) int {
 	}
 	return 0
 }
-
-// sort.Sort(byScore(newsarticles))
-// type byScore []NewsArticle
-// func (v byScore) Len() int      { return len(v) }
-// func (v byScore) Swap(i, j int) { v[i], v[j] = v[j], v[i] }
-// func (v byScore) Less(i, j int) bool { v[i].Score < v[j].Score }
