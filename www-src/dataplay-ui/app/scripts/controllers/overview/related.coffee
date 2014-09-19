@@ -91,15 +91,16 @@ angular.module('dataplayApp')
 								chart.patterns[chart.xLabel].keyPattern
 							)
 
+						console.log $scope.chartsRelated
+
 						$scope.offset.related += count
 						if $scope.offset.related >= $scope.max.related
 							$scope.limit.related = true
 
-						console.log $scope.chartsRelated
-
 						Overview.charts 'related', $scope.offset.related
 					return
 				.error (data, status) ->
+					$scope.loading.related = false
 					console.log "Overview::getRelated::Error:", status
 					return
 
