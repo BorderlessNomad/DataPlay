@@ -12,14 +12,13 @@ import (
 // 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 // 	res := httptest.NewRecorder()
 // 	Convey("Should add observation", t, func() {
-// 		params := map[string]string{}
-// 		params["did"] = "188"
-// 		params["uid"] = "1"
-// 		params["comment"] = "test comment"
-// 		params["x"] = "xxxxxx"
-// 		params["y"] = "yyyyyy"
-// 		result := AddObservationHttp(res, req, params)
-// 		So(result, ShouldEqual, "693")
+// 		obs := ObservationComment{}
+// 		obs.DiscoveryId = "663"
+// 		obs.Comment = "test comment"
+// 		obs.X = "0"
+// 		obs.Y = "0"
+// 		result := AddObservationHttp(res, req, obs)
+// 		So(result, ShouldEqual, "")
 // 	})
 // }
 

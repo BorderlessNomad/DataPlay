@@ -10,52 +10,12 @@ import (
 	"math"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 )
 
 type mainDateVal struct {
 	DateString string
 	Count      int
-}
-
-type DataEntry struct {
-	GUID     string
-	Name     string
-	Title    string
-	Notes    string
-	Ckan_url string
-}
-
-// This function gets the extended infomation FROM the index, things like the notes are used
-// in the "wiki" section of the page.
-func GetEntry(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	if params["id"] == "" {
-		http.Error(res, "There was no ID request", http.StatusBadRequest)
-		return ""
-	}
-
-	index := Index{}
-	err := DB.Where("LOWER(guid) LIKE LOWER(?)", params["id"]+"%").Find(&index).Error
-	if err == gorm.RecordNotFound {
-		return "[]"
-	} else if err != nil {
-		panic(err)
-		http.Error(res, "Could not find that data.", http.StatusNotFound)
-		return ""
-	}
-
-	result := DataEntry{
-		GUID:     index.Guid,
-		Name:     SanitizeString(index.Name),
-		Title:    SanitizeString(index.Title),
-		Notes:    SanitizeString(index.Notes),
-		Ckan_url: strings.Replace(index.CkanUrl, "//", "/", -1),
-	}
-
-	b, _ := json.Marshal(result)
-
-	return string(b)
 }
 
 // This function casts everything into what it /Should/ Be

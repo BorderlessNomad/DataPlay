@@ -174,8 +174,6 @@ func initClassicMode() {
 	m.Get("/api/search/:keyword", SearchForDataHttp)
 	m.Get("/api/search/:keyword/:offset", SearchForDataHttp)
 	m.Get("/api/search/:keyword/:offset/:count", SearchForDataHttp)
-
-	m.Get("/api/getinfo/:id", GetEntry)
 	m.Get("/api/getimportstatus/:id", CheckImportStatus)
 	m.Get("/api/getdata/:id", DumpTableHttp)
 	m.Get("/api/getdata/:id/:offset/:count", DumpTableHttp)
@@ -196,6 +194,7 @@ func initClassicMode() {
 	m.Get("/api/relatedstrings/:guid", GetRelatedDatasetByStrings)
 
 	// API v1.1
+	m.Get("/api/chartinfo/:tablename", GetChartInfoHttp)
 	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y", GetChartHttp)
 	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y/:z", GetChartHttp)
 	m.Get("/api/chartcorrelated/:cid", GetChartCorrelatedHttp)
@@ -277,7 +276,7 @@ func initMasterMode() {
 	m.Get("/api/visited", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 		return sendToQueue(res, req, params, "/api/visited", "GetLastVisitedQ")
 	})
-	m.Get("/api/getinfo/:id", GetEntry)
+	m.Get("/api/chartinfo/:tablename", GetChartInfoHttp)
 	m.Get("/api/getimportstatus/:id", CheckImportStatus)
 	m.Post("/api/setdefaults/:id", SetDefaults)
 	m.Get("/api/identifydata/:id", IdentifyTable)

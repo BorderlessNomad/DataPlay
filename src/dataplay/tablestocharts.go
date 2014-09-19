@@ -17,6 +17,11 @@ type RelatedCharts struct {
 	Count  int         `json:"count"`
 }
 
+type DataEntry struct {
+	Name  string `json:"name"`
+	Title string `json:"title"`
+}
+
 type PatternInfo struct {
 	PatternID       string      `json:"patternid"`
 	DiscoveredID    int         `json:"discoveredid"`
@@ -1211,6 +1216,34 @@ func GetTopRatedChartsHttp(res http.ResponseWriter, req *http.Request) string {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
 		return "Unable to parse JSON"
 	}
+
+	return string(r)
+}
+
+// This function gets the extended infomation FROM the index, things like the notes are used
+// in the "wiki" section of the page.
+func GetChartInfoHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	if params["tablename"] == "" {
+		http.Error(res, "There was no ID request", http.StatusBadRequest)
+		return ""
+	}
+
+	index := Index{}
+	err := DB.Where("LOWER(guid) LIKE LOWER(?)", params["tablename"]+"%").Find(&index).Error
+	if err == gorm.RecordNotFound {
+		return "[]"
+	} else if err != nil {
+		panic(err)
+		http.Error(res, "Could not find that data.", http.StatusNotFound)
+		return ""
+	}
+
+	result := DataEntry{
+		Name:  SanitizeString(index.Name),
+		Title: SanitizeString(index.Title),
+	}
+
+	r, _ := json.Marshal(result)
 
 	return string(r)
 }
