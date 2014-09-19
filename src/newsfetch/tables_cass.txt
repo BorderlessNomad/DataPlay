@@ -1,8 +1,13 @@
-DROP KEYSPACE dp;
+docker run -i -t poklet/cassandra cqlsh $(./cassandra-master/scripts/ipof.sh cassandra)
 
-CREATE KEYSPACE dp WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+USE dataplay;
 
-USE dp;
+DESCRIBE KEYSPACE dataplay;
+
+DROP KEYSPACE urldata;
+
+CREATE KEYSPACE dataplay WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+
 
 
 CREATE TABLE response (
@@ -47,6 +52,7 @@ PRIMARY KEY (name, id)
 
 CREATE TABLE image (
 	id      blob,  
+	pic_index int, 
 	caption text,  
 	url     text,  
 	width   int,     
