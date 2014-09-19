@@ -32,10 +32,12 @@ angular.module('dataplayApp')
 				templateUrl: 'views/search.html'
 				controller: 'SearchCtrl'
 				login: true
+				preventReload: true
 			.when '/search/:query',
 				templateUrl: 'views/search.html'
 				controller: 'SearchCtrl'
 				login: true
+				preventReload: true
 			.when '/overview',
 				templateUrl: 'views/overviewscreen.html'
 				controller: 'OverviewScreenCtrl'
@@ -99,7 +101,7 @@ angular.module('dataplayApp')
 
 		$locationProvider
 			.html5Mode true
-			# .hashPrefix '!'
+			.hashPrefix '!'
 
 		return
 	]
@@ -116,17 +118,17 @@ angular.module('dataplayApp')
 	]
 
 # Disable refresh on Route change when $location.path('/path', false)
-angular.module('dataplayApp')
-	.run ['$rootScope', '$location', '$route', ($rootScope, $location, $route) ->
-		original = $location.path
-		$location.path = (path, reload) ->
-			if reload is false
-				lastRoute = $route.current
-				un = $rootScope.$on "$locationChangeSuccess", () ->
-					$route.current = lastRoute
-					un()
+# angular.module('dataplayApp')
+# 	.run ['$rootScope', '$location', '$route', ($rootScope, $location, $route) ->
+# 		original = $location.path
+# 		$location.path = (path, reload) ->
+# 			if reload is false
+# 				lastRoute = $route.current
+# 				un = $rootScope.$on "$locationChangeSuccess", () ->
+# 					$route.current = lastRoute
+# 					un()
 
-			original.apply $location, [path]
+# 			original.apply $location, [path]
 
-		return
-	]
+# 		return
+# 	]
