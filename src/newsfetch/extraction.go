@@ -61,16 +61,16 @@ func (c *Client) extract(urls []string, options Options, place int) ([]string, e
 		urls[i] = url.QueryEscape(u)
 	}
 	if len(urls) == 0 {
-		return nil, errors.New("At least one URL is required")
+		return nil, errors.New("At least one Url is required")
 	} else if len(urls) == 1 {
 		if len(urls[0]) == 0 {
-			return nil, errors.New("URL cannot be empty")
+			return nil, errors.New("Url cannot be empty")
 		}
 		addr += "url=" + urls[0]
 	} else {
 		for _, url := range urls {
 			if len(url) == 0 {
-				return nil, errors.New("A URL cannot be empty")
+				return nil, errors.New("A Url cannot be empty")
 			}
 		}
 		addr += "urls=" + strings.Join(urls, ",")
@@ -105,23 +105,23 @@ func (c *Client) extract(urls []string, options Options, place int) ([]string, e
 		var tmpResp Response
 		tmp, _ := json.Marshal(r)
 		json.Unmarshal(tmp, &tmpResp)
-		h := Hash(tmpResp.URL)
-		tmpResp.ID = h
+		h := Hash(tmpResp.Url)
+		tmpResp.Id = h
 
 		for i, _ := range tmpResp.Authors {
-			tmpResp.Authors[i].ID = h
+			tmpResp.Authors[i].Id = h
 		}
 		for i, _ := range tmpResp.Keywords {
-			tmpResp.Keywords[i].ID = h
+			tmpResp.Keywords[i].Id = h
 		}
 		for i, _ := range tmpResp.Entities {
-			tmpResp.Entities[i].ID = h
+			tmpResp.Entities[i].Id = h
 		}
 		for i, _ := range tmpResp.RelatedArticles {
-			tmpResp.RelatedArticles[i].ID = h
+			tmpResp.RelatedArticles[i].Id = h
 		}
 		for i, _ := range tmpResp.Images {
-			tmpResp.Images[i].ID = h
+			tmpResp.Images[i].Id = h
 		}
 		var p int64
 		p = tmpResp.Published
@@ -179,7 +179,7 @@ func Hash(str string) []byte {
 
 // write json string to cassandra
 func writeToCass(resp string) {
-	session, _ := GetCassandraConnection("dataplay")
+	session, _ := GetCassandraConnection("dataplay_alpha")
 	defer session.Close()
 
 	var r Response
@@ -191,15 +191,15 @@ func writeToCass(resp string) {
 	if err := session.Query(`INSERT INTO response (id, original_url, url, type, provider_name, provider_url, 
 		provider_display, favicon_url, title, description, date, published, lead, content) 
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		r.ID, r.OriginalURL, r.URL, r.Type, r.ProviderName, r.ProviderURL,
-		r.ProviderDisplay, r.FaviconURL, r.Title, r.Description, r.Date, r.Published, r.Lead, r.Content).Exec(); err != nil {
+		r.Id, r.OriginalUrl, r.Url, r.Type, r.ProviderName, r.ProviderUrl,
+		r.ProviderDisplay, r.FaviconUrl, r.Title, r.Description, r.Date, r.Published, r.Lead, r.Content).Exec(); err != nil {
 		fmt.Println("HELP1!", err)
 	}
 
 	for _, a := range r.Authors {
 		if err := session.Query(`INSERT INTO author (id, name, url) 
 			VALUES (?, ?, ?)`,
-			a.ID, a.Name, a.URL).Exec(); err != nil {
+			a.Id, a.Name, a.Url).Exec(); err != nil {
 			fmt.Println("HELP2!", err)
 		}
 	}
@@ -207,7 +207,7 @@ func writeToCass(resp string) {
 	for _, k := range r.Keywords {
 		if err := session.Query(`INSERT INTO keyword (id, score, name) 
 			VALUES (?, ?, ?)`,
-			k.ID, k.Score, k.Name).Exec(); err != nil {
+			k.Id, k.Score, k.Name).Exec(); err != nil {
 			fmt.Println("HELP3!", err)
 		}
 	}
@@ -215,7 +215,7 @@ func writeToCass(resp string) {
 	for _, e := range r.Entities {
 		if err := session.Query(`INSERT INTO entity (id, count, name) 
 			VALUES (?, ?, ?)`,
-			e.ID, e.Count, e.Name).Exec(); err != nil {
+			e.Id, e.Count, e.Name).Exec(); err != nil {
 			fmt.Println("HELP4!", err)
 		}
 	}
@@ -223,7 +223,7 @@ func writeToCass(resp string) {
 	for index, i := range r.Images {
 		if err := session.Query(`INSERT INTO image (pic_index, id, caption, url, width, height, entropy, size) 
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-			index, i.ID, i.Caption, i.URL, i.Width, i.Height, i.Entropy, i.Size).Exec(); err != nil {
+			index, i.Id, i.Caption, i.Url, i.Width, i.Height, i.Entropy, i.Size).Exec(); err != nil {
 			fmt.Println("HELP5!", err)
 		}
 	}
@@ -231,7 +231,7 @@ func writeToCass(resp string) {
 	for _, ra := range r.RelatedArticles {
 		if err := session.Query(`INSERT INTO related (id, description, title, url, thumbnail_width, score, thumbnail_height, thumbnail_url) 
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-			ra.ID, ra.Description, ra.Title, ra.URL, ra.ThumbnailWidth, ra.Score, ra.ThumbnailHeight, ra.ThumbnailURL).Exec(); err != nil {
+			ra.Id, ra.Description, ra.Title, ra.Url, ra.ThumbnailWidth, ra.Score, ra.ThumbnailHeight, ra.ThumbnailUrl).Exec(); err != nil {
 			fmt.Println("HELP6!", err)
 		}
 	}
@@ -239,7 +239,7 @@ func writeToCass(resp string) {
 
 //////////////////////////////////////////////////////////////////////
 func outputSomething(u string) {
-	session, _ := GetCassandraConnection("dataplay")
+	session, _ := GetCassandraConnection("dataplay_alpha")
 	defer session.Close()
 
 	var url string
