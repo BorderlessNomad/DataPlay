@@ -21,6 +21,7 @@
 			</div>
 		</div>
 	</div>
+
 	<div class="row" id="streams">
 		<div class="col-xs-10 col-xs-offset-1">
 			<div class="row">
@@ -31,17 +32,19 @@
 					</div>
 					<div ng-if="!myActivity" ng-include="'views/loader.html'"></div>
 				</div>
+
 				<div class="col-xs-4">
 					<h4>Recent Community Observations</h4>
 					<div class="row recentObservations" ng-if="recentObservations" ng-repeat="item in recentObservations">
 						<div class="col-xs-2 text-center"><img class="avatar" ng-src="{{item.user.avatar}}" /></div>
 						<div class="col-xs-10">
-							<p>{{item.text}}</p>
+							<p>{{item.text|truncate:25}}</p>
 							<p class="italic">posted by {{item.user.name}}</p>
 						</div>
 					</div>
 					<div ng-if="!recentObservations" ng-include="'views/loader.html'"></div>
 				</div>
+
 				<div class="col-xs-4">
 					<h4>Current Data Experts</h4>
 					<div class="row dataExperts" ng-if="dataExperts" ng-repeat="item in dataExperts">
