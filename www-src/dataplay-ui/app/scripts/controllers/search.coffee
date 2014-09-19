@@ -34,15 +34,12 @@ angular.module('dataplayApp')
 
 			User.search $scope.query, offset, count
 				.success (data) ->
-					if offset is 0
-						$scope.results = data.Results
-					else
-						$scope.results = $scope.results.concat data.Results
+					$scope.results = if offset is 0 then data.Results else $scope.results.concat data.Results
 
 					$scope.results.forEach (r) ->
 						r.graph = []
 						r.error = null
-						console.log r
+						# console.log r
 						# Overview.related r.GUID
 						# 	.success (graphdata) ->
 						# 		console.log graphdata
@@ -144,15 +141,6 @@ angular.module('dataplayApp')
 						.range [0, $scope.width]
 
 			xScale
-
-		# Watch change to 'query' and do SILENT $location replace [No REFRESH]
-		#	Note: Watch is initiated only after window.ready
-		$scope.$watch "query", ((newVal, oldVal) ->
-			console.log newVal, newVal.length
-			if newVal.length >= 3
-				qs = "/search/#{newVal}"
-				$location.path qs, false
-		), true
 
 		return
 	]

@@ -13,11 +13,14 @@ angular.module('dataplayApp')
     getStats: () ->
       $http.get config.api.base_url + "/home/data"
 
+    getAwaitingValidation: () ->
+      $http.get config.api.base_url + "/chart/awaitingvalidation"
+
     getActivityStream: () ->
       $http.get config.api.base_url + "/user/activitystream"
 
     getRecentObservations: () ->
-      $http.get config.api.base_url + "/observations/recent"
+      $http.get config.api.base_url + "/recentobservations"
 
     getDataExperts: () ->
       $http.get config.api.base_url + "/user/experts"

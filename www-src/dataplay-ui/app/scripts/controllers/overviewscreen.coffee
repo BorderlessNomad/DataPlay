@@ -17,7 +17,7 @@ angular.module('dataplayApp')
 			bottom: 0
 			left: 0
 
-		$scope.mainSections = {
+		$scope.mainSections =
 			d:
 				title: 'Gov Departments/Bodies'
 				colNameA: 'Entities'
@@ -39,7 +39,6 @@ angular.module('dataplayApp')
 				error: null
 				graph: []
 				items: []
-		}
 
 		$scope.colourMap = {}
 
