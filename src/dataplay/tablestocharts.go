@@ -18,7 +18,8 @@ type RelatedCharts struct {
 }
 
 type PatternInfo struct {
-	PatternID       int         `json:"patternid"`
+	PatternID       string      `json:"patternid"`
+	DiscoveredID    int         `json:"discoveredid"`
 	Discoverer      string      `json:"discoveredby"`
 	DiscoveryDate   time.Time   `json:"discoverydate"`
 	Validators      []string    `json:"validatedby, omitempty"`
@@ -134,7 +135,8 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	}
 
 	pattern.ChartData = td
-	pattern.PatternID = discovered.DiscoveredId
+	pattern.PatternID = discovered.RelationId
+	pattern.DiscoveredID = discovered.DiscoveredId
 	pattern.Discoverer = user.Username
 	pattern.DiscoveryDate = discovered.Created
 	pattern.Validators = validators
@@ -212,7 +214,8 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	}
 
 	pattern.ChartData = cd
-	pattern.PatternID = discovered.CorrelationId
+	pattern.PatternID = strconv.Itoa(discovered.CorrelationId)
+	pattern.DiscoveredID = discovered.DiscoveredId
 	pattern.Discoverer = user.Username
 	pattern.DiscoveryDate = discovered.Created
 	pattern.Validators = validators
