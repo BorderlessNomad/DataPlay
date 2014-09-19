@@ -33,22 +33,22 @@ type Options struct {
 }
 
 type Author struct {
-	ID   []byte `json:"id"`
+	Id   []byte `json:"id"`
 	Name string `json:"name"`
-	URL  string `json:"url"`
+	Url  string `json:"url"`
 }
 
 type Entity struct {
-	ID    []byte `json:"id"`
+	Id    []byte `json:"id"`
 	Count int    `json:"count"`
 	Name  string `json:"name"`
 }
 
 type Image struct {
-	ID       []byte  `json:"id"`
+	Id       []byte  `json:"id"`
 	PicIndex int     `json:"pic_index"`
 	Caption  string  `json:"caption"`
-	URL      string  `json:"url"`
+	Url      string  `json:"url"`
 	Width    int     `json:"width"`
 	Height   int     `json:"height"`
 	Entropy  float32 `json:"entropy"`
@@ -56,31 +56,31 @@ type Image struct {
 }
 
 type Keyword struct {
-	ID    []byte `json:"id"`
+	Id    []byte `json:"id"`
 	Score int    `json:"score"`
 	Name  string `json:"name"`
 }
 
 type Related struct {
-	ID              []byte  `json:"id"`
+	Id              []byte  `json:"id"`
 	Description     string  `json:"description"`
 	Title           string  `json:"title"`
-	URL             string  `json:"url"`
+	Url             string  `json:"url"`
 	ThumbnailWidth  int     `json:"thumbnail_width"`
 	Score           float32 `json:"score"`
 	ThumbnailHeight int     `json:"thumbnail_height"`
-	ThumbnailURL    string  `json:"thumbnail_url"`
+	ThumbnailUrl    string  `json:"thumbnail_url"`
 }
 
 type Response struct {
-	ID              []byte    `json:"id"`
-	OriginalURL     string    `json:"original_url"`
-	URL             string    `json:"url"`
+	Id              []byte    `json:"id"`
+	OriginalUrl     string    `json:"original_url"`
+	Url             string    `json:"url"`
 	Type            string    `json:"type"`
 	ProviderName    string    `json:"provider_name"`
-	ProviderURL     string    `json:"provider_url"`
+	ProviderUrl     string    `json:"provider_url"`
 	ProviderDisplay string    `json:"provider_display"`
-	FaviconURL      string    `json:"favicon_url"`
+	FaviconUrl      string    `json:"favicon_url"`
 	Title           string    `json:"title"`
 	Description     string    `json:"description"`
 	Date            time.Time `json:"date"`

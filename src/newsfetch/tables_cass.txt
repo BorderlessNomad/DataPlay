@@ -1,12 +1,12 @@
 docker run -i -t poklet/cassandra cqlsh $(./cassandra-master/scripts/ipof.sh cassandra)
 
-USE dataplay;
+USE dataplay_alpha;
 
-DESCRIBE KEYSPACE dataplay;
+DESCRIBE KEYSPACE dataplay_alpha;
 
 DROP KEYSPACE urldata;
 
-CREATE KEYSPACE dataplay WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+CREATE KEYSPACE dataplay_alpha WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
 
 
 
