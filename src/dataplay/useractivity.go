@@ -249,30 +249,26 @@ func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request) str
 }
 
 func GetHomePageDataHttp(res http.ResponseWriter, req *http.Request) string {
-	// session := req.Header.Get("X-API-SESSION")
-	// if len(session) <= 0 {
-	// 	http.Error(res, "Missing session parameter", http.StatusBadRequest)
-	// 	return "Missing session parameter"
-	// }
-
 	var result [3]HomeData
 	result[0].Label = "players"
 	result[1].Label = "discoveries"
 	result[2].Label = "datasets"
-	err := DB.Model(User{}).Count(result[0].Value).Error
+
+	err := DB.Model(User{}).Count(&result[0].Value).Error
 	if err != nil {
 		return "not found"
 	}
 
-	err = DB.Model(Discovered{}).Count(result[1].Value).Error
+	err = DB.Model(Discovered{}).Count(&result[1].Value).Error
 	if err != nil {
 		return "not found"
 	}
 
-	err = DB.Model(OnlineData{}).Count(result[2].Value).Error
+	err = DB.Model(OnlineData{}).Count(&result[2].Value).Error
 	if err != nil {
 		return "not found"
 	}
+
 	r, err2 := json.Marshal(result)
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
@@ -394,13 +390,14 @@ func GetActivityStreamHttp(res http.ResponseWriter, req *http.Request) string {
 func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivity {
 	activity := []Activity{}
 
-	err := DB.Order("created desc").Where("uid = ?", uid).Find(&activity).Error
+	err := DB.Where("uid = ?", uid).Order("created DESC").Find(&activity).Error
 	if err != nil {
 		return activities
 	}
 
 	for _, a := range activity {
 		tmpA := UserActivity{}
+
 		if a.Type == "Comment" {
 			tmpA.ActivityStr1 = "You commented on pattern "
 			tmpA.PatternId = a.DiscoveredId
@@ -411,12 +408,14 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 				tmpA.ActivityStr1 = "Bad validated observation activity 1"
 				tmpA.PatternId = 0
 			}
+
 			user := User{}
 			err = DB.Where("uid = ?", obs.Uid).Find(&user).Error
 			if err != nil {
 				tmpA.ActivityStr1 = "Bad validated observation activity 2"
 				tmpA.PatternId = 0
 			}
+
 			tmpA.ActivityStr1 = "You agreed with " + user.Username + "'s observation on pattern "
 			tmpA.PatternId = obs.DiscoveredId
 		} else if a.Type == "Invalidated Observation" {
@@ -425,11 +424,13 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			if err != nil {
 				tmpA.ActivityStr1 = "Bad invalidated observation activity 1"
 			}
+
 			user := User{}
 			err = DB.Where("uid = ?", obs.Uid).Find(&user).Error
 			if err != nil {
 				tmpA.ActivityStr1 = "Bad invalidated observation activity 2"
 			}
+
 			tmpA.ActivityStr1 = "You disagreed with " + user.Username + "'s observation on pattern "
 			tmpA.PatternId = obs.DiscoveredId
 		} else if a.Type == "Validated Chart" {
@@ -439,17 +440,17 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 		} else if a.Type == "Invalidated Chart" {
 			tmpA.ActivityStr1 = "You invalidated pattern "
 			tmpA.PatternId = a.DiscoveredId
-
 		} else {
 			tmpA.ActivityStr1 = "No activity"
 			tmpA.PatternId = 0
 		}
+
 		tmpA.Created = t.Sub(a.Created).Seconds()
 		tmpA.Time = a.Created
 		activities = append(activities, tmpA)
 	}
-	return activities
 
+	return activities
 }
 
 func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivity {
