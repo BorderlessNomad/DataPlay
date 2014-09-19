@@ -126,9 +126,16 @@ func ContainsTableCol(cols []ColType, target string) bool {
  */
 func GetSQLTableSchema(table string) []ColType {
 	tableSchema := []TableSchema{}
-	DB.Select("column_name, data_type").Where("table_name = ?", table).Find(&tableSchema)
-
 	schema := make([]ColType, 0)
+
+	if table == "" {
+		return schema
+	}
+
+	err := DB.Select("column_name, data_type").Where("table_name = ?", table).Find(&tableSchema).Error
+	if err != nil {
+		return schema
+	}
 
 	for _, row := range tableSchema {
 		NewCol := ColType{
@@ -144,6 +151,7 @@ func GetSQLTableSchema(table string) []ColType {
 
 		schema = append(schema, NewCol)
 	}
+
 	return schema
 }
 

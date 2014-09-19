@@ -24,6 +24,10 @@ angular.module('dataplayApp')
 				templateUrl: 'views/landing.html'
 				controller: 'LandingCtrl'
 				login: false
+			.when '/about',
+				templateUrl: 'views/about.html'
+				controller: 'LandingCtrl'
+				login: false
 			.when '/search',
 				templateUrl: 'views/search.html'
 				controller: 'SearchCtrl'
