@@ -41,6 +41,7 @@ type CommunityObservation struct {
 	Avatar    string `json:"avatar, omitempty"`
 	Comment   string `json:"comment"`
 	PatternID int    `json:"patternid"`
+	Link      string `json:"linkstring"`
 	EmailMD5  string `json:"MD5email"`
 }
 
@@ -247,6 +248,18 @@ func GetRecentObservationsHttp(res http.ResponseWriter, req *http.Request) strin
 		tmpCO.Avatar = user.Avatar
 		tmpCO.Comment = o.Comment
 		tmpCO.PatternID = o.DiscoveredId
+
+		discovered := Discovered{}
+		err = DB.Where("discovered_id = ?", o.DiscoveredId).Find(&discovered).Error
+		if err != nil {
+			return "can't find dicovered to generate link"
+		}
+		if discovered.CorrelationId == 0 {
+			tmpCO.Link = "charts/related/" + discovered.RelationId
+		} else {
+			tmpCO.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
+		}
+
 		tmpCO.EmailMD5 = GetMD5Hash(user.Email)
 		communityObservations = append(communityObservations, tmpCO)
 	}
