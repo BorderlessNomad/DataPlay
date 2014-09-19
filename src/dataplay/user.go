@@ -414,3 +414,11 @@ func Reputation(uid int, points int) string {
 	}
 	return ""
 }
+
+// return md5 hash of string
+func Hash(str string) []byte {
+	data := []byte(str)
+	hash := md5.New()
+	hash.Write(data)
+	return hash.Sum(nil)
+}

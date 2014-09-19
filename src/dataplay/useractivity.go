@@ -34,6 +34,7 @@ type DataExpert struct {
 	Username   string `json:"username"`
 	Avatar     string `json:"avatar"`
 	Reputation int    `json:"reputation"`
+	EmailMD5   []byte `json:"MD5email"`
 }
 
 type UserActivity struct {
@@ -344,6 +345,7 @@ func GetDataExpertsHttp(res http.ResponseWriter, req *http.Request) string {
 		tmpDE.Username = u.Username
 		tmpDE.Avatar = u.Avatar
 		tmpDE.Reputation = u.Reputation
+		tmpDE.EmailMD5 = Hash(u.Email)
 		dataExperts = append(dataExperts, tmpDE)
 	}
 

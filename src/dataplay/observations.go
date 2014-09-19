@@ -41,6 +41,7 @@ type CommunityObservation struct {
 	Avatar    string `json:"avatar, omitempty"`
 	Comment   string `json:"comment"`
 	PatternID int    `json:"patternid"`
+	EmailMD5  []byte `json:"MD5email"`
 }
 
 // add observation
@@ -246,6 +247,7 @@ func GetRecentObservationsHttp(res http.ResponseWriter, req *http.Request) strin
 		tmpCO.Avatar = user.Avatar
 		tmpCO.Comment = o.Comment
 		tmpCO.PatternID = o.DiscoveredId
+		tmpCO.EmailMD5 = Hash(user.Email)
 		communityObservations = append(communityObservations, tmpCO)
 	}
 
