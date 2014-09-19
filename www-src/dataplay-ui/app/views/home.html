@@ -19,6 +19,7 @@
 					<div style="background-color: lightblue; width: 100%; height: 100px;"></div>
 				</div>
 				<div class="col-xs-12" ng-if="!validatePatterns" ng-include="'views/loader.html'"></div>
+				<div class="col-xs-12 text-center" ng-if="validatePatterns.length == 0"><p>There are no charts currently awaiting validation.</p></div>
 			</div>
 		</div>
 	</div>
@@ -32,6 +33,7 @@
 						{{item.pretext}}<a ng-href="/#/{{item.url}}">{{item.linktext}}</a>
 					</div>
 					<div ng-if="!myActivity" ng-include="'views/loader.html'"></div>
+					<div ng-if="myActivity.length == 0"><p>No activity to show.</p></div>
 				</div>
 
 				<div class="col-xs-4">
@@ -44,6 +46,7 @@
 						</div>
 					</div>
 					<div ng-if="!recentObservations" ng-include="'views/loader.html'"></div>
+					<div ng-if="recentObservations.length == 0"><p>No observations to show.</p></div>
 				</div>
 
 				<div class="col-xs-4">
@@ -61,6 +64,7 @@
 						</div>
 					</div>
 					<div ng-if="!dataExperts" ng-include="'views/loader.html'"></div>
+					<div ng-if="dataExperts.length == 0"><p>No experts to show.</p></div>
 				</div>
 			</div>
 		</div>
