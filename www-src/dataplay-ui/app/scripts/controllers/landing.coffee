@@ -8,8 +8,13 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-  .controller 'LandingCtrl', ['$scope', '$location', 'User', 'Overview', 'config', ($scope, $location, User, Overview, config) ->
+  .controller 'LandingCtrl', ['$scope', '$location', 'User', 'Auth', 'Overview', 'config', ($scope, $location, User, Auth, Overview, config) ->
     $scope.config = config
+    $scope.Auth = Auth
+    $scope.username = Auth.get config.userName
+
+    if Auth.isAuthenticated()
+      $location.path '/home'
 
     $scope.stats =
       players: null

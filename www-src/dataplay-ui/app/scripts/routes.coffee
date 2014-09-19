@@ -16,9 +16,9 @@ angular.module('dataplayApp')
 			$delegate
 
 		$routeProvider
-			.when '/',
-				templateUrl: 'views/recent.html'
-				controller: 'RecentCtrl'
+			.when '/home',
+				templateUrl: 'views/home.html'
+				controller: 'HomeCtrl'
 				login: true
 			.when '/',
 				templateUrl: 'views/landing.html'
