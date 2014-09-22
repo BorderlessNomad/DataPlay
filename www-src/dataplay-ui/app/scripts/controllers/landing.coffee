@@ -17,8 +17,8 @@ angular.module('dataplayApp')
 
     $scope.relatedChart = new RelatedCharts $scope.chartsRelated
 
-    $scope.relatedChart.width = 200
-    $scope.relatedChart.height = 150
+    # $scope.relatedChart.width = 200
+    # $scope.relatedChart.height = 150
 
     if Auth.isAuthenticated()
       $location.path '/home'

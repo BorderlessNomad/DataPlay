@@ -47,7 +47,7 @@ angular.module('dataplayApp')
 						r.error = null
 
 						# Random
-						offset = Overview.getRandomInteger 0, 3
+						# offset = Overview.getRandomInteger 0, 3
 						$scope.getRelated r.GUID, 0
 
 					$scope.rowedResults = $scope.splitIntoRows $scope.results
