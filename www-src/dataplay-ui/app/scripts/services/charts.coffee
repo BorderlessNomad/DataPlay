@@ -22,7 +22,7 @@ angular.module('dataplayApp')
 				data: bookmarks
 
 		validateChart: (type, chartId, valFlag) ->
-			path = if valFlag then "/chart/#{valFlag}" else "/chart"
+			path = if typeof valFlag == 'boolean' then "/chart/#{valFlag}" else "/chart"
 
 			if type is "rid"
 				$http.put config.api.base_url + path,
