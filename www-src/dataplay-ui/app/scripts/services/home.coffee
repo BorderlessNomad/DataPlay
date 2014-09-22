@@ -13,6 +13,9 @@ angular.module('dataplayApp')
     getStats: () ->
       $http.get config.api.base_url + "/home/data"
 
+    getTopRated: () ->
+      $http.get config.api.base_url + "/chart/toprated"
+
     getAwaitingValidation: () ->
       $http.get config.api.base_url + "/chart/awaitingvalidation"
 
