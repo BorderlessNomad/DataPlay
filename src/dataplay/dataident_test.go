@@ -57,28 +57,16 @@ func TestFetchTableCols(t *testing.T) {
 	})
 }
 
-func TestExtractDataColumn(t *testing.T) {
-	result := ExtractDataColumn("gdp", "gdpindex")
-	Convey("When no guid passed no column names are returned", t, func() {
-		So(result, ShouldNotBeNil)
-	})
-
-	Convey("When no guid passed no values are returned", t, func() {
-		result = ExtractDataColumn("", "")
-		So(result, ShouldBeNil)
-	})
-}
-
 func TestHasTableGotLocatonData(t *testing.T) {
 	result := HasTableGotLocationData("tweets")
 
 	Convey("Should find Lattitude and Longitude columns in dataset", t, func() {
-		So(result, ShouldEqual, "true")
+		So(result, ShouldEqual, true)
 	})
 
 	Convey("Should not find Lattitude and Longitude columns in dataset", t, func() {
 		result = HasTableGotLocationData("houseprices")
-		So(result, ShouldEqual, "false")
+		So(result, ShouldEqual, false)
 	})
 }
 
@@ -98,7 +86,7 @@ func TestContainsTableCol(t *testing.T) {
 
 func TestGetSQLTableSchema(t *testing.T) {
 	Convey("When dbname > 0", t, func() {
-		result := GetSQLTableSchema("test_table", "test_db")
+		result := GetSQLTableSchema("test_table")
 		So(result, ShouldNotBeNil)
 	})
 }
@@ -135,13 +123,13 @@ func TestAttemptToFindMatches(t *testing.T) {
 		So(result, ShouldEqual, "")
 	})
 
-	Convey("When parameters are correct", t, func() {
-		params["id"] = "gdp"
-		params["x"] = "year"
-		params["y"] = "gdp"
-		result := AttemptToFindMatches(response, request, params)
-		So(result, ShouldNotBeBlank)
-	})
+	// Convey("When parameters are correct", t, func() {
+	// 	params["id"] = "gdp"
+	// 	params["x"] = "date"
+	// 	params["y"] = "gdp"
+	// 	result := AttemptToFindMatches(response, request, params)
+	// 	So(result, ShouldNotBeBlank)
+	// })
 }
 
 func TestFindStringMatches(t *testing.T) {

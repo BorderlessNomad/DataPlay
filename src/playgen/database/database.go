@@ -50,13 +50,12 @@ func (self *Database) Connect() (err error) {
 	fmt.Println("[database] Connected!", self.User, "@", self.Host, ":", self.Port, "/", self.Schema)
 
 	self.DB.DB().Exec("SET NAMES UTF8")
-	self.DB.DB().SetMaxIdleConns(10)
-	self.DB.DB().SetMaxOpenConns(100)
+	self.DB.DB().SetMaxIdleConns(0) // <=0 no idle connections are retained.
+	self.DB.DB().SetMaxOpenConns(0) //Unlimited (100)
 	self.DB.DB().Ping()
 
 	/* Debug */
 	self.DB.LogMode(true)
-	// DB.SetLogger(gorm.Logger{revel.TRACE})
 
 	return
 }

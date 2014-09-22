@@ -1,0 +1,22 @@
+<form name="loginForm" class="form-signin" role="form" ng-controller="UserCtrl" ng-submit="login(user)" novalidate>
+	<div ng-show="hasError()" class="alert alert-dismissable alert-danger">
+		<button type="button" class="close" ng-click="closeAlert()">×</button>
+		{{user.message}}
+	</div>
+
+	<div class="form-group" ng-class="{'has-error': loginForm.username.$invalid && !loginForm.username.$pristine}">
+		<input class="form-control" name="username" type="email" placeholder="Email" ng-required="true" ng-model="user.username" autocomplete="off" />
+		<p data-ng-show="loginForm.username.$error.required && !loginForm.username.$pristine" class="help-block">Required</p>
+		<p data-ng-show="loginForm.username.$error.email && !loginForm.username.$pristine" class="help-block">Not a valid email!</p>
+	</div>
+	<div class="form-group" ng-class="{'has-error': loginForm.password.$invalid && !loginForm.password.$pristine}">
+		<input class="form-control" name="password" type="password" placeholder="Password" ng-required="true" ng-model="user.password" autocomplete="off" />
+		<p data-ng-show="loginForm.password.$invalid && !loginForm.password.$pristine" class="help-block">Required</p>
+	</div>
+	<div class="form-group">
+		<button type="submit" class="btn btn-primary btn-block" value="Login" title="Login" ng-disabled="!loginForm.$valid"><span>Login</span></button>
+	</div>
+	<div class="form-group">
+		<a href="user/forgotpassword">Forgot your password?</a>
+	</div>
+</form>

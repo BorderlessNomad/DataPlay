@@ -1,0 +1,22 @@
+<div class="dc-chart chartSwitch row"
+	ng-if="chart.type == 'row' || chart.type == 'bar'"
+
+	id="{{chart.id}}"
+
+	dc-chart="rowChart"
+
+	dc-width="{{width}}"
+	dc-height="{{height}}"
+	dc-margins="{{margin}}"
+	dc-mouse-zoomable="false"
+	dc-brush-on="false"
+
+	dc-elastic-x="true"
+	dc-transition-duration="500"
+	dc-colors="d3.scale.category20()"
+
+	dc-x-axis-label="chart.table1.xLabel"
+	dc-y-axis-label="chart.table1.yLabel"
+
+	dc-post-setup-chart="rowChartPostSetup"
+></div>

@@ -82,7 +82,7 @@ func FetchTableCols(guid string) (output []ColType) {
 	}
 
 	var tablename string
-	tablename, e := getRealTableName(guid)
+	tablename, e := GetRealTableName(guid)
 	if e != nil {
 		return output
 	}
@@ -92,25 +92,14 @@ func FetchTableCols(guid string) (output []ColType) {
 	return results
 }
 
-func ExtractDataColumn(guid string, col string) []float64 {
-	var result []float64
-
-	if guid == "" || col == "" {
-		return result
-	}
-
-	DB.Table(guid).Pluck(col, &result)
-	return result
-}
-
-func HasTableGotLocationData(datasetGUID string) string {
+func HasTableGotLocationData(datasetGUID string) bool {
 	cols := FetchTableCols(datasetGUID)
 
 	if ContainsTableCol(cols, "lat") && (ContainsTableCol(cols, "lon") || ContainsTableCol(cols, "long")) {
-		return "true"
+		return true
 	}
 
-	return "false"
+	return false
 }
 
 func ContainsTableCol(cols []ColType, target string) bool {
@@ -135,20 +124,18 @@ func ContainsTableCol(cols []ColType, target string) bool {
  * @param string <Table Name>
  * @return <Table Schema>
  */
-func GetSQLTableSchema(table string, databaseName ...string) []ColType {
-	database := "dataplay"
-	if len(databaseName) > 0 {
-		database = databaseName[0]
-	}
-
+func GetSQLTableSchema(table string) []ColType {
 	tableSchema := []TableSchema{}
-	err := DB.Select("column_name, data_type").Where("table_catalog = ?", database).Where("table_name = ?", table).Find(&tableSchema).Error
+	schema := make([]ColType, 0)
 
-	if err != gorm.RecordNotFound {
-		check(err)
+	if table == "" {
+		return schema
 	}
 
-	schema := make([]ColType, 0)
+	err := DB.Select("column_name, data_type").Where("table_name = ?", table).Find(&tableSchema).Error
+	if err != nil {
+		return schema
+	}
 
 	for _, row := range tableSchema {
 		NewCol := ColType{
@@ -227,7 +214,7 @@ func SuggestColType(res http.ResponseWriter, req *http.Request, params martini.P
  * @return JSON containing Matched data
  */
 func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	RealTableName, e := getRealTableName(params["id"])
+	RealTableName, e := GetRealTableName(params["id"])
 	if e != nil {
 		http.Error(res, "Could not find that Table", http.StatusInternalServerError)
 		return ""
@@ -299,7 +286,7 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, params martin
 }
 
 func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	RealTableName, e := getRealTableName(params["guid"])
+	RealTableName, e := GetRealTableName(params["guid"])
 	if e != nil {
 		http.Error(res, "Could not find that table", http.StatusInternalServerError)
 		return ""

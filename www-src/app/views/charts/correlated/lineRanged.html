@@ -1,0 +1,50 @@
+<div class="dc-chart chartSwitch line"
+	ng-if="chart.type == 'line'"
+
+	id="{{chart.id}}"
+
+	dc-chart="lineChart"
+
+	dc-width="{{width}}"
+	dc-height="{{height}}"
+	dc-margins="{{margin}}"
+	dc-mouse-zoomable="false"
+	dc-brush-on="false"
+
+	dc-elastic-y="true"
+	dc-transition-duration="500"
+	dc-colors="d3.scale.category20()"
+
+	dc-y-axis-label="chart.table1.yLabel"
+
+	dc-render-data-points="true"
+	dc-render-area="true"
+	dc-render-horizontal-grid-lines="true"
+	dc-render-vertical-grid-lines="true"
+
+	dc-range-chart="lineChartRange"
+
+	dc-post-setup-chart="lineChartPostSetup"
+></div>
+
+<a ng-show="chart.type == 'line'" href="#" class="label label-primary pull-right" ng-click="resetAll()">Reset</a>
+
+<div class="dc-chart chartSwitch range"
+	ng-show="chart.type == 'line'"
+
+	dc-chart="barChart"
+
+	dc-name="'lineChartRange'"
+
+	dc-width="{{width}}"
+	dc-height="100"
+	dc-margins="{{marginAlt}}"
+
+	dc-always-use-rounding="true"
+	dc-center-bar="true"
+	dc-transition-duration="0"
+
+	dc-x-axis-label="chart.table1.xLabel"
+
+	dc-post-setup-chart="rangeChartPostSetup"
+></div>

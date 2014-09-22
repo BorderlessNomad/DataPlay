@@ -1,0 +1,93 @@
+<div id="homepage" ng-init="init()">
+	<div class="row" id="search">
+		<div class="col-xs-4 col-xs-offset-4">
+			<h3><small><i class="glyphicon glyphicon-search"></i><i class="glyphicon glyphicon-chevron-right"></i></small> Begin exploring now</h3>
+			<form ng-submit="search()">
+				<div class="input-group">
+					<input class="form-control" ng-model="searchquery" />
+					<span class="input-group-btn">
+						<button class="btn btn-primary" ng-click="search()">Search</button>
+					</span>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<div class="row" id="validation">
+		<div class="col-xs-12">
+			<h3 class="text-center"><i class="glyphicon glyphicon-flag purple-flag"></i> Patterns awaiting your validation</h3>
+			<div class="row" id="validation">
+				<div class="list-group-item col-xs-3" ng-repeat="chart in chartsRelated | limitTo:4" id="{{chart.id}}" ng-show="hasRelatedCharts() > 0">
+					<div class="media-heading">
+						<h5><a href="overview/{{chart.url}}">{{chart.title}}</a></h5>
+					</div>
+					<a class="related media-body" href="{{chart.url}}">
+						<span ng-include="'views/charts/related/line.html'"></span>
+						<span ng-include="'views/charts/related/row.html'"></span>
+						<span ng-include="'views/charts/related/column.html'"></span>
+						<span ng-include="'views/charts/related/pie.html'"></span>
+						<span ng-include="'views/charts/related/bubble.html'"></span>
+					</a>
+				</div>
+
+				<div class="col-xs-12" ng-if="!chartsRelated" ng-include="'views/loader.html'"></div>
+
+				<div class="col-md-12" ng-show="chartsRelated.length <= 0">
+					<p class="text-center text-muted">There are no charts currently awaiting validation.</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="row" id="streams">
+		<div class="col-xs-10 col-xs-offset-1">
+			<div class="row">
+				<div class="col-xs-4">
+					<h4 class="text-center">My Activity Stream</h4>
+					<div class="row myActivity" ng-if="myActivity" ng-repeat="item in myActivity">
+						{{item.pretext}}<a href="{{item.url}}">{{item.linktext}}</a>
+					</div>
+
+					<div ng-if="!myActivity" ng-include="'views/loader.html'"></div>
+
+					<p class="text-center text-muted" ng-if="myActivity.length <= 0">No activity to show.</p>
+				</div>
+
+				<div class="col-xs-4">
+					<h4 class="text-center">Recent Community Observations</h4>
+					<div class="row recentObservations" ng-if="recentObservations" ng-repeat="item in recentObservations">
+						<div class="col-xs-2 text-center"><img class="avatar" ng-src="{{item.user.avatar}}" /></div>
+						<div class="col-xs-10">
+							<p><a href="{{item.url}}">{{item.text|truncate:25}}</a></p>
+							<p class="italic">posted by {{item.user.name}}</p>
+						</div>
+					</div>
+
+					<div ng-if="!recentObservations" ng-include="'views/loader.html'"></div>
+
+					<p class="text-center text-muted" ng-if="recentObservations.length <= 0">No observations to show.</p>
+				</div>
+
+				<div class="col-xs-4">
+					<h4 class="text-center">Current Data Experts</h4>
+					<div class="row dataExperts" ng-if="dataExperts" ng-repeat="item in dataExperts">
+						<div class="col-xs-2 text-center" ng-class="item.rankclass">
+							<i class="fa fa-trophy fa-lg" ng-if="item.rankclass"></i>
+							<span class="bold" ng-if="!item.rankclass">#{{item.rank}}</span>
+						</div>
+						<div class="col-xs-2 text-center"><img class="avatar" ng-src="{{item.avatar}}" /></div>
+						<div class="col-xs-5 text-center"><small>{{item.name}}</small></div>
+						<div class="col-xs-3 gold">
+							<i class="glyphicon glyphicon-star"></i>
+							<span>{{item.score}}</span>
+						</div>
+					</div>
+
+					<div ng-if="!dataExperts" ng-include="'views/loader.html'"></div>
+
+					<p class="text-center text-muted" ng-if="dataExperts.length <= 0">No experts to show.</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

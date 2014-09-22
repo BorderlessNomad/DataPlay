@@ -11,6 +11,9 @@ import (
 func TestGetLastVisited(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/", nil)
 	response := httptest.NewRecorder()
+	params := map[string]string{
+		"s": "",
+	}
 
 	NewSessionID := randString(64)
 	c, _ := GetRedisConnection()
@@ -24,19 +27,13 @@ func TestGetLastVisited(t *testing.T) {
 		Expires: time.Now().AddDate(1, 0, 0),
 	}
 	http.SetCookie(response, NewCookie)
-	request.Header.Set("Cookie", NewCookie.String())
+	request.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 
-	result := GetLastVisitedHttp(response, request)
+	result := GetLastVisitedHttp(response, request, params)
 	Convey("Should get last visited", t, func() {
 		So(result, ShouldNotBeBlank)
 	})
 
-}
-
-func TestTrackVisited(t *testing.T) {
-	Convey("Track visited", t, func() {
-		TrackVisited("gold", 11)
-	})
 }
 
 func TestGetLastVisitedQ(t *testing.T) {
@@ -51,5 +48,22 @@ func TestGetLastVisitedQ(t *testing.T) {
 		m["user"] = "11"
 		result := GetLastVisitedQ(m)
 		So(result, ShouldNotBeEmpty)
+	})
+}
+
+func TestTrackVisitedHttp(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+	res := httptest.NewRecorder()
+	var g = []byte(`[{"Guid": "gold"},{"x": "x"}]`)
+	var in = []byte(`[
+		{"Info": "test"}
+	]`)
+	v := VisitedForm{
+		Guid: g,
+		Info: in,
+	}
+	Convey("Track visited", t, func() {
+		TrackVisitedHttp(res, req, v)
 	})
 }

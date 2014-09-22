@@ -10,217 +10,12 @@ import (
 	"math"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 )
 
-type Authresponse struct {
-	Username string
-	UserID   int
-}
-
-//This function is used to gather what is the username is
-// This used to be used on the front page but now it is mainly used as a "noop" call to check if the user is logged in or not.
-func CheckAuth(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	user := User{}
-	err := DB.Where("uid = ?", GetUserID(res, req)).Find(&user).Error
-	check(err)
-
-	result := Authresponse{
-		Username: user.Email,
-		UserID:   user.Uid,
-	}
-
-	b, _ := json.Marshal(result)
-
-	return string(b)
-}
-
-type SearchResult struct {
-	Title        string
-	GUID         string
-	LocationData string
-}
-
-func SearchForDataHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	uid := GetUserID(res, req)
-
-	result, error := SearchForData(params["s"], uid)
-	if error != nil {
-		http.Error(res, error.Message, error.Code)
-		return ""
-	}
-
-	r, err := json.Marshal(result)
-	if err != nil {
-		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return ""
-	}
-
-	return string(r)
-}
-
-func SearchForDataQ(params map[string]string) string {
-	if params["user"] == "" {
-		return ""
-	}
-
-	uid, e := strconv.Atoi(params["user"])
-	if e != nil {
-		return ""
-	}
-
-	result, err := SearchForData(params["s"], uid)
-	if err != nil {
-		return ""
-	}
-
-	r, e := json.Marshal(result)
-	if e != nil {
-		return ""
-	}
-
-	return string(r)
-}
-
-/**
- * @brief Search a given term in database
- * @details This method searches for a matching title with following conditions,
- * 		Postfix wildcard
- * 		Prefix & postfix wildcard
- * 		Prefix, postfix & trimmed spaces with wildcard
- * 		Prefix & postfix on previously searched terms
- */
-func SearchForData(str string, uid int) ([]SearchResult, *appError) {
-	if str == "" {
-		return nil, &appError{nil, "There was no search request", http.StatusBadRequest}
-	}
-
-	Indices := []Index{}
-
-	term := str + "%" // e.g. "nhs" => "nhs%" (What about "%nhs"?)
-
-	Logger.Println("Searching with Postfix Wildcard", term)
-
-	err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&Indices).Error
-	if err != nil && err != gorm.RecordNotFound {
-		return nil, &appError{err, "Database query failed", http.StatusServiceUnavailable}
-	}
-
-	Results := ProcessSearchResults(Indices, err)
-	if len(Results) == 0 {
-		term := "%" + str + "%" // e.g. "nhs" => "%nhs%"
-
-		Logger.Println("Searching with Prefix + Postfix Wildcard", term)
-
-		err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&Indices).Error
-		if err != nil && err != gorm.RecordNotFound {
-			return nil, &appError{err, "Database query failed", http.StatusServiceUnavailable}
-		}
-
-		Results = ProcessSearchResults(Indices, err)
-		if len(Results) == 0 {
-			term := "%" + strings.Replace(str, " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
-
-			Logger.Println("Searching with Prefix + Postfix + Trim Wildcard", term)
-
-			err := DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(10).Find(&Indices).Error
-			if err != nil && err != gorm.RecordNotFound {
-				return nil, &appError{err, "Database query failed", http.StatusServiceUnavailable}
-			}
-
-			Results = ProcessSearchResults(Indices, err)
-			if len(Results) == 0 && (len(str) >= 3 && len(str) < 20) {
-				term := "%" + str + "%" // e.g. "nhs" => "%nhs%"
-
-				Logger.Println("Searching with Prefix + Postfix Wildcard in String Table", term)
-
-				query := DB.Table("priv_stringsearch, priv_onlinedata, index")
-				query = query.Select("DISTINCT ON (priv_onlinedata.guid) priv_onlinedata.guid, index.title")
-				query = query.Where("(LOWER(value) LIKE LOWER(?) OR LOWER(x) LIKE LOWER(?))", term, term)
-				query = query.Where("priv_stringsearch.tablename = priv_onlinedata.tablename")
-				query = query.Where("priv_onlinedata.guid = index.guid")
-				query = query.Where("(owner = ? OR owner = ?)", 0, uid)
-				query = query.Order("priv_onlinedata.guid")
-				query = query.Order("priv_stringsearch.count DESC")
-				query = query.Limit(10)
-				err := query.Find(&Indices).Error
-
-				if err != nil && err != gorm.RecordNotFound {
-					return nil, &appError{err, "Database query failed", http.StatusInternalServerError}
-				}
-
-				Results = ProcessSearchResults(Indices, err)
-			}
-		}
-	}
-
-	return Results, nil
-}
-
-func ProcessSearchResults(rows []Index, e error) []SearchResult {
-	if e != nil && e != gorm.RecordNotFound {
-		check(e)
-	}
-
-	Results := make([]SearchResult, 0)
-
-	for _, row := range rows {
-		Location := HasTableGotLocationData(row.Guid)
-
-		result := SearchResult{
-			Title:        SanitizeString(row.Title),
-			GUID:         SanitizeString(row.Guid),
-			LocationData: Location,
-		}
-
-		Results = append(Results, result)
-	}
-
-	return Results
-}
-
-type DataEntry struct {
-	GUID     string
-	Name     string
-	Title    string
-	Notes    string
-	Ckan_url string
-}
-
-// This function gets the extended infomation FROM the index, things like the notes are used
-// in the "wiki" section of the page.
-func GetEntry(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	if params["id"] == "" {
-		http.Error(res, "There was no ID request", http.StatusBadRequest)
-		return ""
-	}
-
-	index := Index{}
-	err := DB.Where("LOWER(guid) LIKE LOWER(?)", params["id"]+"%").Find(&index).Error
-	if err == gorm.RecordNotFound {
-		return "[]"
-	} else if err != nil {
-		panic(err)
-		http.Error(res, "Could not find that data.", http.StatusNotFound)
-		return ""
-	}
-
-	result := DataEntry{
-		GUID:     index.Guid,
-		Name:     SanitizeString(index.Name),
-		Title:    SanitizeString(index.Title),
-		Notes:    SanitizeString(index.Notes),
-		Ckan_url: strings.Replace(index.CkanUrl, "//", "/", -1),
-	}
-
-	b, _ := json.Marshal(result)
-
-	return string(b)
-}
-
-func SanitizeString(str string) string {
-	return strings.Replace(str, "Ã‚Â£", "£", -1)
+type mainDateVal struct {
+	DateString string
+	Count      int
 }
 
 // This function casts everything into what it /Should/ Be
@@ -254,11 +49,6 @@ func ScanRow(values []interface{}, columns []string) map[string]interface{} {
 	}
 
 	return record
-}
-
-type Dataresponse struct {
-	Results []interface{}
-	Name    string
 }
 
 func DumpTableHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
@@ -321,7 +111,7 @@ func DumpTable(params map[string]string) ([]map[string]interface{}, *appError) {
 	var tablename string
 	var err error
 
-	tablename, err = getRealTableName(params["id"])
+	tablename, err = GetRealTableName(params["id"])
 	if err != nil || len(tablename) == 0 {
 		return nil, &appError{err, "Unable to find that table", http.StatusBadRequest}
 	}
@@ -329,9 +119,9 @@ func DumpTable(params map[string]string) ([]map[string]interface{}, *appError) {
 	var rows *sql.Rows
 
 	if UsingRanges {
-		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %s OFFSET %d LIMIT %d", tablename, offset, count)).Rows()
+		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %q OFFSET %d LIMIT %d", tablename, offset, count)).Rows()
 	} else {
-		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %s", tablename)).Rows()
+		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %q", tablename)).Rows()
 	}
 
 	if err != nil {
@@ -414,12 +204,12 @@ func DumpTableRangeQ(params map[string]string) string {
 // This function will empty a whole table out into JSON
 // Due to what seems to be a golang bug, everything is outputted as a string.
 func DumpTableRange(params map[string]string) ([]map[string]interface{}, *appError) {
-	tablename, e := getRealTableName(params["id"])
+	tablename, e := GetRealTableName(params["id"])
 	if e != nil {
 		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
 
-	rows, err := DB.Raw("SELECT * FROM " + tablename).Rows()
+	rows, err := DB.Raw(fmt.Sprintf("SELECT * FROM %q", tablename)).Rows()
 	if err != nil {
 		return nil, &appError{err, "Database query failed (SELECT)", http.StatusInternalServerError}
 	}
@@ -511,7 +301,7 @@ func DumpTableGroupedQ(params map[string]string) string {
 // This is very useful for things like picharts
 // /api/getdatagrouped/:id/:x/:y
 func DumpTableGrouped(params map[string]string) ([]map[string]interface{}, *appError) {
-	tablename, e := getRealTableName(params["id"])
+	tablename, e := GetRealTableName(params["id"])
 	if e != nil {
 		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
@@ -623,7 +413,7 @@ func DumpTablePredictionQ(params map[string]string) string {
 
 // This call will get a X,Y and a prediction of a value. that is asked for
 func DumpTablePrediction(params map[string]string) ([]float64, *appError) {
-	tablename, e := getRealTableName(params["id"])
+	tablename, e := GetRealTableName(params["id"])
 	if e != nil {
 		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
@@ -651,7 +441,7 @@ func DumpTablePrediction(params map[string]string) ([]float64, *appError) {
 		return nil, &appError{nil, "Col Y is invalid.", http.StatusBadRequest}
 	}
 
-	rows, e1 := DB.Raw(fmt.Sprintf("SELECT %s, %s FROM %s", params["x"], params["y"], tablename)).Rows()
+	rows, e1 := DB.Raw(fmt.Sprintf("SELECT %q, %q FROM %q", params["x"], params["y"], tablename)).Rows()
 	if e1 != nil {
 		return nil, &appError{e1, "Database query failed (SELECT)", http.StatusInternalServerError}
 
@@ -737,7 +527,7 @@ func DumpReducedTable(params map[string]string) ([]map[string]interface{}, *appE
 		return nil, &appError{nil, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest}
 	}
 
-	tablename, e := getRealTableName(params["id"])
+	tablename, e := GetRealTableName(params["id"])
 	if e != nil {
 		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
@@ -872,11 +662,14 @@ func DumpReducedTable(params map[string]string) ([]map[string]interface{}, *appE
  *
  * @return string output, error
  */
-func getRealTableName(guid string) (out string, e error) {
+func GetRealTableName(guid string) (out string, e error) {
+	if guid == "" || guid == "No Record Found!" {
+		return "", fmt.Errorf("Invalid tablename")
+	}
+
 	data := OnlineData{}
 	err := DB.Select("tablename").Where("guid = ?", guid).Find(&data).Error
 	if err == gorm.RecordNotFound {
-
 		return "", fmt.Errorf("Could not find table")
 	}
 
@@ -927,4 +720,98 @@ func ConvertToFloat(val interface{}) (float64, error) {
 	default:
 		return math.NaN(), errors.New("ConvertToFloat: Unknown value is of incompatible type")
 	}
+}
+
+// RUN ONCE AND POPULATE PRIMARY DATE FIELD IN PRIV_ONLINEDATA WITH MAIN TABLE DATE FOR USE IN SEARCH
+func PrimaryDate() {
+	var names []string
+
+	DB.Model(OnlineData{}).Pluck("guid", &names)
+
+	for _, v := range names {
+		cols := FetchTableCols(v)
+		dateCol := RandomDateColumn(cols)
+		table, _ := GetRealTableName(v)
+		d := "DELETE FROM " + table + " WHERE " + dateCol + " = '0001-01-01 BC'" ////////TEMP FIX TO GET RID OF INVALID VALUES IN GOV DATA
+		DB.Exec(d)
+		if dateCol != "" {
+			var dates []time.Time
+			err := DB.Table(table).Pluck(dateCol, &dates).Error
+			if err == nil {
+				dv := make([]DateVal, 0)
+				var d DateVal
+				for _, v := range dates {
+
+					d.Date = v
+					dv = append(dv, d)
+				}
+				primaryDate := MainDate(dv)
+				err := DB.Model(OnlineData{}).Where("tablename = ?", table).Update("primarydate", primaryDate).Error
+				check(err)
+			}
+		}
+	}
+}
+
+func MainDate(d []DateVal) string {
+	from, to, rng := DetermineRange(d)
+	start, end, n := 0, 0, 0
+
+	if rng > 366 { // get most popular year
+		start = from.Year()
+		end = to.Year()
+		n = end - start
+	} else { // get most popular month
+		start = DayNum(from)
+		end = DayNum(to)
+		n = ((end - start) / 31) + 1
+	}
+
+	dv := make([]mainDateVal, n) // use date value for date and count
+
+	if n > 0 {
+		for _, v := range d {
+			if rng > 366 {
+				isit, i := stringInSlice(strconv.Itoa(v.Date.Year()), dv)
+				if isit {
+					dv[i].Count++
+				} else {
+					tmpdv := mainDateVal{DateString: strconv.Itoa(v.Date.Year()), Count: 1}
+					dv = append(dv, tmpdv)
+				}
+			} else {
+				isit, i := stringInSlice(v.Date.Month().String()+" "+strconv.Itoa(v.Date.Year()), dv)
+				if isit {
+					dv[i].Count++
+				} else {
+					str := v.Date.Month().String() + " " + strconv.Itoa(v.Date.Year())
+					tmpdv := mainDateVal{DateString: str, Count: 1}
+					dv = append(dv, tmpdv)
+				}
+			}
+		}
+	} else {
+		return from.Month().String() + " " + strconv.Itoa(from.Year())
+	}
+
+	highest := 0
+	maindate := ""
+
+	for _, v := range dv {
+		if v.Count > highest {
+			highest = v.Count
+			maindate = v.DateString
+		}
+	}
+
+	return maindate
+}
+
+func stringInSlice(dateString string, list []mainDateVal) (bool, int) {
+	for i, j := range list {
+		if j.DateString == dateString {
+			return true, i
+		}
+	}
+	return false, 0
 }

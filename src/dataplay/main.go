@@ -12,6 +12,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/codegangsta/martini"
+	"github.com/codegangsta/martini-contrib/binding"
+	"github.com/martini-contrib/cors"
 	"log"
 	"math/rand"
 	"net/http"
@@ -107,25 +109,71 @@ func initClassicMode() {
 
 	m := martini.Classic()
 
-	m.Get("/", Authorisation)
+	m.Use(cors.Allow(&cors.Options{
+		AllowAllOrigins: true,
+		// AllowOrigins:     []string{"http://localhost:9000"},
+		// AllowMethods: []string{"PUT", "PATCH"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowCredentials: true,
+		AllowHeaders: []string{
+			"Origin",
+			"Accept",
+			"Content-Type",
+			"Authorization",
+			"Accept-Encoding",
+			"Content-Length",
+			"Host",
+			"Referer",
+			"User-Agent",
+			"X-CSRF-Token",
+			"X-API-SESSION",
+		},
+	}))
+
+	// m.Get("/", Authorisation)
 	/* @todo convert to APIs */
-	m.Get("/login", Login)
-	m.Get("/logout", Logout)
-	m.Get("/register", Register)
 	m.Get("/charts/:id", Charts)
 	m.Get("/search/overlay", SearchOverlay)
 	m.Get("/overlay/:id", Overlay)
 	m.Get("/overview/:id", Overview)
 	m.Get("/search", Search)
 	m.Get("/maptest/:id", MapTest)
-	m.Post("/noauth/login.json", HandleLogin)
-	m.Post("/noauth/logout.json", HandleLogout)
-	m.Post("/noauth/register.json", HandleRegister)
+
 	/* APIs */
-	m.Get("/api/user", CheckAuth)
+	m.Get("/api/ping", func(res http.ResponseWriter, req *http.Request) string {
+		return "pong"
+	})
+	m.Post("/api/login", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
+		return HandleLogin(res, req, login)
+	})
+	m.Delete("/api/logout", HandleLogout)
+	m.Post("/api/register", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
+		return HandleRegister(res, req, login)
+	})
+	m.Post("/api/user/check", binding.Bind(UserNameForm{}), func(res http.ResponseWriter, req *http.Request, username UserNameForm) string {
+		return HandleCheckUsername(res, req, username)
+	})
+	m.Post("/api/user/forgot", binding.Bind(UserNameForm{}), func(res http.ResponseWriter, req *http.Request, username UserNameForm) string {
+		return HandleForgotPassword(res, req, username)
+	})
+	m.Get("/api/user/reset/:token/:username", HandleResetPasswordCheck)
+	m.Put("/api/user/reset/:token", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, user UserForm) string {
+		return HandleResetPassword(res, req, params, user)
+	})
+
+	m.Get("/api/user", GetUserDetails)
+	m.Put("/api/user", binding.Bind(UserDetailsForm{}), func(res http.ResponseWriter, req *http.Request, user UserDetailsForm) string {
+		return UpdateUserDetails(res, req, user)
+	})
+
 	m.Get("/api/visited", GetLastVisitedHttp)
-	m.Get("/api/search/:s", SearchForDataHttp)
-	m.Get("/api/getinfo/:id", GetEntry)
+	m.Post("/api/visited", binding.Bind(VisitedForm{}), func(res http.ResponseWriter, req *http.Request, visited VisitedForm) string {
+		return TrackVisitedHttp(res, req, visited)
+	})
+
+	m.Get("/api/search/:keyword", SearchForDataHttp)
+	m.Get("/api/search/:keyword/:offset", SearchForDataHttp)
+	m.Get("/api/search/:keyword/:offset/:count", SearchForDataHttp)
 	m.Get("/api/getimportstatus/:id", CheckImportStatus)
 	m.Get("/api/getdata/:id", DumpTableHttp)
 	m.Get("/api/getdata/:id/:offset/:count", DumpTableHttp)
@@ -145,11 +193,48 @@ func initClassicMode() {
 	m.Get("/api/stringmatch/:word/:x", FindStringMatches)
 	m.Get("/api/relatedstrings/:guid", GetRelatedDatasetByStrings)
 
+	// API v1.1
+	m.Get("/api/chartinfo/:tablename", GetChartInfoHttp)
+	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y", GetChartHttp)
+	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y/:z", GetChartHttp)
+	m.Get("/api/chartcorrelated/:cid", GetChartCorrelatedHttp)
+	m.Get("/api/related/:tablename", GetRelatedChartsHttp)
+	m.Get("/api/related/:tablename/:offset/:count", GetRelatedChartsHttp)
+	m.Get("/api/correlated/:tablename", GetCorrelatedChartsHttp)
+	m.Get("/api/correlated/:tablename/:search", GetCorrelatedChartsHttp)
+	m.Get("/api/correlated/:tablename/:offset/:count/:search", GetCorrelatedChartsHttp)
+	m.Get("/api/discovered/:tablename/:correlated", GetDiscoveredChartsHttp)
+	m.Get("/api/discovered/:tablename/:correlated/:offset/:count", GetDiscoveredChartsHttp)
+	m.Put("/api/chart", binding.Bind(ValidationRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, validation ValidationRequest) string {
+		return ValidateChartHttp(res, req, params, validation)
+	})
+	m.Put("/api/chart/:valflag", binding.Bind(ValidationRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, validation ValidationRequest) string {
+		return ValidateChartHttp(res, req, params, validation)
+	})
+
+	m.Put("/api/observations", binding.Bind(ObservationComment{}), func(res http.ResponseWriter, req *http.Request, observation ObservationComment) string {
+		return AddObservationHttp(res, req, observation)
+	})
+	m.Put("/api/observations/:oid", ValidateObservationHttp)
+	m.Put("/api/observations/:oid/:valflag", ValidateObservationHttp)
+	m.Get("/api/observations/:did", GetObservationsHttp)
+	m.Get("/api/political/:type", GetPoliticalActivityHttp)
+	m.Get("/api/profile/observations", GetProfileObservationsHttp)
+	m.Get("/api/profile/discoveries", GetDiscoveriesHttp)
+	m.Get("/api/profile/validated", GetValidatedDiscoveriesHttp)
+	m.Get("/api/home/data", GetHomePageDataHttp)
+	m.Get("/api/user/reputation", GetReputationHttp)
+	m.Get("/api/user/discoveries", GetAmountDiscoveriesHttp)
+	m.Get("/api/user/experts", GetDataExpertsHttp)
+	m.Get("/api/news/search/:terms", SearchForNewsHttp)
+	m.Get("/api/recentobservations", GetRecentObservationsHttp)
+	m.Get("/api/user/activitystream", GetActivityStreamHttp)
+	m.Get("/api/chart/toprated", GetTopRatedChartsHttp)
+	m.Get("/api/chart/awaitingvalidation", GetAwaitingValidationHttp)
+
 	m.Use(JsonApiHandler)
 
-	m.Use(LogRequest)
-
-	m.Use(martini.Static("../node_modules")) //Why?
+	m.Use(SessionApiHandler)
 
 	m.Run()
 }
@@ -170,10 +255,14 @@ func initMasterMode() {
 
 	m := martini.Classic()
 
-	m.Get("/", Authorisation)
-	m.Get("/login", Login)
-	m.Get("/logout", Logout)
-	m.Get("/register", Register)
+	// m.Get("/", Authorisation)
+	m.Post("/api/login", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
+		return HandleLogin(res, req, login)
+	})
+	m.Delete("/api/logout/:session", HandleLogout)
+	m.Post("/api/register", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
+		return HandleRegister(res, req, login)
+	})
 	m.Get("/charts/:id", Charts)
 	m.Get("/search/overlay", SearchOverlay)
 	m.Get("/overlay/:id", Overlay)
@@ -183,11 +272,11 @@ func initMasterMode() {
 	m.Post("/noauth/login.json", HandleLogin)
 	m.Post("/noauth/logout.json", HandleLogout)
 	m.Post("/noauth/register.json", HandleRegister)
-	m.Get("/api/user", CheckAuth)
+	// m.Get("/api/user", CheckAuth)
 	m.Get("/api/visited", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 		return sendToQueue(res, req, params, "/api/visited", "GetLastVisitedQ")
 	})
-	m.Get("/api/getinfo/:id", GetEntry)
+	m.Get("/api/chartinfo/:tablename", GetChartInfoHttp)
 	m.Get("/api/getimportstatus/:id", CheckImportStatus)
 	m.Post("/api/setdefaults/:id", SetDefaults)
 	m.Get("/api/identifydata/:id", IdentifyTable)
@@ -279,7 +368,19 @@ func sendToQueue(res http.ResponseWriter, req *http.Request, params martini.Para
 	q := Queue{}
 	go q.Response()
 
-	params["user"] = strconv.Itoa(GetUserID(res, req))
+	session := params["session"]
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+		return ""
+	}
+
+	uid, err := GetUserID(session)
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
+		return ""
+	}
+
+	params["user"] = strconv.Itoa(uid)
 	message := q.Encode(method, params)
 
 	fmt.Println("Sending request to Queue", request, params, message)
@@ -302,6 +403,30 @@ func JsonApiHandler(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func SessionApiHandler(res http.ResponseWriter, req *http.Request) {
+	noAuthPaths := map[string]bool{
+		"/api/login":          true,
+		"/api/register":       true,
+		"/api/user/check":     true,
+		"/api/user/forgot":    true,
+		"/api/user/reset":     true,
+		"/api/home/data":      true,
+		"/api/chart/toprated": true,
+	}
+
+	pathTrimmed := strings.TrimLeft(req.URL.Path, "/")
+	path := strings.Split(pathTrimmed, "/")
+	pathA := "/" + path[0] + "/" + path[1]
+	pathB := pathA
+	if len(path) > 2 {
+		pathB = pathA + "/" + path[2]
+	}
+
+	if (!noAuthPaths[pathA] && !noAuthPaths[pathB]) && (len(req.Header.Get("X-API-SESSION")) <= 0 || req.Header.Get("X-API-SESSION") == "false") {
+		res.WriteHeader(http.StatusUnauthorized)
+	}
+}
+
 /**
  * @brief Log incoming requests
  * @details Log all requests ending on '/api' for performance monitoring,
@@ -314,6 +439,7 @@ func JsonApiHandler(res http.ResponseWriter, req *http.Request) {
  * @param martini [description]
  * @return [description]
  */
+
 func LogRequest(res http.ResponseWriter, req *http.Request, c martini.Context) {
 	// Do not proceed if request is not for "/api"
 	if !strings.HasPrefix(req.URL.Path, "/api") {

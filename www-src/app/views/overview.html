@@ -1,0 +1,30 @@
+<div class="overview" ng-init="info()">
+	<!-- Related -->
+	<div clas="row">
+		<div class="col-md-12"><h4>Relation within <a href="overview/{{params.id}}">{{info.title}}</a></h4></div>
+	</div>
+	<div class="row related" ng-controller="OverviewRelatedCtrl" ng-init="getRelatedCharts()" ng-include="'views/overview/related.html'"></div>
+
+	<hr/>
+
+	<!-- Correlated -->
+	<div clas="row">
+		<div class="col-md-12"><h4>Correlation of <a href="overview/{{params.id}}">{{info.title}}</a></h4></div>
+	</div>
+	<div class="row correlated" ng-controller="OverviewCorrelatedCtrl" ng-init="getCorrelatedCharts()" ng-include="'views/overview/correlated.html'"></div>
+</div>
+
+<!-- Smart Caching [allows to pre-load views] -->
+<!-- Related Charts -->
+<span ng-include="'views/charts/related/line.html'"></span>
+<span ng-include="'views/charts/related/row.html'"></span>
+<span ng-include="'views/charts/related/column.html'"></span>
+<span ng-include="'views/charts/related/pie.html'"></span>
+<span ng-include="'views/charts/related/bubble.html'"></span>
+<!-- Correlated Charts -->
+<span ng-include="'views/charts/correlated/line.html'"></span>
+<span ng-include="'views/charts/correlated/row.html'"></span>
+<span ng-include="'views/charts/correlated/column.html'"></span>
+<span ng-include="'views/charts/correlated/stacked.html'"></span>
+<span ng-include="'views/charts/correlated/bubble.html'"></span>
+<span ng-include="'views/charts/correlated/scatter.html'"></span>
