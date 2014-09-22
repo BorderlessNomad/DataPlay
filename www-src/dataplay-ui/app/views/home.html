@@ -41,7 +41,7 @@
 					<div class="row recentObservations" ng-if="recentObservations" ng-repeat="item in recentObservations">
 						<div class="col-xs-2 text-center"><img class="avatar" ng-src="{{item.user.avatar}}" /></div>
 						<div class="col-xs-10">
-							<p>{{item.text|truncate:25}}</p>
+							<p><a href="{{item.url}}">{{item.text|truncate:25}}</a></p>
 							<p class="italic">posted by {{item.user.name}}</p>
 						</div>
 					</div>
