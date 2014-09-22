@@ -1,0 +1,30 @@
+.hoverfade-msg {
+	background-color: rgba(240, 240, 240, 0.75);
+	border-radius: 20px;
+	color: #A469BD;
+	font-size: 42px;
+	text-align: center;
+	width: 450px;
+	height: 150px;
+	position: fixed;
+	top: 40%;
+	left: 50%;
+	margin-top: -75px;
+	margin-left: -225px;
+
+	visibility: hidden;
+	opacity: 0;
+	-webkit-transition: visibility 0s linear 0.5s, opacity 0.5s linear;
+	-moz-transition: visibility 0s linear 0.5s, opacity 0.5s linear;
+	-ms-transition: visibility 0s linear 0.5s, opacity 0.5s linear;
+	transition: visibility 0s linear 0.5s, opacity 0.5s linear;
+
+	&.show {
+		visibility: visible;
+		opacity: 1;
+		-webkit-transition-delay: 0s;
+		-moz-transition-delay: 0s;
+		-ms-transition-delay: 0s;
+		transition-delay: 0s;
+	}
+}

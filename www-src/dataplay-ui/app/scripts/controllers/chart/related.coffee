@@ -8,7 +8,7 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'ChartsRelatedCtrl', ['$scope', '$location', '$routeParams', 'Overview', 'PatternMatcher', 'Charts', 'Tracker', ($scope, $location, $routeParams, Overview, PatternMatcher, Charts, Tracker) ->
+	.controller 'ChartsRelatedCtrl', ['$scope', '$location', '$timeout', '$routeParams', 'Overview', 'PatternMatcher', 'Charts', 'Tracker', ($scope, $location, $timeout, $routeParams, Overview, PatternMatcher, Charts, Tracker) ->
 		$scope.params = $routeParams
 		$scope.mode = 'related'
 		$scope.width = 570
@@ -24,6 +24,8 @@ angular.module('dataplayApp')
 			bottom: 50
 			left: 110
 		$scope.xTicks = 8
+
+		$scope.validationMsg = null
 
 		$scope.chartRendered = null
 		$scope.chart =
@@ -625,6 +627,7 @@ angular.module('dataplayApp')
 
 			Charts.validateChart "rid", id, valFlag
 				.then ->
+					$scope.showValidationMessage valFlag
 					if valFlag
 						$scope.info.validated = true
 					else
@@ -694,6 +697,13 @@ angular.module('dataplayApp')
 			dc.redrawAll()
 
 			$scope.resetObservations()
+
+		$scope.showValidationMessage = (type) ->
+			$scope.validationMsg = type
+			$timeout ->
+				$scope.validationMsg = null
+			, 3000
+			return
 
 		$scope.handleError = (err, status) ->
 			$scope.error =
