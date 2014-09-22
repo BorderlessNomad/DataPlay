@@ -317,16 +317,16 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 		last = totalCharts
 	}
 
-	for i, v := range charts {
-		originid := tablename + "/" + strconv.Itoa(i) + "/" + v.ChartType + "/" + v.LabelX + "/" + v.LabelY
-		discovered := Discovered{}
-		err := DB.Where("relation_id = ?", originid).Find(&discovered).Error
-		if err == gorm.RecordNotFound {
-			v.Discovered = false
-		} else {
-			v.Discovered = true
-		}
-	}
+	// for i, v := range charts {
+	// 	originid := tablename + "/" + strconv.Itoa(i) + "/" + v.ChartType + "/" + v.LabelX + "/" + v.LabelY
+	// 	discovered := Discovered{}
+	// 	err := DB.Where("relation_id = ?", originid).Find(&discovered).Error
+	// 	if err == gorm.RecordNotFound {
+	// 		v.Discovered = false
+	// 	} else {
+	// 		v.Discovered = true
+	// 	}
+	// }
 
 	charts = charts[offset:last] // return marshalled slice
 	return RelatedCharts{charts, totalCharts}, nil
@@ -834,7 +834,7 @@ func GetRelatedChartsHttp(res http.ResponseWriter, req *http.Request, params mar
 	}
 
 	if params["count"] == "" {
-		count = 3
+		count = 1
 	} else {
 		count, err = strconv.Atoi(params["count"])
 		if err != nil {
