@@ -105,6 +105,7 @@ angular.module('dataplayApp')
 							continue unless $scope.relatedChart.isPlotAllowed chart.type
 
 							key = parseInt(key)
+							chart.guid = guid
 							chart.key = key
 							chart.id = "related-#{guid}-#{chart.key + $scope.offset.related}-#{chart.type}"
 							chart.url = "charts/related/#{guid}/#{chart.key}/#{chart.type}/#{chart.xLabel}/#{chart.yLabel}"
