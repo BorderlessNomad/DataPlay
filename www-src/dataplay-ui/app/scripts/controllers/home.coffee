@@ -22,11 +22,12 @@ angular.module('dataplayApp')
     $scope.init = ->
       Home.getAwaitingValidation()
         .success (data) ->
-          $scope.validatePatterns = []
-          console.log data
+          if data instanceof Array
+            $scope.validatePatterns = data
+          else
+            $scope.validatePatterns = []
         .error ->
           $scope.validatePatterns = []
-
 
       Home.getActivityStream()
         .success (data) ->

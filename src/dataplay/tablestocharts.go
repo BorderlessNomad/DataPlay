@@ -1126,23 +1126,27 @@ func GetAwaitingValidationHttp(res http.ResponseWriter, req *http.Request) strin
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
+		return ""
 	}
 
 	uid, err := GetUserID(session)
 	if err != nil {
 		http.Error(res, err.Message, err.Code)
-		return "Could not validate user"
+		return ""
 	}
+	fmt.Println(uid)
 
 	discovered := []Discovered{}
 	charts := make([]interface{}, 0)
-	err1 := DB.Select("json, priv_discovered.correlation_id, priv_discovered.relation_id, priv_discovered.discovered_id").Joins("LEFT JOIN priv_validations ON priv_discovered.discovered_id = priv_validations.discovered_id").Where("priv_validations.uid != ?", uid).Order("random()").Limit(6).Find(&discovered).Error
+
+	query := DB.Select("json, priv_discovered.correlation_id, priv_discovered.relation_id, priv_discovered.discovered_id")
+	query = query.Joins("LEFT JOIN priv_validations ON priv_discovered.discovered_id = priv_validations.discovered_id")
+	// query = query.Where("priv_validations.uid != ?", uid) //@todo add back
+	query = query.Order("random()").Limit(6)
+	err1 := query.Find(&discovered).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {
 		http.Error(res, "Failed to find discovered charts", http.StatusBadRequest)
-		return "Failed to find discovered charts"
-	} else {
-		return "There are no charts currently awaiting validation"
+		return ""
 	}
 
 	for _, d := range discovered {
@@ -1151,8 +1155,9 @@ func GetAwaitingValidationHttp(res http.ResponseWriter, req *http.Request) strin
 			err2 := json.Unmarshal(d.Json, &correlationData)
 			if err2 != nil {
 				http.Error(res, "Failed to unmarshal json for discovered charts", http.StatusBadRequest)
-				return "Failed to unmarshal json for discovered charts"
+				return ""
 			}
+
 			correlationData.CorrelationId = d.CorrelationId
 			charts = append(charts, correlationData)
 		} else {
@@ -1160,16 +1165,17 @@ func GetAwaitingValidationHttp(res http.ResponseWriter, req *http.Request) strin
 			err2 := json.Unmarshal(d.Json, &tableData)
 			if err2 != nil {
 				http.Error(res, "Failed to unmarshal json for discovered charts", http.StatusBadRequest)
-				return "Failed to unmarshal json for discovered charts"
+				return ""
 			}
+
 			tableData.RelationId = d.RelationId
 			charts = append(charts, tableData)
 		}
 	}
+
 	r, err3 := json.Marshal(charts)
 	if err3 != nil {
-		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
+		http.Error(res, "Unable to pUnable to parse JSON", http.StatusInternalServerError)
 	}
 
 	return string(r)
@@ -1179,7 +1185,7 @@ func GetTopRatedChartsHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
+		return ""
 	}
 
 	discovered := []Discovered{}
@@ -1187,7 +1193,7 @@ func GetTopRatedChartsHttp(res http.ResponseWriter, req *http.Request) string {
 	err = DB.Order("rating DESC").Limit(6).Find(&discovered).Error
 	if err != nil {
 		http.Error(res, "Failed to find discovered charts", http.StatusBadRequest)
-		return "Failed to find discovered charts"
+		return ""
 	}
 
 	for _, d := range discovered {
@@ -1196,8 +1202,9 @@ func GetTopRatedChartsHttp(res http.ResponseWriter, req *http.Request) string {
 			err1 := json.Unmarshal(d.Json, &correlationData)
 			if err1 != nil {
 				http.Error(res, "Failed to unmarshal json for discovered charts", http.StatusBadRequest)
-				return "Failed to unmarshal json for discovered charts"
+				return ""
 			}
+
 			correlationData.CorrelationId = d.CorrelationId
 			charts = append(charts, correlationData)
 		} else {
@@ -1205,16 +1212,18 @@ func GetTopRatedChartsHttp(res http.ResponseWriter, req *http.Request) string {
 			err1 := json.Unmarshal(d.Json, &tableData)
 			if err1 != nil {
 				http.Error(res, "Failed to unmarshal json for discovered charts", http.StatusBadRequest)
-				return "Failed to unmarshal json for discovered charts"
+				return ""
 			}
+
 			tableData.RelationId = d.RelationId
 			charts = append(charts, tableData)
 		}
 	}
+
 	r, err2 := json.Marshal(charts)
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
+		return ""
 	}
 
 	return string(r)
