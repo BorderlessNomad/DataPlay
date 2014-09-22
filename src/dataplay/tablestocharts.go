@@ -464,16 +464,16 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 	sql := ""
 	if chartType == "pie" {
 		if names.Xtype == "float" {
-			sql = fmt.Sprintf("SELECT %s AS x, SUM(%s) AS y FROM %s GROUP BY %s", names.X, names.X, guid, names.X)
+			sql = fmt.Sprintf("SELECT %q AS x, SUM(%q) AS y FROM %q GROUP BY %q", names.X, names.X, guid, names.X)
 			tmpTD.LabelY = "sum"
 		} else {
-			sql = fmt.Sprintf("SELECT %s AS x, COUNT(%s) AS y FROM %s GROUP BY %s", names.X, names.X, guid, names.X)
+			sql = fmt.Sprintf("SELECT %q AS x, COUNT(%q) AS y FROM %q GROUP BY %q", names.X, names.X, guid, names.X)
 			tmpTD.LabelY = "count"
 		}
 	} else if chartType == "bubble" {
-		sql = fmt.Sprintf("SELECT %s AS x, %s AS y, %s AS z FROM  %s", names.X, names.Y, names.Z, guid)
+		sql = fmt.Sprintf("SELECT %q AS x, %q AS y, %q AS z FROM %q", names.X, names.Y, names.Z, guid)
 	} else {
-		sql = fmt.Sprintf("SELECT %s AS x, %s AS y FROM  %s", names.X, names.Y, guid)
+		sql = fmt.Sprintf("SELECT %q AS x, %q AS y FROM %q", names.X, names.Y, guid)
 	}
 
 	rows, _ := DB.Raw(sql).Rows()

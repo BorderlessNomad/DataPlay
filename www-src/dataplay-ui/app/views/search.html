@@ -11,18 +11,22 @@
 		</form>
 
 		<div class="list-group search-results" ng-show="results.length > 0">
-			<div class="row" ng-repeat="row in rowedResults | limitTo: rowLimit">
-				<div class="list-group-item col-sm-4" ng-repeat="result in row">
+			<div class="row">
+				<div class="list-group-item col-sm-4" ng-repeat="chart in chartsRelated" id="{{chart.id}}" ng-show="hasRelatedCharts() > 0">
 					<div class="media-heading">
-						<h5><a href="overview/{{result.GUID}}">{{result.Title}}</a></h5>
+						<h5><a href="overview/{{chart.url}}">{{chart.title}}</a></h5>
 					</div>
-					<div class="media-body">
-						<div ng-if="row.graph.length > 0" class="dc-chart chartSwitch line" dc-chart="lineChart" dc-width="200" dc-height="150" dc-margins="{{margin}}" dc-mouse-zoomable="false" dc-brush-on="false" dc-elastic-y="true" dc-transition-duration="500" dc-colors="d3.scale.category20()" dc-render-data-points="true" dc-render-area="true" dc-post-setup-chart="lineChartPostSetup(row)" ></div>
-					</div>
+					<a class="related media-body" href="{{chart.url}}">
+						<span ng-include="'views/charts/related/line.html'"></span>
+						<span ng-include="'views/charts/related/row.html'"></span>
+						<span ng-include="'views/charts/related/column.html'"></span>
+						<span ng-include="'views/charts/related/pie.html'"></span>
+						<span ng-include="'views/charts/related/bubble.html'"></span>
+					</a>
 				</div>
 			</div>
 
-			<div class="row show-more" ng-click="showMore()">
+			<div class="row show-more" ng-click="showMore()" ng-hide="rowedResults.length < rowLimit">
 				<button class="col-md-6 col-md-offset-3 btn btn-default text-center">Show More</button>
 			</div>
 		</div>

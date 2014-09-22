@@ -119,9 +119,9 @@ func DumpTable(params map[string]string) ([]map[string]interface{}, *appError) {
 	var rows *sql.Rows
 
 	if UsingRanges {
-		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %s OFFSET %d LIMIT %d", tablename, offset, count)).Rows()
+		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %q OFFSET %d LIMIT %d", tablename, offset, count)).Rows()
 	} else {
-		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %s", tablename)).Rows()
+		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %q", tablename)).Rows()
 	}
 
 	if err != nil {
@@ -209,7 +209,7 @@ func DumpTableRange(params map[string]string) ([]map[string]interface{}, *appErr
 		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
 
-	rows, err := DB.Raw("SELECT * FROM " + tablename).Rows()
+	rows, err := DB.Raw(fmt.Sprintf("SELECT * FROM %q", tablename)).Rows()
 	if err != nil {
 		return nil, &appError{err, "Database query failed (SELECT)", http.StatusInternalServerError}
 	}
@@ -441,7 +441,7 @@ func DumpTablePrediction(params map[string]string) ([]float64, *appError) {
 		return nil, &appError{nil, "Col Y is invalid.", http.StatusBadRequest}
 	}
 
-	rows, e1 := DB.Raw(fmt.Sprintf("SELECT %s, %s FROM %s", params["x"], params["y"], tablename)).Rows()
+	rows, e1 := DB.Raw(fmt.Sprintf("SELECT %q, %q FROM %q", params["x"], params["y"], tablename)).Rows()
 	if e1 != nil {
 		return nil, &appError{e1, "Database query failed (SELECT)", http.StatusInternalServerError}
 
