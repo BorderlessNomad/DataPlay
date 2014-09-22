@@ -50,6 +50,7 @@ angular.module('dataplayApp')
                 name: d.username
                 avatar: "http://www.gravatar.com/avatar/#{d.MD5email}?d=identicon"
               text: d.comment
+              url: d.linkstring
           else
             $scope.recentObservations = []
         .error ->
