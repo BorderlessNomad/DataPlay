@@ -2,12 +2,14 @@
 	<div class="row" id="search">
 		<div class="col-xs-4 col-xs-offset-4">
 			<h3><small><i class="glyphicon glyphicon-search"></i><i class="glyphicon glyphicon-chevron-right"></i></small> Begin exploring now</h3>
-			<div class="input-group">
-				<input class="form-control" ng-model="searchquery" />
-				<span class="input-group-btn">
-					<button class="btn btn-primary" ng-click="search()">Search</button>
-				</span>
-			</div>
+			<form ng-submit="search()">
+				<div class="input-group">
+					<input class="form-control" ng-model="searchquery" />
+					<span class="input-group-btn">
+						<button class="btn btn-primary" ng-click="search()">Search</button>
+					</span>
+				</div>
+			</form>
 		</div>
 	</div>
 
