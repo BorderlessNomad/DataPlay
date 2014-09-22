@@ -64,9 +64,11 @@ func ActivityCheck(a string) string {
 
 func AddActivity(uid int, atype string, ts time.Time, disid int, obsid int) *appError {
 	act := Activity{
-		Uid:     uid,
-		Type:    ActivityCheck(atype),
-		Created: ts,
+		Uid:           uid,
+		Type:          ActivityCheck(atype),
+		Created:       ts,
+		DiscoveredId:  disid,
+		ObservationId: obsid,
 	}
 
 	err := DB.Save(&act).Error
@@ -359,13 +361,13 @@ func GetActivityStreamHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
+		return ""
 	}
 
 	uid, err := GetUserID(session)
 	if err != nil {
 		http.Error(res, err.Message, err.Code)
-		return "Could not validate user"
+		return ""
 	}
 
 	var activities []UserActivity
@@ -375,22 +377,17 @@ func GetActivityStreamHttp(res http.ResponseWriter, req *http.Request) string {
 	sortutil.AscByField(activities, "Created")
 
 	n := 5
-	if len(activities) < 5 {
+	if len(activities) < n {
 		n = len(activities)
 	}
 
 	r, err2 := json.Marshal(activities[:n])
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
+		return ""
 	}
 
-	if r == nil {
-		return "There is no activity for this user yet"
-	} else {
-		return string(r)
-	}
-
+	return string(r)
 }
 
 func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivity {
