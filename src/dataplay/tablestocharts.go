@@ -1142,7 +1142,7 @@ func GetAwaitingValidationHttp(res http.ResponseWriter, req *http.Request) strin
 	query := DB.Select("json, priv_discovered.correlation_id, priv_discovered.relation_id, priv_discovered.discovered_id")
 	query = query.Joins("LEFT JOIN priv_validations ON priv_discovered.discovered_id = priv_validations.discovered_id")
 	// query = query.Where("priv_validations.uid != ?", uid) //@todo add back
-	query = query.Order("random()").Limit(6)
+	query = query.Order("random()")
 	err1 := query.Find(&discovered).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {
 		http.Error(res, "Failed to find discovered charts", http.StatusBadRequest)
@@ -1173,12 +1173,13 @@ func GetAwaitingValidationHttp(res http.ResponseWriter, req *http.Request) strin
 		}
 	}
 
-	r, err3 := json.Marshal(charts)
-	if err3 != nil {
-		http.Error(res, "Unable to pUnable to parse JSON", http.StatusInternalServerError)
+	resp := map[string]interface{}{
+		"charts": charts,
+		"total":  len(charts),
 	}
+	response, _ := json.Marshal(resp)
 
-	return string(r)
+	return string(response)
 }
 
 func GetTopRatedChartsHttp(res http.ResponseWriter, req *http.Request) string {
