@@ -157,7 +157,6 @@ func HandleRegister(res http.ResponseWriter, req *http.Request, register UserFor
 	user.Password = string(hashedPassword)
 	err2 := DB.Save(&user).Error
 	if err2 != nil {
-		check(err2)
 		http.Error(res, "Unable to create user.", http.StatusInternalServerError)
 		return ""
 	}
