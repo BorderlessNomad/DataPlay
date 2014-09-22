@@ -11,7 +11,7 @@ type appError struct {
 }
 
 type Activity struct {
-	ActivityId    int `primaryKey:"yes"`
+	ActivityId    int `gorm:"primary_key:yes"`
 	Type          string
 	Created       time.Time
 	Uid           int
@@ -33,7 +33,7 @@ type Correlation struct {
 	Method        string
 	Coef          float64
 	Json          []byte
-	CorrelationId int `primaryKey:"yes"`
+	CorrelationId int `gorm:"primary_key:yes"`
 	Abscoef       float64
 }
 
@@ -44,7 +44,7 @@ func (c Correlation) TableName() string {
 type Departments struct {
 	GovDept string
 	Type    string
-	Id      int `primaryKey:"yes"`
+	Id      int `gorm:"primary_key:yes"`
 }
 
 func (dp Departments) TableName() string {
@@ -52,7 +52,7 @@ func (dp Departments) TableName() string {
 }
 
 type Discovered struct {
-	DiscoveredId  int `primaryKey:"yes"`
+	DiscoveredId  int `gorm:"primary_key:yes"`
 	Uid           int
 	Created       time.Time
 	Rating        float64
@@ -70,7 +70,7 @@ func (di Discovered) TableName() string {
 type Events struct {
 	Keyword string
 	Event   string
-	Id      int `primaryKey:"yes"`
+	Id      int `gorm:"primary_key:yes"`
 }
 
 func (e Events) TableName() string {
@@ -97,7 +97,7 @@ type Observation struct {
 	Rating        float64
 	Valid         int
 	Invalid       int
-	ObservationId int `primaryKey:"yes"`
+	ObservationId int `gorm:"primary_key:yes"`
 	Created       time.Time
 	X             string
 	Y             string
@@ -120,7 +120,7 @@ func (od OnlineData) TableName() string {
 }
 
 type StatsCheck struct {
-	Id     int `primaryKey:"yes"`
+	Id     int `gorm:"primary_key:yes"`
 	Table  string
 	X      string
 	Y      string
@@ -134,7 +134,7 @@ type StatsCheck struct {
 type Regions struct {
 	Town   string
 	County string
-	Id     int `primaryKey:"yes"`
+	Id     int `gorm:"primary_key:yes"`
 }
 
 func (r Regions) TableName() string {
@@ -157,7 +157,7 @@ func (ss StringSearch) TableName() string {
 }
 
 type SearchTerm struct {
-	Id    int `primaryKey:"yes"`
+	Id    int `gorm:"primary_key:yes"`
 	Term  string
 	Count int
 }
@@ -167,7 +167,7 @@ func (st SearchTerm) TableName() string {
 }
 
 type Tracking struct {
-	Id      int `primaryKey:"yes"`
+	Id      int `gorm:"primary_key:yes"`
 	User    int
 	Guid    string
 	Info    string
@@ -179,7 +179,7 @@ func (t Tracking) TableName() string {
 }
 
 type TrackingInfo struct {
-	Id   int `primaryKey:"yes"`
+	Id   int `gorm:"primary_key:yes"`
 	Info []byte
 }
 
@@ -197,7 +197,7 @@ func (ts TableSchema) TableName() string {
 }
 
 type User struct {
-	Uid        int `primaryKey:"yes"`
+	Uid        int `gorm:"primary_key:yes"`
 	Email      string
 	Password   string
 	Reputation int
@@ -210,7 +210,7 @@ func (u User) TableName() string {
 }
 
 type UserTokens struct {
-	Id      int `primaryKey:"yes"`
+	Id      int `gorm:"primary_key:yes"`
 	Uid     int
 	Hash    string
 	Used    bool
@@ -224,7 +224,7 @@ func (ut UserTokens) TableName() string {
 type Validation struct {
 	DiscoveredId  int
 	Uid           int
-	ValidationId  int `primaryKey:"yes"`
+	ValidationId  int `gorm:"primary_key:yes"`
 	Created       time.Time
 	ObservationId int
 	Valflag       bool

@@ -9,21 +9,6 @@
 ###
 angular.module('dataplayApp')
 	.factory 'Overview', ['$http', 'config', ($http, config) ->
-		chart = {}
-		monthNames = [
-			"Jan"
-			"Feb"
-			"Mar"
-			"Apr"
-			"May"
-			"Jun"
-			"Jul"
-			"Aug"
-			"Sep"
-			"Oct"
-			"Nov"
-			"Dec"
-		]
 		timeFormatter = d3.time.format.multi([
 			[".%L", (d) -> d.getMilliseconds()]
 			[":%S", (d) -> d.getSeconds()]
@@ -34,17 +19,9 @@ angular.module('dataplayApp')
 			["%B", (d) -> d.getMonth()]
 			["%Y", (d) -> true]
 		])
-		reducedData: (guid, percent, min) ->
-			$http.get config.api.base_url + "/getreduceddata/#{guid}/#{percent}/#{min}"
-		related: (guid, offset, count) ->
-			offset = if offset? then offset else 0
-			count = if count? then count else 3
-			$http.get config.api.base_url + "/related/#{guid}/#{offset}/#{count}"
-		correlated: (guid, offset, count, depth) ->
-			offset = if offset? then offset else 0
-			count = if count? then count else 3
-			depth = if depth? then depth else 100
-			$http.get config.api.base_url + "/correlated/#{guid}/#{offset}/#{count}/#{depth}"
+		chart = {}
+		monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
 		charts: (key, value) ->
 			unless key?
 				chart = {}
@@ -52,6 +29,27 @@ angular.module('dataplayApp')
 			chart[key] = value if value?
 			return chart[key] if chart[key]?
 			null
+
 		humanDate: (date) ->
 			"#{date.getDate()} #{monthNames[date.getMonth()]}, #{date.getFullYear()}"
+
+		getRandomInteger: (min, max) ->
+			Math.floor(Math.random() * (max - min) + min)
+
+		info: (guid) ->
+			$http.get config.api.base_url + "/chartinfo/#{guid}"
+
+		reducedData: (guid, percent, min) ->
+			$http.get config.api.base_url + "/getreduceddata/#{guid}/#{percent}/#{min}"
+
+		related: (guid, offset, count) ->
+			offset = if offset? then offset else 0
+			count = if count? then count else 3
+			$http.get config.api.base_url + "/related/#{guid}/#{offset}/#{count}"
+
+		correlated: (guid, offset, count, depth) ->
+			offset = if offset? then offset else 0
+			count = if count? then count else 3
+			depth = if depth? then depth else 100
+			$http.get config.api.base_url + "/correlated/#{guid}/#{offset}/#{count}/#{depth}"
 	]

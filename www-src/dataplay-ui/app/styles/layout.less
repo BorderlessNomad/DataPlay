@@ -16,7 +16,16 @@ body > .container {
 	position: fixed;
 	bottom: 0;
 	width: 100%;
-	height: 60px;
+	height: 31px;
+
+	.container {
+		background-color: rgba(255, 255, 255, 0.9);
+		border-radius: 15px 15px 0 0;
+
+		p {
+			margin: 5px 0;
+		}
+	}
 
 	.text-muted {
 		// color: #ffffff;
@@ -42,12 +51,6 @@ body > .container {
 	}
 }
 
-.container {
-	.text-muted {
-		margin: 20px 0;
-	}
-}
-
 .glyphicon-flip {
 	transform: scaleX(-1);
 	-moz-transform: scaleX(-1);
@@ -61,4 +64,16 @@ body > .container {
 		max-height: 90%;
 		margin: 15px auto;
 	}
+}
+
+.text-medium {
+	font-size: 18px !important;
+}
+
+.text-small {
+	font-size: 12px !important;
+}
+
+.jumbotron-medium {
+	padding: 30px;
 }

@@ -22,11 +22,12 @@ angular.module('dataplayApp')
     $scope.init = ->
       Home.getAwaitingValidation()
         .success (data) ->
-          $scope.validatePatterns = []
-          console.log data
+          if data instanceof Array
+            $scope.validatePatterns = data
+          else
+            $scope.validatePatterns = []
         .error ->
           $scope.validatePatterns = []
-
 
       Home.getActivityStream()
         .success (data) ->
@@ -49,6 +50,7 @@ angular.module('dataplayApp')
                 name: d.username
                 avatar: "http://www.gravatar.com/avatar/#{d.MD5email}?d=identicon"
               text: d.comment
+              url: d.linkstring
           else
             $scope.recentObservations = []
         .error ->
