@@ -148,7 +148,7 @@ func PopularPoliticalActivity() [3]Popular {
 	if len(results) < 5 {
 		n = len(results)
 	}
-	fmt.Println("ROBOCOP", results)
+
 	for i := 0; i < n; i++ {
 		popular[2].TA[i].Term = results[i].Username
 		popular[2].TA[i].Amount = results[i].Counter

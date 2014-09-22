@@ -33,6 +33,9 @@ angular.module('dataplayApp')
 		humanDate: (date) ->
 			"#{date.getDate()} #{monthNames[date.getMonth()]}, #{date.getFullYear()}"
 
+		getRandomInteger: (min, max) ->
+			Math.floor(Math.random() * (max - min) + min)
+
 		info: (guid) ->
 			$http.get config.api.base_url + "/chartinfo/#{guid}"
 
