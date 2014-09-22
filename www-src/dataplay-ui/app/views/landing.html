@@ -45,7 +45,13 @@
 	</div>
 
 	<div class="row" id="graphs">
-		<div class="col-xs-12">
+		<div class="col-xs-2" ng-repeat="chart in chartsRelated | limitTo: 6">
+			{{chart.title}}
+			<span ng-include="'views/charts/related/line.html'"></span>
+			<span ng-include="'views/charts/related/row.html'"></span>
+			<span ng-include="'views/charts/related/column.html'"></span>
+			<span ng-include="'views/charts/related/pie.html'"></span>
+			<span ng-include="'views/charts/related/bubble.html'"></span>
 		</div>
 	</div>
 
