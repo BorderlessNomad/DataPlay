@@ -20,7 +20,7 @@
 	}, {
 		"follow_symlinks": true,
 		"name": "Angular",
-		"path": "www-src\\dataplay-ui"
+		"path": "www-src\\app"
 	}],
 	"settings": {
 		"translate_tabs_to_spaces": false,
