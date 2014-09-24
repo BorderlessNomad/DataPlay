@@ -3,11 +3,14 @@
 		<div class="row overviewscreen">
 			<div class="col-xs-4 section" ng-repeat="sect in mainSections | limitTo: 3">
 				<h4 class="text-center">{{sect.title}}</h4>
-				<div class="row sect-graph" ng-if="sect.graph.length > 0 && !sect.error">
+
+				<div class="loading" ng-if="sect.items.length == 0 && !sect.error" ng-include="'views/loader.html'"></div>
+
+				<div class="row sect-graph" ng-if="sect.graph.length > 0 && !sect.error && sect.type != 'map'">
 					<!-- grpah here -->
 					<div class="dc-chart chartSwitch pie"
 
-						ng-if="sect.graph.length > 0"
+						ng-if="sect.type == 'pie' && sect.graph.length > 0"
 
 						dc-chart="pieChart"
 						dc-width="150"
@@ -23,8 +26,8 @@
 						dc-post-setup-chart="renderPie(sect)"
  					></div>
 				</div>
+				<div class="row sect-graph map text-center" id="regionMap" ng-if="sect.type == 'map'"></div>
 
-				<div class="loading" ng-if="sect.items.length == 0 && !sect.error" ng-include="'views/loader.html'"></div>
 				<div class="alert alert-warning" ng-if="sect.error">
 					<h5>Something went wrong</h5>
 					<p>{{sect.error}}</p>
@@ -39,6 +42,7 @@
 					<div class="row li" ng-repeat="item in sect.items">
 						<div class="col-xs-8 label-container">
 							<a class="label label-default"
+								ng-if="sect.type == 'pie'"
 								ng-attr-id="legend-{{item.id}}"
 								ng-style="{'background-color': colourMap[item.id]}"
 								ng-mouseover="highlightPieSlice(item.id)"
@@ -47,6 +51,7 @@
 								data-placement="bottom"
 								data-html="true"
 							>&nbsp;</a>
+							<a class="label label-default" ng-style="{'background-color': item.color}" ng-if="sect.type == 'map'">&nbsp;</a>
 							<small><strong>{{item.term}}</strong></small>
 						</div>
 						<div class="col-xs-4">

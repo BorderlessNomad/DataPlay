@@ -23,6 +23,7 @@ angular.module('dataplayApp')
 				colNameA: 'Entities'
 				colNameB: 'Last 30 days'
 				error: null
+				type: 'pie'
 				graph: []
 				items: []
 			e:
@@ -30,6 +31,7 @@ angular.module('dataplayApp')
 				colNameA: 'Event'
 				colNameB: 'Last 30 days'
 				error: null
+				type: 'pie'
 				graph: []
 				items: []
 			r:
@@ -37,6 +39,7 @@ angular.module('dataplayApp')
 				colNameA: 'Location'
 				colNameB: 'Last 30 days'
 				error: null
+				type: 'map'
 				graph: []
 				items: []
 
@@ -50,9 +53,13 @@ angular.module('dataplayApp')
 					.success (data) ->
 						if data instanceof Array
 							$scope.mainSections[i].items = data
+							maxTotal = 0
+
 							$scope.mainSections[i].items.forEach (item) ->
 								total = 0
 								for a in item.graph then total += a.y
+
+								if total > maxTotal then maxTotal = total
 
 								item.id = "#{i.replace(/\W/g, '').toLowerCase()}-#{item.term.replace(/\W/g, '').toLowerCase()}"
 
@@ -62,6 +69,32 @@ angular.module('dataplayApp')
 									value: total
 
 								return
+
+							if $scope.mainSections[i].type is 'map'
+								map = new MapGenerator '#regionMap'
+
+								lowercaseItems = {}
+								$scope.mainSections[i].graph.forEach (item) ->
+									newKey = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
+									if map.locationDictionary[newKey]
+										newKey = map.locationDictionary[newKey]
+
+									lowercaseItems[newKey] = item.value
+
+								map.maxvalue = maxTotal
+
+								data = Object.keys(map.boundaryPaths).map (c) ->
+									name: c
+									value: lowercaseItems[c] || 0
+
+								map.generate data
+
+								$scope.mainSections[i].items.forEach (item) ->
+									newKey = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
+									if map.locationDictionary[newKey]
+										newKey = map.locationDictionary[newKey]
+									item.color = map.getColor lowercaseItems[newKey] || 0
+
 					.error $scope.handleError i
 
 			OverviewScreen.get 'p'
