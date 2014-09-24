@@ -51,7 +51,7 @@
 								data-placement="bottom"
 								data-html="true"
 							>&nbsp;</a>
-							<a class="label label-default" ng-style="{'background-color': item.color}" ng-if="sect.type == 'map'">&nbsp;</a>
+							<a class="label label-default" ng-style="{'background-color': item.color}" ng-mouseover="mapGen.highlight(item.corresponds)" ng-mouseleave="mapGen.unhighlight(item.corresponds)" ng-if="sect.type == 'map'">&nbsp;</a>
 							<small><strong>{{item.term}}</strong></small>
 						</div>
 						<div class="col-xs-4">

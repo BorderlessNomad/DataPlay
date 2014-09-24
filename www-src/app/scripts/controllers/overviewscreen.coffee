@@ -10,6 +10,7 @@
 angular.module('dataplayApp')
 	.controller 'OverviewScreenCtrl', ['$scope', '$location', '$routeParams', 'OverviewScreen', 'Auth', 'config', ($scope, $location, $routeParams, OverviewScreen, Auth, config) ->
 		$scope.params = $routeParams
+		$scope.mapGen = new MapGenerator '#regionMap'
 
 		$scope.margin =
 			top: 0
@@ -71,29 +72,28 @@ angular.module('dataplayApp')
 								return
 
 							if $scope.mainSections[i].type is 'map'
-								map = new MapGenerator '#regionMap'
-
 								lowercaseItems = {}
 								$scope.mainSections[i].graph.forEach (item) ->
 									newKey = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
-									if map.locationDictionary[newKey]
-										newKey = map.locationDictionary[newKey]
+									if $scope.mapGen.locationDictionary[newKey]
+										newKey = $scope.mapGen.locationDictionary[newKey]
 
 									lowercaseItems[newKey] = item.value
 
-								map.maxvalue = maxTotal
+								$scope.mapGen.maxvalue = maxTotal
 
-								data = Object.keys(map.boundaryPaths).map (c) ->
+								data = Object.keys($scope.mapGen.boundaryPaths).map (c) ->
 									name: c
 									value: lowercaseItems[c] || 0
 
-								map.generate data
+								$scope.mapGen.generate data
 
 								$scope.mainSections[i].items.forEach (item) ->
 									newKey = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
-									if map.locationDictionary[newKey]
-										newKey = map.locationDictionary[newKey]
-									item.color = map.getColor lowercaseItems[newKey] || 0
+									if $scope.mapGen.locationDictionary[newKey]
+										newKey = $scope.mapGen.locationDictionary[newKey]
+									item.corresponds = "county-#{newKey}"
+									item.color = $scope.mapGen.getColor lowercaseItems[newKey] || 0
 
 					.error $scope.handleError i
 

@@ -53,6 +53,14 @@ class MapGenerator
 
 		return '#' + rgb.r.toString(16) + rgb.g.toString(16) + rgb.b.toString(16)
 
+	highlight: (corr) =>
+		d3.select "##{corr} path"
+			.style 'fill-opacity', 0.8
+
+	unhighlight: (corr) =>
+		d3.select "##{corr} path"
+			.style 'fill-opacity', null
+
 	locationDictionary:
 		'glasgow': 'strathclyde'
 		'edinburgh': 'lothian'
