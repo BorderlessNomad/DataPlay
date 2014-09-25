@@ -15,12 +15,12 @@ angular.module('dataplayApp')
 		$scope.height = $scope.width * 9 / 16 # 16:9
 		$scope.margin =
 			top: 50
-			right: 10
+			right: 20
 			bottom: 50
 			left: 100
 		$scope.marginAlt =
 			top: 0
-			right: 10
+			right: 20
 			bottom: 50
 			left: 110
 		$scope.xTicks = 8
