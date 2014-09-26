@@ -12,15 +12,15 @@
 	}, {
 		"follow_symlinks": true,
 		"name": "Go",
-		"path": "src\\dataplay"
+		"path": "src/dataplay"
+	}, {
+		"follow_symlinks": true,
+		"name": "PlayGen",
+		"path": "src/playgen"
 	}, {
 		"follow_symlinks": true,
 		"name": "Frontend",
 		"path": "www-src"
-	}, {
-		"follow_symlinks": true,
-		"name": "Angular",
-		"path": "www-src\\app"
 	}],
 	"settings": {
 		"translate_tabs_to_spaces": false,
