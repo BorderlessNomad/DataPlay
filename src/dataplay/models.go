@@ -41,6 +41,16 @@ func (c Correlation) TableName() string {
 	return "priv_correlation"
 }
 
+type Dictionary struct {
+	Term      string
+	Frequency int
+	Id        int `gorm:"primary_key:yes"`
+}
+
+func (di Dictionary) TableName() string {
+	return "priv_dictionary"
+}
+
 type Departments struct {
 	GovDept string
 	Type    string

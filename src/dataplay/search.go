@@ -5,6 +5,7 @@ import (
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -242,4 +243,59 @@ func AddSearchTerm(str string) {
 
 	searchterm.Count++
 	err = DB.Save(&searchterm).Error
+}
+
+// Takes all the key terms from the title, name and description in the index table and writes them to the datadictionary along with their frequency
+func DataDict() {
+	indices := []Index{}
+	DB.Find(&indices)
+	var terms []string
+	re, _ := regexp.Compile("\\W")
+
+	for _, ind := range indices {
+		title := strings.ToLower(ind.Title)
+		title = strings.Replace(title, "_", " ", -1)
+		title = re.ReplaceAllString(title, " ")
+		term := strings.Split(title, " ")
+		for i, _ := range term {
+			terms = append(terms, term[i])
+		}
+
+		name := strings.ToLower(ind.Name)
+		name = strings.Replace(name, "_", " ", -1)
+		name = re.ReplaceAllString(name, " ")
+		term = strings.Split(name, " ")
+		for i, _ := range term {
+			terms = append(terms, term[i])
+		}
+
+		notes := strings.ToLower(ind.Notes)
+		notes = strings.Replace(notes, "_", " ", -1)
+		notes = re.ReplaceAllString(notes, " ")
+		term = strings.Split(notes, " ")
+		for i, _ := range term {
+			terms = append(terms, term[i])
+		}
+	}
+
+	var dict []Dictionary
+	for _, t := range terms {
+		termNotPresent := true
+		for i, _ := range dict {
+			if t == dict[i].Term {
+				dict[i].Frequency += 1
+				termNotPresent = false
+			}
+		}
+		if termNotPresent && len(t) > 2 {
+			var tmp Dictionary
+			tmp.Term = t
+			tmp.Frequency = 1
+			dict = append(dict, tmp)
+		}
+	}
+
+	for _, d := range dict {
+		DB.Create(&d)
+	}
 }
