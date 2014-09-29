@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/gocql/gocql"
 	"github.com/jinzhu/gorm"
@@ -291,12 +290,14 @@ func WriteCass() {
 
 func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
 	cassandraHost := "10.0.0.2"
-	cassandraPort := 49236
-	if os.Getenv("cassandrahost") != "" {
-		cassandraHost = os.Getenv("cassandrahost")
+	cassandraPort := 49236 //9042
+
+	if os.Getenv("DP_CASSANDRA_HOST") != "" {
+		cassandraHost = os.Getenv("DP_CASSANDRA_HOST")
 	}
-	if os.Getenv("cassandraport") != "" {
-		cassandraPort, _ = strconv.Atoi(os.Getenv("cassandraport"))
+
+	if os.Getenv("DP_CASSANDRA_PORT") != "" {
+		cassandraPort, _ = strconv.Atoi(os.Getenv("DP_CASSANDRA_PORT"))
 	}
 
 	cluster := gocql.NewCluster(cassandraHost)
@@ -306,10 +307,11 @@ func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
 	session, err := cluster.CreateSession()
 
 	if err != nil {
-		fmt.Println("Could not connect to the Cassandara server.")
+		Logger.Println("Could not connect to the Cassandara server.")
+		return nil, err
 	}
 
-	return session, err
+	return session, nil
 }
 
 func GetPoliticalActivityHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {

@@ -133,16 +133,23 @@ func randString(n int) string {
 }
 
 func GetRedisConnection() (c *redis.Client, err error) {
-	redishost := "10.0.0.2:6379"
-	if os.Getenv("redishost") != "" {
-		redishost = os.Getenv("redishost")
+	redisHost := "10.0.0.2"
+	redisPort := "6379"
+
+	if os.Getenv("DP_REDIS_HOST") != "" {
+		redisHost = os.Getenv("DP_REDIS_HOST")
 	}
 
-	c, err = redis.DialTimeout("tcp", redishost, time.Duration(10)*time.Second)
+	if os.Getenv("DP_REDIS_PORT") != "" {
+		redisPort = os.Getenv("DP_REDIS_PORT")
+	}
+
+	c, err = redis.DialTimeout("tcp", redisHost+":"+redisPort, time.Duration(10)*time.Second)
 
 	if err != nil {
-		Logger.Println("Could not connect to the redis server. Is it running? Sessions wont work otherwise !!1")
+		Logger.Println("Could not connect to the redis server.")
+		return nil, err
 	}
 
-	return c, err
+	return c, nil
 }
