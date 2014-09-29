@@ -57,7 +57,6 @@ angular.module('dataplayApp')
 
 		$scope.init = () ->
 			$scope.initChart()
-
 			return
 
 		$scope.initChart = () ->
@@ -86,7 +85,7 @@ angular.module('dataplayApp')
 
 					console.log "Chart", $scope.chart
 
-					$scope.initValidation()
+					$scope.initObservations()
 
 					# Track a page visit
 					Tracker.visited $scope.params.id, $scope.params.key, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
@@ -96,7 +95,7 @@ angular.module('dataplayApp')
 
 			return
 
-		$scope.initValidation = (redraw) ->
+		$scope.initObservations = (redraw) ->
 			id = "#{$scope.params.id}/#{$scope.params.key}/#{$scope.params.type}/#{$scope.params.x}/#{$scope.params.y}"
 			id += "/#{$scope.params.z}" if $scope.params.z?.length > 0
 
@@ -687,7 +686,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.addObservation = (x, y, comment) ->
-			$scope.initValidation(true)
+			$scope.initObservations(true)
 
 		$scope.resetObservations = ->
 			d3.selectAll('g.observations.new > *').remove()
