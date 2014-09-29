@@ -15,12 +15,12 @@ angular.module('dataplayApp')
 		$scope.height = $scope.width * 9 / 16 # 16:9
 		$scope.margin =
 			top: 50
-			right: 10
+			right: 20
 			bottom: 50
 			left: 100
 		$scope.marginAlt =
 			top: 0
-			right: 10
+			right: 20
 			bottom: 50
 			left: 110
 		$scope.xTicks = 8
@@ -54,8 +54,8 @@ angular.module('dataplayApp')
 			strength: ''
 
 		$scope.init = () ->
-			$scope.initValidation()
 			$scope.initChart()
+			return
 
 		$scope.initChart = () ->
 			Charts.correlated $scope.params.correlationid
@@ -73,6 +73,7 @@ angular.module('dataplayApp')
 
 					if data?
 						$scope.info.patternId = data.patternid or ''
+						$scope.info.discoveredId = data.discoveredid or ''
 						$scope.info.discoverer = data.discoveredby or ''
 						$scope.info.discoverDate = if data.discoverydate then Overview.humanDate new Date( data.discoverydate ) else ''
 						$scope.info.validators = data.validatedby or ''
@@ -81,6 +82,7 @@ angular.module('dataplayApp')
 							seco: data.source2 or ''
 						$scope.info.strength = data.statstrength
 
+					$scope.initObservations()
 					console.log "Chart", $scope.chart
 
 					# Track a page visit
@@ -90,44 +92,40 @@ angular.module('dataplayApp')
 
 			return
 
-		$scope.initValidation = (redraw) ->
+		$scope.initObservations = (redraw) ->
 			id = "#{$scope.params.correlationid}"
 
-			Charts.validateChart "cid", id
-				.then (validate) ->
-					$scope.info.discoveredId = validate.data
-					Charts.getObservations $scope.info.discoveredId
-						.then (res) ->
-							$scope.userObservations.splice 0, $scope.userObservations.length
+			Charts.getObservations $scope.info.discoveredId
+				.then (res) ->
+					$scope.userObservations.splice 0, $scope.userObservations.length
 
-							res.data?.forEach? (obsv) ->
-								x = obsv.x
-								y = obsv.y
-								if $scope.chart.patterns[$scope.chart.table1.xLabel].valuePattern is 'date'
-									if not(x instanceof Date) and (typeof x is 'string')
-										xdate = new Date x
-										if xdate.toString() isnt 'Invalid Date' then x = xdate
-									x = Overview.humanDate x
+					res.data?.forEach? (obsv) ->
+						x = obsv.x
+						y = obsv.y
+						if $scope.chart.patterns[$scope.chart.table1.xLabel].valuePattern is 'date'
+							if not(x instanceof Date) and (typeof x is 'string')
+								xdate = new Date x
+								if xdate.toString() isnt 'Invalid Date' then x = xdate
+							x = Overview.humanDate x
 
-								xy = "#{x.replace(/\W/g, '')}-#{y.replace(/\W/g, '')}"
-								$scope.userObservationsMessage[xy] = obsv.comment
-								$scope.userObservations.push
-									xy: xy
-									oid : obsv['observation_id']
-									user: obsv.user
-									validationCount: parseInt(obsv.validations - obsv.invalidations) || 0
-									message: obsv.comment
-									date: Overview.humanDate new Date(obsv.created)
-									coor:
-										x: obsv.x
-										y: obsv.y
+						xy = "#{x.replace(/\W/g, '')}-#{y.replace(/\W/g, '')}"
+						$scope.userObservationsMessage[xy] = obsv.comment
+						$scope.userObservations.push
+							xy: xy
+							oid : obsv['observation_id']
+							user: obsv.user
+							validationCount: parseInt(obsv.validations - obsv.invalidations) || 0
+							message: obsv.comment
+							date: Overview.humanDate new Date(obsv.created)
+							coor:
+								x: obsv.x
+								y: obsv.y
 
-							if redraw? and redraw
-								$scope.redrawObservationIcons()
+					if redraw? and redraw
+						$scope.redrawObservationIcons()
 
-								newObservations = d3.select 'g.stack-list > .observations.new'
-								$scope.renderObservationIcons $scope.xScale, $scope.yDomain, $scope.chart, newObservations
-						, $scope.handleError
+						newObservations = d3.select 'g.stack-list > .observations.new'
+						$scope.renderObservationIcons $scope.xScale, $scope.yDomain, $scope.chart, newObservations
 				, $scope.handleError
 			return
 
@@ -168,6 +166,7 @@ angular.module('dataplayApp')
 			xScale
 
 		$scope.getYScale = (data) ->
+			console.log "test"
 			yScale = switch data.patterns[data.yLabel].valuePattern
 				when 'label'
 					d3.scale.ordinal()

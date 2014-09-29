@@ -30,24 +30,29 @@ func (self *Database) Setup() {
 }
 
 func (self *Database) ParseEnvironment() {
-	env := os.Getenv("DATABASE")
-	if env == "" {
-		// backwards compat
-		env = os.Getenv("database")
+	databaseHost := "10.0.0.2"
+	databasePort := "5432"
+
+	if os.Getenv("DP_DATABASE_HOST") != "" {
+		databaseHost = os.Getenv("DP_DATABASE_HOST")
 	}
-	if env != "" {
-		self.Host = env
+
+	if os.Getenv("DP_DATABASE_PORT") != "" {
+		databasePort = os.Getenv("DP_DATABASE_PORT")
 	}
+
+	self.Host = databaseHost
+	self.Port = databasePort
 }
 
 func (self *Database) Connect() (err error) {
 	self.DB, err = gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", self.User, self.Pass, self.Host, self.Port, self.Schema))
 	if err != nil {
-		panic(fmt.Sprintf("Error while connecting to Database: '%v'", err))
+		fmt.Println("[Database] Error while connecting: '%v'", err)
 		return err
 	}
 
-	fmt.Println("[database] Connected!", self.User, "@", self.Host, ":", self.Port, "/", self.Schema)
+	fmt.Println("[Database] Connected!", self.User, "@", self.Host, ":", self.Port, "/", self.Schema)
 
 	self.DB.DB().Exec("SET NAMES UTF8")
 	self.DB.DB().SetMaxIdleConns(0) // <=0 no idle connections are retained.
