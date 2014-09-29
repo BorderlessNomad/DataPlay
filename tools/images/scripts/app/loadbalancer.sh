@@ -44,8 +44,9 @@ update_iptables () {
 	iptables -A INPUT -p tcp --dport 4243 -j ACCEPT
 	iptables -A INPUT -p tcp --dport 4245 -j ACCEPT
 
-	# HAProxy analytics
-	iptables -A INPUT -p tcp --dport 1936 -j ACCEPT
+
+	iptables -A INPUT -p tcp --dport 1936 -j ACCEPT # HAProxy statistics
+	iptables -A INPUT -p tcp --dport 1937 -j ACCEPT # HAProxy API
 
 	iptables-save
 }

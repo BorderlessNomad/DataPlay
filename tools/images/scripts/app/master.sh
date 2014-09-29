@@ -36,7 +36,7 @@ install_nodejs () {
 }
 
 update_iptables () {
-	# Monitoring ports 80, 8080, 4242, 4243, 4245
+	# Monitoring ports 80, 8080, 4242, 4243, 4245 for JCatascopia
 	iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 	iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 	iptables -A INPUT -p tcp --dport 8080 -j ACCEPT

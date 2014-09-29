@@ -1,0 +1,13 @@
+{
+	"name": "dataplay-haproxy-api",
+	"dependencies": {
+		"express": "^4.9",
+		"body-parser": "^1.9",
+		"errorhandler": "^1.2",
+		"json-file-plus": "^2.0",
+		"hogan.js": "^3.0"
+	},
+	"devDependencies": {
+		"coffee-script": "^1.7"
+	}
+}
