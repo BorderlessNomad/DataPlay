@@ -1,27 +1,90 @@
 #!/bin/bash
 
+# This is setup script for Load Balancer
+
 set -ex
 
-# This is setup script for App Master Load Balancer
-# 1. Install Ubuntu base image or dataplay-ubuntu-base (recommended)
-# 2. Run this script as 'sudo'
-#
-# Note: Installing from pre-configured base image is highly recommended
-#	e.g.
-#		dataplay-load-master
+timestamp () {
+	date +"%F %T,%3N"
+}
 
-HOSTNAME=$(hostname)
-HOSTLOCAL="127.0.1.1"
-echo "$HOSTLOCAL $HOSTNAME" >> /etc/hosts
+setuphost () {
+	HOSTNAME=$(hostname)
+	HOSTLOCAL="127.0.1.1"
+	echo "$HOSTLOCAL $HOSTNAME" >> /etc/hosts
+}
 
-apt-get update
-apt-get -y upgrade
-apt-get install -y build-essential sudo openssh-server screen gcc curl git make binutils bison wget python-software-properties htop zip
+update () {
+	apt-get update
+	apt-get -y upgrade
+}
 
-# HAProxy 1.5
-add-apt-repository -y ppa:vbernat/haproxy-1.5
-apt-get update
-apt-get install -y haproxy
+install_essentials () {
+	apt-get install -y build-essential sudo openssh-server gcc curl git make binutils bison wget python-software-properties htop zip
+}
 
-# *:1936 playgen:D@taP1aY
+install_haproxy () {
+	apt-add-repository -y ppa:vbernat/haproxy-1.5
+	apt-get update
+	apt-get install -y haproxy
+}
+
+setup_haproxy () {
+	wget -Nq https://raw.githubusercontent.com/playgenhub/DataPlay/develop/tools/images/scripts/app/haproxy.cfg
+	yes | cp haproxy.cfg /etc/haproxy
+	service haproxy restart
+}
+
+update_iptables () {
+	# Monitoring ports 80, 8080, 4242, 4243, 4245 for JCatascopia
+	iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+	iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+	iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
+	iptables -A INPUT -p tcp --dport 4242 -j ACCEPT
+	iptables -A INPUT -p tcp --dport 4243 -j ACCEPT
+	iptables -A INPUT -p tcp --dport 4245 -j ACCEPT
+
+	# HAProxy analytics
+	iptables -A INPUT -p tcp --dport 1936 -j ACCEPT
+
+	iptables-save
+}
+
+if [ "$(id -u)" != "0" ]; then
+	echo "Error: This script must be run as root" 1>&2
+	exit 1
+fi
+
+# As root
+echo "---- Running as Root ----"
+timestamp
+
+echo "1. ---- Setup Host ----"
+timestamp
+setuphost
+
+echo "2. ---- Update system ----"
+timestamp
+update
+
+echo "3. ---- Install essential packages ----"
+timestamp
+install_essentials
+
+echo "4. ---- Install HAProxy ----"
+timestamp
+install_haproxy
+
+echo "5. ---- Setup HAProxy ----"
+timestamp
+setup_haproxy
+
+echo "6. ---- Update IPTables rules ----"
+timestamp
+update_iptables
+
+echo "---- Completed ----"
+
+timestamp
+
 exit 0
