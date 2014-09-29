@@ -80,14 +80,11 @@ router.route("/:ip").delete (req, res) ->
 
 		index = false
 		for value, key in file.data.backends
-			console.log key
 			if value.endpoint is req.params.ip
 				index = key
 				break
 
 		return res.status(404).json error: "No such IP found!" if index is false
-
-		console.log index
 
 		file.data.backends.splice index, 1
 
