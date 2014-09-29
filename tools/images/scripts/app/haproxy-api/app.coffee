@@ -5,6 +5,8 @@ jsonFile = require "json-file-plus"
 path = require "path"
 fs = require "fs"
 swig = require "swig"
+sys = require "sys"
+exec = require("child_process").exec
 backend = path.join process.cwd(), 'backend.json'
 
 app = express()
@@ -15,22 +17,38 @@ app.use errorhandler()
 
 port = process.env.PORT or 1937
 
+puts = (error, stdout, stderr) -> sys.puts stdout
+
 compileTemplate = (data) ->
 	for value, key in data.backends
 		data.backends[key].id = "master#{key+1}"
 
+	timestamp = Date.now()
 	output = swig.renderFile "haproxy.cfg.template",
+		generatedOn: timestamp
 		backends: data.backends
 
 	fs.writeFile "haproxy.cfg", output, (err) ->
 		return err if err
-		console.log "Done!"
+
+		console.log "Successfully generated haproxy.cfg on #{new Date(timestamp)}"
+
+		console.log "Copy /etc/haproxy/haproxy.cfg to /etc/haproxy/haproxy.cfg.#{timestamp}"
+		exec "cp -rf /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.#{timestamp}", puts
+
+		console.log "Replace old config file"
+		exec "cp -rf haproxy.cfg /etc/haproxy/haproxy.cfg", puts
+
+		console.log "Reload HAProxy"
+		exec "service haproxy reload", puts
 
 router = express.Router()
 
 router.route("/").get (req, res) ->
 	jsonFile backend, (err, file) ->
 		return res.status(500).json error: "Error while reading file." if err
+
+		# compileTemplate file.data
 
 		res.json file.data.backends
 
@@ -41,8 +59,7 @@ router.route("/").post (req, res) ->
 		return res.status(400).json error: "No IP to add." unless req.body?.ip?.length > 0
 
 		for value, key in file.data.backends
-			if value.endpoint is req.body.ip
-				return res.status(409).json error: "IP already exists!"
+			return res.status(409).json error: "IP already exists!" if value.endpoint is req.body.ip
 
 		file.data.backends.push
 			endpoint: req.body.ip
