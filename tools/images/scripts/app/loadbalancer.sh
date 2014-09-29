@@ -23,6 +23,13 @@ install_essentials () {
 	apt-get install -y build-essential sudo openssh-server gcc curl git make binutils bison wget python-software-properties htop zip
 }
 
+install_nodejs () {
+	apt-add-repository -y ppa:chris-lea/node.js
+	apt-get update
+	apt-get install -y python g++ make nodejs
+	npm install -g pm2 --unsafe-perm
+}
+
 install_haproxy () {
 	apt-add-repository -y ppa:vbernat/haproxy-1.5
 	apt-get update
@@ -30,9 +37,16 @@ install_haproxy () {
 }
 
 setup_haproxy () {
-	wget -Nq https://raw.githubusercontent.com/playgenhub/DataPlay/develop/tools/images/scripts/app/haproxy.cfg
-	yes | cp haproxy.cfg /etc/haproxy
-	service haproxy restart
+	mkdir -p haproxy-api && cd haproxy-api
+
+	wget -Nq https://raw.githubusercontent.com/playgenhub/DataPlay/develop/tools/images/scripts/app/haproxy-api/app.coffee
+	wget -Nq https://raw.githubusercontent.com/playgenhub/DataPlay/develop/tools/images/scripts/app/haproxy-api/package.json
+	wget -Nq https://raw.githubusercontent.com/playgenhub/DataPlay/develop/tools/images/scripts/app/haproxy-api/backend.json
+	wget -Nq https://raw.githubusercontent.com/playgenhub/DataPlay/develop/tools/images/scripts/app/haproxy-api/haproxy.cfg.template
+
+	npm install
+
+	pm2 start app.coffee --name haproxy-api -e err.log -o out.log
 }
 
 update_iptables () {
