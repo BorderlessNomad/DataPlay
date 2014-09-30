@@ -20,6 +20,7 @@
     "d3": "^3.4.11",
     "dcjs": "master",
     "angular-dc": "master",
+    "angular-nvd3": "master",
     "bootstrap": "^3.2",
     "ng-tiny-scrollbar": "^0.6"
   },

@@ -174,3 +174,20 @@
 		fill-opacity: 0.8;
 	}
 }
+
+.corrLine {
+	.tick {
+		line {
+			opacity: 0.15;
+			transition: opacity .5s;
+		}
+	}
+
+	&:hover {
+		.tick {
+			line {
+				opacity: 0.3;
+			}
+		}
+	}
+}
