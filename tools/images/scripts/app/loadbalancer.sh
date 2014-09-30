@@ -20,14 +20,14 @@ update () {
 }
 
 install_essentials () {
-	apt-get install -y build-essential sudo openssh-server gcc curl git make binutils bison wget python-software-properties htop zip
+	apt-get install -y build-essential sudo openssh-server gcc curl git make binutils bison wget python-software-properties htop unzip
 }
 
 install_nodejs () {
 	apt-add-repository -y ppa:chris-lea/node.js
 	apt-get update
 	apt-get install -y python g++ make nodejs
-	npm install -g pm2 --unsafe-perm
+	npm install -g coffee-script pm2 --unsafe-perm
 }
 
 install_haproxy () {
