@@ -30,25 +30,6 @@ install_nodejs () {
 	npm install -g pm2 --unsafe-perm
 }
 
-install_haproxy () {
-	apt-add-repository -y ppa:vbernat/haproxy-1.5
-	apt-get update
-	apt-get install -y haproxy
-}
-
-setup_haproxy () {
-	mkdir -p haproxy-api && cd haproxy-api
-
-	wget -Nq https://raw.githubusercontent.com/playgenhub/DataPlay/develop/tools/images/scripts/app/haproxy-api/app.coffee && \
-	wget -Nq https://raw.githubusercontent.com/playgenhub/DataPlay/develop/tools/images/scripts/app/haproxy-api/package.json && \
-	wget -Nq https://raw.githubusercontent.com/playgenhub/DataPlay/develop/tools/images/scripts/app/haproxy-api/backend.json && \
-	wget -Nq https://raw.githubusercontent.com/playgenhub/DataPlay/develop/tools/images/scripts/app/haproxy-api/haproxy.cfg.template
-
-	npm install
-
-	pm2 start app.coffee --name haproxy-api -e err.log -o out.log
-}
-
 update_iptables () {
 	# Monitoring ports 80, 8080, 4242, 4243, 4245 for JCatascopia
 	iptables -A INPUT -p tcp --dport 80 -j ACCEPT
@@ -57,10 +38,6 @@ update_iptables () {
 	iptables -A INPUT -p tcp --dport 4242 -j ACCEPT
 	iptables -A INPUT -p tcp --dport 4243 -j ACCEPT
 	iptables -A INPUT -p tcp --dport 4245 -j ACCEPT
-
-
-	iptables -A INPUT -p tcp --dport 1936 -j ACCEPT # HAProxy statistics
-	iptables -A INPUT -p tcp --dport 1937 -j ACCEPT # HAProxy API
 
 	iptables-save
 }
@@ -90,15 +67,7 @@ echo "4. ---- Install Node.js ----"
 timestamp
 install_nodejs
 
-echo "5. ---- Install HAProxy ----"
-timestamp
-install_haproxy
-
-echo "6. ---- Setup HAProxy ----"
-timestamp
-setup_haproxy
-
-echo "7. ---- Update IPTables rules ----"
+echo "5. ---- Update IPTables rules ----"
 timestamp
 update_iptables
 
