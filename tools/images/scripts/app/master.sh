@@ -1,14 +1,8 @@
 #!/bin/bash
 
-set -ex
+# This is setup script for Gamification/Master instance
 
-# This is setup script for App (Go server)
-# 1. Install Ubuntu base image or dataplay-ubuntu-base (recommended)
-# 2. Run this script as 'sudo'
-#
-# Note: Installing from pre-configured base image is highly recommended
-#	e.g.
-#		dataplay-go-master for Master/Producer instance
+set -ex
 
 timestamp () {
 	date +"%F %T,%3N"
@@ -26,7 +20,7 @@ update () {
 }
 
 install_essentials () {
-	apt-get install -y build-essential sudo openssh-server screen gcc curl git mercurial bzr make binutils bison wget python-software-properties htop zip
+	apt-get install -y build-essential sudo openssh-server gcc curl git mercurial bzr make binutils bison wget python-software-properties htop zip
 }
 
 # Node.js
@@ -35,14 +29,10 @@ install_nodejs () {
 	apt-get update
 	apt-get install -y python g++ make nodejs
 	npm install -g grunt grunt-cli
-	if [ ! -d /home/ubuntu/.npm ]; then
-		mkdir -p /home/ubuntu/.npm
-	fi
-	chown -R ubuntu:ubuntu /home/ubuntu/.npm # Fix permissions
 }
 
 update_iptables () {
-	# Monitoring ports 80, 8080, 4242, 4243, 4245
+	# Monitoring ports 80, 8080, 4242, 4243, 4245 for JCatascopia
 	iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 	iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 	iptables -A INPUT -p tcp --dport 8080 -j ACCEPT

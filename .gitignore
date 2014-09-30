@@ -35,3 +35,5 @@ src/dataplay/public/search.html
 src/dataplay/public/signin.html
 stress/concurrent.sh
 src/dataplay/NewsFetch/__init__(scraper_script) - Copy.py
+tools/images/scripts/app/haproxy-api/app.js
+tools/images/scripts/app/haproxy-api/haproxy.cfg
