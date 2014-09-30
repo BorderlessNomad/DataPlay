@@ -1,8 +1,6 @@
 <nvd3
 	class="corrChart corrLine"
-	options="corrLineOptions"
-	data="corrLineData"
-	ng-if="corrLineData.length > 0"
+	options="corrLine.options"
+	data="corrLine.data"
+	ng-if="corrLine.data.length > 0"
 ></nvd3>
-
-<div ng-if="corrLineData.length == 0" ng-include="'views/loader.html'"></div>
