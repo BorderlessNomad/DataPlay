@@ -1,14 +1,12 @@
 #!/bin/bash
 
+# This is setup script for PostreSQL Database server.
+
 set -ex
 
-# This is setup script for DB (PostreSQL server)
-# 1. Install Ubuntu base image or dataplay-ubuntu-base (recommended)
-# 2. Run this script as 'sudo'
-#
-# Note: Installing from pre-configured base image is highly recommended
-#	e.g.
-#		dataplay-posgresql for DB instance
+timestamp () {
+	date +"%F %T,%3N"
+}
 
 setuphost () {
 	HOSTNAME=$(hostname)
@@ -16,21 +14,14 @@ setuphost () {
 	echo "$HOSTLOCAL $HOSTNAME" >> /etc/hosts
 }
 
-update () {
-	apt-get update
-	apt-get -y upgrade
-}
-
-install_essentials () {
-	apt-get install -y build-essential sudo openssh-server screen gcc curl git make binutils bison wget python-software-properties htop zip
-}
-
 install_postgres () {
-	apt-get install -y postgresql postgresql-contrib postgresql-9.3-postgis-2.1 postgresql-client libpq-dev
-	apt-get clean && sudo rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+	apt-get install -y postgresql postgresql-contrib postgresql-client libpq-dev
+	apt-get autoclean
+	# TODO setup users etc
 }
 
-sync_database () {
+setup_database () {
+	echo "TODO"
 	# TODO
 	# pg_dump -v -cC -f dataplay.sql -h 10.0.0.2 -U playgen dataplay
 	# pg_dump -v -cC -f dataplay.sql -h localhost -U playgen dataplay
@@ -41,13 +32,7 @@ sync_database () {
 }
 
 update_iptables () {
-	# Monitoring ports 80, 8080, 4242, 4243, 4245
-	iptables -A INPUT -p tcp --dport 80 -j ACCEPT
-	iptables -A INPUT -p tcp --dport 443 -j ACCEPT
-	iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
-	iptables -A INPUT -p tcp --dport 4242 -j ACCEPT
-	iptables -A INPUT -p tcp --dport 4243 -j ACCEPT
-	iptables -A INPUT -p tcp --dport 4245 -j ACCEPT
+	iptables -A INPUT -p tcp --dport 5432 -j ACCEPT # PostgreSQL listener
 
 	iptables-save
 }
@@ -57,20 +42,18 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
-# As root
-echo "---- Running as Root ----"
-
-echo "1. ---- Setup Host ----"
+echo "[$(timestamp)] ---- 1. Setup Host ----"
 setuphost
-echo "2. ---- Update system ----"
-update
-echo "3. ---- Install essential packages ----"
-install_essentials
-echo "4. ---- Install PostgresSQL ----"
+
+echo "[$(timestamp)] ---- 2. Install PostgresSQL ----"
 install_postgres
-echo "5. ---- Update IPTables rules ----"
+
+echo "[$(timestamp)] ---- 3. Export Database ----"
+setup_database
+
+echo "[$(timestamp)] ---- 4. Update IPTables rules ----"
 update_iptables
 
-echo "---- Completed ----"
+echo "[$(timestamp)] ---- Completed ----"
 
 exit 0

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This is setup script for Load Balancer
+# This is setup script for Load Balancer.
 
 set -ex
 
@@ -41,7 +41,7 @@ setup_haproxy_api () {
 
 	coffee -cb app.coffee > app.js
 
-	forever start -l forever.log -o output.log -e errors.log app.js
+	forever start -l forever.log -o output.log -e errors.log app.js 2>/dev/null
 }
 
 update_iptables () {

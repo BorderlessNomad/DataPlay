@@ -61,11 +61,15 @@ router.route("/").post (req, res) ->
 		for value, key in file.data.backends
 			return res.status(409).json error: "IP already exists!" if value.endpoint is req.body.ip
 
+		timestamp = Date.now()
+
 		file.data.backends.push
 			endpoint: req.body.ip
-			timestamp: Date.now()
+			timestamp: timestamp
 
 		file.save().then (->
+			console.log "[#{new Date(timestamp)}] added new endpoint:", req.body.ip
+
 			compileTemplate file.data
 
 			res.json file.data.backends
@@ -86,9 +90,13 @@ router.route("/:ip").delete (req, res) ->
 
 		return res.status(404).json error: "No such IP found!" if index is false
 
+		timestamp = Date.now()
+
 		file.data.backends.splice index, 1
 
 		file.save().then (->
+			console.log "[#{new Date(timestamp)}] removed endpoint:", req.params.ip
+
 			compileTemplate file.data
 
 			res.json file.data.backends

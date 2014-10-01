@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This is setup script for Compute/Node instance
+# This is setup script for Compute/Node instance.
 
 set -ex
 
@@ -14,47 +14,14 @@ setuphost () {
 	echo "$HOSTLOCAL $HOSTNAME" >> /etc/hosts
 }
 
-update () {
-	apt-get update
-	apt-get -y upgrade
-}
-
-install_essentials () {
-	apt-get install -y build-essential sudo vim openssh-server gcc curl git make binutils bison wget python-software-properties htop unzip
-}
-
-# Node.js
-install_nodejs () {
-	apt-add-repository -y ppa:chris-lea/node.js
-	apt-get update
-	apt-get install -y python g++ make nodejs
-	npm install -g grunt grunt-cli
-}
-
-update_iptables () {
-	# Monitoring ports 80, 8080, 4242, 4243, 4245 for JCatascopia
-	iptables -A INPUT -p tcp --dport 80 -j ACCEPT
-	iptables -A INPUT -p tcp --dport 443 -j ACCEPT
-	iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
-	iptables -A INPUT -p tcp --dport 4242 -j ACCEPT
-	iptables -A INPUT -p tcp --dport 4243 -j ACCEPT
-	iptables -A INPUT -p tcp --dport 4245 -j ACCEPT
-
-	# NAT Redirect
-	iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 3000
-	iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 443 -j REDIRECT --to-port 3443
-
-	iptables-save
-}
-
 install_go () {
 	apt-get install -y mercurial bzr
 
 	mkdir -p /home/ubuntu && cd /home/ubuntu
 	mkdir -p gocode && mkdir -p www
 
-	wget -Nq http://golang.org/dl/go1.3.linux-amd64.tar.gz
-	tar xf go1.3.linux-amd64.tar.gz
+	wget -Nq https://storage.googleapis.com/golang/go1.3.3.linux-amd64.tar.gz
+	tar xf go1.3.3.linux-amd64.tar.gz
 
 	echo "export GOROOT=/home/ubuntu/go" >> /home/ubuntu/.profile
 	echo "PATH=\$PATH:\$GOROOT/bin" >> /home/ubuntu/.profile
@@ -66,12 +33,12 @@ install_go () {
 }
 
 export_variables () {
-	# @todo make POSTGRES & REDIS dynamic
 	HOST_POSTGRES=$(ss-get --timeout 360 postgres.hostname)
 	HOST_REDIS="109.231.121.13:6379"
 
 	echo "export DATABASE=$HOST_POSTGRES" >> /home/ubuntu/.profile
 	echo "export redishost=$HOST_REDIS" >> /home/ubuntu/.profile
+
 	. /home/ubuntu/.profile
 }
 
@@ -124,49 +91,34 @@ run_node () {
 	echo "Done! $ sudo tail -f $DEST/$APP/$LOG for more details"
 }
 
+update_iptables () {
+	# NAT Redirect
+	iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 3000
+	iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 443 -j REDIRECT --to-port 3443
+
+	iptables-save
+}
+
 if [ "$(id -u)" != "0" ]; then
 	echo "Error: This script must be run as root" 1>&2
 	exit 1
 fi
 
-# As root
-echo "---- Running as Root ----"
-timestamp
-
-echo "1. ---- Setup Host ----"
-timestamp
+echo "[$(timestamp)] ---- 1. Setup Host ----"
 setuphost
 
-echo "2. ---- Update system ----"
-timestamp
-update
-
-echo "3. ---- Install essential packages ----"
-timestamp
-install_essentials
-
-echo "4. ---- Install Node.js ----"
-timestamp
-install_nodejs
-
-echo "5. ---- Update IPTables rules ----"
-timestamp
-update_iptables
-
-echo "6. ---- Install GO ----"
-timestamp
+echo "[$(timestamp)] ---- 2. Install GO ----"
 install_go
 
-echo "7. ---- Export Variables ----"
-timestamp
+echo "[$(timestamp)] ---- 3. Export Variables ----"
 export_variables
 
-echo "8. ---- Run Node ----"
-timestamp
+echo "[$(timestamp)] ---- 4. Run Compute (Node) Server ----"
 run_node
 
-echo "---- Completed ----"
+echo "[$(timestamp)] ---- 5. Update IPTables rules ----"
+update_iptables
 
-timestamp
+echo "[$(timestamp)] ---- Completed ----"
 
 exit 0
