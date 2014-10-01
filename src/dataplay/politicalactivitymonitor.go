@@ -23,6 +23,11 @@ type PoliticalActivity struct {
 	Val      int                  `json:"-"`
 }
 
+type TermKey struct {
+	KeyTerm  string
+	MainTerm string
+}
+
 type PoliticalXY struct {
 	X int `json:"x"`
 	Y int `json:"y"`
@@ -33,9 +38,10 @@ type DateID struct {
 }
 
 type DatedTerm struct {
-	Term string
-	Date time.Time
-	ID   []byte
+	KeyTerm  string
+	MainTerm string
+	Date     time.Time
+	ID       []byte
 }
 
 type Popular struct {
@@ -52,15 +58,19 @@ type TermAmt struct {
 // gets names of all departments, checks for mentions in specified time period and returns ranked array of 15 most popular terms and their 30 day frequencies
 func DepartmentsPoliticalActivity() []PoliticalActivity {
 	var dept []Departments // get all departments from postgres sql table
-	var terms []string
+	var terms []TermKey
 	err := DB.Find(&dept).Error
 
 	if err != nil && err != gorm.RecordNotFound {
 		return nil
 	}
 
+	var tmp TermKey
+
 	for _, d := range dept {
-		terms = append(terms, d.GovDept)
+		tmp.KeyTerm = d.Key
+		tmp.MainTerm = d.Dept
+		terms = append(terms, tmp)
 	}
 
 	return CheckThese(terms)
@@ -69,15 +79,18 @@ func DepartmentsPoliticalActivity() []PoliticalActivity {
 // gets names of all events, checks for mentions in specified time period and returns ranked array of 15 most popular terms and their 30 day frequencies
 func EventsPoliticalActivity() []PoliticalActivity {
 	var event []Events
-	var terms []string
+	var terms []TermKey
 	err := DB.Find(&event).Error
 
 	if err != nil && err != gorm.RecordNotFound {
 		return nil
 	}
 
+	var tmp TermKey
 	for _, e := range event {
-		terms = append(terms, e.Event)
+		tmp.KeyTerm = e.Key
+		tmp.MainTerm = e.Event
+		terms = append(terms, tmp)
 	}
 
 	return CheckThese(terms)
@@ -86,15 +99,18 @@ func EventsPoliticalActivity() []PoliticalActivity {
 // gets names of all regions, checks for mentions in specified time period and returns ranked array of 15 most popular terms and their 30 day frequencies
 func RegionsPoliticalActivity() []PoliticalActivity {
 	var region []Regions
-	var terms []string
-	err := DB.Select("DISTINCT county").Find(&region).Error
+	var terms []TermKey
+	err := DB.Find(&region).Error
 
 	if err != nil && err != gorm.RecordNotFound {
 		return nil
 	}
 
+	var tmp TermKey
 	for _, r := range region {
-		terms = append(terms, r.County)
+		tmp.KeyTerm = r.Key
+		tmp.MainTerm = r.Region
+		terms = append(terms, tmp)
 	}
 
 	return CheckThese(terms)
@@ -157,24 +173,36 @@ func PopularPoliticalActivity() [3]Popular {
 }
 
 // takes slice of terms, checks for the total number of occurences and returns a top 15 ranked array
-func CheckThese(terms []string) []PoliticalActivity {
+func CheckThese(terms []TermKey) []PoliticalActivity {
 	politicalActivity := make([]PoliticalActivity, len(terms))
 	DatedTerm := keywords(terms) // returns array
 
-	for i, term := range terms { // check each term
-		politicalActivity[i].Term = term // copy to politicalActivity array
-		for _, dt := range DatedTerm {   // check through all dated terms
-			if term == dt.Term { //if there's a match
+	for _, term := range terms { // check each term
+		i := PaPlace(&politicalActivity, term.MainTerm) // copy to politicalActivity array
+		for _, dt := range DatedTerm {                  // check through all dated terms
+			if term.KeyTerm == dt.KeyTerm { //if there's a match
 				dayindex := int((Today.Round(time.Hour).Sub(dt.Date.Round(time.Hour)) / 24).Hours() - 1) // get day index
 				politicalActivity[i].Mentions[dayindex].Y++                                              // increase the count for that term on that day
 			}
 		}
 	}
-
 	return RankPA(politicalActivity)
 }
 
-func keywords(terms []string) []DatedTerm {
+func PaPlace(pa *[]PoliticalActivity, t string) int {
+
+	for i, p := range *pa {
+		if p.Term == t {
+			return i
+		}
+	}
+	var tmp PoliticalActivity
+	tmp.Term = t
+	*pa = append(*pa, tmp)
+	return len(*pa) - 1
+}
+
+func keywords(terms []TermKey) []DatedTerm {
 	var id []byte
 	var dateID []string
 	var queryDate time.Time
@@ -190,17 +218,18 @@ func keywords(terms []string) []DatedTerm {
 		dateID = append(dateID, string(id[:len(id)])+"!"+queryDate.Format(time.RFC3339))
 	}
 
-	if err := iter.Close(); err != nil {
-		///return err
-	}
+	// if err := iter.Close(); err != nil {
+	//return err
+	// }
 
 	for _, term := range terms {
-		iter := session.Query(`SELECT id FROM keyword WHERE name = ?`, term).Iter()
+		iter := session.Query(`SELECT id FROM keyword WHERE name = ?`, term.KeyTerm).Iter()
 		for iter.Scan(&id) {
 			var date time.Time
 			date = DateAndId(id, dateID)
 			if date.Year() > 1 {
-				tmpDT.Term = term
+				tmpDT.KeyTerm = term.KeyTerm
+				tmpDT.MainTerm = term.MainTerm
 				tmpDT.ID = id
 				tmpDT.Date = date
 				DatedTerms = append(DatedTerms, tmpDT)
@@ -209,12 +238,13 @@ func keywords(terms []string) []DatedTerm {
 	}
 
 	for _, term := range terms {
-		iter := session.Query(`SELECT id FROM entity WHERE name = ?`, term).Iter()
+		iter := session.Query(`SELECT id FROM entity WHERE name = ?`, term.KeyTerm).Iter()
 		for iter.Scan(&id) {
 			var date time.Time
 			date = DateAndId(id, dateID)
 			if date.Year() > 1 {
-				tmpDT.Term = term
+				tmpDT.KeyTerm = term.KeyTerm
+				tmpDT.MainTerm = term.MainTerm
 				tmpDT.ID = id
 				tmpDT.Date = date
 				DatedTerms = append(DatedTerms, tmpDT)
@@ -237,7 +267,7 @@ func DateAndId(id []byte, dateID []string) time.Time {
 	return t
 }
 
-// sort PA array and return top 15
+// sort PA array and returns slice of top 15
 func RankPA(activities []PoliticalActivity) []PoliticalActivity {
 
 	for i, _ := range activities {
@@ -314,6 +344,7 @@ func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
 	return session, nil
 }
 
+/////methods used by APIs////////////////////
 func GetPoliticalActivityHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {

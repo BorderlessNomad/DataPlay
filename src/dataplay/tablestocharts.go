@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-const sd = 100
-
 type RelatedCharts struct {
 	Charts []TableData `json:"charts"`
 	Count  int         `json:"count"`
@@ -317,6 +315,7 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 		last = totalCharts
 	}
 
+	// @TODO: For future can see if these charts have been discovered yet or not
 	// for i, v := range charts {
 	// 	originid := tablename + "/" + strconv.Itoa(i) + "/" + v.ChartType + "/" + v.LabelX + "/" + v.LabelY
 	// 	discovered := Discovered{}
@@ -448,6 +447,7 @@ func GetDiscoveredCharts(tableName string, correlated bool, offset int, count in
 }
 
 // Get arrays of data for the types of charts requested (titles, descriptions, all the xy values etc)
+// Determines what types of data are valid for any particular type of chart
 func GenerateChartData(chartType string, guid string, names XYVal, charts *[]TableData, ind Index) {
 	var tmpTD TableData
 	var tmpXY XYVal
@@ -692,14 +692,15 @@ func NegCheck(t TableData) bool {
 	return true
 }
 
+//determines strength of correlation
 func CalcStrength(x float64) string {
-	if x <= 0.2 {
+	if x <= 0.1 {
 		return "very low"
-	} else if x <= 0.3 {
+	} else if x <= 0.2 {
 		return "low"
-	} else if x <= 0.4 {
+	} else if x <= 0.3 {
 		return "quite low"
-	} else if x <= 0.5 {
+	} else if x <= 0.4 {
 		return "medium"
 	} else if x <= 0.6 {
 		return "quite high"

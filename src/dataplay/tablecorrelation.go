@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const sd = 100
+
 type cmeth int
 
 const ( //go version of enum
@@ -159,7 +161,7 @@ func AttemptCorrelation(tableCols TableCols) *appError {
 					return err
 				}
 				tableCols.chart = "column"
-				err := SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
+				err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
 				if err != nil {
 					return err
 				}
@@ -192,7 +194,7 @@ func AttemptCorrelation(tableCols TableCols) *appError {
 					return err
 				}
 				tableCols.chart = "column"
-				err := SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
+				err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
 				if err != nil {
 					return err
 				}
@@ -220,7 +222,8 @@ func AttemptCorrelation(tableCols TableCols) *appError {
 	return nil
 }
 
-// Determine if two sets of dates overlap - X values are referenced so they can be altered in place and passed back again when used with Spurious correlation which covers the intersect between three data sets
+// Determine if two sets of dates overlap - X values are referenced so they can be altered in place and passed back
+// again when used with Spurious correlation which covers the intersect between three data sets
 func GetIntersect(pFromX *time.Time, pToX *time.Time, pRngX *int, fromY time.Time, toY time.Time, rngY int) []FromTo {
 	var bucketRange []FromTo
 	fromX, toX, rngX := *pFromX, *pToX, *pRngX
