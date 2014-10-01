@@ -5,7 +5,7 @@ Dataplay is an open-source prototype game lead by [PlayGen](http://playgen.com/)
 
 The Application is written in [Golang](http://golang.org/) and the front end is written in [Coffeescript](http://coffeescript.org/) and [Angular](https://angularjs.org/).
 
-The backend uses [Martini](https://github.com/go-martini/martini) for web route handling, and [PostGreSQL](http://www.postgresql.org/) for database backend.
+The backend uses [Martini](https://github.com/go-martini/martini) for web route handling and [PostGreSQL](http://www.postgresql.org/) for the database in conjunction with [Gorm](https://github.com/jinzhu/gorm) for data retrieval.
 
 
 #Screenshots
