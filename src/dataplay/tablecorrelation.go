@@ -180,11 +180,11 @@ func AttemptCorrelation(tableCols TableCols) *appError {
 				if err != nil {
 					return err
 				}
-				// tableCols.chart = "scatter"
-				// err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
-				// if err != nil {
-				// 	return err
-				// }
+				tableCols.chart = "scatter"
+				err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
 				// tableCols.chart = "stacked"
 				// err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
 				// if err != nil {
