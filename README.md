@@ -23,4 +23,4 @@ Search Page
 ![](http://i.imgur.com/1ZYsaQb.png)
 
 Chart Page
-![](http://i.imgur.com/W2PXBjF.png)
+![](http://i.imgur.com/cEakHPq.png)
