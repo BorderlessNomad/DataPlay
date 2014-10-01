@@ -15,7 +15,7 @@ angular.module('dataplayApp')
 		$scope.width = 570
 		$scope.height = $scope.width * 9 / 16 # 16:9
 
-		$scope.corrChart = new CorrelatedChart
+		$scope.chart = new CorrelatedChart
 
 		$scope.userObservations = []
 		$scope.userObservationsMessage = []
@@ -45,9 +45,9 @@ angular.module('dataplayApp')
 			Charts.correlated $scope.params.correlationid
 				.success (data, status) ->
 					if data? and data.chartdata
-						$scope.corrChart.generate data.chartdata.type
+						$scope.chart.generate data.chartdata.type
 
-						if not $scope.corrChart.error
+						if not $scope.chart.error
 							[1..2].forEach (i) ->
 								vals = $scope.translateToNv data.chartdata['table' + i].values, data.chartdata.type
 								dataRange = do ->
@@ -58,17 +58,17 @@ angular.module('dataplayApp')
 									]
 								type = if data.chartdata.type is 'column' or data.chartdata.type is 'bar' then 'bar' else 'area'
 
-								$scope.corrChart.data.push
+								$scope.chart.data.push
 									key: data.chartdata['table' + i].title
 									type: type
 									yAxis: i
 									values: vals
-								$scope.corrChart.options.chart['yDomain' + i] = dataRange
-								$scope.corrChart.options.chart['yAxis' + i].tickValues = do ->
+								$scope.chart.options.chart['yDomain' + i] = dataRange
+								$scope.chart.options.chart['yAxis' + i].tickValues = do ->
 									[1..8].map (num) ->
 										dataRange[0] + ((dataRange[1] - dataRange[0]) * ((1 / 8) * num))
 
-							$scope.corrChart.setAxisTypes data.chartdata.table1.xLabel, data.chartdata.table1.yLabel, data.chartdata.table2.yLabel
+							$scope.chart.setAxisTypes data.chartdata.table1.xLabel, data.chartdata.table1.yLabel, data.chartdata.table2.yLabel
 
 					if data?
 						$scope.info.patternId = data.patternid or ''
