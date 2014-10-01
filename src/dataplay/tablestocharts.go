@@ -1141,7 +1141,7 @@ func GetAwaitingValidationHttp(res http.ResponseWriter, req *http.Request) strin
 
 	query := DB.Select("json, priv_discovered.correlation_id, priv_discovered.relation_id, priv_discovered.discovered_id")
 	query = query.Joins("LEFT JOIN priv_validations ON priv_discovered.discovered_id = priv_validations.discovered_id")
-	// query = query.Where("priv_validations.uid != ?", uid) //@todo add back
+	// query = query.Where("priv_validations.uid != ?", uid) //@todo add back?????
 	query = query.Order("random()")
 	err1 := query.Find(&discovered).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {

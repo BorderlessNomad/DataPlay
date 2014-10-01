@@ -350,3 +350,31 @@ func GetPoliticalActivityHttp(res http.ResponseWriter, req *http.Request, params
 
 	return string(r)
 }
+
+func GetPoliticalActivityQ(params map[string]string) string {
+	var result []PoliticalActivity
+
+	if params["type"] == "d" {
+		result = DepartmentsPoliticalActivity()
+	} else if params["type"] == "e" {
+		result = EventsPoliticalActivity()
+	} else if params["type"] == "r" {
+		result = RegionsPoliticalActivity()
+	} else if params["type"] == "p" {
+		pResult := PopularPoliticalActivity()
+		r, e := json.Marshal(pResult)
+		if e != nil {
+			return e.Error()
+		}
+		return string(r)
+	} else {
+		return "Bad type param"
+	}
+
+	r, e := json.Marshal(result)
+	if e != nil {
+		return e.Error()
+	}
+
+	return string(r)
+}
