@@ -20,7 +20,7 @@ update () {
 }
 
 install_essentials () {
-	apt-get install -y build-essential sudo openssh-server gcc curl git mercurial bzr make binutils bison wget python-software-properties htop zip
+	apt-get install -y build-essential sudo vim openssh-server gcc curl git make binutils bison wget python-software-properties htop unzip
 }
 
 # Node.js
@@ -29,10 +29,6 @@ install_nodejs () {
 	apt-get update
 	apt-get install -y python g++ make nodejs
 	npm install -g grunt grunt-cli
-	if [ ! -d /home/ubuntu/.npm ]; then
-		mkdir -p /home/ubuntu/.npm
-	fi
-	chown -R ubuntu:ubuntu /home/ubuntu/.npm # Fix permissions
 }
 
 update_iptables () {
@@ -52,19 +48,21 @@ update_iptables () {
 }
 
 install_go () {
-	cd /home/ubuntu
+	apt-get install -y mercurial bzr
+
+	mkdir -p /home/ubuntu && cd /home/ubuntu
+	mkdir -p gocode && mkdir -p www
+
 	wget -Nq http://golang.org/dl/go1.3.linux-amd64.tar.gz
 	tar xf go1.3.linux-amd64.tar.gz
+
 	echo "export GOROOT=/home/ubuntu/go" >> /home/ubuntu/.profile
-	echo "PATH=$PATH:\$GOROOT/bin" >> /home/ubuntu/.profile
-	. /home/ubuntu/.profile
-	mkdir /home/ubuntu/gocode
+	echo "PATH=\$PATH:\$GOROOT/bin" >> /home/ubuntu/.profile
+
 	echo "export GOPATH=/home/ubuntu/gocode" >> /home/ubuntu/.profile
 	echo "PATH=\$PATH:\$GOPATH/bin" >> /home/ubuntu/.profile
+
 	. /home/ubuntu/.profile
-	if [ ! -d /home/ubuntu/www ]; then
-		mkdir /home/ubuntu/www
-	fi
 }
 
 export_variables () {
@@ -116,7 +114,7 @@ run_node () {
 	if [ -d $APP ]; then
 		rm -r $APP
 	fi
-	mkdir $APP
+	mkdir -p $APP
 	echo "Moving files from $REPO-$BRANCH/ to $APP"
 	mv -f $REPO-$BRANCH/* $APP
 	cd $APP
