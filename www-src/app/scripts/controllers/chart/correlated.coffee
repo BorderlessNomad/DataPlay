@@ -56,16 +56,19 @@ angular.module('dataplayApp')
 										if min > 0 then 0 else min
 										d3.max vals, (item) -> parseFloat item.y
 									]
+								type = if data.chartdata.type is 'column' or data.chartdata.type is 'bar' then 'bar' else 'area'
 
 								$scope.corrChart.data.push
 									key: data.chartdata['table' + i].title
-									type: 'area'
+									type: type
 									yAxis: i
 									values: vals
 								$scope.corrChart.options.chart['yDomain' + i] = dataRange
 								$scope.corrChart.options.chart['yAxis' + i].tickValues = do ->
 									[1..8].map (num) ->
 										dataRange[0] + ((dataRange[1] - dataRange[0]) * ((1 / 8) * num))
+
+							$scope.corrChart.setAxisTypes data.chartdata.table1.xLabel, data.chartdata.table1.yLabel, data.chartdata.table2.yLabel
 
 					if data?
 						$scope.info.patternId = data.patternid or ''
