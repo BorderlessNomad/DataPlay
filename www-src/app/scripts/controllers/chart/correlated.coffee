@@ -14,12 +14,8 @@ angular.module('dataplayApp')
 		$scope.mode = 'correlated'
 		$scope.width = 570
 		$scope.height = $scope.width * 9 / 16 # 16:9
-		$scope.margin =
-			top: 15
-			bottom: 25
-			right: 55
-			left: 55
-		$scope.xTicks = 8
+
+		$scope.corrChart = new CorrelatedChart
 
 		$scope.userObservations = []
 		$scope.userObservationsMessage = []
@@ -49,34 +45,25 @@ angular.module('dataplayApp')
 			Charts.correlated $scope.params.correlationid
 				.success (data, status) ->
 					if data? and data.chartdata
-						[1..2].forEach (i) ->
-							vals = $scope.translateToNv data.chartdata['table' + i].values, data.chartdata.type
-							dataRange = do ->
-								min = d3.min vals, (item) -> parseFloat item.y
-								[
-									if min > 0 then 0 else min
-									d3.max vals, (item) -> parseFloat item.y
-								]
+						$scope.corrChart.generate data.chartdata.type
 
-							if data.chartdata.type is 'line'
-								$scope.corrLine.data.push
+						if not $scope.corrChart.error
+							[1..2].forEach (i) ->
+								vals = $scope.translateToNv data.chartdata['table' + i].values, data.chartdata.type
+								dataRange = do ->
+									min = d3.min vals, (item) -> parseFloat item.y
+									[
+										if min > 0 then 0 else min
+										d3.max vals, (item) -> parseFloat item.y
+									]
+
+								$scope.corrChart.data.push
 									key: data.chartdata['table' + i].title
 									type: 'area'
 									yAxis: i
 									values: vals
-								$scope.corrLine.options.chart['yDomain' + i] = dataRange
-								$scope.corrLine.options.chart['yAxis' + i].tickValues = do ->
-									[1..8].map (num) ->
-										dataRange[0] + ((dataRange[1] - dataRange[0]) * ((1 / 8) * num))
-
-							else if data.chartdata.type is 'scatter'
-								$scope.corrScatter.data.push
-									key: data.chartdata['table' + i].title
-									type: 'area'
-									yAxis: i
-									values: vals
-								$scope.corrScatter.options.chart['yDomain' + i] = dataRange
-								$scope.corrScatter.options.chart['yAxis' + i].tickValues = do ->
+								$scope.corrChart.options.chart['yDomain' + i] = dataRange
+								$scope.corrChart.options.chart['yAxis' + i].tickValues = do ->
 									[1..8].map (num) ->
 										dataRange[0] + ((dataRange[1] - dataRange[0]) * ((1 / 8) * num))
 
@@ -151,89 +138,70 @@ angular.module('dataplayApp')
 					newV.shape = 'circle'
 				newV
 
-		$scope.corrLine =
-			options:
-				chart:
-					type: "multiChart"
-					height: 450
-					margin: $scope.margin
-					x: (d, i) -> i
-					y: (d) -> d[1]
-					color: d3.scale.category10().range()
-					transitionDuration: 250
-					xAxis:
-						axisLabel: ""
-						showMaxMin: false
-						tickFormat: (d) -> d3.time.format("%d-%m-%Y") new Date d
-						ticks: $scope.xTicks
-					yAxis1:
-						orient: 'left'
-						axisLabel: ""
-						tickFormat: (d) -> d3.format(",f") d
-						showMaxMin: false
-						highlightZero: false
-					yAxis2:
-						orient: 'right'
-						axisLabel: ""
-						tickFormat: (d) -> d3.format(",f") d
-						showMaxMin: false
-						highlightZero: false
-					areas:
-						dispatch:
-							elementClick: (e) ->
-								console.log 'areas elementClick', e
-					lines:
-						dispatch:
-							elementClick: (e) ->
-								console.log 'lines elementClick', e
-					yDomain1: [0, 1000]
-					yDomain2: [0, 1000]
-			data: []
+		$scope.validateChart = (valFlag) ->
+			id = "#{$scope.params.id}/#{$scope.params.key}/#{$scope.params.type}/#{$scope.params.x}/#{$scope.params.y}"
+			id += "/#{$scope.params.z}" if $scope.params.z?.length > 0
 
-		$scope.corrScatter =
-			options:
-				chart:
-					type: "scatterChart"
-					height: 450
-					margin: $scope.margin
-					color: d3.scale.category10().range()
-					scatter:
-						onlyCircles: true
-					transitionDuration: 250
-					xAxis:
-						axisLabel: ""
-						showMaxMin: false
-						tickFormat: (d) -> d3.time.format("%d-%m-%Y") new Date d
-						ticks: $scope.xTicks
-					yAxis1:
-						orient: 'left'
-						axisLabel: ""
-						tickFormat: (d) -> d3.format(",f") d
-						showMaxMin: false
-						highlightZero: false
-					yAxis2:
-						orient: 'right'
-						axisLabel: ""
-						tickFormat: (d) -> d3.format(",f") d
-						showMaxMin: false
-						highlightZero: false
-					areas:
-						dispatch:
-							elementClick: (e) ->
-								console.log 'areas elementClick', e
-					lines:
-						dispatch:
-							elementClick: (e) ->
-								console.log 'lines elementClick', e
-					yDomain1: [0, 1000]
-					yDomain2: [0, 1000]
-			data: []
+			Charts.validateChart "rid", id, valFlag
+				.then ->
+					$scope.showValidationMessage valFlag
+					if valFlag
+						$scope.info.validated = true
+					else
+						$scope.info.invalidated = true
+				, $scope.handleError
+
+		$scope.saveObservation = ->
+			Charts.createObservation($scope.info.discoveredId, $scope.observation.x, $scope.observation.y, $scope.observation.message).then (res) ->
+				$scope.observation.message = ''
+
+				$scope.addObservation $scope.observation.x, $scope.observation.y, $scope.observation.message
+
+				$('#comment-modal').modal 'hide'
+			, $scope.handleError
+
+			return
+
+		$scope.clearObservation = ->
+			$scope.observation.message = ''
+
+			x = $scope.observation.x
+			y = $scope.observation.y
+
+			if (x is 0 or x is "0") and (y is 0 or y is "0")
+				$('#comment-modal').modal 'hide'
+				return
+
+			if not(x instanceof Date) and (typeof x is 'string')
+				xdate = new Date x
+				if xdate.toString() isnt 'Invalid Date' then x = Overview.humanDate xdate
+			else if x instanceof Date
+				x = Overview.humanDate x
+
+			xy = "#{x.replace(/\W/g, '')}-#{y.replace(/\W/g, '')}"
+
+			# console.log xy, d3.select("#clipImage-#{xy}"), d3.select("#observationIcon-#{xy}")
+			d3.select("#clipImage-#{xy}").remove()
+			d3.select("#observationIcon-#{xy}").remove()
+
+			$('#comment-modal').modal 'hide'
+			return
 
 		$scope.validateObservation = (item, valFlag) ->
 			if item.oid?
 				Charts.validateObservation item.oid, valFlag
 					.success (res) ->
 						item.validationCount += (valFlag) ? 1 : -1
+					.error $scope.handleError
+
+		$scope.openAddObservationModal = (x, y) ->
+			$scope.observation.x = x || 0
+			$scope.observation.y = y || 0
+			$scope.observation.message = ''
+
+			$('#comment-modal').modal 'show'
+
+			return
 
 		$scope.addObservation = (x, y, space, comment) ->
 			$scope.observations.push
