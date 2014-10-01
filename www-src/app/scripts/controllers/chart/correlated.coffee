@@ -15,25 +15,12 @@ angular.module('dataplayApp')
 		$scope.width = 570
 		$scope.height = $scope.width * 9 / 16 # 16:9
 		$scope.margin =
-			top: 50
-			right: 20
-			bottom: 50
-			left: 100
-		$scope.marginAlt =
-			top: 0
-			right: 20
-			bottom: 50
-			left: 110
+			top: 15
+			bottom: 25
+			right: 55
+			left: 55
 		$scope.xTicks = 8
 
-		$scope.chartRendered = null
-		$scope.chart =
-			title: ""
-			description: "N/A"
-			data: null
-			values: []
-		$scope.xScale = null
-		$scope.yDomain = null
 		$scope.userObservations = []
 		$scope.userObservationsMessage = []
 		$scope.observation =
@@ -63,22 +50,35 @@ angular.module('dataplayApp')
 				.success (data, status) ->
 					if data? and data.chartdata
 						[1..2].forEach (i) ->
-							vals = $scope.translateToNv data.chartdata['table' + i].values
+							vals = $scope.translateToNv data.chartdata['table' + i].values, data.chartdata.type
 							dataRange = do ->
 								min = d3.min vals, (item) -> parseFloat item.y
 								[
 									if min > 0 then 0 else min
 									d3.max vals, (item) -> parseFloat item.y
 								]
-							$scope.corrLine.data.push
-								key: data.chartdata['table' + i].title
-								type: 'area'
-								yAxis: i
-								values: vals
-							$scope.corrLine.options.chart['yDomain' + i] = dataRange
-							$scope.corrLine.options.chart['yAxis' + i].tickValues = do ->
-								[1..8].map (num) ->
-									dataRange[0] + ((dataRange[1] - dataRange[0]) * ((1 / 8) * num))
+
+							if data.chartdata.type is 'line'
+								$scope.corrLine.data.push
+									key: data.chartdata['table' + i].title
+									type: 'area'
+									yAxis: i
+									values: vals
+								$scope.corrLine.options.chart['yDomain' + i] = dataRange
+								$scope.corrLine.options.chart['yAxis' + i].tickValues = do ->
+									[1..8].map (num) ->
+										dataRange[0] + ((dataRange[1] - dataRange[0]) * ((1 / 8) * num))
+
+							else if data.chartdata.type is 'scatter'
+								$scope.corrScatter.data.push
+									key: data.chartdata['table' + i].title
+									type: 'area'
+									yAxis: i
+									values: vals
+								$scope.corrScatter.options.chart['yDomain' + i] = dataRange
+								$scope.corrScatter.options.chart['yAxis' + i].tickValues = do ->
+									[1..8].map (num) ->
+										dataRange[0] + ((dataRange[1] - dataRange[0]) * ((1 / 8) * num))
 
 					if data?
 						$scope.info.patternId = data.patternid or ''
@@ -133,7 +133,7 @@ angular.module('dataplayApp')
 				, $scope.handleError
 			return
 
-		$scope.translateToNv = (values) ->
+		$scope.translateToNv = (values, type) ->
 			normalise = (d) ->
 				if typeof d is 'string'
 					if not isNaN Date.parse d
@@ -143,22 +143,62 @@ angular.module('dataplayApp')
 				return d
 
 			values.map (v) ->
-				x: normalise v.x || 0
-				y: parseFloat v.y || 0
+				newV =
+					x: normalise v.x || 0
+					y: parseFloat v.y || 0
+				if type is 'scatter'
+					newV.size = 0.5
+					newV.shape = 'circle'
+				newV
 
 		$scope.corrLine =
 			options:
 				chart:
 					type: "multiChart"
 					height: 450
-					margin:
-						top: 15
-						right: 35
-						bottom: 25
-						left: 35
+					margin: $scope.margin
 					x: (d, i) -> i
 					y: (d) -> d[1]
 					color: d3.scale.category10().range()
+					transitionDuration: 250
+					xAxis:
+						axisLabel: ""
+						showMaxMin: false
+						tickFormat: (d) -> d3.time.format("%d-%m-%Y") new Date d
+						ticks: $scope.xTicks
+					yAxis1:
+						orient: 'left'
+						axisLabel: ""
+						tickFormat: (d) -> d3.format(",f") d
+						showMaxMin: false
+						highlightZero: false
+					yAxis2:
+						orient: 'right'
+						axisLabel: ""
+						tickFormat: (d) -> d3.format(",f") d
+						showMaxMin: false
+						highlightZero: false
+					areas:
+						dispatch:
+							elementClick: (e) ->
+								console.log 'areas elementClick', e
+					lines:
+						dispatch:
+							elementClick: (e) ->
+								console.log 'lines elementClick', e
+					yDomain1: [0, 1000]
+					yDomain2: [0, 1000]
+			data: []
+
+		$scope.corrScatter =
+			options:
+				chart:
+					type: "scatterChart"
+					height: 450
+					margin: $scope.margin
+					color: d3.scale.category10().range()
+					scatter:
+						onlyCircles: true
 					transitionDuration: 250
 					xAxis:
 						axisLabel: ""
