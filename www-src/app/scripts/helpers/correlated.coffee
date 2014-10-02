@@ -14,6 +14,8 @@ typeDictionary =
 
 tickFormatFunc = (type) ->
 	(d) ->
+		if type is 'none'
+			return ''
 		if type is 'date'
 			return d3.time.format("%d-%m-%Y") new Date d
 		return d3.format(",f") d
@@ -23,7 +25,7 @@ optionsList =
 		chart:
 			type: "multiChart"
 			height: 450
-			margin: settings.margin
+			margin: _.cloneDeep settings.margin
 			x: (d, i) -> i
 			y: (d) -> d[1]
 			color: d3.scale.category10().range()
@@ -51,7 +53,7 @@ optionsList =
 		chart:
 			type: "multiChart"
 			height: 450
-			margin: settings.margin
+			margin: _.cloneDeep settings.margin
 			x: (d, i) -> i
 			y: (d) -> d[1]
 			color: d3.scale.category10().range()
@@ -83,7 +85,7 @@ optionsList =
 		chart:
 			type: "scatterChart"
 			height: 450
-			margin: settings.margin
+			margin: _.cloneDeep settings.margin
 			color: d3.scale.category10().range()
 			scatter:
 				onlyCircles: true
@@ -93,18 +95,13 @@ optionsList =
 				showMaxMin: false
 				tickFormat: tickFormatFunc()
 				ticks: settings.xTicks
-			yAxis1:
-				orient: 'left'
+			yAxis:
 				axisLabel: ""
-				tickFormat: tickFormatFunc()
 				showMaxMin: false
-				highlightZero: false
-			yAxis2:
-				orient: 'right'
-				axisLabel: ""
 				tickFormat: tickFormatFunc()
-				showMaxMin: false
 				highlightZero: false
+			yAxis1: {}
+			yAxis2: {}
 			yDomain1: [0, 1000]
 			yDomain2: [0, 1000]
 
@@ -116,6 +113,7 @@ class CorrelatedChart
 	options: {}
 	data: []
 	error: null
+	info: {}
 
 	generate: (type, data = []) =>
 		if type? and typeDictionary[type]? then type = typeDictionary[type]
@@ -133,5 +131,44 @@ class CorrelatedChart
 			Object.keys(items).forEach (key) =>
 				if items[key]
 					@options.chart[key].tickFormat = tickFormatFunc items[key]
+
+	setSize: (width, height) =>
+		if @options?.chart?
+			if width? then @options.chart.width = width
+			if height? then @options.chart.height = height
+
+	setMargin: (top, bottom, left, right) =>
+		if @options?.chart?.margin?
+			if top? then @options.chart.margin.top = top
+			if bottom? then @options.chart.margin.bottom = bottom
+			if left? then @options.chart.margin.left = left
+			if right? then @options.chart.margin.right = right
+
+	setLegend: (flag) =>
+		if @options?.chart? and flag? and typeof flag is 'boolean'
+			@options.chart.showLegend = flag
+
+	setTooltips: (flag) =>
+		if @options?.chart? and flag? and typeof flag is 'boolean'
+			@options.chart.tooltips = flag
+
+
+	translateData: (values, type) =>
+		normalise = (d) ->
+			if typeof d is 'string'
+				if not isNaN Date.parse d
+					return Date.parse d
+				if not isNaN parseFloat d
+					return parseFloat d
+			return d
+
+		values.map (v) ->
+			newV =
+				x: normalise v.x || 0
+				y: parseFloat v.y || 0
+			if type is 'scatter'
+				newV.size = 3
+				newV.shape = 'circle'
+			newV
 
 window.CorrelatedChart = CorrelatedChart

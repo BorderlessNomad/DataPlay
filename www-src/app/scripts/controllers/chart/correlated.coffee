@@ -49,7 +49,7 @@ angular.module('dataplayApp')
 
 						if not $scope.chart.error
 							[1..2].forEach (i) ->
-								vals = $scope.translateToNv data.chartdata['table' + i].values, data.chartdata.type
+								vals = $scope.chart.translateData data.chartdata['table' + i].values, data.chartdata.type
 								dataRange = do ->
 									min = d3.min vals, (item) -> parseFloat item.y
 									[
@@ -122,24 +122,6 @@ angular.module('dataplayApp')
 
 				, $scope.handleError
 			return
-
-		$scope.translateToNv = (values, type) ->
-			normalise = (d) ->
-				if typeof d is 'string'
-					if not isNaN Date.parse d
-						return Date.parse d
-					if not isNaN parseFloat d
-						return parseFloat d
-				return d
-
-			values.map (v) ->
-				newV =
-					x: normalise v.x || 0
-					y: parseFloat v.y || 0
-				if type is 'scatter'
-					newV.size = 0.5
-					newV.shape = 'circle'
-				newV
 
 		$scope.validateChart = (valFlag) ->
 			id = "#{$scope.params.id}/#{$scope.params.key}/#{$scope.params.type}/#{$scope.params.x}/#{$scope.params.y}"
