@@ -33,11 +33,21 @@ install_go () {
 }
 
 export_variables () {
-	HOST_POSTGRES=$(ss-get --timeout 360 postgres.hostname)
-	HOST_REDIS="109.231.121.13:6379"
+	DATABASE_HOST=$(ss-get --timeout 360 postgres.hostname)
+	DATABASE_PORT="5432"
 
-	echo "export DATABASE=$HOST_POSTGRES" >> /home/ubuntu/.profile
-	echo "export redishost=$HOST_REDIS" >> /home/ubuntu/.profile
+	REDIS_HOST="109.231.121.13"
+	REDIS_PORT="6379"
+
+	CASSANDRA_HOST="109.231.121.13"
+	CASSANDRA_PORT="9042"
+
+	echo "export DP_DATABASE_HOST=$DATABASE_HOST" >> /home/ubuntu/.profile
+	echo "export DP_DATABASE_PORT=$DATABASE_PORT" >> /home/ubuntu/.profile
+	echo "export DP_REDIS_HOST=$REDIS_HOST" >> /home/ubuntu/.profile
+	echo "export DP_REDIS_PORT=$REDIS_PORT" >> /home/ubuntu/.profile
+	echo "export DP_CASSANDRA_HOST=$CASSANDRA_HOST" >> /home/ubuntu/.profile
+	echo "export DP_CASSANDRA_PORT=$CASSANDRA_PORT" >> /home/ubuntu/.profile
 
 	. /home/ubuntu/.profile
 }

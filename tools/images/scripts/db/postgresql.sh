@@ -17,16 +17,33 @@ setuphost () {
 install_postgres () {
 	apt-get install -y postgresql postgresql-contrib postgresql-client libpq-dev
 	apt-get autoclean
-	# TODO setup users etc
+	service postgresql start
 }
 
 setup_database () {
+	cd
+	# Create a PostgreSQL user named 'playgen' with 'aDam3ntiUm' as the password and
+	# then create a database 'dataplay' owned by the 'playgen' role.
+	psql --command "CREATE USER playgen WITH SUPERUSER PASSWORD 'aDam3ntiUm';" && \
+	createdb -O playgen dataplay
+
+	# Adjust PostgreSQL configuration so that remote connections to the database are possible.
+	echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/9.3/main/pg_hba.conf
+
+	# And add 'listen_addresses' to '/etc/postgresql/9.3/main/postgresql.conf'
+	echo "listen_addresses='*'" >> /etc/postgresql/9.3/main/postgresql.conf
+}
+
+import_data () {
 	echo "TODO"
-	# TODO
+	# on Dev
+	# echo "10.0.0.2:5432:dataplay:playgen:aDam3ntiUm" > .pgpass
+	# chmod 0600 .pgpass
 	# pg_dump -v -cC -f dataplay.sql -h 10.0.0.2 -U playgen dataplay
-	# pg_dump -v -cC -f dataplay.sql -h localhost -U playgen dataplay
 	# gzip -vk dataplay.sql
 	# scp dataplay.sql.gz ubuntu@109.231.121.12:/home/ubuntu
+	#
+	# on Server
 	# gunzip -vk dataplay.sql.gz
 	# psql -h localhost -U playgen -d dataplay -f dataplay.sql
 }
@@ -49,7 +66,7 @@ echo "[$(timestamp)] ---- 2. Install PostgresSQL ----"
 install_postgres
 
 echo "[$(timestamp)] ---- 3. Export Database ----"
-setup_database
+su postgres -c "$(typeset -f setup_database); setup_database" # Run function as user 'postgres'
 
 echo "[$(timestamp)] ---- 4. Update IPTables rules ----"
 update_iptables
