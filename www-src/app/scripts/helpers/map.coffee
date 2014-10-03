@@ -89,6 +89,7 @@ class MapGenerator
 		'southglamorgan': 'South Glamorgan'
 		'southyorkshire': 'South Yorkshire'
 		'tyneandwear': 'Tyne and Wear'
+		'westernisles': 'Western Isles'
 		'westglamorgan': 'West Glamorgan'
 		'westmidlands': 'West Midlands'
 		'westsussex': 'West Sussex'
