@@ -60,7 +60,7 @@ func SearchForNewsQ(params map[string]string) string {
 func SearchForNews(searchterms string) ([]NewsArticle, *appError) {
 	newsarticles := []NewsArticle{}
 	searchterm := strings.Split(searchterms, "_")
-	session, _ := GetCassandraConnection("dataplay_alpha") // create connection to cassandra
+	session, _ := GetCassandraConnection("dp") // create connection to cassandra
 	defer session.Close()
 
 	/////////// @TODO: Weight based on search date///////////////
@@ -103,10 +103,6 @@ func SearchForNews(searchterms string) ([]NewsArticle, *appError) {
 			newsarticles = append(newsarticles, tmpNA)
 		}
 	}
-
-	// if err := iter.Close(); err != nil {
-	// 	return newsarticles, err
-	// }
 
 	sortutil.DescByField(newsarticles, "Score")
 	return newsarticles, nil

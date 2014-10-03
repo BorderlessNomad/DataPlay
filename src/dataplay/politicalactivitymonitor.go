@@ -186,6 +186,7 @@ func CheckThese(terms []TermKey) []PoliticalActivity {
 			}
 		}
 	}
+
 	return RankPA(politicalActivity)
 }
 
@@ -209,7 +210,7 @@ func keywords(terms []TermKey) []DatedTerm {
 	var DatedTerms []DatedTerm
 	var tmpDT DatedTerm
 
-	session, _ := GetCassandraConnection("dataplay_alpha") // create connection to cassandra
+	session, _ := GetCassandraConnection("dp") // create connection to cassandra
 	defer session.Close()
 
 	// add all dated dateID between -n days and today to array
@@ -218,12 +219,9 @@ func keywords(terms []TermKey) []DatedTerm {
 		dateID = append(dateID, string(id[:len(id)])+"!"+queryDate.Format(time.RFC3339))
 	}
 
-	// if err := iter.Close(); err != nil {
-	//return err
-	// }
-
 	for _, term := range terms {
 		iter := session.Query(`SELECT id FROM keyword WHERE name = ?`, term.KeyTerm).Iter()
+
 		for iter.Scan(&id) {
 			var date time.Time
 			date = DateAndId(id, dateID)
@@ -239,6 +237,7 @@ func keywords(terms []TermKey) []DatedTerm {
 
 	for _, term := range terms {
 		iter := session.Query(`SELECT id FROM entity WHERE name = ?`, term.KeyTerm).Iter()
+
 		for iter.Scan(&id) {
 			var date time.Time
 			date = DateAndId(id, dateID)
@@ -305,7 +304,7 @@ func RankPA(activities []PoliticalActivity) []PoliticalActivity {
 }
 
 func WriteCass() {
-	session, _ := GetCassandraConnection("dataplay_alpha") // create connection to cassandra
+	session, _ := GetCassandraConnection("dp") // create connection to cassandra
 	defer session.Close()
 	url := ""
 
@@ -320,7 +319,7 @@ func WriteCass() {
 
 func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
 	cassandraHost := "10.0.0.2"
-	cassandraPort := 49236 //9042
+	cassandraPort := 49183 //9042
 
 	if os.Getenv("DP_CASSANDRA_HOST") != "" {
 		cassandraHost = os.Getenv("DP_CASSANDRA_HOST")
