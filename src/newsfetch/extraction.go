@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -38,8 +39,9 @@ func (c *Client) Extract(urls []string, options Options) error {
 
 		if err != nil {
 			f, _ := os.OpenFile("log.txt", os.O_RDWR|os.O_APPEND, 0666)
-			errStr := "FAILED ON URL " + i + " for reason " + err.Error()
-			f.Write(errStr)
+			errStr := "FAILED ON URL " + strconv.Itoa(i) + " for reason " + err.Error()
+			e := []byte(errStr + "\n")
+			f.Write(e)
 			return err
 		}
 
