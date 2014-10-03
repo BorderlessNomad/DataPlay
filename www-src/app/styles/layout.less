@@ -10,9 +10,18 @@ body > .container {
 	padding-top: 60px;
 }
 
+/* Start over-riding nv.d3.css */
 svg {
-	height: initial; /* Over-riding nv.d3.css */
+	height: initial;
+	width: initial;
+	display: initial;
 }
+nvd3 svg {
+	height: 100%;
+	width: 100%;
+	display: block;
+}
+/* End over-riding nv.d3.css */
 
 .navbar-brand {
 	background-image: url('../images/logo-white.png');
