@@ -1123,6 +1123,7 @@ func GetDiscoveredChartsQ(params map[string]string) string {
 	return string(r)
 }
 
+// Get charts and info awaiting user validation
 func GetAwaitingValidationHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
@@ -1135,14 +1136,13 @@ func GetAwaitingValidationHttp(res http.ResponseWriter, req *http.Request) strin
 		http.Error(res, err.Message, err.Code)
 		return ""
 	}
-	fmt.Println(uid)
 
 	discovered := []Discovered{}
 	charts := make([]interface{}, 0)
 
 	query := DB.Select("json, priv_discovered.correlation_id, priv_discovered.relation_id, priv_discovered.discovered_id")
 	query = query.Joins("LEFT JOIN priv_validations ON priv_discovered.discovered_id = priv_validations.discovered_id")
-	// query = query.Where("priv_validations.uid != ?", uid) //@todo add back?????
+	query = query.Where("priv_validations.uid != ?", uid) //@todo check this in practice
 	query = query.Order("random()")
 	err1 := query.Find(&discovered).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {
@@ -1160,7 +1160,30 @@ func GetAwaitingValidationHttp(res http.ResponseWriter, req *http.Request) strin
 			}
 
 			correlationData.CorrelationId = d.CorrelationId
-			charts = append(charts, correlationData)
+
+			type correlationExtender struct {
+				*CorrelationData
+				Source  string `json:"source_title"`
+				SourceX string `json:"source_X"`
+				SourceY string `json:"source_Y"`
+				SourceZ string `json:"source_Z, omitempty"`
+			}
+
+			var correlation Correlation
+			err3 := DB.Where("correlation_id = ?", d.CorrelationId).Find(&correlation).Error
+			if err3 != nil {
+				http.Error(res, "Failed to find correlation data", http.StatusBadRequest)
+				return ""
+			}
+
+			var c correlationExtender
+			c.Source = correlation.Tbl1
+			c.SourceX = correlation.Col1
+			c.SourceY = correlation.Col2
+			c.SourceZ = correlation.Col3
+
+			charts = append(charts, c)
+
 		} else {
 			var tableData TableData
 			err2 := json.Unmarshal(d.Json, &tableData)

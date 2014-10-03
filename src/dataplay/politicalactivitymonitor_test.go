@@ -20,7 +20,7 @@ func TestGetPoliticalActivityHttp(t *testing.T) {
 
 	Convey("Should return departments PoliticalActivity", t, func() {
 		result := GetPoliticalActivityHttp(res, req, params)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 
 	params["type"] = "e"
@@ -30,7 +30,7 @@ func TestGetPoliticalActivityHttp(t *testing.T) {
 
 	Convey("Should return events PoliticalActivity", t, func() {
 		result := GetPoliticalActivityHttp(res, req, params)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 
 	params["type"] = "r"
@@ -40,7 +40,7 @@ func TestGetPoliticalActivityHttp(t *testing.T) {
 
 	Convey("Should return regions PoliticalActivity", t, func() {
 		result := GetPoliticalActivityHttp(res, req, params)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 
 	params["type"] = "p"
@@ -50,7 +50,7 @@ func TestGetPoliticalActivityHttp(t *testing.T) {
 
 	Convey("Should return popular PoliticalActivity", t, func() {
 		result := GetPoliticalActivityHttp(res, req, params)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 
 	z := time.Now()
