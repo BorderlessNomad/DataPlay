@@ -36,10 +36,10 @@ export_variables () {
 	DATABASE_HOST=$(ss-get --timeout 360 postgres.hostname)
 	DATABASE_PORT="5432"
 
-	REDIS_HOST="109.231.121.13"
+	REDIS_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
 	REDIS_PORT="6379"
 
-	CASSANDRA_HOST="109.231.121.13"
+	CASSANDRA_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
 	CASSANDRA_PORT="9042"
 
 	echo "export DP_DATABASE_HOST=$DATABASE_HOST" >> /home/ubuntu/.profile
@@ -101,10 +101,15 @@ run_master () {
 	echo "Done! $ sudo tail -f $DEST/$APP/$LOG for more details"
 }
 
+install_nginx () {
+	apt-get install -y nginx
+	# /home/ubuntu/www/dataplay/www-src/app
+}
+
 update_iptables () {
 	# NAT Redirect
-	iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 3000
-	iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 443 -j REDIRECT --to-port 3443
+	# iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 3000
+	# iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 443 -j REDIRECT --to-port 3443
 
 	iptables-save
 }

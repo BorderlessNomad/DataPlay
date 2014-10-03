@@ -15,9 +15,11 @@ setuphost () {
 }
 
 install_redis () {
+	mkdir -p /home/ubuntu && cd /home/ubuntu
+
 	add-apt-repository -y ppa:rwky/redis
 	apt-get update
-	apt-get install -y redis-server python python-dev python-pip python-virtualenv
+	apt-get install -y redis-server
 
 	service redis-server restart
 
@@ -26,24 +28,40 @@ install_redis () {
 }
 
 install_rabbitmq () {
+	mkdir -p /home/ubuntu && cd /home/ubuntu
+
 	curl http://www.rabbitmq.com/rabbitmq-signing-key-public.asc | sudo apt-key add -
 	echo "deb http://www.rabbitmq.com/debian/ testing main" > /etc/apt/sources.list.d/rabbitmq.list
 	apt-get update
 	apt-get install -y rabbitmq-server
 
+	rabbitmqctl add_user playgen aDam3ntiUm && \
+	rabbitmqctl set_permissions -p / playgen ".*" ".*" ".*" && \
+	rabbitmqctl set_user_tags playgen administrator && \
+	rabbitmqctl delete_user guest
+
+	service rabbitmq-server restart
+}
+
+enable_rabbitmqadmin () {
 	rabbitmq-plugins enable rabbitmq_management
 	echo "[{rabbit, [{loopback_users, []}]}]." > /etc/rabbitmq/rabbitmq.config
 
-	service rabbitmq-server restart
+	service rabbitmq-server restart > rabbitmq-service.log & # Start RabbitMQ in background
+	echo "Waiting for RabbitMQ to restart..."
+	sleep 1
+	while ! grep -m1 '...done.' < rabbitmq-service.log ; do
+		sleep 1
+	done
+	echo "RabbitMQ is UP!"
 
-	wget http://localhost:15672/cli/rabbitmqadmin
+	while [ 1 ]; do
+		wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 http://localhost:15672/cli/rabbitmqadmin
+		if [ $? = 0 ]; then break; fi; # check return value, break if successful (0)
+		sleep 1s;
+	done;
 	chmod +x rabbitmqadmin
 	mv rabbitmqadmin /usr/local/sbin
-
-	rabbitmqctl add_user playgen aDam3ntiUm
-	rabbitmqctl set_permissions -p / playgen ".*" ".*" ".*"
-	rabbitmqctl set_user_tags playgen administrator
-	rabbitmqctl delete_user guest
 
 	service rabbitmq-server restart
 }
@@ -76,7 +94,10 @@ install_redis
 echo "[$(timestamp)] ---- 3. Install RabbitMQ ----"
 install_rabbitmq
 
-echo "[$(timestamp)] ---- 4. Update IPTables rules ----"
+echo "[$(timestamp)] ---- 4. Enable RabbitMQ Admin ----"
+# enable_rabbitmqadmin # Must be installed manually!!!
+
+echo "[$(timestamp)] ---- 5. Update IPTables rules ----"
 update_iptables
 
 echo "[$(timestamp)] ---- Completed ----"
