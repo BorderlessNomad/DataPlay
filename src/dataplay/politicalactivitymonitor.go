@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -17,31 +16,20 @@ const numdays = 30
 var Today = time.Date(2010, 2, 1, 0, 0, 0, 0, time.UTC) // override today's date
 var FromDate = Today.AddDate(0, 0, -numdays)
 
+type TermKey struct {
+	KeyTerm  string
+	MainTerm string
+}
+
 type PoliticalActivity struct {
 	Term     string               `json:"term"`
 	Mentions [numdays]PoliticalXY `json:"graph"`
 	Val      int                  `json:"-"`
 }
 
-type TermKey struct {
-	KeyTerm  string
-	MainTerm string
-}
-
 type PoliticalXY struct {
 	X int `json:"x"`
 	Y int `json:"y"`
-}
-type DateID struct {
-	ID   []byte
-	Date time.Time
-}
-
-type DatedTerm struct {
-	KeyTerm  string
-	MainTerm string
-	Date     time.Time
-	ID       []byte
 }
 
 type Popular struct {
@@ -73,7 +61,7 @@ func DepartmentsPoliticalActivity() []PoliticalActivity {
 		terms = append(terms, tmp)
 	}
 
-	return CheckThese(terms)
+	return TermFrequency(terms)
 }
 
 // gets names of all events, checks for mentions in specified time period and returns ranked array of 15 most popular terms and their 30 day frequencies
@@ -93,7 +81,7 @@ func EventsPoliticalActivity() []PoliticalActivity {
 		terms = append(terms, tmp)
 	}
 
-	return CheckThese(terms)
+	return TermFrequency(terms)
 }
 
 // gets names of all regions, checks for mentions in specified time period and returns ranked array of 15 most popular terms and their 30 day frequencies
@@ -113,7 +101,88 @@ func RegionsPoliticalActivity() []PoliticalActivity {
 		terms = append(terms, tmp)
 	}
 
-	return CheckThese(terms)
+	return TermFrequency(terms)
+}
+
+func TermFrequency(terms []TermKey) []PoliticalActivity {
+	var date time.Time
+	var name string
+	politicalActivity := make([]PoliticalActivity, 0)
+
+	session, _ := GetCassandraConnection("dp") // create connection to cassandra
+	defer session.Close()
+
+	iter1 := session.Query(`SELECT date, name FROM keyword WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
+	for iter1.Scan(&date, &name) {
+		for _, term := range terms {
+			if name == term.KeyTerm { // for any key term matches
+				i := PaPlace(&politicalActivity, term.MainTerm)                                       // either get place of main term or add to array if doesn't exist
+				dayindex := int((Today.Round(time.Hour).Sub(date.Round(time.Hour)) / 24).Hours() - 1) // get day index
+				politicalActivity[i].Mentions[dayindex].Y++
+			}
+		}
+	}
+
+	iter2 := session.Query(`SELECT date, name FROM entity WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
+	for iter2.Scan(&date, &name) {
+		for _, term := range terms {
+			if name == term.KeyTerm { // for any key term matches
+				i := PaPlace(&politicalActivity, term.MainTerm)                                       // either get place of main term or add to array if doesn't exist
+				dayindex := int((Today.Round(time.Hour).Sub(date.Round(time.Hour)) / 24).Hours() - 1) // get day index
+				politicalActivity[i].Mentions[dayindex].Y++
+			}
+		}
+	}
+	return RankPA(politicalActivity)
+}
+
+func PaPlace(pa *[]PoliticalActivity, t string) int {
+	for i, p := range *pa {
+		if p.Term == t {
+			return i
+		}
+	}
+	var tmp PoliticalActivity
+	tmp.Term = t
+	*pa = append(*pa, tmp)
+	return len(*pa) - 1
+}
+
+// sort PA array and returns slice of top 15
+func RankPA(activities []PoliticalActivity) []PoliticalActivity {
+
+	for i, _ := range activities {
+		total := 0
+		for j, _ := range activities[i].Mentions {
+			total += activities[i].Mentions[j].Y
+			activities[i].Mentions[j].X = j
+		}
+		activities[i].Val = total
+	}
+
+	n := len(activities)
+	chk := true
+	var tmp PoliticalActivity
+
+	for chk == true {
+		newn := 0
+
+		for i := 1; i < n; i++ {
+			if activities[i].Val > activities[i-1].Val {
+				tmp = activities[i]
+				activities[i] = activities[i-1]
+				activities[i-1] = tmp
+				newn = i
+			}
+		}
+		n = newn
+
+		if n == 0 {
+			chk = false
+		}
+	}
+
+	return activities[0:15]
 }
 
 func PopularPoliticalActivity() [3]Popular {
@@ -170,151 +239,6 @@ func PopularPoliticalActivity() [3]Popular {
 	}
 
 	return popular
-}
-
-// takes slice of terms, checks for the total number of occurences and returns a top 15 ranked array
-func CheckThese(terms []TermKey) []PoliticalActivity {
-	politicalActivity := make([]PoliticalActivity, len(terms))
-	DatedTerm := keywords(terms) // returns array
-
-	for _, term := range terms { // check each term
-		i := PaPlace(&politicalActivity, term.MainTerm) // copy to politicalActivity array
-		for _, dt := range DatedTerm {                  // check through all dated terms
-			if term.KeyTerm == dt.KeyTerm { //if there's a match
-				dayindex := int((Today.Round(time.Hour).Sub(dt.Date.Round(time.Hour)) / 24).Hours() - 1) // get day index
-				politicalActivity[i].Mentions[dayindex].Y++                                              // increase the count for that term on that day
-			}
-		}
-	}
-
-	return RankPA(politicalActivity)
-}
-
-func PaPlace(pa *[]PoliticalActivity, t string) int {
-
-	for i, p := range *pa {
-		if p.Term == t {
-			return i
-		}
-	}
-	var tmp PoliticalActivity
-	tmp.Term = t
-	*pa = append(*pa, tmp)
-	return len(*pa) - 1
-}
-
-func keywords(terms []TermKey) []DatedTerm {
-	var id []byte
-	var dateID []string
-	var queryDate time.Time
-	var DatedTerms []DatedTerm
-	var tmpDT DatedTerm
-
-	session, _ := GetCassandraConnection("dp") // create connection to cassandra
-	defer session.Close()
-
-	// add all dated dateID between -n days and today to array
-	iter := session.Query(`SELECT id, date FROM response WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
-	for iter.Scan(&id, &queryDate) {
-		dateID = append(dateID, string(id[:len(id)])+"!"+queryDate.Format(time.RFC3339))
-	}
-
-	for _, term := range terms {
-		iter := session.Query(`SELECT id FROM keyword WHERE name = ?`, term.KeyTerm).Iter()
-
-		for iter.Scan(&id) {
-			var date time.Time
-			date = DateAndId(id, dateID)
-			if date.Year() > 1 {
-				tmpDT.KeyTerm = term.KeyTerm
-				tmpDT.MainTerm = term.MainTerm
-				tmpDT.ID = id
-				tmpDT.Date = date
-				DatedTerms = append(DatedTerms, tmpDT)
-			}
-		}
-	}
-
-	for _, term := range terms {
-		iter := session.Query(`SELECT id FROM entity WHERE name = ?`, term.KeyTerm).Iter()
-
-		for iter.Scan(&id) {
-			var date time.Time
-			date = DateAndId(id, dateID)
-			if date.Year() > 1 {
-				tmpDT.KeyTerm = term.KeyTerm
-				tmpDT.MainTerm = term.MainTerm
-				tmpDT.ID = id
-				tmpDT.Date = date
-				DatedTerms = append(DatedTerms, tmpDT)
-			}
-		}
-	}
-
-	return DatedTerms
-}
-
-func DateAndId(id []byte, dateID []string) time.Time {
-	var t time.Time
-	for _, d := range dateID {
-		split := strings.Split(d, "!")
-		if string(id[:len(id)]) == split[0] {
-			t, _ = time.Parse(time.RFC3339, split[1])
-			return t
-		}
-	}
-	return t
-}
-
-// sort PA array and returns slice of top 15
-func RankPA(activities []PoliticalActivity) []PoliticalActivity {
-
-	for i, _ := range activities {
-		total := 0
-		for j, _ := range activities[i].Mentions {
-			total += activities[i].Mentions[j].Y
-			activities[i].Mentions[j].X = j
-		}
-		activities[i].Val = total
-	}
-
-	n := len(activities)
-	chk := true
-	var tmp PoliticalActivity
-
-	for chk == true {
-		newn := 0
-
-		for i := 1; i < n; i++ {
-			if activities[i].Val > activities[i-1].Val {
-				tmp = activities[i]
-				activities[i] = activities[i-1]
-				activities[i-1] = tmp
-				newn = i
-			}
-		}
-		n = newn
-
-		if n == 0 {
-			chk = false
-		}
-	}
-
-	return activities[0:15]
-}
-
-func WriteCass() {
-	session, _ := GetCassandraConnection("dp") // create connection to cassandra
-	defer session.Close()
-	url := ""
-
-	iter := session.Query(`SELECT original_url FROM response`).Iter()
-	f, _ := os.OpenFile("dat1.txt", os.O_RDWR|os.O_APPEND, 0666)
-
-	for iter.Scan(&url) {
-		u := []byte(url + "\n")
-		f.Write(u)
-	}
 }
 
 func GetCassandraConnection(keyspace string) (*gocql.Session, error) {

@@ -1,12 +1,12 @@
 package main
 
 import (
-	// "fmt"
+	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	// "time"
+	"time"
 )
 
 func TestGetPoliticalActivityHttp(t *testing.T) {
@@ -16,32 +16,43 @@ func TestGetPoliticalActivityHttp(t *testing.T) {
 	params := map[string]string{
 		"type": "d",
 	}
+	a := time.Now()
 
-	// Convey("Should return departments PoliticalActivity", t, func() {
-	// 	result := GetPoliticalActivityHttp(res, req, params)
-	// 	So(result, ShouldNotBeNil)
-	// })
+	Convey("Should return departments PoliticalActivity", t, func() {
+		result := GetPoliticalActivityHttp(res, req, params)
+		So(result, ShouldEqual, "")
+	})
 
-	// params["type"] = "e"
+	params["type"] = "e"
 
-	// Convey("Should return events PoliticalActivity", t, func() {
-	// 	result := GetPoliticalActivityHttp(res, req, params)
-	// 	So(result, ShouldNotBeNil)
-	// })
+	b := time.Now()
+	fmt.Println("ROBOCOP1", b.Sub(a).Seconds())
+
+	Convey("Should return events PoliticalActivity", t, func() {
+		result := GetPoliticalActivityHttp(res, req, params)
+		So(result, ShouldEqual, "")
+	})
 
 	params["type"] = "r"
 
+	c := time.Now()
+	fmt.Println("ROBOCOP2", c.Sub(b).Seconds())
+
 	Convey("Should return regions PoliticalActivity", t, func() {
 		result := GetPoliticalActivityHttp(res, req, params)
-		So(result, ShouldNotBeNil)
+		So(result, ShouldEqual, "")
 	})
 
 	params["type"] = "p"
 
+	d := time.Now()
+	fmt.Println("ROBOCOP3", d.Sub(c).Seconds())
+
 	Convey("Should return popular PoliticalActivity", t, func() {
 		result := GetPoliticalActivityHttp(res, req, params)
-		So(result, ShouldNotBeNil)
+		So(result, ShouldEqual, "")
 	})
 
-	// WriteCass()
+	z := time.Now()
+	fmt.Println("ROBOCOP4", z.Sub(d).Seconds())
 }
