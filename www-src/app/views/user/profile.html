@@ -6,7 +6,7 @@
 			<a data-toggle="tab" ng-click="changeTab('profile')" >Personal Details</a>
 		</li>
 		<li ng-class="{true: 'active', false: ''}[currentTab == 'validdiscoveries']">
-			<a data-toggle="tab" ng-click="changeTab('validdiscoveries')" >Valid Discoveries</a>
+			<a data-toggle="tab" ng-click="changeTab('validdiscoveries')" >Credited Discoveries</a>
 		</li>
 		<li ng-class="{true: 'active', false: ''}[currentTab == 'discoveries']">
 			<a data-toggle="tab" ng-click="changeTab('discoveries')" >Discoveries</a>
@@ -56,7 +56,7 @@
 		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'validdiscoveries']" id="validdiscoveries">
 			<div class="row">
 				<div class="col-md-6 col-md-offset-3">
-					<p class="text-center">My Validated Discoveries</p>
+					<p class="text-center">My Credited Discoveries</p>
 					<div ng-repeat="disc in validDiscoveries">
 						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
 						<p class="profile-li">
