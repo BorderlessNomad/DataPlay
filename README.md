@@ -1,5 +1,4 @@
-Dataplay
-===
+![](http://i.imgur.com/esjTHFE.png)
 
 Dataplay is an open-source prototype game lead by [PlayGen](http://playgen.com/) for the [CLEAR](http://celarcloud.eu) project.
 
