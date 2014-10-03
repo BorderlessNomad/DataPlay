@@ -52,9 +52,9 @@ func (di Dictionary) TableName() string {
 }
 
 type Departments struct {
-	GovDept string
-	Type    string
-	Id      int `gorm:"primary_key:yes"`
+	Key  string
+	Dept string
+	Id   int `gorm:"primary_key:yes"`
 }
 
 func (dp Departments) TableName() string {
@@ -78,9 +78,9 @@ func (di Discovered) TableName() string {
 }
 
 type Events struct {
-	Keyword string
-	Event   string
-	Id      int `gorm:"primary_key:yes"`
+	Key   string
+	Event string
+	Id    int `gorm:"primary_key:yes"`
 }
 
 func (e Events) TableName() string {
@@ -142,8 +142,8 @@ type StatsCheck struct {
 }
 
 type Regions struct {
-	Town   string
-	County string
+	Key    string
+	Region string
 	Id     int `gorm:"primary_key:yes"`
 }
 

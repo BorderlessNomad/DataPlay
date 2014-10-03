@@ -1,13 +1,11 @@
 package main
 
 import (
-	// "fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
-	// "time"
 )
 
 func TestCheckAuthRedirect(t *testing.T) {
@@ -197,6 +195,17 @@ func TestGetActivityStreamHttp(t *testing.T) {
 
 	Convey("Should return discoveries", t, func() {
 		result := GetActivityStreamHttp(res, req)
+		So(result, ShouldNotBeNil)
+	})
+}
+
+func TestGetHomePageDataHttp(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+	res := httptest.NewRecorder()
+
+	Convey("Should return discoveries", t, func() {
+		result := GetHomePageDataHttp(res, req)
 		So(result, ShouldNotBeNil)
 	})
 }

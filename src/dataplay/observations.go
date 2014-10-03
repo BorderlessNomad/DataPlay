@@ -45,7 +45,7 @@ type CommunityObservation struct {
 	EmailMD5  string `json:"MD5email"`
 }
 
-// add observation
+// add observation to chart
 func AddObservation(did int, uid int, comment string, x string, y string) (string, *appError) {
 	observation := Observation{}
 	observation.Comment = comment

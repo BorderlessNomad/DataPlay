@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -25,10 +26,10 @@ func NewClient(key string) *Client {
 	return &Client{key}
 }
 
-func (c *Client) Extract(urls []string, options Options) error {
+func (c *Client) Extract(urls []string, options Options, startpos int) error {
 
-	for i := 0; i < len(urls); i += 10 {
-		time.Sleep(2 * time.Second) // delay
+	for i := startpos; i < len(urls); i += 10 {
+		// time.Sleep(2 * time.Second) // delay
 		fmt.Println("Extracting next 10 - ", i, " out of ", len(urls))
 		to := len(urls)
 		if to > i+10 {
@@ -37,6 +38,10 @@ func (c *Client) Extract(urls []string, options Options) error {
 		res, err := c.extract(urls[i:to], options, i)
 
 		if err != nil {
+			f, _ := os.OpenFile("log.txt", os.O_RDWR|os.O_APPEND, 0666)
+			errStr := "FAILED ON URL " + strconv.Itoa(i) + " for reason " + err.Error()
+			e := []byte(errStr + "\n")
+			f.Write(e)
 			return err
 		}
 
@@ -45,6 +50,7 @@ func (c *Client) Extract(urls []string, options Options) error {
 			reslen = len(res)
 
 		}
+
 		for j := 0; j < reslen; j++ {
 			writeToCass(res[j])
 		}
@@ -83,7 +89,8 @@ func (c *Client) extract(urls []string, options Options, place int) ([]string, e
 	addr += "&" + v.Encode() + "&format=json"
 	resp, err := http.Get(addr)
 	if err != nil {
-		return nil, err
+		fmt.Println("RE-STARTING...")
+		Start(place)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 500 {
@@ -179,7 +186,7 @@ func Hash(str string) []byte {
 
 // write json string to cassandra
 func writeToCass(resp string) {
-	session, _ := GetCassandraConnection("dataplay_alpha")
+	session, _ := GetCassandraConnection("dp")
 	defer session.Close()
 
 	var r Response
@@ -197,58 +204,58 @@ func writeToCass(resp string) {
 	}
 
 	for _, a := range r.Authors {
-		if err := session.Query(`INSERT INTO author (id, name, url) 
-			VALUES (?, ?, ?)`,
-			a.Id, a.Name, a.Url).Exec(); err != nil {
+		if err := session.Query(`INSERT INTO author (id, date, name, url) 
+			VALUES (?, ?, ?, ?)`,
+			a.Id, r.Date, a.Name, a.Url).Exec(); err != nil {
 			fmt.Println("HELP2!", err)
 		}
 	}
 
 	for _, k := range r.Keywords {
-		if err := session.Query(`INSERT INTO keyword (id, score, name) 
-			VALUES (?, ?, ?)`,
-			k.Id, k.Score, k.Name).Exec(); err != nil {
+		if err := session.Query(`INSERT INTO keyword (id, url, date, score, name) 
+			VALUES (?, ?, ?, ?, ?)`,
+			k.Id, r.Url, r.Date, k.Score, k.Name).Exec(); err != nil {
 			fmt.Println("HELP3!", err)
 		}
 	}
 
 	for _, e := range r.Entities {
-		if err := session.Query(`INSERT INTO entity (id, count, name) 
-			VALUES (?, ?, ?)`,
-			e.Id, e.Count, e.Name).Exec(); err != nil {
+		if err := session.Query(`INSERT INTO entity (id, url, date, count, name) 
+			VALUES (?, ?, ?, ?, ?)`,
+			e.Id, r.Url, r.Date, e.Count, e.Name).Exec(); err != nil {
 			fmt.Println("HELP4!", err)
 		}
 	}
 
 	for index, i := range r.Images {
-		if err := session.Query(`INSERT INTO image (pic_index, id, caption, url, width, height, entropy, size) 
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-			index, i.Id, i.Caption, i.Url, i.Width, i.Height, i.Entropy, i.Size).Exec(); err != nil {
+		if err := session.Query(`INSERT INTO image (pic_index, id, date, caption, url, width, height, entropy, size) 
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			index, i.Id, r.Date, i.Caption, i.Url, i.Width, i.Height, i.Entropy, i.Size).Exec(); err != nil {
 			fmt.Println("HELP5!", err)
 		}
 	}
 
 	for _, ra := range r.RelatedArticles {
-		if err := session.Query(`INSERT INTO related (id, description, title, url, thumbnail_width, score, thumbnail_height, thumbnail_url) 
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-			ra.Id, ra.Description, ra.Title, ra.Url, ra.ThumbnailWidth, ra.Score, ra.ThumbnailHeight, ra.ThumbnailUrl).Exec(); err != nil {
+		if err := session.Query(`INSERT INTO related (id, date, description, title, url, thumbnail_width, score, thumbnail_height, thumbnail_url) 
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			ra.Id, r.Date, ra.Description, ra.Title, ra.Url, ra.ThumbnailWidth, ra.Score, ra.ThumbnailHeight, ra.ThumbnailUrl).Exec(); err != nil {
 			fmt.Println("HELP6!", err)
 		}
 	}
 }
 
 //////////////////////////////////////////////////////////////////////
-func outputSomething(u string) {
-	session, _ := GetCassandraConnection("dataplay_alpha")
-	defer session.Close()
+// func outputSomething(u string) {
+// 	session, _ := GetCassandraConnection("dp")
+// 	defer session.Close()
 
-	var url string
-	iter := session.Query(`SELECT url FROM response WHERE url == ?`, u).Iter()
-	for iter.Scan(&url) {
-		fmt.Println(url)
-	}
+// 	var url string
+// 	iter := session.Query(`SELECT url FROM response WHERE url == ?`, u).Iter()
+// 	for iter.Scan(&url) {
+// 		fmt.Println(url)
+// 	}
 
-	if err := iter.Close(); err != nil {
-		panic(err)
-	}
-}
+// 	if err := iter.Close(); err != nil {
+// 		panic(err)
+// 	}
+// }
