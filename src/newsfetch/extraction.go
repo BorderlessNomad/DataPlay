@@ -26,9 +26,9 @@ func NewClient(key string) *Client {
 	return &Client{key}
 }
 
-func (c *Client) Extract(urls []string, options Options) error {
+func (c *Client) Extract(urls []string, options Options, startpos int) error {
 
-	for i := 0; i < len(urls); i += 10 {
+	for i := startpos; i < len(urls); i += 10 {
 		time.Sleep(2 * time.Second) // delay
 		fmt.Println("Extracting next 10 - ", i, " out of ", len(urls))
 		to := len(urls)
@@ -89,7 +89,8 @@ func (c *Client) extract(urls []string, options Options, place int) ([]string, e
 	addr += "&" + v.Encode() + "&format=json"
 	resp, err := http.Get(addr)
 	if err != nil {
-		return nil, err
+		fmt.Println("RE-STARTING...")
+		Start(place)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 500 {
