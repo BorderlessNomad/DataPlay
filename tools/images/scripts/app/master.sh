@@ -102,14 +102,34 @@ run_master () {
 }
 
 install_nginx () {
+	mkdir -p $DEST/$APP/$WWW/dist
+
+	apt-add-repository -y ppa:nginx/stable && \
+	apt-get update && \
 	apt-get install -y nginx
-	# /home/ubuntu/www/dataplay/www-src/app
+	# /home/ubuntu/www/dataplay/www-src/dist
+
+	# npm install bower coffee-script grunt-cli -g
+
+	chown ubuntu: $DEST/$APP/$WWW
+}
+
+run_frontend () {
+	DEST="/home/ubuntu/www"
+	APP="dataplay"
+	WWW="www-src"
+
+	cd $DEST/$APP/$WWW
+
+	npm install && \
+	bower install && \
+	grunt build
 }
 
 update_iptables () {
-	# NAT Redirect
-	# iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 3000
-	# iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 443 -j REDIRECT --to-port 3443
+	# Accept direct connections to Gamification API
+	iptables -A INPUT -p tcp --dport 3000 -j ACCEPT # HTTP
+	iptables -A INPUT -p tcp --dport 3443 -j ACCEPT # HTTPS
 
 	iptables-save
 }
@@ -128,10 +148,16 @@ install_go
 echo "[$(timestamp)] ---- 3. Export Variables ----"
 export_variables
 
-echo "[$(timestamp)] ---- 4. Run Gamification (Master) Server ----"
+echo "[$(timestamp)] ---- 4. Run Gamification API (Master) Server ----"
 run_master
 
-echo "[$(timestamp)] ---- 5. Update IPTables rules ----"
+echo "[$(timestamp)] ---- 5. Install Nginx ----"
+install_nginx
+
+# echo "[$(timestamp)] ---- 6. Run Frontend Server ----"
+# su ubuntu -c "$(typeset -f run_frontend); run_frontend" # Run function as user 'ubuntu'
+
+echo "[$(timestamp)] ---- 6. Update IPTables rules ----"
 update_iptables
 
 echo "[$(timestamp)] ---- Completed ----"

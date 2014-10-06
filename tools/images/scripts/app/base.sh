@@ -27,6 +27,7 @@ install_nodejs () {
 	apt-add-repository -y ppa:chris-lea/node.js
 	apt-get update > /dev/null
 	apt-get install -y python g++ make nodejs
+	npm install bower coffee-script grunt-cli -g
 }
 
 update_iptables () {

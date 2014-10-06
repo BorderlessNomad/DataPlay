@@ -258,19 +258,6 @@ module.exports = (grunt) ->
 					dest: "<%= yeoman.dist %>"
 				]
 
-
-		# ngmin tries to make the code safe for minification automatically by
-		# using the Angular long form for dependency injection. It doesn"t work on
-		# things like resolve or inject so those have to be done manually.
-		ngmin:
-			dist:
-				files: [
-					expand: true
-					cwd: ".tmp/concat/scripts"
-					src: "*.js"
-					dest: ".tmp/concat/scripts"
-				]
-
 		# Copies remaining files to places other tasks can use
 		copy:
 			dist:
@@ -365,7 +352,6 @@ module.exports = (grunt) ->
 
 	grunt.registerTask "build", [
 		"clean:dist"
-		"ngmin"
 		"useminPrepare"
 		"concurrent:dist"
 		"concat"

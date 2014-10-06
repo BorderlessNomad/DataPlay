@@ -21,7 +21,7 @@ install_java () {
 	apt-get install -y oracle-java7-installer && \
 	apt-get autoclean
 
-	echo "export JAVA_HOME=/usr/lib/jvm/java-7-oracle" >> /home/ubuntu/.profile
+	echo "export JAVA_HOME=/usr/lib/jvm/java-7-oracle" > /home/ubuntu/.profile
 }
 
 install_cassandra () {
@@ -38,7 +38,7 @@ install_cassandra () {
 	done
 	echo "Cassandra is UP!"
 
-	echo "export CASSANDRA_CONFIG=/etc/cassandra" >> /home/ubuntu/.profile
+	echo "export CASSANDRA_CONFIG=/etc/cassandra" > /home/ubuntu/.profile
 	. /home/ubuntu/.profile
 
 	# nodetool status # Verify that DataStax Community is running
@@ -51,15 +51,22 @@ test_cassandra () {
 	fi
 }
 
-setup_cassandra () {
+configure_cassandra () {
 	IP=`ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`
 
-	sed -i -e "s/num_tokens/\#num_tokens/" /etc/cassandra/cassandra.yaml # Disable virtual nodes
-	sed -i -e "s/^rpc_address.*/rpc_address: 0.0.0.0/" /etc/cassandra/cassandra.yaml
-	sed -i -e "s/- seeds: \"127.0.0.1\"/- seeds: \"$SEEDS\"/" /etc/cassandra/cassandra.yaml # Be your own seed
-	sed -i -e "s/^listen_address.*/listen_address: $IP/" /etc/cassandra/cassandra.yaml # Listen on IP:port of the container
+	# sed -i -e "s/num_tokens/\#num_tokens/" /etc/cassandra/cassandra.yaml # Disable virtual nodes
+	sed -i -e "s/^listen_address.*/listen_address: $IP/" /etc/cassandra/cassandra.yaml # Listen on IP of the container
+	sed -i -e "s/^rpc_address.*/rpc_address: $IP/" /etc/cassandra/cassandra.yaml # Enable Remote connections
+	# sed -i -e "s/^broadcast_rpc_address.*/broadcast_rpc_address: $IP/" /etc/cassandra/cassandra.yaml # Enable Remote connections
+	sed -i -e "s/- seeds: \"127.0.0.1\"/- seeds: \"$IP\"/" /etc/cassandra/cassandra.yaml # Be your own seed
 
-	cassandra -f
+	# With virtual nodes disabled, we need to manually specify the token
+	# sed -i -e "s/# JVM_OPTS=\"$JVM_OPTS -Djava.rmi.server.hostname=<public name>\"/ JVM_OPTS=\"$JVM_OPTS -Djava.rmi.server.hostname=$IP\"/" /etc/cassandra/cassandra-env.sh
+	# echo "JVM_OPTS=\"\$JVM_OPTS -Dcassandra.initial_token=0\"" >> /etc/cassandra/cassandra-env.sh
+
+	# netstat -an | grep 9160.*LISTEN
+
+	service cassandra restart
 }
 
 install_opscenter () {
@@ -93,7 +100,10 @@ install_java
 echo "[$(timestamp)] ---- 3. Install Cassandra ----"
 install_cassandra
 
-echo "[$(timestamp)] ---- 4. Update IPTables rules ----"
+echo "[$(timestamp)] ---- 4. Configure Cassandra ----"
+configure_cassandra
+
+echo "[$(timestamp)] ---- 5. Update IPTables rules ----"
 update_iptables
 
 echo "[$(timestamp)] ---- Completed ----"
