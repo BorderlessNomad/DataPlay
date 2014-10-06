@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This is setup script for Load Balancer
+# This is Base Image setup script
 
 set -ex
 
@@ -15,7 +15,7 @@ setuphost () {
 }
 
 update () {
-	apt-get update
+	apt-get update > /dev/null
 	apt-get -y upgrade
 }
 
@@ -25,8 +25,9 @@ install_essentials () {
 
 install_nodejs () {
 	apt-add-repository -y ppa:chris-lea/node.js
-	apt-get update
+	apt-get update > /dev/null
 	apt-get install -y python g++ make nodejs
+	npm install bower coffee-script grunt-cli -g
 }
 
 update_iptables () {
@@ -46,32 +47,21 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
-# As root
-echo "---- Running as Root ----"
-timestamp
-
-echo "1. ---- Setup Host ----"
-timestamp
+echo "[$(timestamp)] ---- 1. Setup Host ----"
 setuphost
 
-echo "2. ---- Update system ----"
-timestamp
+echo "[$(timestamp)] ---- 2. Update system ----"
 update
 
-echo "3. ---- Install essential packages ----"
-timestamp
+echo "[$(timestamp)] ---- 3. Install essential packages ----"
 install_essentials
 
-echo "4. ---- Install Node.js ----"
-timestamp
+echo "[$(timestamp)] ---- 4. Install Node.js ----"
 install_nodejs
 
-echo "5. ---- Update IPTables rules ----"
-timestamp
+echo "[$(timestamp)] ---- 5. Update IPTables rules ----"
 update_iptables
 
-echo "---- Completed ----"
-
-timestamp
+echo "[$(timestamp)] ---- Completed ----"
 
 exit 0

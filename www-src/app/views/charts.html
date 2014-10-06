@@ -34,11 +34,8 @@
 			</div>
 
 			<div ng-if="mode == 'correlated'" ng-switch="chart.type">
-				<span ng-include="'views/charts/correlated/lineRanged.html'"></span>
-				<span ng-include="'views/charts/correlated/row.html'"></span>
+				<span ng-include="'views/charts/correlated/line.html'"></span>
 				<span ng-include="'views/charts/correlated/column.html'"></span>
-				<span ng-include="'views/charts/correlated/stacked.html'"></span>
-				<span ng-include="'views/charts/correlated/bubble.html'"></span>
 				<span ng-include="'views/charts/correlated/scatter.html'"></span>
 			</div>
 		</div>
@@ -69,6 +66,6 @@
 
 <div class="hoverfade-msg" ng-class="{true: 'show', false: ''}[validationMsg != null]" id="validation-message">
 	<i class="glyphicon glyphicon-flag purple-flag"></i>
-	<p ng-show="validationMsg == true">You validated this!</p>
-	<p ng-show="validationMsg == false">You invalidated this!</p>
+	<p ng-show="validationMsg == true">You credited this!</p>
+	<p ng-show="validationMsg == false">You discredited this!</p>
 </div>

@@ -1,24 +1,6 @@
-<div class="dc-chart chartSwitch line"
-	ng-if="chart.type == 'line'"
-
-	id="{{chart.id}}"
-
-	dc-chart="lineChart"
-
-	dc-width="{{width}}"
-	dc-height="{{height}}"
-	dc-margins="{{margin}}"
-	dc-mouse-zoomable="false"
-	dc-brush-on="false"
-
-	dc-elastic-y="true"
-	dc-transition-duration="500"
-	dc-colors="d3.scale.category20()"
-
-	dc-y-axis-label="chart.table1.yLabel"
-
-	dc-render-data-points="true"
-	dc-render-area="true"
-
-	dc-post-setup-chart="lineChartPostSetup"
-></div>
+<nvd3
+	class="corrChart corrLine"
+	options="chart.options"
+	data="chart.data"
+	ng-if="chart.type == 'line' && chart.data.length > 0"
+></nvd3>

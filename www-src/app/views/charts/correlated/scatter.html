@@ -1,23 +1,6 @@
-<div class="dc-chart chartSwitch scatter"
-	ng-if="chart.type == 'scatter'"
-
-	id="{{chart.id}}"
-
-	dc-chart="bubbleChart"
-
-	dc-width="{{width}}"
-	dc-height="{{height}}"
-	dc-margins="{{margin}}"
-	dc-brush-on="true"
-
-	dc-transition-duration="500"
-	dc-colors="d3.scale.category20()"
-
-	dc-render-label="false"
-	dc-render-title="true"
-
-	dc-x-axis-label="chart.table1.xLabel"
-	dc-y-axis-label="chart.table1.yLabel"
-
-	dc-post-setup-chart="scatterChartPostSetup"
-></div>
+<nvd3
+	class="corrChart corrScatter"
+	options="chart.options"
+	data="chart.data"
+	ng-if="chart.type == 'scatter' && chart.data.length > 0"
+></nvd3>
