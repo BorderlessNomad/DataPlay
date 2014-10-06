@@ -25,7 +25,7 @@ type PatternInfo struct {
 	DiscoveredID    int         `json:"discoveredid"`
 	Discoverer      string      `json:"discoveredby"`
 	DiscoveryDate   time.Time   `json:"discoverydate"`
-	Validators      []string    `json:"validatedby, omitempty"`
+	Creditors       []string    `json:"creditedby, omitempty"`
 	PrimarySource   string      `json:"source1"`
 	SecondarySource string      `json:"source2, omitempty"`
 	Strength        string      `json:"statstrength, omitempty"`
@@ -107,20 +107,20 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 		return pattern, &appError{err4, "unable to retrieve user", http.StatusInternalServerError}
 	}
 
-	validators := make([]string, 0)
-	validatingUsers := []struct {
-		Validation
+	creditors := make([]string, 0)
+	creditingUsers := []struct {
+		Credit
 		Username string
 	}{}
-	query := DB.Select("DISTINCT uid, (SELECT priv_users.username FROM priv_users WHERE priv_users.uid = priv_validations.uid) as username")
+	query := DB.Select("DISTINCT uid, (SELECT priv_users.username FROM priv_users WHERE priv_users.uid = priv_credits.uid) as username")
 	query = query.Where("discovered_id = ?", discovered.DiscoveredId)
-	query = query.Where("valflag = ?", true)
-	err5 := query.Find(&validatingUsers).Error
+	query = query.Where("credflag = ?", true)
+	err5 := query.Find(&creditingUsers).Error
 	if err5 != nil && err5 != gorm.RecordNotFound {
-		return pattern, &appError{err5, "find validators failed", http.StatusInternalServerError}
+		return pattern, &appError{err5, "find creditors failed", http.StatusInternalServerError}
 	} else {
-		for _, vu := range validatingUsers {
-			validators = append(validators, vu.Username)
+		for _, vu := range creditingUsers {
+			creditors = append(creditors, vu.Username)
 		}
 	}
 
@@ -142,7 +142,7 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	pattern.DiscoveredID = discovered.DiscoveredId
 	pattern.Discoverer = user.Username
 	pattern.DiscoveryDate = discovered.Created
-	pattern.Validators = validators
+	pattern.Creditors = creditors
 	pattern.PrimarySource = SanitizeString(index.Title)
 	pattern.Observations = count
 
@@ -175,27 +175,27 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 		return pattern, &appError{err2, "unable to retrieve user", http.StatusInternalServerError}
 	}
 
-	validators := make([]string, 0)
-	validatingUsers := []struct {
-		Validation
+	creditors := make([]string, 0)
+	creditingUsers := []struct {
+		Credit
 		Username string
 	}{}
 
-	query := DB.Select("DISTINCT uid, (SELECT priv_users.username FROM priv_users WHERE priv_users.uid = priv_validations.uid) as username")
+	query := DB.Select("DISTINCT uid, (SELECT priv_users.username FROM priv_users WHERE priv_users.uid = priv_credits.uid) as username")
 	query = query.Where("discovered_id = ?", discovered.DiscoveredId)
-	query = query.Where("valflag = ?", true)
-	err3 := query.Find(&validatingUsers).Error
+	query = query.Where("credflag = ?", true)
+	err3 := query.Find(&creditingUsers).Error
 	if err3 != nil && err3 != gorm.RecordNotFound {
-		return pattern, &appError{err3, "find validators failed", http.StatusInternalServerError}
+		return pattern, &appError{err3, "find creditors failed", http.StatusInternalServerError}
 	} else {
-		for _, vu := range validatingUsers {
-			validators = append(validators, vu.Username)
+		for _, vu := range creditingUsers {
+			creditors = append(creditors, vu.Username)
 		}
 	}
 
 	err4 := DB.Where("correlation_id = ?", cid).Find(&discovered).Error
 	if err4 != nil {
-		return pattern, &appError{err4, "Validation failed", http.StatusInternalServerError}
+		return pattern, &appError{err4, "Correlation failed", http.StatusInternalServerError}
 	}
 
 	var observation []Observation
@@ -213,7 +213,7 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	correlation := Correlation{}
 	err7 := DB.Where("correlation_id = ?", cid).Find(&correlation).Error
 	if err7 != nil {
-		return pattern, &appError{err7, "Validation failed", http.StatusInternalServerError}
+		return pattern, &appError{err7, "Correlation failed", http.StatusInternalServerError}
 	}
 
 	pattern.ChartData = cd
@@ -221,7 +221,7 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	pattern.DiscoveredID = discovered.DiscoveredId
 	pattern.Discoverer = user.Username
 	pattern.DiscoveryDate = discovered.Created
-	pattern.Validators = validators
+	pattern.Creditors = creditors
 	pattern.PrimarySource = cd.Table1.Title
 	pattern.SecondarySource = cd.Table2.Title
 	pattern.Strength = CalcStrength(correlation.Abscoef)
@@ -244,8 +244,8 @@ func Discover(id string, uid int, json []byte, correlated bool) (Discovered, *ap
 	val.Json = json
 	val.Created = time.Now()
 	val.Rating = 0
-	val.Invalid = 0
-	val.Valid = 0
+	val.Discredited = 0
+	val.Credited = 0
 	err := DB.Save(&val).Error
 	if err != nil {
 		return val, &appError{err, "unable to create discovery", http.StatusInternalServerError}
@@ -725,7 +725,7 @@ func GetChartHttp(res http.ResponseWriter, req *http.Request, params martini.Par
 	uid, err1 := GetUserID(session)
 	if err1 != nil {
 		http.Error(res, err1.Message, err1.Code)
-		return "Could not validate user"
+		return "Could not credit user"
 	}
 
 	if params["tablename"] == "" {
@@ -796,7 +796,7 @@ func GetChartCorrelatedHttp(res http.ResponseWriter, req *http.Request, params m
 	uid, err1 := GetUserID(session)
 	if err1 != nil {
 		http.Error(res, err1.Message, err1.Code)
-		return "Could not validate user"
+		return "Could not credit user"
 	}
 
 	result, error := GetChartCorrelated(cid, uid)
@@ -1123,8 +1123,8 @@ func GetDiscoveredChartsQ(params map[string]string) string {
 	return string(r)
 }
 
-// Get charts and info awaiting user validation
-func GetAwaitingValidationHttp(res http.ResponseWriter, req *http.Request) string {
+// Get charts and info awaiting user credit
+func GetAwaitingCreditHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
@@ -1141,8 +1141,8 @@ func GetAwaitingValidationHttp(res http.ResponseWriter, req *http.Request) strin
 	charts := make([]interface{}, 0)
 
 	query := DB.Select("json, priv_discovered.correlation_id, priv_discovered.relation_id, priv_discovered.discovered_id")
-	query = query.Joins("LEFT JOIN priv_validations ON priv_discovered.discovered_id = priv_validations.discovered_id")
-	query = query.Where("priv_validations.uid != ?", uid) //@todo check this in practice
+	query = query.Joins("LEFT JOIN priv_credits ON priv_discovered.discovered_id = priv_credits.discovered_id")
+	query = query.Where("priv_credits.uid != ?", uid) //@todo check this in practice
 	query = query.Order("random()")
 	err1 := query.Find(&discovered).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {

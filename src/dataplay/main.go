@@ -204,23 +204,23 @@ func initClassicMode() {
 	m.Get("/api/correlated/:tablename/:offset/:count/:search", GetCorrelatedChartsHttp)
 	m.Get("/api/discovered/:tablename/:correlated", GetDiscoveredChartsHttp)
 	m.Get("/api/discovered/:tablename/:correlated/:offset/:count", GetDiscoveredChartsHttp)
-	m.Put("/api/chart", binding.Bind(ValidationRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, validation ValidationRequest) string {
-		return ValidateChartHttp(res, req, params, validation)
+	m.Put("/api/chart", binding.Bind(CreditRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, credit CreditRequest) string {
+		return CreditChartHttp(res, req, params, credit)
 	})
-	m.Put("/api/chart/:valflag", binding.Bind(ValidationRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, validation ValidationRequest) string {
-		return ValidateChartHttp(res, req, params, validation)
+	m.Put("/api/chart/:credflag", binding.Bind(CreditRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, credit CreditRequest) string {
+		return CreditChartHttp(res, req, params, credit)
 	})
 
 	m.Put("/api/observations", binding.Bind(ObservationComment{}), func(res http.ResponseWriter, req *http.Request, observation ObservationComment) string {
 		return AddObservationHttp(res, req, observation)
 	})
-	m.Put("/api/observations/:oid", ValidateObservationHttp)
-	m.Put("/api/observations/:oid/:valflag", ValidateObservationHttp)
+	m.Put("/api/observations/:oid", CreditObservationHttp)
+	m.Put("/api/observations/:oid/:credflag", CreditObservationHttp)
 	m.Get("/api/observations/:did", GetObservationsHttp)
 	m.Get("/api/political/:type", GetPoliticalActivityHttp)
 	m.Get("/api/profile/observations", GetProfileObservationsHttp)
 	m.Get("/api/profile/discoveries", GetDiscoveriesHttp)
-	m.Get("/api/profile/validated", GetValidatedDiscoveriesHttp)
+	m.Get("/api/profile/credited", GetCreditedDiscoveriesHttp)
 	m.Get("/api/home/data", GetHomePageDataHttp)
 	m.Get("/api/user/reputation", GetReputationHttp)
 	m.Get("/api/user/discoveries", GetAmountDiscoveriesHttp)
@@ -229,7 +229,7 @@ func initClassicMode() {
 	m.Get("/api/recentobservations", GetRecentObservationsHttp)
 	m.Get("/api/user/activitystream", GetActivityStreamHttp)
 	m.Get("/api/chart/toprated", GetTopRatedChartsHttp)
-	m.Get("/api/chart/awaitingvalidation", GetAwaitingValidationHttp)
+	m.Get("/api/chart/awaitingcredit", GetAwaitingCreditHttp)
 
 	m.Use(JsonApiHandler)
 
@@ -264,11 +264,11 @@ func initMasterMode() {
 	m.Post("/noauth/login.json", HandleLogin)
 	m.Post("/noauth/logout.json", HandleLogout)
 	m.Post("/noauth/register.json", HandleRegister)
-	m.Put("/api/chart", binding.Bind(ValidationRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, validation ValidationRequest) string {
-		return ValidateChartHttp(res, req, params, validation)
+	m.Put("/api/chart", binding.Bind(CreditRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, credit CreditRequest) string {
+		return CreditChartHttp(res, req, params, credit)
 	})
-	m.Put("/api/chart/:valflag", binding.Bind(ValidationRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, validation ValidationRequest) string {
-		return ValidateChartHttp(res, req, params, validation)
+	m.Put("/api/chart/:credflag", binding.Bind(CreditRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, credit CreditRequest) string {
+		return CreditChartHttp(res, req, params, credit)
 	})
 	m.Put("/api/observations", binding.Bind(ObservationComment{}), func(res http.ResponseWriter, req *http.Request, observation ObservationComment) string {
 		return AddObservationHttp(res, req, observation)
@@ -348,20 +348,20 @@ func initMasterMode() {
 	m.Get("/api/news/search/:terms", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 		return sendToQueue(res, req, params, "/api/news/search/:terms", "SearchForNewsQ")
 	})
-	m.Put("/api/observations/:oid", ValidateObservationHttp)
-	m.Put("/api/observations/:oid/:valflag", ValidateObservationHttp)
+	m.Put("/api/observations/:oid", CreditObservationHttp)
+	m.Put("/api/observations/:oid/:credflag", CreditObservationHttp)
 	m.Get("/api/chartinfo/:tablename", GetChartInfoHttp)
 	m.Get("/api/chartinfo/:tablename", GetChartInfoHttp)
 	m.Get("/api/profile/observations", GetProfileObservationsHttp)
 	m.Get("/api/profile/discoveries", GetDiscoveriesHttp)
-	m.Get("/api/profile/validated", GetValidatedDiscoveriesHttp)
+	m.Get("/api/profile/credited", GetCreditedDiscoveriesHttp)
 	m.Get("/api/home/data", GetHomePageDataHttp)
 	m.Get("/api/user/reputation", GetReputationHttp)
 	m.Get("/api/user/discoveries", GetAmountDiscoveriesHttp)
 	m.Get("/api/user/experts", GetDataExpertsHttp)
 	m.Get("/api/recentobservations", GetRecentObservationsHttp)
 	m.Get("/api/chart/toprated", GetTopRatedChartsHttp)
-	m.Get("/api/chart/awaitingvalidation", GetAwaitingValidationHttp)
+	m.Get("/api/chart/awaitingcredit", GetAwaitingCreditHttp)
 
 	m.Use(JsonApiHandler)
 

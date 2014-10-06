@@ -155,13 +155,13 @@ func TestHandleLogout(t *testing.T) {
 	})
 }
 
-func TestGetValidatedDiscoveriesHttp(t *testing.T) {
+func TestGetCreditedDiscoveriesHttp(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 	res := httptest.NewRecorder()
 
-	Convey("Should return validated discoveries", t, func() {
-		result := GetValidatedDiscoveriesHttp(res, req)
+	Convey("Should return credited discoveries", t, func() {
+		result := GetCreditedDiscoveriesHttp(res, req)
 		So(result, ShouldNotBeNil)
 	})
 }

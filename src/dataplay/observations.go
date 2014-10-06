@@ -17,8 +17,8 @@ type Observations struct {
 	Y             string    `json:"y"`
 	User          UserData  `json:"user"`
 	Created       time.Time `json:"created, omitempty"`
-	Valid         int       `json:"validations, omitempty"`
-	Invalid       int       `json:"invalidations, omitempty"`
+	Credited      int       `json:"credits, omitempty"`
+	Discredited   int       `json:"discredits, omitempty"`
 }
 
 type UserData struct {
@@ -109,8 +109,8 @@ func GetObservations(did int) ([]Observations, *appError) {
 		tmpOD.Comment = o.Comment
 		tmpOD.X = o.X
 		tmpOD.Y = o.Y
-		tmpOD.Valid = o.Valid
-		tmpOD.Invalid = o.Invalid
+		tmpOD.Credited = o.Credited
+		tmpOD.Discredited = o.Discredited
 		tmpOD.Created = o.Created
 		tmpOD.ObservationId = o.ObservationId
 

@@ -66,8 +66,8 @@ type Discovered struct {
 	Uid           int
 	Created       time.Time
 	Rating        float64
-	Valid         int
-	Invalid       int
+	Credited      int
+	Discredited   int
 	Json          []byte
 	CorrelationId int
 	RelationId    string
@@ -105,8 +105,8 @@ type Observation struct {
 	DiscoveredId  int
 	Uid           int
 	Rating        float64
-	Valid         int
-	Invalid       int
+	Credited      int
+	Discredited   int
 	ObservationId int `gorm:"primary_key:yes"`
 	Created       time.Time
 	X             string
@@ -231,15 +231,15 @@ func (ut UserTokens) TableName() string {
 	return "priv_user_tokens"
 }
 
-type Validation struct {
+type Credit struct {
 	DiscoveredId  int
 	Uid           int
-	ValidationId  int `gorm:"primary_key:yes"`
+	CreditId      int `gorm:"primary_key:yes"`
 	Created       time.Time
 	ObservationId int
-	Valflag       bool
+	Credflag      bool
 }
 
-func (vn Validation) TableName() string {
-	return "priv_validations"
+func (vn Credit) TableName() string {
+	return "priv_credits"
 }
