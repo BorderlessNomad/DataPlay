@@ -50,13 +50,13 @@ func ActivityCheck(a string) string {
 	case "c":
 		return "Comment"
 	case "ic":
-		return "Invalidated Chart"
+		return "Discredited Chart"
 	case "vc":
-		return "Validated Chart"
+		return "Credited Chart"
 	case "io":
-		return "Invalidated Observation"
+		return "Discredited Observation"
 	case "vo":
-		return "Validated Observation"
+		return "Credited Observation"
 	default:
 		return "Unknown"
 	}
@@ -196,7 +196,7 @@ func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request) string {
 	return string(r)
 }
 
-func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request) string {
+func GetCreditedDiscoveriesHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
@@ -210,7 +210,7 @@ func GetValidatedDiscoveriesHttp(res http.ResponseWriter, req *http.Request) str
 	}
 
 	discovered := []Discovered{}
-	err1 := DB.Where("uid = ?", uid).Where("valid > ?", 0).Find(&discovered).Error
+	err1 := DB.Where("uid = ?", uid).Where("credit > ?", 0).Find(&discovered).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {
 		http.Error(res, "Database query failed", http.StatusInternalServerError)
 		return ""
@@ -390,6 +390,35 @@ func GetActivityStreamHttp(res http.ResponseWriter, req *http.Request) string {
 	return string(r)
 }
 
+func GetActivityStreamQ(params map[string]string) string {
+	if params["user"] == "" {
+		return "no user id"
+	}
+
+	uid, e := strconv.Atoi(params["user"])
+	if e != nil {
+		return e.Error()
+	}
+
+	var activities []UserActivity
+	t := time.Now()
+	activities = AddHappenedTo(uid, activities, t)
+	activities = AddInstigated(uid, activities, t)
+	sortutil.AscByField(activities, "Created")
+
+	n := 5
+	if len(activities) < n {
+		n = len(activities)
+	}
+
+	r, err := json.Marshal(activities[:n])
+	if err != nil {
+		return err.Error()
+	}
+
+	return string(r)
+}
+
 func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivity {
 	activity := []Activity{}
 
@@ -414,18 +443,18 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			} else {
 				tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
 			}
-		} else if a.Type == "Validated Observation" {
+		} else if a.Type == "Credited Observation" {
 			obs := Observation{}
 			err = DB.Where("observation_id = ?", a.ObservationId).Find(&obs).Error
 			if err != nil {
-				tmpA.Activity = "Bad validated observation activity 1"
+				tmpA.Activity = "Bad credited observation activity 1"
 				tmpA.PatternId = 0
 			}
 
 			user := User{}
 			err = DB.Where("uid = ?", obs.Uid).Find(&user).Error
 			if err != nil {
-				tmpA.Activity = "Bad validated observation activity 2"
+				tmpA.Activity = "Bad credited observation activity 2"
 				tmpA.PatternId = 0
 			}
 			tmpA.Activity = "You agreed with " + user.Username + "'s observation on pattern "
@@ -441,17 +470,17 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			} else {
 				tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
 			}
-		} else if a.Type == "Invalidated Observation" {
+		} else if a.Type == "Discredited Observation" {
 			obs := Observation{}
 			err := DB.Where("observation_id = ?", a.ObservationId).Find(&obs).Error
 			if err != nil {
-				tmpA.Activity = "Bad invalidated observation activity 1"
+				tmpA.Activity = "Bad discredited observation activity 1"
 			}
 
 			user := User{}
 			err = DB.Where("uid = ?", obs.Uid).Find(&user).Error
 			if err != nil {
-				tmpA.Activity = "Bad invalidated observation activity 2"
+				tmpA.Activity = "Bad discredited observation activity 2"
 			}
 
 			tmpA.Activity = "You disagreed with " + user.Username + "'s observation on pattern "
@@ -466,8 +495,8 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			} else {
 				tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
 			}
-		} else if a.Type == "Validated Chart" {
-			tmpA.Activity = "You validated pattern "
+		} else if a.Type == "Credited Chart" {
+			tmpA.Activity = "You credited pattern "
 			tmpA.PatternId = a.DiscoveredId
 			discovered := Discovered{}
 			err = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
@@ -480,8 +509,8 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 				tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
 			}
 
-		} else if a.Type == "Invalidated Chart" {
-			tmpA.Activity = "You invalidated pattern "
+		} else if a.Type == "Discredited Chart" {
+			tmpA.Activity = "You discredited pattern "
 			tmpA.PatternId = a.DiscoveredId
 			discovered := Discovered{}
 			err = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
@@ -508,20 +537,20 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 }
 
 func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivity {
-	vDisc := []Validation{}
+	vDisc := []Credit{}
 
-	err = DB.Select("priv_validations.discovered_id, priv_validations.created, priv_validations.uid, priv_validations.valflag").Joins("LEFT JOIN priv_discovered AS d ON priv_validations.discovered_id = d.discovered_id").Where("d.uid = ?", uid).Where("priv_validations.discovered_id > ?", 0).Order("priv_validations.created DESC").Find(&vDisc).Error
+	err = DB.Select("priv_credits.discovered_id, priv_credits.created, priv_credits.uid, priv_credits.credflag").Joins("LEFT JOIN priv_discovered AS d ON priv_credits.discovered_id = d.discovered_id").Where("d.uid = ?", uid).Where("priv_credits.discovered_id > ?", 0).Order("priv_credits.created DESC").Find(&vDisc).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return activities
 	}
 
 	vObs := []struct {
-		Validation
+		Credit
 		Comment string
 		Did     int
 	}{}
 
-	err = DB.Select("o.discovered_id as did, o.comment as comment, priv_validations.created, priv_validations.uid, priv_validations.valflag").Joins("LEFT JOIN priv_observations AS o ON priv_validations.observation_id = o.observation_id").Where("o.uid = ?", uid).Where("priv_validations.observation_id > ?", 0).Order("priv_validations.created DESC").Find(&vObs).Error
+	err = DB.Select("o.discovered_id as did, o.comment as comment, priv_credits.created, priv_credits.uid, priv_credits.credflag").Joins("LEFT JOIN priv_observations AS o ON priv_credits.observation_id = o.observation_id").Where("o.uid = ?", uid).Where("priv_credits.observation_id > ?", 0).Order("priv_credits.created DESC").Find(&vObs).Error
 	if err != nil {
 		return activities
 	}
@@ -538,16 +567,16 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		user := User{}
 		err = DB.Where("uid = ?", d.Uid).Find(&user).Error
 		if err != nil {
-			tmpA.Activity = "Bad invalidated observation activity 2"
+			tmpA.Activity = "Bad discredited observation activity 2"
 		}
 
-		if d.Valflag == true {
-			tmpA.Activity = "You gained " + strconv.Itoa(discVal) + " reputation when " + user.Username + " validated your pattern "
+		if d.Credflag == true {
+			tmpA.Activity = "You gained " + strconv.Itoa(discVal) + " reputation when " + user.Username + " credited your pattern "
 			tmpA.PatternId = d.DiscoveredId
 			tmpA.Created = t.Sub(d.Created).Seconds()
 			tmpA.Time = d.Created
 		} else {
-			tmpA.Activity = "You lost " + strconv.Itoa(discInval) + " reputation when " + user.Username + " invalidated your pattern "
+			tmpA.Activity = "You lost " + strconv.Itoa(discInval) + " reputation when " + user.Username + " discredited your pattern "
 			tmpA.PatternId = d.DiscoveredId
 			tmpA.Created = t.Sub(d.Created).Seconds()
 			tmpA.Time = d.Created
@@ -571,16 +600,16 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		user := User{}
 		err = DB.Where("uid = ?", o.Uid).Find(&user).Error
 		if err != nil {
-			tmpA.Activity = "Bad invalidated observation activity 2"
+			tmpA.Activity = "Bad discredited observation activity 2"
 		}
 
-		if o.Valflag == true {
-			tmpA.Activity = "You gained " + strconv.Itoa(obsVal) + " reputation when " + user.Username + " validated your observation on pattern "
+		if o.Credflag == true {
+			tmpA.Activity = "You gained " + strconv.Itoa(obsVal) + " reputation when " + user.Username + " credited your observation on pattern "
 			tmpA.PatternId = o.Did
 			tmpA.Created = t.Sub(o.Created).Seconds()
 			tmpA.Time = o.Created
 		} else {
-			tmpA.Activity = "You lost " + strconv.Itoa(obsInval) + " reputation when " + user.Username + " invalidated your observation on pattern "
+			tmpA.Activity = "You lost " + strconv.Itoa(obsInval) + " reputation when " + user.Username + " discredited your observation on pattern "
 			tmpA.PatternId = o.Did
 			tmpA.Created = t.Sub(o.Created).Seconds()
 			tmpA.Time = o.Created
@@ -605,7 +634,7 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		user := User{}
 		err = DB.Where("uid = ?", a.Uid).Find(&user).Error
 		if err != nil {
-			tmpA.Activity = "Bad invalidated observation activity 2"
+			tmpA.Activity = "Bad discredited observation activity 2"
 		}
 
 		tmpA.Activity = "You gained " + strconv.Itoa(discObs) + " reputation when " + user.Username + " commented on your pattern "

@@ -1,17 +1,62 @@
-docker run -i -t poklet/cassandra cqlsh $(./cassandra-master/scripts/ipof.sh cassandra)
 
-USE dataplay_alpha;
+DESCRIBE  
 
-DESCRIBE KEYSPACE dataplay_alpha;
+DROP KEYSPACE dp;
+CREATE KEYSPACE dp WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+USE dp;
 
-DROP KEYSPACE urldata;
+CREATE TABLE author (
+	id   blob, 
+	date timestamp, 
+	name text, 
+	url  text, 
+PRIMARY KEY (id, date)
+);
 
-CREATE KEYSPACE dataplay_alpha WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+CREATE TABLE entity (
+	id    blob, 
+	date timestamp, 
+	count int,    
+	name  text, 
+PRIMARY KEY (id, date)
+);
 
+CREATE TABLE image (
+	id      blob, 
+	date	timestamp, 
+	pic_index int, 
+	caption text,  
+	url     text,
+	width   int,     
+	height  int,     
+	entropy float, 
+	size    int,   
+PRIMARY KEY (id, date)  
+);
 
+CREATE TABLE keyword (
+	id    blob, 
+	date	timestamp, 
+	score int,    
+	name  text, 
+PRIMARY KEY (id, date)
+);
+
+CREATE TABLE related (
+	id              blob, 
+	date            timestamp,  
+	description     text,  
+	title           text,  
+	url             text,  
+	thumbnail_width  int,     
+	score           float, 
+	thumbnail_height int,     
+	thumbnail_url   text,
+PRIMARY KEY (id, date)  
+);
 
 CREATE TABLE response (
-	id   blob, 
+	id blob,
 	original_url     text,    
 	url             text,    
 	type            text,    
@@ -26,50 +71,4 @@ CREATE TABLE response (
 	lead            text,    
 	content         text,
 PRIMARY KEY (id, date)
-);
- 
- 
-CREATE TABLE author (
-	id   blob, 
-	name text, 
-	url  text, 
-PRIMARY KEY (url, id)
-);
-
-CREATE TABLE keyword (
-	id    blob, 
-	score int,    
-	name  text, 
-PRIMARY KEY (name, id)
-);
-
-CREATE TABLE entity (
-	id    blob, 
-	count int,    
-	name  text, 
-PRIMARY KEY (name, id)
-);
-
-CREATE TABLE image (
-	id      blob,  
-	pic_index int, 
-	caption text,  
-	url     text,  
-	width   int,     
-	height  int,     
-	entropy float, 
-	size    int,   
-PRIMARY KEY (url, id)
-);
-
-CREATE TABLE related (
-	id              blob,  
-	description     text,  
-	title           text,  
-	url             text,  
-	thumbnail_width  int,     
-	score           float, 
-	thumbnail_height int,     
-	thumbnail_url   text,
-PRIMARY KEY (url, id)
 );

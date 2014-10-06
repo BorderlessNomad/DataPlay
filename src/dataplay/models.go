@@ -52,9 +52,9 @@ func (di Dictionary) TableName() string {
 }
 
 type Departments struct {
-	GovDept string
-	Type    string
-	Id      int `gorm:"primary_key:yes"`
+	Key  string
+	Dept string
+	Id   int `gorm:"primary_key:yes"`
 }
 
 func (dp Departments) TableName() string {
@@ -66,8 +66,8 @@ type Discovered struct {
 	Uid           int
 	Created       time.Time
 	Rating        float64
-	Valid         int
-	Invalid       int
+	Credited      int
+	Discredited   int
 	Json          []byte
 	CorrelationId int
 	RelationId    string
@@ -78,9 +78,9 @@ func (di Discovered) TableName() string {
 }
 
 type Events struct {
-	Keyword string
-	Event   string
-	Id      int `gorm:"primary_key:yes"`
+	Key   string
+	Event string
+	Id    int `gorm:"primary_key:yes"`
 }
 
 func (e Events) TableName() string {
@@ -105,8 +105,8 @@ type Observation struct {
 	DiscoveredId  int
 	Uid           int
 	Rating        float64
-	Valid         int
-	Invalid       int
+	Credited      int
+	Discredited   int
 	ObservationId int `gorm:"primary_key:yes"`
 	Created       time.Time
 	X             string
@@ -142,8 +142,8 @@ type StatsCheck struct {
 }
 
 type Regions struct {
-	Town   string
-	County string
+	Key    string
+	Region string
 	Id     int `gorm:"primary_key:yes"`
 }
 
@@ -231,15 +231,15 @@ func (ut UserTokens) TableName() string {
 	return "priv_user_tokens"
 }
 
-type Validation struct {
+type Credit struct {
 	DiscoveredId  int
 	Uid           int
-	ValidationId  int `gorm:"primary_key:yes"`
+	CreditId      int `gorm:"primary_key:yes"`
 	Created       time.Time
 	ObservationId int
-	Valflag       bool
+	Credflag      bool
 }
 
-func (vn Validation) TableName() string {
-	return "priv_validations"
+func (vn Credit) TableName() string {
+	return "priv_credits"
 }

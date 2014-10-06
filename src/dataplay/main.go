@@ -131,13 +131,12 @@ func initClassicMode() {
 	}))
 
 	// m.Get("/", Authorisation)
-	/* @todo convert to APIs */
-	m.Get("/charts/:id", Charts)
-	m.Get("/search/overlay", SearchOverlay)
-	m.Get("/overlay/:id", Overlay)
-	m.Get("/overview/:id", Overview)
-	m.Get("/search", Search)
-	m.Get("/maptest/:id", MapTest)
+	// m.Get("/charts/:id", Charts)
+	// m.Get("/search/overlay", SearchOverlay)
+	// m.Get("/overlay/:id", Overlay)
+	// m.Get("/overview/:id", Overview)
+	// m.Get("/search", Search)
+	// m.Get("/maptest/:id", MapTest)
 
 	/* APIs */
 	m.Get("/api/ping", func(res http.ResponseWriter, req *http.Request) string {
@@ -205,23 +204,23 @@ func initClassicMode() {
 	m.Get("/api/correlated/:tablename/:offset/:count/:search", GetCorrelatedChartsHttp)
 	m.Get("/api/discovered/:tablename/:correlated", GetDiscoveredChartsHttp)
 	m.Get("/api/discovered/:tablename/:correlated/:offset/:count", GetDiscoveredChartsHttp)
-	m.Put("/api/chart", binding.Bind(ValidationRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, validation ValidationRequest) string {
-		return ValidateChartHttp(res, req, params, validation)
+	m.Put("/api/chart", binding.Bind(CreditRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, credit CreditRequest) string {
+		return CreditChartHttp(res, req, params, credit)
 	})
-	m.Put("/api/chart/:valflag", binding.Bind(ValidationRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, validation ValidationRequest) string {
-		return ValidateChartHttp(res, req, params, validation)
+	m.Put("/api/chart/:credflag", binding.Bind(CreditRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, credit CreditRequest) string {
+		return CreditChartHttp(res, req, params, credit)
 	})
 
 	m.Put("/api/observations", binding.Bind(ObservationComment{}), func(res http.ResponseWriter, req *http.Request, observation ObservationComment) string {
 		return AddObservationHttp(res, req, observation)
 	})
-	m.Put("/api/observations/:oid", ValidateObservationHttp)
-	m.Put("/api/observations/:oid/:valflag", ValidateObservationHttp)
+	m.Put("/api/observations/:oid", CreditObservationHttp)
+	m.Put("/api/observations/:oid/:credflag", CreditObservationHttp)
 	m.Get("/api/observations/:did", GetObservationsHttp)
 	m.Get("/api/political/:type", GetPoliticalActivityHttp)
 	m.Get("/api/profile/observations", GetProfileObservationsHttp)
 	m.Get("/api/profile/discoveries", GetDiscoveriesHttp)
-	m.Get("/api/profile/validated", GetValidatedDiscoveriesHttp)
+	m.Get("/api/profile/credited", GetCreditedDiscoveriesHttp)
 	m.Get("/api/home/data", GetHomePageDataHttp)
 	m.Get("/api/user/reputation", GetReputationHttp)
 	m.Get("/api/user/discoveries", GetAmountDiscoveriesHttp)
@@ -230,7 +229,7 @@ func initClassicMode() {
 	m.Get("/api/recentobservations", GetRecentObservationsHttp)
 	m.Get("/api/user/activitystream", GetActivityStreamHttp)
 	m.Get("/api/chart/toprated", GetTopRatedChartsHttp)
-	m.Get("/api/chart/awaitingvalidation", GetAwaitingValidationHttp)
+	m.Get("/api/chart/awaitingcredit", GetAwaitingCreditHttp)
 
 	m.Use(JsonApiHandler)
 
@@ -255,7 +254,6 @@ func initMasterMode() {
 
 	m := martini.Classic()
 
-	// m.Get("/", Authorisation)
 	m.Post("/api/login", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
 		return HandleLogin(res, req, login)
 	})
@@ -263,24 +261,21 @@ func initMasterMode() {
 	m.Post("/api/register", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
 		return HandleRegister(res, req, login)
 	})
-	m.Get("/charts/:id", Charts)
-	m.Get("/search/overlay", SearchOverlay)
-	m.Get("/overlay/:id", Overlay)
-	m.Get("/overview/:id", Overview)
-	m.Get("/search", Search)
-	m.Get("/maptest/:id", MapTest)
 	m.Post("/noauth/login.json", HandleLogin)
 	m.Post("/noauth/logout.json", HandleLogout)
 	m.Post("/noauth/register.json", HandleRegister)
-	// m.Get("/api/user", CheckAuth)
+	m.Put("/api/chart", binding.Bind(CreditRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, credit CreditRequest) string {
+		return CreditChartHttp(res, req, params, credit)
+	})
+	m.Put("/api/chart/:credflag", binding.Bind(CreditRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, credit CreditRequest) string {
+		return CreditChartHttp(res, req, params, credit)
+	})
+	m.Put("/api/observations", binding.Bind(ObservationComment{}), func(res http.ResponseWriter, req *http.Request, observation ObservationComment) string {
+		return AddObservationHttp(res, req, observation)
+	})
 	m.Get("/api/visited", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 		return sendToQueue(res, req, params, "/api/visited", "GetLastVisitedQ")
 	})
-	m.Get("/api/chartinfo/:tablename", GetChartInfoHttp)
-	m.Get("/api/getimportstatus/:id", CheckImportStatus)
-	m.Post("/api/setdefaults/:id", SetDefaults)
-	m.Get("/api/identifydata/:id", IdentifyTable)
-
 	m.Get("/api/search/:s", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 		return sendToQueue(res, req, params, "/api/search/:s", "SearchForDataQ")
 	})
@@ -311,19 +306,68 @@ func initMasterMode() {
 	m.Get("/api/getreduceddata/:id/:x/:y/:percent/:min", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 		return sendToQueue(res, req, params, "/api/getreduceddata/:id/:x/:y/:percent/:min", "DumpReducedTableQ")
 	})
-
-	m.Get("/api/getdefaults/:id", GetDefaults)                     // Q
-	m.Get("/api/findmatches/:id/:x/:y", AttemptToFindMatches)      // Q
-	m.Get("/api/classifydata/:table/:col", SuggestColType)         // Q
-	m.Get("/api/stringmatch/:word", FindStringMatches)             // Q
-	m.Get("/api/stringmatch/:word/:x", FindStringMatches)          // Q
-	m.Get("/api/relatedstrings/:guid", GetRelatedDatasetByStrings) // Q
+	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/chart/:tablename/:tablenum/:type/:x/:y", "GetChartQ")
+	})
+	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y/:z", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/chart/:tablename/:tablenum/:type/:x/:y/:z", "GetChartQ")
+	})
+	m.Get("/api/chartcorrelated/:cid", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/chartcorrelated/:cid", "GetChartCorrelatedQ")
+	})
+	m.Get("/api/related/:tablename", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/related/:tablename", "GetRelatedChartsQ")
+	})
+	m.Get("/api/related/:tablename/:offset/:count", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/related/:tablename/:offset/:count", "GetRelatedChartsQ")
+	})
+	m.Get("/api/correlated/:tablename", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/correlated/:tablename", "GetCorrelatedChartsQ")
+	})
+	m.Get("/api/correlated/:tablename/:search", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/correlated/:tablename/:search", "GetCorrelatedChartsQ")
+	})
+	m.Get("/api/correlated/:tablename/:offset/:count/:search", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/correlated/:tablename/:offset/:count/:search", "GetCorrelatedChartsQ")
+	})
+	m.Get("/api/discovered/:tablename/:correlated", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/discovered/:tablename/:correlated", "GetDiscoveredChartsQ")
+	})
+	m.Get("/api/discovered/:tablename/:correlated/:offset/:count", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/discovered/:tablename/:correlated/:offset/:count", "GetDiscoveredChartsQ")
+	})
+	m.Get("/api/observations/:did", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/observations/:did", "GetObservationsQ")
+	})
+	m.Get("/api/political/:type", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/political/:type", "GetPoliticalActivityQ")
+	})
+	m.Get("/api/user/activitystream", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/user/activitystream", "GetActivityStreamQ")
+	})
+	m.Get("/api/news/search/:terms", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+		return sendToQueue(res, req, params, "/api/news/search/:terms", "SearchForNewsQ")
+	})
+	m.Put("/api/observations/:oid", CreditObservationHttp)
+	m.Put("/api/observations/:oid/:credflag", CreditObservationHttp)
+	m.Get("/api/chartinfo/:tablename", GetChartInfoHttp)
+	m.Get("/api/chartinfo/:tablename", GetChartInfoHttp)
+	m.Get("/api/profile/observations", GetProfileObservationsHttp)
+	m.Get("/api/profile/discoveries", GetDiscoveriesHttp)
+	m.Get("/api/profile/credited", GetCreditedDiscoveriesHttp)
+	m.Get("/api/home/data", GetHomePageDataHttp)
+	m.Get("/api/user/reputation", GetReputationHttp)
+	m.Get("/api/user/discoveries", GetAmountDiscoveriesHttp)
+	m.Get("/api/user/experts", GetDataExpertsHttp)
+	m.Get("/api/recentobservations", GetRecentObservationsHttp)
+	m.Get("/api/chart/toprated", GetTopRatedChartsHttp)
+	m.Get("/api/chart/awaitingcredit", GetAwaitingCreditHttp)
 
 	m.Use(JsonApiHandler)
 
 	m.Use(LogRequest)
 
-	m.Use(martini.Static("../node_modules")) //Why?
+	m.Use(martini.Static("../node_modules"))
 
 	m.Run()
 }
@@ -349,6 +393,15 @@ func initNodeMode() {
 	myfuncs.registerCallback("DumpTableGroupedQ", DumpTableGroupedQ)
 	myfuncs.registerCallback("DumpTablePredictionQ", DumpTablePredictionQ)
 	myfuncs.registerCallback("DumpReducedTableQ", DumpReducedTableQ)
+	myfuncs.registerCallback("GetChartQ", GetChartQ)
+	myfuncs.registerCallback("GetChartCorrelatedQ", GetChartCorrelatedQ)
+	myfuncs.registerCallback("GetRelatedChartsQ", GetRelatedChartsQ)
+	myfuncs.registerCallback("GetCorrelatedChartsQ", GetCorrelatedChartsQ)
+	myfuncs.registerCallback("GetDiscoveredChartsQ", GetDiscoveredChartsQ)
+	myfuncs.registerCallback("GetObservationsQ", GetObservationsQ)
+	myfuncs.registerCallback("GetPoliticalActivityQ", GetPoliticalActivityQ)
+	myfuncs.registerCallback("GetActivityStreamQ ", GetActivityStreamQ)
+	myfuncs.registerCallback("SearchForNewsQ", SearchForNewsQ)
 
 	/* Start request consumer in Listen mode */
 	consumer := QueueConsumer{}

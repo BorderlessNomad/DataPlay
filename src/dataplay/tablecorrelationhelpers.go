@@ -212,7 +212,7 @@ func daysInYear(y int) int {
 	return int(d2.Sub(d1) / (24 * time.Hour))
 }
 
-// transform date into day number (since 1900)
+// transforms date into day number (since 1900)
 func DayNum(d time.Time) int {
 	var date time.Time
 	var days int
@@ -226,6 +226,7 @@ func DayNum(d time.Time) int {
 	return days
 }
 
+// returns a set of XY values that fall between 2 dates, adding dummy values as bookends if necessary
 func GetValues(vals []DateVal, from time.Time, to time.Time) ([]XYVal, bool) {
 	values := make([]XYVal, 0)
 	var tmpXY XYVal
@@ -281,6 +282,7 @@ func MostlyEmpty(slice []float64) bool {
 	}
 }
 
+// Get guid from tablename
 func GetGuid(tablename string) (string, error) {
 	if tablename == "" {
 		return "", fmt.Errorf("Invalid tablename")
@@ -295,9 +297,10 @@ func GetGuid(tablename string) (string, error) {
 	return data.Guid, err
 }
 
+// Used to determine what type of correlation is performed (increasing number gives stronger weighting to Spurious as it's less likely to find results)
 func RandomMethod() string {
 	rand.Seed(time.Now().UTC().UnixNano())
-	x := rand.Intn(5)
+	x := rand.Intn(7)
 	if x == 0 {
 		return "Pearson"
 	} else if x == 1 {

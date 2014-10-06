@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const sd = 100
+
 type cmeth int
 
 const ( //go version of enum
@@ -153,13 +155,13 @@ func AttemptCorrelation(tableCols TableCols) *appError {
 
 		if cf != 0 { //Save the various permutations of the correlation if one is generated
 			if tableCols.ctype == "Pearson" {
-				// tableCols.chart = "bar"
-				// err := SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
-				// if err != nil {
-				// 	return err
-				// }
-				tableCols.chart = "column"
+				tableCols.chart = "bar"
 				err := SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
+				tableCols.chart = "column"
+				err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
 				if err != nil {
 					return err
 				}
@@ -168,11 +170,11 @@ func AttemptCorrelation(tableCols TableCols) *appError {
 				if err != nil {
 					return err
 				}
-				// tableCols.chart = "scatter"
-				// err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
-				// if err != nil {
-				// 	return err
-				// }
+				tableCols.chart = "scatter"
+				err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
 
 			} else if tableCols.ctype == "Spurious" {
 				tableCols.chart = "line"
@@ -180,25 +182,19 @@ func AttemptCorrelation(tableCols TableCols) *appError {
 				if err != nil {
 					return err
 				}
-				// tableCols.chart = "scatter"
-				// err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
-				// if err != nil {
-				// 	return err
-				// }
-				// tableCols.chart = "stacked"
-				// err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
-				// if err != nil {
-				// 	return err
-				// }
-
+				tableCols.chart = "scatter"
+				err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
 			} else if tableCols.ctype == "Visual" {
-				// tableCols.chart = "bar"
-				// err := SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
-				// if err != nil {
-				// 	return err
-				// }
-				tableCols.chart = "column"
+				tableCols.chart = "bar"
 				err := SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
+				tableCols.chart = "column"
+				err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
 				if err != nil {
 					return err
 				}
@@ -207,11 +203,11 @@ func AttemptCorrelation(tableCols TableCols) *appError {
 				if err != nil {
 					return err
 				}
-				// tableCols.chart = "scatter"
-				// err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
-				// if err != nil {
-				// 	return err
-				// }
+				tableCols.chart = "scatter"
+				err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
+				if err != nil {
+					return err
+				}
 
 			} else {
 				tableCols.chart = "unknown"
@@ -226,7 +222,8 @@ func AttemptCorrelation(tableCols TableCols) *appError {
 	return nil
 }
 
-// Determine if two sets of dates overlap - X values are referenced so they can be altered in place and passed back again when used with Spurious correlation which covers the intersect between three data sets
+// Determine if two sets of dates overlap - X values are referenced so they can be altered in place and passed back
+// again when used with Spurious correlation which covers the intersect between three data sets
 func GetIntersect(pFromX *time.Time, pToX *time.Time, pRngX *int, fromY time.Time, toY time.Time, rngY int) []FromTo {
 	var bucketRange []FromTo
 	fromX, toX, rngX := *pFromX, *pToX, *pRngX

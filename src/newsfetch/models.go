@@ -33,43 +33,50 @@ type Options struct {
 }
 
 type Author struct {
-	Id   []byte `json:"id"`
-	Name string `json:"name"`
-	Url  string `json:"url"`
+	Id   []byte    `json:"id"`
+	Date time.Time `json:"date"`
+	Name string    `json:"name"`
+	Url  string    `json:"url"`
 }
 
 type Entity struct {
-	Id    []byte `json:"id"`
-	Count int    `json:"count"`
-	Name  string `json:"name"`
+	Id    []byte    `json:"id"`
+	Url   string    `json:"url"`
+	Date  time.Time `json:"date"`
+	Count int       `json:"count"`
+	Name  string    `json:"name"`
 }
 
 type Image struct {
-	Id       []byte  `json:"id"`
-	PicIndex int     `json:"pic_index"`
-	Caption  string  `json:"caption"`
-	Url      string  `json:"url"`
-	Width    int     `json:"width"`
-	Height   int     `json:"height"`
-	Entropy  float32 `json:"entropy"`
-	Size     int     `json:"size"`
+	Id       []byte    `json:"id"`
+	Date     time.Time `json:"date"`
+	PicIndex int       `json:"pic_index"`
+	Caption  string    `json:"caption"`
+	Url      string    `json:"url"`
+	Width    int       `json:"width"`
+	Height   int       `json:"height"`
+	Entropy  float32   `json:"entropy"`
+	Size     int       `json:"size"`
 }
 
 type Keyword struct {
-	Id    []byte `json:"id"`
-	Score int    `json:"score"`
-	Name  string `json:"name"`
+	Id    []byte    `json:"id"`
+	Url   string    `json:"url"`
+	Date  time.Time `json:"date"`
+	Score int       `json:"score"`
+	Name  string    `json:"name"`
 }
 
 type Related struct {
-	Id              []byte  `json:"id"`
-	Description     string  `json:"description"`
-	Title           string  `json:"title"`
-	Url             string  `json:"url"`
-	ThumbnailWidth  int     `json:"thumbnail_width"`
-	Score           float32 `json:"score"`
-	ThumbnailHeight int     `json:"thumbnail_height"`
-	ThumbnailUrl    string  `json:"thumbnail_url"`
+	Id              []byte    `json:"id"`
+	Date            time.Time `json:"date"`
+	Description     string    `json:"description"`
+	Title           string    `json:"title"`
+	Url             string    `json:"url"`
+	ThumbnailWidth  int       `json:"thumbnail_width"`
+	Score           float32   `json:"score"`
+	ThumbnailHeight int       `json:"thumbnail_height"`
+	ThumbnailUrl    string    `json:"thumbnail_url"`
 }
 
 type Response struct {
