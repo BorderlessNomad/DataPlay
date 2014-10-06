@@ -10,6 +10,28 @@ body > .container {
 	padding-top: 60px;
 }
 
+/* Start over-riding nv.d3.css */
+svg {
+	height: initial;
+	width: initial;
+	display: initial;
+}
+nvd3 svg {
+	height: 100%;
+	width: 100%;
+	display: block;
+}
+/* End over-riding nv.d3.css */
+
+.navbar-brand {
+	background-image: url('../images/logo-white.png');
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
+	text-indent: -9999px;
+	width: 130px;
+}
+
 .nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
 
 .footer {
@@ -76,4 +98,10 @@ body > .container {
 
 .jumbotron-medium {
 	padding: 30px;
+}
+
+.no-underline {
+	&, * {
+		text-decoration: none !important;
+	}
 }
