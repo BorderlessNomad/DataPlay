@@ -107,7 +107,7 @@ func initClassicMode() {
 	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y/:z", GetChartHttp)
 	m.Get("/api/chartcorrelated/:cid", GetChartCorrelatedHttp)
 	m.Get("/api/correlated/:tablename/:search", GetCorrelatedChartsHttp)
-	m.Get("/api/correlated/:tablename/:search/:offset/:count", GetCorrelatedChartsHttp) ////////////////////////////////!!!!!!!!!!!!!!!!!!!!!!!!!!
+	m.Get("/api/correlated/:tablename/:search/:offset/:count", GetCorrelatedChartsHttp)
 	m.Get("/api/discovered/:tablename/:correlated", GetDiscoveredChartsHttp)
 	m.Get("/api/discovered/:tablename/:correlated/:offset/:count", GetDiscoveredChartsHttp)
 	m.Get("/api/getdata/:id", DumpTableHttp)
@@ -118,7 +118,7 @@ func initClassicMode() {
 	m.Get("/api/getreduceddata/:id", DumpReducedTableHttp)
 	m.Get("/api/getreduceddata/:id/:percent", DumpReducedTableHttp)
 	m.Get("/api/getreduceddata/:id/:percent/:min", DumpReducedTableHttp)
-	m.Get("/api/getreduceddata/:id/:percent/:min/:x/:y", DumpReducedTableHttp) ///////////////////////////!!!!!!!
+	m.Get("/api/getreduceddata/:id/:percent/:min/:x/:y", DumpReducedTableHttp)
 	m.Get("/api/news/search/:terms", SearchForNewsHttp)
 	m.Get("/api/observations/:did", GetObservationsHttp)
 	m.Get("/api/political/:type", GetPoliticalActivityHttp)
