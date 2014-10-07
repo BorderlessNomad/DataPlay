@@ -94,8 +94,7 @@ func initClassicMode() {
 
 	e := DBSetup()
 	if e != nil {
-		// panic(fmt.Sprintf("[database] Unable to connect to the Database: %s\n", e))
-		panic(e)
+		fmt.Sprintf("[database] Unable to connect to the Database: %s\n", e)
 	}
 
 	/* Database connection will be closed only when Server closes */
@@ -143,7 +142,7 @@ func initMasterMode() {
 
 	e := DBSetup()
 	if e != nil {
-		panic(e)
+		fmt.Sprintf("[database] Unable to connect to the Database: %s\n", e)
 	}
 
 	/* Database connection will be closed only when Server closes */
@@ -246,8 +245,7 @@ func initNodeMode() {
 
 	e := DBSetup()
 	if e != nil {
-		panic(fmt.Sprintf("[database] Unable to connect to the Database: %s\n", e))
-		return
+		fmt.Sprintf("[database] Unable to connect to the Database: %s\n", e)
 	}
 
 	defer DB.Close()
@@ -473,10 +471,10 @@ func LogRequest(res http.ResponseWriter, req *http.Request, c martini.Context) {
  * @details Error Handler
  *
  * @param error
- * @return panic
+ * @print error
  */
 func check(e error) {
 	if e != nil {
-		panic(e)
+		fmt.Println(e.Error())
 	}
 }

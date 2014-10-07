@@ -40,7 +40,7 @@ func GetDefaults(res http.ResponseWriter, req *http.Request, params martini.Para
 	} else if err == nil {
 		d = onlinedata.Defaults
 	} else {
-		panic(err)
+		return ""
 	}
 
 	return d

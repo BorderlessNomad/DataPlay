@@ -385,7 +385,6 @@ func UpdateUserDetails(res http.ResponseWriter, req *http.Request, data UserDeta
 
 	err2 := DB.Save(&user).Error
 	if err2 != nil {
-		panic(err2)
 		http.Error(res, "Database query failed (Update).", http.StatusInternalServerError)
 		return ""
 	}
