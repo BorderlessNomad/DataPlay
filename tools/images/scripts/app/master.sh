@@ -16,7 +16,7 @@ WWW="www-src"
 REPO="DataPlay"
 BRANCH="develop"
 
-# LOADBALANCER="109.231.121.27"
+# LOADBALANCER="109.231.121.26"
 LOADBALANCER=$(ss-get --timeout 360 loadbalancer.hostname)
 
 # DATABASE_HOST="109.231.121.13"
@@ -52,7 +52,7 @@ install_go () {
 	mkdir -p gocode && mkdir -p www
 
 	wget -Nq https://storage.googleapis.com/golang/$GO_VERSION.linux-amd64.tar.gz
-	tar xf go1.3.3.linux-amd64.tar.gz
+	tar xf $GO_VERSION.linux-amd64.tar.gz
 
 	echo "export GOROOT=/home/ubuntu/go" >> /home/ubuntu/.profile
 	echo "PATH=\$PATH:\$GOROOT/bin" >> /home/ubuntu/.profile
@@ -84,9 +84,7 @@ run_master () {
 
 	QUEUE_USERNAME="playgen"
 	QUEUE_PASSWORD="aDam3ntiUm"
-	QUEUE_SERVER="109.231.121.13"
-	QUEUE_PORT="5672"
-	QUEUE_ADDRESS="amqp://$QUEUE_USERNAME:$QUEUE_PASSWORD@$QUEUE_SERVER:$QUEUE_PORT/"
+	QUEUE_ADDRESS="amqp://$QUEUE_USERNAME:$QUEUE_PASSWORD@$QUEUE_HOST:$QUEUE_PORT/"
 	QUEUE_EXCHANGE="playgen-prod"
 
 	REQUEST_QUEUE="dataplay-request-prod"
@@ -135,7 +133,7 @@ install_nginx () {
 
 	cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.$unixts
 	wget -Nq "https://raw.githubusercontent.com/playgenhub/$REPO/$BRANCH/tools/images/scripts/app/nginx.default" -O /etc/nginx/sites-available/default
-	sed -i -e 's/$keyword/$destination/g' /etc/nginx/sites-available/default
+	sed -i 's,'"$keyword"','"$destination"',g' /etc/nginx/sites-available/default
 
 	chown ubuntu:www-data $DEST/$APP/$WWW
 
@@ -143,13 +141,17 @@ install_nginx () {
 }
 
 init_frontend () {
-	sed -i -e 's/localhost:3000/$LOADBALANCER/g' $DEST/$APP/$WWW/dist/scripts/*.js
+	sed -i "s/localhost:3000/$LOADBALANCER/g" $DEST/$APP/$WWW/dist/scripts/*.js
 }
 
 configure_frontend () {
-	sed -i -e 's/localhost:3000/$LOADBALANCER/g' $DEST/$APP/$WWW/app/scripts/app.coffee
+	sed -i "s/localhost:3000/$LOADBALANCER/g" $DEST/$APP/$WWW/app/scripts/app.coffee
 
-	cd $DEST/$APP/$WWW && npm install bower coffee-script grunt-cli -g
+	command -v grunt >/dev/null 2>&1 || { echo >&2 "Error: Command 'grunt' not found!"; exit 1; }
+
+	command -v coffee >/dev/null 2>&1 || { echo >&2 "Error: 'coffee' is not installed!"; exit 1; }
+
+	command -v bower >/dev/null 2>&1 || { echo >&2 "Error: 'bower' is not installed!"; exit 1; }
 }
 
 build_frontend () {

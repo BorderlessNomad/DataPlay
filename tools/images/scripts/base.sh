@@ -15,19 +15,19 @@ setuphost () {
 }
 
 update () {
-	apt-get update > /dev/null
+	apt-get update
 	apt-get -y upgrade
 }
 
 install_essentials () {
-	apt-get install -y build-essential sudo vim openssh-server gcc curl git make binutils bison wget python-software-properties htop unzip
+	apt-get install -y build-essential sudo vim openssh-server gcc curl git mercurial bzr make binutils bison wget python-software-properties htop unzip
 }
 
 install_nodejs () {
 	apt-add-repository -y ppa:chris-lea/node.js
-	apt-get update > /dev/null
+	apt-get update
 	apt-get install -y python g++ make nodejs
-	npm install bower coffee-script grunt-cli -g
+	npm install grunt-cli coffee-script bower -g
 }
 
 update_iptables () {
