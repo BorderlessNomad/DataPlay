@@ -333,7 +333,7 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 
 // Look for new correlated charts, take the correlations and break them down into charting types, and return them along with their total count
 // To return only existing charts use searchdepth = 0
-func GetCorrelatedCharts(tableName string, offset int, count int, searchDepth int) (CorrelatedCharts, *appError) {
+func GetCorrelatedCharts(tableName string, searchDepth int, offset int, count int) (CorrelatedCharts, *appError) {
 	correlation := make([]Correlation, 0)
 	charts := make([]CorrelationData, 0) ///empty slice for adding all possible charts
 
@@ -891,11 +891,11 @@ func GetCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, params 
 
 	if params["search"] == "true" { ///default searchdepth when blank
 		search = sd
-	} else if params["search"] == "false" { // do not search when 0 so can return just what exist in table
+	} else { // do not search when false so can return just what exist in table
 		search = 0
 	}
 
-	result, error := GetCorrelatedCharts(params["tablename"], offset, count, search)
+	result, error := GetCorrelatedCharts(params["tablename"], search, offset, count)
 	if error != nil {
 		http.Error(res, error.Message, error.Code)
 		return error.Message
@@ -1077,11 +1077,11 @@ func GetCorrelatedChartsQ(params map[string]string) string {
 
 	if params["search"] == "true" { ///default searchdepth when true
 		search = sd
-	} else if params["search"] == "false" { // do not search when 0 so can return just what exist in table
+	} else { // do not search when 0 so can return just what exist in table
 		search = 0
 	}
 
-	result, err := GetCorrelatedCharts(params["tablename"], offset, count, search)
+	result, err := GetCorrelatedCharts(params["tablename"], search, offset, count)
 	if err != nil {
 		return err.Message
 	}

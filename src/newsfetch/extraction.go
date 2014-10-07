@@ -30,7 +30,8 @@ func (c *Client) Extract(urls []string, options Options, startpos int) error {
 
 	for i := startpos; i < len(urls); i += 10 {
 		// time.Sleep(2 * time.Second) // delay
-		fmt.Println("Extracting next 10 - ", i, " out of ", len(urls))
+		fmt.Printf("Extracting %d - %d out of %d URLS\n", i-10, i, len(urls))
+		fmt.Sprintf("Extracting")
 		to := len(urls)
 		if to > i+10 {
 			to = i + 10
@@ -39,10 +40,11 @@ func (c *Client) Extract(urls []string, options Options, startpos int) error {
 
 		if err != nil {
 			f, _ := os.OpenFile("log.txt", os.O_RDWR|os.O_APPEND, 0666)
-			errStr := "FAILED ON URL " + strconv.Itoa(i) + " for reason " + err.Error()
+			errStr := "FAILED AND RESTARTED ON URL " + strconv.Itoa(i) + " for reason " + err.Error()
 			e := []byte(errStr + "\n")
 			f.Write(e)
-			return err
+			fmt.Println("RE-STARTING...")
+			Start(i)
 		}
 
 		reslen := to - i

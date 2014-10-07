@@ -81,7 +81,6 @@ func TestGetCorrelatedChartsHttp(t *testing.T) {
 		y := time.Now()
 		fmt.Println("CORRELATED_CHARTS_TIME_TAKEN", y.Sub(x).Seconds())
 		So(result, ShouldNotBeNil)
-
 	})
 }
 
