@@ -26,12 +26,12 @@ angular.module('dataplayApp')
 
 		$scope.info =
 			discoveredId: null
-			validated: null
-			invalidated: null
+			credited: null
+			discredited: null
 			patternId: null
 			discoverer: ''
 			discoverDate: ''
-			validators: []
+			creditors: []
 			source:
 				prim: ''
 				seco: ''
@@ -75,7 +75,7 @@ angular.module('dataplayApp')
 						$scope.info.discoveredId = data.discoveredid or ''
 						$scope.info.discoverer = data.discoveredby or ''
 						$scope.info.discoverDate = if data.discoverydate then Overview.humanDate new Date( data.discoverydate ) else ''
-						$scope.info.validators = data.validatedby or ''
+						$scope.info.creditors = data.creditedby or ''
 						$scope.info.source =
 							prim: data.source1 or ''
 							seco: data.source2 or ''
@@ -113,7 +113,7 @@ angular.module('dataplayApp')
 							xy: xy
 							oid : obsv['observation_id']
 							user: obsv.user
-							validationCount: parseInt(obsv.validations - obsv.invalidations) || 0
+							creditCount: parseInt(obsv.credits - obsv.discredits) || 0
 							message: obsv.comment
 							date: Overview.humanDate new Date(obsv.created)
 							coor:
@@ -123,17 +123,17 @@ angular.module('dataplayApp')
 				, $scope.handleError
 			return
 
-		$scope.validateChart = (valFlag) ->
+		$scope.creditChart = (valFlag) ->
 			id = "#{$scope.params.id}/#{$scope.params.key}/#{$scope.params.type}/#{$scope.params.x}/#{$scope.params.y}"
 			id += "/#{$scope.params.z}" if $scope.params.z?.length > 0
 
-			Charts.validateChart "rid", id, valFlag
+			Charts.creditChart "rid", id, valFlag
 				.then ->
-					$scope.showValidationMessage valFlag
+					$scope.showCreditMessage valFlag
 					if valFlag
-						$scope.info.validated = true
+						$scope.info.credited = true
 					else
-						$scope.info.invalidated = true
+						$scope.info.discredited = true
 				, $scope.handleError
 
 		$scope.saveObservation = ->
@@ -172,11 +172,11 @@ angular.module('dataplayApp')
 			$('#comment-modal').modal 'hide'
 			return
 
-		$scope.validateObservation = (item, valFlag) ->
+		$scope.creditObservation = (item, valFlag) ->
 			if item.oid?
-				Charts.validateObservation item.oid, valFlag
+				Charts.creditObservation item.oid, valFlag
 					.success (res) ->
-						item.validationCount += (valFlag) ? 1 : -1
+						item.creditCount += (valFlag) ? 1 : -1
 					.error $scope.handleError
 
 		$scope.openAddObservationModal = (x, y) ->

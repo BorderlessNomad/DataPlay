@@ -1,6 +1,6 @@
 <div class="action-bar">
-	<button class="btn btn-success btn-sm" ng-click="validateChart(true)" ng-hide="info.validated || info.invalidated"><span class="glyphicon glyphicon-ok"></span> Credit</button>
-	<button class="btn btn-danger btn-sm" ng-click="validateChart(false)" ng-hide="info.validated || info.invalidated"><span class="glyphicon glyphicon-remove"></span> Discredit</button>
+	<button class="btn btn-success btn-sm" ng-click="creditChart(true)" ng-hide="info.credited || info.discredited"><span class="glyphicon glyphicon-ok"></span> Credit</button>
+	<button class="btn btn-danger btn-sm" ng-click="creditChart(false)" ng-hide="info.credited || info.discredited"><span class="glyphicon glyphicon-remove"></span> Discredit</button>
 	<button class="btn btn-info btn-sm" ng-click="openAddObservationModal()"><span class="glyphicon glyphicon-comment"></span> Make observation</button>
 </div>
 
@@ -16,10 +16,10 @@
 	<div class="col-sm-6 ci-key">Date discovered</div>
 	<div class="col-sm-6 ci-val">{{info.discoverDate}}</div>
 </div>
-<div class="row ci-row" ng-show="info.validators.length > 0">
+<div class="row ci-row" ng-show="info.creditors.length > 0">
 	<div class="col-sm-6 ci-key">Credited by</div>
 	<div class="col-sm-6 ci-val">
-		<span class="csl" ng-repeat="vldtr in info.validators">{{vldtr}}</span>
+		<span class="csl" ng-repeat="crdtr in info.creditors">{{crdtr}}</span>
 	</div>
 </div>
 <div class="row ci-row" ng-show="info.source.prim">
