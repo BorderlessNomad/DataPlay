@@ -32,7 +32,7 @@ QUEUE_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
 QUEUE_PORT="5672"
 
 # CASSANDRA_HOST="109.231.121.13"
-CASSANDRA_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
+CASSANDRA_HOST=$(ss-get --timeout 360 cassandra.hostname)
 CASSANDRA_PORT="9042"
 
 timestamp () {

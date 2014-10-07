@@ -156,10 +156,20 @@ module.exports = (grunt) ->
 					ext: ".js"
 				]
 
+		ngAnnotate:
+			dist:
+				files: [
+					expand: true
+					cwd: ".tmp/scripts"
+					src: "**/*.js"
+					dest: ".tmp/scripts"
+					ext: ".js"
+				]
+
 		uglify:
 			options:
 				report: 'min'
-				mangle: false # AngularJS is not very happy about mangling globals e.g. $scope
+				mangle: true # AngularJS is not very happy about mangling globals e.g. $scope
 				beautify: false # Debug
 
 		less:
@@ -329,18 +339,17 @@ module.exports = (grunt) ->
 				"build"
 				"connect:dist:keepalive"
 			]
+
 		grunt.task.run [
 			"clean:server"
 			"concurrent:server"
 			"connect:livereload"
 			"watch"
 		]
-		return
 
 	grunt.registerTask "server", "DEPRECATED TASK. Use the \"serve\" task instead", (target) ->
 		grunt.log.warn "The `server` task has been deprecated. Use `grunt serve` to start a server."
 		grunt.task.run ["serve:" + target]
-		return
 
 	grunt.registerTask "test", [
 		"clean:server"
@@ -357,6 +366,7 @@ module.exports = (grunt) ->
 		"concat"
 		"copy:dist"
 		"cssmin"
+		"ngAnnotate"
 		"uglify"
 		"filerev"
 		"usemin"
