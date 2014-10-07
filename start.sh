@@ -1,18 +1,5 @@
 #!/bin/bash
 
-echo 'BUILDING DEPENDENCIES' &&
-npm install &&
-echo 'BUILDING JS/CSS' &&
-grunt &&
-
-if [ ! -f bin/public/lib/openlayers/build/OpenLayers.js ]; then
-	mkdir -p bin/public/lib/dependencies/js/ &&
-	pushd bin/public/lib/openlayers/build &&
-	python build.py &&
-	cp -r OpenLayers.js ../../dependencies/js/ &&
-	popd
-fi
-
 echo 'BUILDING GOGRAM'
 oldgo=$GOPATH
 if [[ "$OSTYPE" == "msys" ]]; then

@@ -9,6 +9,7 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
+GO_VERSION="go1.3.3"
 DEST="/home/ubuntu/www"
 APP="dataplay"
 WWW="www-src"
@@ -50,7 +51,7 @@ install_go () {
 	mkdir -p /home/ubuntu && cd /home/ubuntu
 	mkdir -p gocode && mkdir -p www
 
-	wget -Nq https://storage.googleapis.com/golang/go1.3.3.linux-amd64.tar.gz
+	wget -Nq https://storage.googleapis.com/golang/$GO_VERSION.linux-amd64.tar.gz
 	tar xf go1.3.3.linux-amd64.tar.gz
 
 	echo "export GOROOT=/home/ubuntu/go" >> /home/ubuntu/.profile

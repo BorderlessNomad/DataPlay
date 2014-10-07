@@ -1,6 +1,9 @@
 {
 	"name": "dataplay",
 	"version": "0.9.0",
+	"author": "PlayGen",
+	"description": "General Purpose Dataset Visualization",
+	"private": "true",
 	"config": {
 		"unsafe-perm":true
 	},
