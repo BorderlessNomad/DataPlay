@@ -21,7 +21,7 @@ angular.module('dataplayApp')
 			$http.post config.api.base_url + "/setbookmark",
 				data: bookmarks
 
-		validateChart: (type, chartId, valFlag) ->
+		creditChart: (type, chartId, valFlag) ->
 			path = if typeof valFlag == 'boolean' then "/chart/#{valFlag}" else "/chart"
 
 			if type is "rid"
@@ -41,6 +41,6 @@ angular.module('dataplayApp')
 				y: "#{y}"
 				comment: message
 
-		validateObservation: (id, valFlag) ->
+		creditObservation: (id, valFlag) ->
 			$http.put config.api.base_url + "/observations/#{id}/#{valFlag}"
 	]

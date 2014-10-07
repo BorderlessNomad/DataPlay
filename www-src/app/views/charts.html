@@ -64,8 +64,8 @@
 	</div>
 </div>
 
-<div class="hoverfade-msg" ng-class="{true: 'show', false: ''}[validationMsg != null]" id="validation-message">
+<div class="hoverfade-msg" ng-class="{true: 'show', false: ''}[creditMsg != null]" id="credit-message">
 	<i class="glyphicon glyphicon-flag purple-flag"></i>
-	<p ng-show="validationMsg == true">You credited this!</p>
-	<p ng-show="validationMsg == false">You discredited this!</p>
+	<p ng-show="creditMsg == true">You credited this!</p>
+	<p ng-show="creditMsg == false">You discredited this!</p>
 </div>

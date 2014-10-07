@@ -1,7 +1,7 @@
 server {
 	listen 80 default_server;
 
-	root /home/ubuntu/www/dataplay/www-src/dist;
+	root <filesystem>;
 	index index.html index.htm;
 
 	server_name localhost;

@@ -23,7 +23,7 @@ angular.module('dataplayApp')
       username: ''
       success: false
 
-    $scope.validDiscoveries = []
+    $scope.creditDiscoveries = []
     $scope.discoveries = []
     $scope.observations = []
 
@@ -38,11 +38,11 @@ angular.module('dataplayApp')
             $scope.saved.username = data.username
          .error (data, status) -> $scope.handleError data, status
 
-      validdiscoveries: ->
-        Profile.getValidDiscoveries()
+      creditdiscoveries: ->
+        Profile.getCreditDiscoveries()
           .success (data) ->
             if data instanceof Array
-              $scope.validDiscoveries = data
+              $scope.creditDiscoveries = data
             return
           .error (data, status) -> $scope.handleError data, status
 

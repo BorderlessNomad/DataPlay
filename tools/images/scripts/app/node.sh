@@ -4,6 +4,37 @@
 
 set -ex
 
+if [ "$(id -u)" != "0" ]; then
+	echo "Error: This script must be run as root" 1>&2
+	exit 1
+fi
+
+GO_VERSION="go1.3.3"
+DEST="/home/ubuntu/www"
+APP="dataplay"
+WWW="www-src"
+REPO="DataPlay"
+BRANCH="develop"
+
+# LOADBALANCER="109.231.121.27"
+LOADBALANCER=$(ss-get --timeout 360 loadbalancer.hostname)
+
+# DATABASE_HOST="109.231.121.13"
+DATABASE_HOST=$(ss-get --timeout 360 postgres.hostname)
+DATABASE_PORT="5432"
+
+# REDIS_HOST="109.231.121.13"
+REDIS_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
+REDIS_PORT="6379"
+
+# QUEUE_HOST="109.231.121.13"
+QUEUE_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
+QUEUE_PORT="5672"
+
+# CASSANDRA_HOST="109.231.121.13"
+CASSANDRA_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
+CASSANDRA_PORT="9042"
+
 timestamp () {
 	date +"%F %T,%3N"
 }
@@ -20,8 +51,8 @@ install_go () {
 	mkdir -p /home/ubuntu && cd /home/ubuntu
 	mkdir -p gocode && mkdir -p www
 
-	wget -Nq https://storage.googleapis.com/golang/go1.3.3.linux-amd64.tar.gz
-	tar xf go1.3.3.linux-amd64.tar.gz
+	wget -Nq https://storage.googleapis.com/golang/$GO_VERSION.linux-amd64.tar.gz
+	tar xf $GO_VERSION.linux-amd64.tar.gz
 
 	echo "export GOROOT=/home/ubuntu/go" >> /home/ubuntu/.profile
 	echo "PATH=\$PATH:\$GOROOT/bin" >> /home/ubuntu/.profile
@@ -33,19 +64,13 @@ install_go () {
 }
 
 export_variables () {
-	DATABASE_HOST=$(ss-get --timeout 360 postgres.hostname)
-	DATABASE_PORT="5432"
-
-	REDIS_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
-	REDIS_PORT="6379"
-
-	CASSANDRA_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
-	CASSANDRA_PORT="9042"
-
+	echo "export DP_LOADBALANCER=$LOADBALANCER" >> /home/ubuntu/.profile
 	echo "export DP_DATABASE_HOST=$DATABASE_HOST" >> /home/ubuntu/.profile
 	echo "export DP_DATABASE_PORT=$DATABASE_PORT" >> /home/ubuntu/.profile
 	echo "export DP_REDIS_HOST=$REDIS_HOST" >> /home/ubuntu/.profile
 	echo "export DP_REDIS_PORT=$REDIS_PORT" >> /home/ubuntu/.profile
+	echo "export DP_QUEUE_HOST=$QUEUE_HOST" >> /home/ubuntu/.profile
+	echo "export DP_QUEUE_PORT=$QUEUE_PORT" >> /home/ubuntu/.profile
 	echo "export DP_CASSANDRA_HOST=$CASSANDRA_HOST" >> /home/ubuntu/.profile
 	echo "export DP_CASSANDRA_PORT=$CASSANDRA_PORT" >> /home/ubuntu/.profile
 
@@ -53,19 +78,13 @@ export_variables () {
 }
 
 run_node () {
-	APP="dataplay"
-	REPO="DataPlay"
 	SOURCE="https://github.com/playgenhub/$REPO/archive/"
-	BRANCH="develop"
-	DEST="/home/ubuntu/www"
 	START="start.sh"
 	LOG="ouput.log"
 
 	QUEUE_USERNAME="playgen"
 	QUEUE_PASSWORD="aDam3ntiUm"
-	QUEUE_SERVER="109.231.121.13"
-	QUEUE_PORT="5672"
-	QUEUE_ADDRESS="amqp://$QUEUE_USERNAME:$QUEUE_PASSWORD@$QUEUE_SERVER:$QUEUE_PORT/"
+	QUEUE_ADDRESS="amqp://$QUEUE_USERNAME:$QUEUE_PASSWORD@$QUEUE_HOST:$QUEUE_PORT/"
 	QUEUE_EXCHANGE="playgen-prod"
 
 	REQUEST_QUEUE="dataplay-request-prod"
