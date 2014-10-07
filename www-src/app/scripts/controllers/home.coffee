@@ -13,7 +13,7 @@ angular.module('dataplayApp')
 
 		$scope.searchquery = ''
 
-		$scope.validatePatterns = null
+		$scope.creditPatterns = null
 
 		$scope.myActivity = null
 		$scope.recentObservations = null
@@ -24,7 +24,7 @@ angular.module('dataplayApp')
 		$scope.relatedChart = new RelatedCharts $scope.chartsRelated
 
 		$scope.init = ->
-			Home.getAwaitingValidation()
+			Home.getAwaitingCredit()
 				.success (data) ->
 					if data? and data.charts? and data.charts.length > 0
 						for key, chart of data.charts
@@ -101,9 +101,9 @@ angular.module('dataplayApp')
 
 						console.log $scope.chartsRelated
 					else
-						$scope.validatePatterns = []
+						$scope.creditPatterns = []
 				.error ->
-					$scope.validatePatterns = []
+					$scope.creditPatterns = []
 
 			Home.getActivityStream()
 				.success (data) ->
