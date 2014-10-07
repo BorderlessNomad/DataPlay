@@ -42,15 +42,15 @@ class MapGenerator
 			.append 'title'
 				.html "#{displayName}: #{county.value}"
 
-	getColor: (county) =>
+	getColor: (county, max) =>
 		value = if typeof county is 'object' then (county.value || 0) else (county || 0)
 
-		value = value / @maxvalue
+		value = value / (max or @maxvalue)
 
 		if typeof county is 'object' and county.name.substring(0, 3) is 'ire' then return '#CCCCCC'
-		if value is 0 then return '#FFC553'
+		if value is 0 then return '#FFE455'
 
-		start = { r: 255, g: 156, b: 67 }
+		start = { r: 255, g: 228, b: 85 }
 		end   = { r: 186, g: 63 , b: 60 }
 		rgb = {}
 

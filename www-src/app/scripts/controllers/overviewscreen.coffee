@@ -158,7 +158,20 @@ angular.module('dataplayApp')
 				chart.dimension dimension
 				chart.group group
 
-				chart.colorAccessor (d, i) -> i + 1
+				dataRange = do ->
+					curr =
+						min: 100
+						max: 0
+					details.graph.forEach (g) ->
+						if g.value > curr.max then curr.max = g.value
+						if g.value < curr.min then curr.min = g.value
+					curr
+
+				chart.colors (d, i, j) ->
+					curr = 0
+					details.graph.forEach (g) ->
+						if g.term is d then curr = g.value
+					$scope.mapGen.getColor curr - dataRange.min, dataRange.max - dataRange.min
 
 				chart.renderlet (c) ->
 					svg = d3.select 'svg'
