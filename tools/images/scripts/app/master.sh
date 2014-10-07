@@ -4,6 +4,36 @@
 
 set -ex
 
+if [ "$(id -u)" != "0" ]; then
+	echo "Error: This script must be run as root" 1>&2
+	exit 1
+fi
+
+DEST="/home/ubuntu/www"
+APP="dataplay"
+WWW="www-src"
+REPO="DataPlay"
+BRANCH="develop"
+
+# LOADBALANCER="109.231.121.27"
+LOADBALANCER=$(ss-get --timeout 360 loadbalancer.hostname)
+
+# DATABASE_HOST="109.231.121.13"
+DATABASE_HOST=$(ss-get --timeout 360 postgres.hostname)
+DATABASE_PORT="5432"
+
+# REDIS_HOST="109.231.121.13"
+REDIS_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
+REDIS_PORT="6379"
+
+# QUEUE_HOST="109.231.121.13"
+QUEUE_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
+QUEUE_PORT="5672"
+
+# CASSANDRA_HOST="109.231.121.13"
+CASSANDRA_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
+CASSANDRA_PORT="9042"
+
 timestamp () {
 	date +"%F %T,%3N"
 }
@@ -33,19 +63,13 @@ install_go () {
 }
 
 export_variables () {
-	DATABASE_HOST=$(ss-get --timeout 360 postgres.hostname)
-	DATABASE_PORT="5432"
-
-	REDIS_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
-	REDIS_PORT="6379"
-
-	CASSANDRA_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
-	CASSANDRA_PORT="9042"
-
+	echo "export DP_LOADBALANCER=$LOADBALANCER" >> /home/ubuntu/.profile
 	echo "export DP_DATABASE_HOST=$DATABASE_HOST" >> /home/ubuntu/.profile
 	echo "export DP_DATABASE_PORT=$DATABASE_PORT" >> /home/ubuntu/.profile
 	echo "export DP_REDIS_HOST=$REDIS_HOST" >> /home/ubuntu/.profile
 	echo "export DP_REDIS_PORT=$REDIS_PORT" >> /home/ubuntu/.profile
+	echo "export DP_QUEUE_HOST=$QUEUE_HOST" >> /home/ubuntu/.profile
+	echo "export DP_QUEUE_PORT=$QUEUE_PORT" >> /home/ubuntu/.profile
 	echo "export DP_CASSANDRA_HOST=$CASSANDRA_HOST" >> /home/ubuntu/.profile
 	echo "export DP_CASSANDRA_PORT=$CASSANDRA_PORT" >> /home/ubuntu/.profile
 
@@ -53,11 +77,7 @@ export_variables () {
 }
 
 run_master () {
-	APP="dataplay"
-	REPO="DataPlay"
 	SOURCE="https://github.com/playgenhub/$REPO/archive/"
-	BRANCH="develop"
-	DEST="/home/ubuntu/www"
 	START="start.sh"
 	LOG="ouput.log"
 
@@ -107,20 +127,31 @@ install_nginx () {
 	apt-add-repository -y ppa:nginx/stable && \
 	apt-get update && \
 	apt-get install -y nginx
-	# /home/ubuntu/www/dataplay/www-src/dist
 
-	# npm install bower coffee-script grunt-cli -g
+	unixts="$(date +'%Y%m%d%H%M%S')"
+	keyword="<filesystem>"
+	destination="$DEST/$APP/$WWW/dist"
 
-	chown ubuntu: $DEST/$APP/$WWW
+	cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.$unixts
+	wget -Nq "https://raw.githubusercontent.com/playgenhub/$REPO/$BRANCH/tools/images/scripts/app/nginx.default" -O /etc/nginx/sites-available/default
+	sed -i -e 's/$keyword/$destination/g' /etc/nginx/sites-available/default
+
+	chown ubuntu:www-data $DEST/$APP/$WWW
+
+	service nginx reload
 }
 
-run_frontend () {
-	DEST="/home/ubuntu/www"
-	APP="dataplay"
-	WWW="www-src"
+init_frontend () {
+	sed -i -e 's/localhost:3000/$LOADBALANCER/g' $DEST/$APP/$WWW/dist/scripts/*.js
+}
 
-	cd $DEST/$APP/$WWW
+configure_frontend () {
+	sed -i -e 's/localhost:3000/$LOADBALANCER/g' $DEST/$APP/$WWW/app/scripts/app.coffee
 
+	cd $DEST/$APP/$WWW && npm install bower coffee-script grunt-cli -g
+}
+
+build_frontend () {
 	npm install && \
 	bower install && \
 	grunt build
@@ -133,11 +164,6 @@ update_iptables () {
 
 	iptables-save
 }
-
-if [ "$(id -u)" != "0" ]; then
-	echo "Error: This script must be run as root" 1>&2
-	exit 1
-fi
 
 echo "[$(timestamp)] ---- 1. Setup Host ----"
 setuphost
@@ -154,10 +180,18 @@ run_master
 echo "[$(timestamp)] ---- 5. Install Nginx ----"
 install_nginx
 
-# echo "[$(timestamp)] ---- 6. Run Frontend Server ----"
-# su ubuntu -c "$(typeset -f run_frontend); run_frontend" # Run function as user 'ubuntu'
+# We either Init frontend which is quicker and doesn't install any extra libraries
+# or do configure and build which is very time consuming process due to lots of node.js libraries
+echo "[$(timestamp)] ---- 6. Init Frotnend ----"
+init_frontend
 
-echo "[$(timestamp)] ---- 6. Update IPTables rules ----"
+# echo "[$(timestamp)] ---- 6. Configure Frotnend ----"
+# configure_frontend
+
+# echo "[$(timestamp)] ---- 7. Build Frontend ----"
+# su ubuntu -c "$(typeset -f build_frontend); build_frontend" # Run function as user 'ubuntu'
+
+echo "[$(timestamp)] ---- 8. Update IPTables rules ----"
 update_iptables
 
 echo "[$(timestamp)] ---- Completed ----"
