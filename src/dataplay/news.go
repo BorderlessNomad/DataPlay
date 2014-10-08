@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/pmylund/sortutil"
 	"net/http"
@@ -16,7 +15,7 @@ type NewsArticle struct {
 	Title    string    `json:"title"`
 	Url      string    `json:"url"`
 	ImageUrl string    `json:"image_url"`
-	Score    int       `json:"SCORE"`
+	Score    float64   `json:"SCORE"`
 }
 
 func SearchForNewsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
@@ -78,12 +77,11 @@ func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
 	var originalUrl, title, description string
 
 	for iter.Scan(&id, &title, &originalUrl, &date, &description) {
-		termcount := 0
+		termcount := 0.0
 
-		for _, term := range searchTerms {
-			termcount += TermCheck(term, description)
-			termcount += TermCheck(term, title)        //if term in title too it adds weight
-			termcount += DateCheck(earliestDate, date) // add weight if the article is from around the right month or year
+		for i, term := range searchTerms {
+			termcount += float64(TermCheck(term, description+" "+title)) * 1 / float64(i+1)
+			termcount += float64(DateCheck(earliestDate, date)) * 1 / float64(i+1) // add weight if the article is from around the right month or year
 		}
 
 		if termcount > 0 {
@@ -148,14 +146,16 @@ func Earliest(terms []string) time.Time {
 		result, _ := SearchForData(0, term, nil)
 
 		for i, _ := range result.Results {
+
 			d := strings.Split(result.Results[i].PrimaryDate, " ")
 
 			if len(d) == 2 {
+
 				year, _ := strconv.Atoi(d[1])
 				month := MonthNum(d[0])
 				date := time.Date(year, month, 1, 0, 0, 0, 1, time.UTC) // year and month with nanosecond flag set
 				dates = append(dates, date)
-			} else if len(d) == 1 {
+			} else if d[0] != "" {
 				year, _ := strconv.Atoi(d[0])
 				date := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC) //just year
 				dates = append(dates, date)
@@ -163,7 +163,7 @@ func Earliest(terms []string) time.Time {
 		}
 	}
 
-	earliest := time.Date(2100, 0, 0, 0, 0, 0, 0, time.UTC)
+	earliest := time.Date(2100, 1, 1, 0, 0, 0, 0, time.UTC)
 	for _, d := range dates {
 		if d.Before(earliest) {
 			earliest = d

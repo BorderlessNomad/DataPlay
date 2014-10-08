@@ -29,7 +29,6 @@ func NewClient(key string) *Client {
 func (c *Client) Extract(urls []string, options Options, startpos int) error {
 
 	for i := startpos; i < len(urls); i += 10 {
-		// time.Sleep(2 * time.Second) // delay
 		fmt.Printf("Extracting %d - %d out of %d URLS\n", i-10, i, len(urls))
 		fmt.Sprintf("Extracting")
 		to := len(urls)
