@@ -191,8 +191,8 @@ angular.module('dataplayApp')
 					slices.on "mouseover", (d) ->
 						slice = d3.select @
 
-						x = d3.event.pageX
-						y = d3.event.pageY
+						x = d3.event.pageX - $(window.document).scrollLeft()
+						y = d3.event.pageY - $(window.document).scrollTop()
 
 						percent = (d.data.value / groupSum * 100).toFixed(2)
 
