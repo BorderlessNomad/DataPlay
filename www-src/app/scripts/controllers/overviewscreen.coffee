@@ -201,13 +201,10 @@ angular.module('dataplayApp')
 						d3.select "#pie-tooltip"
 							.attr "class", "tooltip top hidden"
 
-		$scope.highlightPieSlice = (id) ->
-			slice = document.getElementById("slice-#{id}")
-			if not slice?
-				return null
-
-			# elem = $("#legend-#{id}").tooltip "HelloWOrld!"
-			return
+		$scope.highlightPieSlice = (id, highlight) ->
+			slice = d3.select "#slice-#{id}"
+			return unless slice?
+			slice.style 'opacity', if highlight is false then null else 0.75
 
 		$scope.handleError = (type) ->
 			(err, status) ->
