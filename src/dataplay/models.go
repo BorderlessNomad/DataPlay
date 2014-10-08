@@ -88,12 +88,13 @@ func (e Events) TableName() string {
 }
 
 type Index struct {
-	Guid    string
-	Name    string
-	Title   string
-	Notes   string
-	CkanUrl string
-	Owner   int
+	Guid        string
+	Name        string
+	Title       string
+	Notes       string
+	CkanUrl     string
+	Owner       int
+	PrimaryDate string
 }
 
 func (i Index) TableName() string {
@@ -122,7 +123,6 @@ type OnlineData struct {
 	Datasetguid string
 	Tablename   string
 	Defaults    string
-	Primarydate string
 }
 
 func (od OnlineData) TableName() string {

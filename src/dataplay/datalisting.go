@@ -728,10 +728,10 @@ func PrimaryDate() {
 
 	DB.Model(OnlineData{}).Pluck("guid", &names)
 
-	for _, v := range names {
-		cols := FetchTableCols(v)
+	for _, name := range names {
+		cols := FetchTableCols(name)
 		dateCol := RandomDateColumn(cols)
-		table, _ := GetRealTableName(v)
+		table, _ := GetRealTableName(name)
 		d := "DELETE FROM " + table + " WHERE " + dateCol + " = '0001-01-01 BC'" ////////TEMP FIX TO GET RID OF INVALID VALUES IN GOV DATA
 		DB.Exec(d)
 		if dateCol != "" {
@@ -746,7 +746,7 @@ func PrimaryDate() {
 					dv = append(dv, d)
 				}
 				primaryDate := MainDate(dv)
-				err := DB.Model(OnlineData{}).Where("tablename = ?", table).Update("primarydate", primaryDate).Error
+				err := DB.Model(Index{}).Where("guid= ?", name).Update("primary_date", primaryDate).Error
 				check(err)
 			}
 		}
