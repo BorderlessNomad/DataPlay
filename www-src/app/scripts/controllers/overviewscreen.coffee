@@ -96,6 +96,33 @@ angular.module('dataplayApp')
 									item.corresponds = "county-#{newKey}"
 									item.color = $scope.mapGen.getColor lowercaseItems[newKey] || 0
 
+								counties = d3.selectAll '.county'
+
+								counties.on "mouseover", (d) ->
+									x = d3.event.pageX - $(window.document).scrollLeft()
+									y = d3.event.pageY - $(window.document).scrollTop()
+
+									el = d3.select @
+
+									county = _.find $scope.mainSections[i].graph, (it) ->
+										return it.id.replace('r-', '') is el.attr('id').replace('county-', '')
+									if not county?
+										county =
+											id: "r-#{el.attr('id').replace('county-', '')}"
+											term: el.attr 'data-display'
+											value: 0
+
+									d3.select "#pie-tooltip"
+										.style "left", "#{x}px"
+										.style "top", "#{y}px"
+										.attr "class", "tooltip fade top in"
+										.select ".tooltip-inner"
+											.text "#{county.term}: #{county.value}"
+
+								counties.on "mouseout", (d) ->
+									d3.select "#pie-tooltip"
+										.attr "class", "tooltip top hidden"
+
 					.error $scope.handleError i
 
 			OverviewScreen.get 'p'

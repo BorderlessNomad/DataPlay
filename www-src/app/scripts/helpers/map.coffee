@@ -36,6 +36,7 @@ class MapGenerator
 		container.append 'g'
 			.attr 'class', 'county'
 			.attr 'id', "county-#{county.name}"
+			.attr 'data-display', displayName
 			.append 'path'
 				.attr 'fill', @getColor county
 				.attr 'd', @boundaryPaths[county.name]
