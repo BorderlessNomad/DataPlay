@@ -69,7 +69,7 @@ func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
 
 	newsArticles := []NewsArticle{}
 	searchTerms := strings.Split(searchstring, "_")
-	earliestDate := Earliest(searchTerms)
+	earliestDate := Earliest(searchTerms) // links with SQL database
 
 	iter := session.Query(`SELECT id, title, original_url, date, description FROM response WHERE date >= ? AND date < ? ALLOW FILTERING`, earliestDate, Today).Iter()
 
@@ -170,7 +170,6 @@ func Earliest(terms []string) time.Time {
 		}
 	}
 
-	fmt.Println("NATIVES", earliest)
 	return earliest
 }
 

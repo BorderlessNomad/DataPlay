@@ -245,19 +245,3 @@ func writeToCass(resp string) {
 		}
 	}
 }
-
-//////////////////////////////////////////////////////////////////////
-// func outputSomething(u string) {
-// 	session, _ := GetCassandraConnection("dp")
-// 	defer session.Close()
-
-// 	var url string
-// 	iter := session.Query(`SELECT url FROM response WHERE url == ?`, u).Iter()
-// 	for iter.Scan(&url) {
-// 		fmt.Println(url)
-// 	}
-
-// 	if err := iter.Close(); err != nil {
-// 		panic(err)
-// 	}
-// }
