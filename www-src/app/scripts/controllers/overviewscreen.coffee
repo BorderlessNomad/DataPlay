@@ -53,7 +53,8 @@ angular.module('dataplayApp')
 				OverviewScreen.get i
 					.success (data) ->
 						if data instanceof Array
-							$scope.mainSections[i].items = data
+							$scope.mainSections[i].items = data.filter (i) ->
+								!! i.term
 							maxTotal = 0
 
 							$scope.mainSections[i].items.forEach (item) ->
@@ -66,7 +67,12 @@ angular.module('dataplayApp')
 
 								$scope.mainSections[i].graph.push
 									id: item.id
-									term: item.term
+									term: do ->
+										return item.term unless item.term.toLowerCase() is item.term
+										words = item.term.split /_|\-|\'|\s/g
+										newTerm = words.map((w) -> "#{w.substring(0,1).toUpperCase()}#{w.substring(1).toLowerCase()}").join ' '
+										item.term = newTerm
+										newTerm
 									value: total
 
 								return
@@ -79,11 +85,11 @@ angular.module('dataplayApp')
 
 								$scope.mapGen.maxvalue = maxTotal
 
-								data = Object.keys($scope.mapGen.boundaryPaths).map (c) ->
+								regData = Object.keys($scope.mapGen.boundaryPaths).map (c) ->
 									name: c
 									value: lowercaseItems[c] || 0
 
-								$scope.mapGen.generate data
+								$scope.mapGen.generate regData
 
 								$scope.mainSections[i].items.forEach (item) ->
 									newKey = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
