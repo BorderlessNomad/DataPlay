@@ -234,15 +234,15 @@ func AddSearchTerm(str string) {
 	searchterm := SearchTerm{}
 
 	err := DB.Where("term = ?", str).Find(&searchterm).Error
-	if err != nil && err != gorm.RecordNotFound {
-		panic(err)
+	if err == nil && err != gorm.RecordNotFound {
+		searchterm.Count++
+		err = DB.Save(&searchterm).Error
 	} else if err == gorm.RecordNotFound {
 		searchterm.Count = 0
 		searchterm.Term = str
+		searchterm.Count++
+		err = DB.Save(&searchterm).Error
 	}
-
-	searchterm.Count++
-	err = DB.Save(&searchterm).Error
 }
 
 // Takes all the key terms from the title, name and description in the index table and writes them to the datadictionary along with their frequency
