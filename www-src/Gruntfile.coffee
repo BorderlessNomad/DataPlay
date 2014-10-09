@@ -156,6 +156,8 @@ module.exports = (grunt) ->
 					ext: ".js"
 				]
 
+		# Allow the use of non-minsafe AngularJS files. Automatically makes it
+		# minsafe compatible so Uglify does not destroy the ng references
 		ngAnnotate:
 			dist:
 				files: [
@@ -163,14 +165,20 @@ module.exports = (grunt) ->
 					cwd: ".tmp/scripts"
 					src: "**/*.js"
 					dest: ".tmp/scripts"
-					ext: ".js"
 				]
 
-		uglify:
+		# Package all the html partials into a single javascript payload
+		ngtemplates:
 			options:
-				report: 'min'
-				mangle: true # AngularJS is not very happy about mangling globals e.g. $scope
-				beautify: false # Debug
+				module: "testApp"
+				htmlmin:
+					collapseBooleanAttributes: true
+					collapseWhitespace: true
+					removeAttributeQuotes: true
+					removeEmptyAttributes: true
+					removeRedundantAttributes: true
+					removeScriptTypeAttributes: true
+					removeStyleLinkTypeAttributes: true
 
 		less:
 			options:
@@ -199,6 +207,7 @@ module.exports = (grunt) ->
 					"<%= yeoman.dist %>/styles/**/*.css"
 					"<%= yeoman.dist %>/images/**/*.{png,jpg,jpeg,gif,webp,svg}"
 					"<%= yeoman.dist %>/styles/fonts/*"
+					"bower_components/components-font-awesome/fonts/*"
 				]
 
 
@@ -294,8 +303,16 @@ module.exports = (grunt) ->
 					}
 					{
 						expand: true
+						dot: true
 						cwd: "bower_components/bootstrap/dist"
-						src: "fonts/*"
+						src: ["fonts/*.*"]
+						dest: "<%= yeoman.dist %>"
+					}
+					{
+						expand: true
+						dot: true
+						cwd: "bower_components/font-awesome"
+						src: ["fonts/*.*"]
 						dest: "<%= yeoman.dist %>"
 					}
 				]
