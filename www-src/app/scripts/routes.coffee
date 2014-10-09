@@ -11,9 +11,9 @@
 
 angular.module('dataplayApp')
 	.config ['$routeProvider', '$locationProvider', '$provide', ($routeProvider, $locationProvider, $provide) ->
-		# $provide.decorator '$sniffer', ($delegate) ->
-		# 	$delegate.history = false
-		# 	$delegate
+		$provide.decorator '$sniffer', ($delegate) ->
+			$delegate.history = false
+			$delegate
 
 		$routeProvider
 			.when '/home',
