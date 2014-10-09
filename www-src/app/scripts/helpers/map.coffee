@@ -36,6 +36,7 @@ class MapGenerator
 		container.append 'g'
 			.attr 'class', 'county'
 			.attr 'id', "county-#{county.name}"
+			.attr 'data-display', displayName
 			.append 'path'
 				.attr 'fill', @getColor county
 				.attr 'd', @boundaryPaths[county.name]
@@ -67,37 +68,26 @@ class MapGenerator
 		d3.select "##{corr} path"
 			.style 'fill-opacity', null
 
-	locationDictionary:
-		'glasgow': 'strathclyde'
-		'edinburgh': 'lothian'
-		'london': 'greaterlondon'
-		'manchester': 'greatermanchester'
-		'birmingham': 'westmidlands'
-		'leeds': 'westyorkshire'
-		'sheffield': 'northyorkshire'
-		'liverpool': 'merseyside'
-		'cardiff': 'southglamorgan'
-
 	displayNameDictionary:
-		'dumfriesandgalloway': 'Dumfries and Galloway'
-		'eastsussex': 'East Sussex'
-		'greaterlondon': 'London'
-		'greatermanchester': 'Manchester'
+		'dumfriesandgalloway':  'Dumfries and Galloway'
+		'eastsussex':           'East Sussex'
+		'greaterlondon':        'London'
+		'greatermanchester':    'Manchester'
 		'herefordandworcester': 'Hereford and Worcester'
-		'isleofwight': 'Isle of Wight'
-		'midglamorgan': 'Mid Glamorgan'
-		'northyorkshire': 'North Yorkshire'
-		'orkneyislands': 'Orkney Islands'
-		'scottishborders': 'Scottish Borders'
-		'southglamorgan': 'South Glamorgan'
-		'southyorkshire': 'South Yorkshire'
-		'tyneandwear': 'Tyne and Wear'
-		'westernisles': 'Western Isles'
-		'westglamorgan': 'West Glamorgan'
-		'westmidlands': 'West Midlands'
-		'westsussex': 'West Sussex'
-		'westyorkshire': 'West Yorkshire'
-		'northernireland': 'Northern Ireland'
+		'isleofwight':          'Isle of Wight'
+		'midglamorgan':         'Mid Glamorgan'
+		'northernireland':      'Northern Ireland'
+		'northyorkshire':       'North Yorkshire'
+		'orkneyislands':        'Orkney Islands'
+		'scottishborders':      'Scottish Borders'
+		'southglamorgan':       'South Glamorgan'
+		'southyorkshire':       'South Yorkshire'
+		'tyneandwear':          'Tyne and Wear'
+		'westernisles':         'Western Isles'
+		'westglamorgan':        'West Glamorgan'
+		'westmidlands':         'West Midlands'
+		'westsussex':           'West Sussex'
+		'westyorkshire':        'West Yorkshire'
 
 	boundaryPaths: {}
 

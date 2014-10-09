@@ -45,7 +45,8 @@
 								ng-if="sect.type == 'pie'"
 								ng-attr-id="legend-{{item.id}}"
 								ng-style="{'background-color': colourMap[item.id]}"
-								ng-mouseover="highlightPieSlice(item.id)"
+								ng-mouseover="highlightPieSlice(item.id, true)"
+								ng-mouseleave="highlightPieSlice(item.id, false)"
 
 								data-toggle="tooltip"
 								data-placement="bottom"
