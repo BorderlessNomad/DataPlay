@@ -11,9 +11,7 @@ angular.module('dataplayApp')
 	.controller 'SearchCtrl', ['$scope', '$location', '$routeParams', 'User', 'Overview', 'PatternMatcher', ($scope, $location, $routeParams, User, Overview, PatternMatcher) ->
 		$scope.query = if $routeParams.query? then $routeParams.query else ""
 		$scope.results = []
-		$scope.rowedResults = [] # split into sub-arrays of 3
 
-		$scope.totalResults = 0
 		$scope.rowLimit = 3
 		$scope.overview = []
 
@@ -25,7 +23,6 @@ angular.module('dataplayApp')
 			# Initiate search if we have /search/:query
 			if reset
 				$scope.chartsRelated = []
-				$scope.totalResults
 				$scope.relatedChart.chartsRelated = $scope.chartsRelated
 
 			$scope.search()
@@ -50,8 +47,6 @@ angular.module('dataplayApp')
 						# offset = Overview.getRandomInteger 0, 3
 						$scope.getRelated r.GUID, 0
 
-					$scope.rowedResults = $scope.splitIntoRows $scope.results
-					$scope.totalResults = data.Total
 					return
 				.error (status, data) ->
 					$scope.loading.related = false
@@ -75,21 +70,9 @@ angular.module('dataplayApp')
 					console.log "Search::getNews::Error:", status
 					return
 
-		$scope.splitIntoRows = (arr, numOfCols = 3) ->
-			twoD = []
-			for item, key in arr
-				row = Math.floor key / numOfCols
-				col = key % numOfCols
-				if not twoD[row]
-					twoD[row] = []
-				twoD[row][col] = item
-			return twoD
-
 		$scope.showMore = ->
-			$scope.rowLimit += 2
-			if $scope.rowedResults.length < $scope.rowLimit
-				# get more results
-				$scope.search ($scope.rowLimit - 1) * 3, 9
+			# get more results
+			$scope.search $scope.chartsRelated.length, 9
 
 		$scope.collapse = (item) ->
 			item.show = false
@@ -130,7 +113,6 @@ angular.module('dataplayApp')
 								chart.patterns[chart.xLabel].keyPattern
 							)
 
-						console.log $scope.chartsRelated
 					return
 				.error (data, status) ->
 					$scope.loading.related = false

@@ -51,5 +51,5 @@ angular.module('dataplayApp')
 			offset = if offset? then offset else 0
 			count = if count? then count else 3
 			depth = if depth? then depth else 100
-			$http.get config.api.base_url + "/correlated/#{guid}/#{offset}/#{count}/#{depth}"
+			$http.get config.api.base_url + "/correlated/#{guid}/true/#{offset}/#{count}"
 	]
