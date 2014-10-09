@@ -31,10 +31,7 @@ func Start(pos int) {
 		urls = append(urls, record[0])
 	}
 
-	c := NewClient("d32943c0760c4eb7a25d40ad756877bb") // embedly API key MAYUR GMAIL
-	// c := NewClient("73be1030c0ec4be1959485ac148ada91") // embedly API key GLYN GMAIL
-	// c := NewClient("2ba4435681034ef6b92f729d527453e3") // embedly API key LEX
-	// c := NewClient("8104b696aa0e471e8d58f83e4e4c39b1") // embedly API key GLYN@PLAYGEN
+	c := NewClient(EmKey1)
 	options := Options{}
 	c.Extract(urls, options, pos)
 }

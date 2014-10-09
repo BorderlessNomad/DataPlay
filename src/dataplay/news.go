@@ -5,6 +5,7 @@ import (
 	"github.com/codegangsta/martini"
 	"github.com/pmylund/sortutil"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -14,7 +15,7 @@ type NewsArticle struct {
 	Title    string    `json:"title"`
 	Url      string    `json:"url"`
 	ImageUrl string    `json:"image_url"`
-	Score    int       `json:"SCORE"`
+	Score    float64   `json:"SCORE"`
 }
 
 func SearchForNewsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
@@ -57,35 +58,32 @@ func SearchForNewsQ(params map[string]string) string {
 	return string(r)
 }
 
-func SearchForNews(searchterms string) ([]NewsArticle, *appError) {
-	newsarticles := []NewsArticle{}
-	searchterm := strings.Split(searchterms, "_")
+// search Cassandra for news articles relating to the search terms
+// also searches sql tables to find relevant dates to tie in with table search
+// also checks if dates are entered in the search
+func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
+
 	session, _ := GetCassandraConnection("dp") // create connection to cassandra
 	defer session.Close()
 
-	/////////// @TODO: Weight based on search date///////////////
-	// searchdate := ""
-	// params := map[string]string{
-	// 	"offset": "0",
-	// 	"count":  "1",
-	// }
-	// searchresponse, _ := SearchForData(1, "gold", params)
-	// onlineData := OnlineData{}
-	// DB.Where("guid = ?", searchresponse.Results[0].GUID).Find(&onlineData)
-	// if onlineData.Primarydate != "" {
-	// 	searchdate = onlineData.Primarydate
-	// }
+	newsArticles := []NewsArticle{}
+	searchTerms := strings.Split(searchstring, "_")
+	earliestDate := Earliest(searchTerms) // links with SQL database
+
+	iter := session.Query(`SELECT id, title, original_url, date, description FROM response WHERE date >= ? AND date < ? ALLOW FILTERING`, earliestDate, Today).Iter()
 
 	var id []byte
 	var date time.Time
 	var originalUrl, title, description string
-	iter := session.Query(`SELECT id, title, original_url, date, description FROM response WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
+
 	for iter.Scan(&id, &title, &originalUrl, &date, &description) {
-		termcount := 0
-		for _, st := range searchterm {
-			termcount += TermCheck(st, description)
-			termcount += TermCheck(st, title) //if term in title too it adds weight
+		termcount := 0.0
+
+		for i, term := range searchTerms {
+			termcount += float64(TermCheck(term, description+" "+title)) * 1 / float64(i+1)
+			termcount += float64(DateCheck(earliestDate, date)) * 1 / float64(i+1) // add weight if the article is from around the right month or year
 		}
+
 		if termcount > 0 {
 			var tmpNA NewsArticle
 			imageUrl := ""
@@ -100,14 +98,15 @@ func SearchForNews(searchterms string) ([]NewsArticle, *appError) {
 			tmpNA.Title = title
 			tmpNA.Url = originalUrl
 			tmpNA.Score = termcount
-			newsarticles = append(newsarticles, tmpNA)
+			newsArticles = append(newsArticles, tmpNA)
 		}
 	}
 
-	sortutil.DescByField(newsarticles, "Score")
-	return newsarticles, nil
+	sortutil.DescByField(newsArticles, "Score")
+	return newsArticles, nil
 }
 
+// return 1 if the term is found in the passage
 func TermCheck(term string, passage string) int {
 	descriptions := strings.Split(passage, " ")
 	for _, d := range descriptions {
@@ -116,4 +115,72 @@ func TermCheck(term string, passage string) int {
 		}
 	}
 	return 0
+}
+
+//return 2, 1 or 0 depending on how accurate the date is
+func DateCheck(date1 time.Time, date2 time.Time) int {
+	y1 := date1.Year()
+	y2 := date2.Year()
+	m1 := date1.Month()
+	m2 := date2.Month()
+
+	if date1.Nanosecond() > 0 { // check nanosecond flag to see if year and month or just year need handling
+		if y1 == y2 && m1 == m2 {
+			return 2 // if month and year are correct
+		} else if y1 == y2 {
+			return 1 // if only correct year
+		}
+	} else if y1 == y2 { // when just year is set and correct
+		return 1
+	}
+
+	return 0 // no match
+}
+
+// returns earliest date from related search
+func Earliest(terms []string) time.Time {
+	var dates []time.Time
+
+	for _, term := range terms {
+
+		result, _ := SearchForData(0, term, nil)
+
+		for i, _ := range result.Results {
+
+			d := strings.Split(result.Results[i].PrimaryDate, " ")
+
+			if len(d) == 2 {
+
+				year, _ := strconv.Atoi(d[1])
+				month := MonthNum(d[0])
+				date := time.Date(year, month, 1, 0, 0, 0, 1, time.UTC) // year and month with nanosecond flag set
+				dates = append(dates, date)
+			} else if d[0] != "" {
+				year, _ := strconv.Atoi(d[0])
+				date := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC) //just year
+				dates = append(dates, date)
+			}
+		}
+	}
+
+	earliest := time.Date(2100, 1, 1, 0, 0, 0, 0, time.UTC)
+	for _, d := range dates {
+		if d.Before(earliest) {
+			earliest = d
+		}
+	}
+
+	return earliest
+}
+
+// convert month name to time month type
+func MonthNum(month string) time.Month {
+	mstr := "January_February_March_April_May_June_July_August_September_October_November_December"
+	m := strings.Split(mstr, "_")
+	for i, _ := range m {
+		if month == m[i] {
+			return time.Month(i + 1)
+		}
+	}
+	return time.Month(1)
 }

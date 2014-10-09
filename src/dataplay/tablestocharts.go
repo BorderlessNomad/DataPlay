@@ -1267,7 +1267,6 @@ func GetChartInfoHttp(res http.ResponseWriter, req *http.Request, params martini
 	if err == gorm.RecordNotFound {
 		return "[]"
 	} else if err != nil {
-		panic(err)
 		http.Error(res, "Could not find that data.", http.StatusNotFound)
 		return ""
 	}

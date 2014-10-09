@@ -94,8 +94,7 @@ func initClassicMode() {
 
 	e := DBSetup()
 	if e != nil {
-		// panic(fmt.Sprintf("[database] Unable to connect to the Database: %s\n", e))
-		panic(e)
+		fmt.Sprintf("[database] Unable to connect to the Database: %s\n", e)
 	}
 
 	/* Database connection will be closed only when Server closes */
@@ -107,7 +106,7 @@ func initClassicMode() {
 	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y/:z", GetChartHttp)
 	m.Get("/api/chartcorrelated/:cid", GetChartCorrelatedHttp)
 	m.Get("/api/correlated/:tablename/:search", GetCorrelatedChartsHttp)
-	m.Get("/api/correlated/:tablename/:search/:offset/:count", GetCorrelatedChartsHttp) ////////////////////////////////!!!!!!!!!!!!!!!!!!!!!!!!!!
+	m.Get("/api/correlated/:tablename/:search/:offset/:count", GetCorrelatedChartsHttp)
 	m.Get("/api/discovered/:tablename/:correlated", GetDiscoveredChartsHttp)
 	m.Get("/api/discovered/:tablename/:correlated/:offset/:count", GetDiscoveredChartsHttp)
 	m.Get("/api/getdata/:id", DumpTableHttp)
@@ -118,7 +117,7 @@ func initClassicMode() {
 	m.Get("/api/getreduceddata/:id", DumpReducedTableHttp)
 	m.Get("/api/getreduceddata/:id/:percent", DumpReducedTableHttp)
 	m.Get("/api/getreduceddata/:id/:percent/:min", DumpReducedTableHttp)
-	m.Get("/api/getreduceddata/:id/:percent/:min/:x/:y", DumpReducedTableHttp) ///////////////////////////!!!!!!!
+	m.Get("/api/getreduceddata/:id/:percent/:min/:x/:y", DumpReducedTableHttp)
 	m.Get("/api/news/search/:terms", SearchForNewsHttp)
 	m.Get("/api/observations/:did", GetObservationsHttp)
 	m.Get("/api/political/:type", GetPoliticalActivityHttp)
@@ -143,7 +142,7 @@ func initMasterMode() {
 
 	e := DBSetup()
 	if e != nil {
-		panic(e)
+		fmt.Sprintf("[database] Unable to connect to the Database: %s\n", e)
 	}
 
 	/* Database connection will be closed only when Server closes */
@@ -246,8 +245,7 @@ func initNodeMode() {
 
 	e := DBSetup()
 	if e != nil {
-		panic(fmt.Sprintf("[database] Unable to connect to the Database: %s\n", e))
-		return
+		fmt.Sprintf("[database] Unable to connect to the Database: %s\n", e)
 	}
 
 	defer DB.Close()
@@ -473,10 +471,10 @@ func LogRequest(res http.ResponseWriter, req *http.Request, c martini.Context) {
  * @details Error Handler
  *
  * @param error
- * @return panic
+ * @print error
  */
 func check(e error) {
 	if e != nil {
-		panic(e)
+		fmt.Println(e.Error())
 	}
 }
