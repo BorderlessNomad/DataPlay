@@ -14,6 +14,7 @@ type SearchResult struct {
 	Title        string
 	GUID         string
 	LocationData bool
+	PrimaryDate  string
 }
 
 type SearchResponse struct {
@@ -212,6 +213,7 @@ func ProcessSearchResults(term string, rows []Index, total int, e error) SearchR
 			Title:        SanitizeString(row.Title),
 			GUID:         SanitizeString(row.Guid),
 			LocationData: Location,
+			PrimaryDate:  row.PrimaryDate,
 		}
 
 		Results = append(Results, result)
