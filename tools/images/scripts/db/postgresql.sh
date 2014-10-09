@@ -45,7 +45,7 @@ import_data () {
 	#
 	# on Server
 	# gunzip -vk dataplay.sql.gz
-	# psql -h localhost -U playgen -d dataplay -f dataplay.sql
+	# psql -h localhost -U playgen -d dataplay -f dataplay.sql >> postgres-import.log
 }
 
 update_iptables () {
