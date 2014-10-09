@@ -21,7 +21,9 @@ install_java () {
 	apt-get install -y oracle-java7-installer && \
 	apt-get autoclean
 
-	echo "export JAVA_HOME=/usr/lib/jvm/java-7-oracle" > /home/ubuntu/.profile
+	echo "export JAVA_HOME=/usr/lib/jvm/java-7-oracle" > /etc/environment
+
+	. /etc/environment
 }
 
 install_cassandra () {
@@ -38,8 +40,9 @@ install_cassandra () {
 	done
 	echo "Cassandra is UP!"
 
-	echo "export CASSANDRA_CONFIG=/etc/cassandra" > /home/ubuntu/.profile
-	. /home/ubuntu/.profile
+	echo "export CASSANDRA_CONFIG=/etc/cassandra" > /etc/environment
+
+	. /etc/environment
 
 	# nodetool status # Verify that DataStax Community is running
 }
