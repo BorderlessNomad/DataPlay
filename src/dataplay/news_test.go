@@ -15,7 +15,7 @@ func TestSearchForNewsHttp(t *testing.T) {
 		"terms": "gold",
 	}
 
-	Convey("Should return departments PoliticalActivity", t, func() {
+	Convey("Should return news", t, func() {
 		result := SearchForNewsHttp(res, req, params)
 		So(result, ShouldNotBeNil)
 	})

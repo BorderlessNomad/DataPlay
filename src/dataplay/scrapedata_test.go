@@ -1,9 +1,9 @@
 package main
 
-// import (
-// 	. "github.com/smartystreets/goconvey/convey"
-// 	"testing"
-// )
+import (
+	. "github.com/smartystreets/goconvey/convey"
+	"testing"
+)
 
 // func TestDateScrape(t *testing.T) {
 // 	Convey("DateScrape", t, func() {
@@ -11,3 +11,9 @@ package main
 // 		DateScrapeB(res)
 // 	})
 // }
+
+func TestJparser(t *testing.T) {
+	Convey("DateScrape", t, func() {
+		Jparser()
+	})
+}

@@ -1,7 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
+	// "time"
 )
 
 type YN struct {
@@ -17,6 +21,34 @@ type TY struct {
 type CT struct {
 	col   string
 	table string
+}
+
+// type Container struct {
+// 	thing Thing
+// }
+
+type Container struct {
+	name           string  `json:"name"`
+	frequency      string  `json:"frequency"`
+	version        int32   `json:"version"`
+	newdata        bool    `json:"newdata"`
+	lastrunstatus  string  `json:"lastrunstatus"`
+	thisversionrun string  `json:"thisversionrun"`
+	lastsuccess    string  `json:"lastsuccess"`
+	results        Results `json:"results"`
+	count          int     `json:"count"`
+}
+
+type Results struct {
+	collection []Collection `json:"collection1"`
+}
+type Collection struct {
+	property Property `json:"property1"`
+}
+
+type Property struct {
+	text string `json:"text"`
+	href string `json:"href"`
 }
 
 func DateScrapeA() []CT {
@@ -205,4 +237,22 @@ func DateScrapeB(ct []CT) {
 			}
 		}
 	}
+}
+
+func Jparser() {
+
+	file, e := ioutil.ReadFile("./urls.json")
+	if e != nil {
+		fmt.Printf("File error: %v\n", e)
+		os.Exit(1)
+	}
+	fmt.Printf("%s\n", string(file))
+
+	var container Container
+	e = json.Unmarshal(file, &container)
+	if e != nil {
+		fmt.Println(e.Error())
+	}
+	fmt.Printf("Robocop9000: %v\n", container)
+
 }
