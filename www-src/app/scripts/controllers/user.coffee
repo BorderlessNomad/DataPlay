@@ -1,5 +1,14 @@
 'use strict'
 
+hello.init {
+	facebook: '849402518433862'
+	twitter: 'd1rdbGQ4Hd6ZvURsaxAKcgUiW'
+	google  : '233668141851-tjicormqo6m2ld7rdckk2ok2vnqf3ff3.apps.googleusercontent.com'
+}, {
+	redirect_uri: 'redirect.html'
+	scope: 'email'
+}
+
 ###*
  # @ngdoc function
  # @name dataplayApp.controller:UserCtrl
@@ -47,6 +56,33 @@ angular.module('dataplayApp')
 			$location.path "/home"
 
 			return
+
+		$scope.socialLogin = (type) ->
+			hello(type).login()
+				.then (auth) ->
+					hello(auth.network).api('/me')
+						.then (data) ->
+							if type is 'facebook'
+								obj =
+									id: data.id or ''
+									email: data.email or ''
+									name:
+										full: data.name or ''
+										first: data['first_name'] or ''
+										last: data['last_name'] or ''
+									image: data.picture or ''
+							else if type is 'google'
+								obj =
+									id: data.id or ''
+									email: data.email or ''
+									name:
+										full: data.name or data.displayName or ''
+										first: data['first_name'] or ''
+										last: data['last_name'] or ''
+									image: data.image?.url or ''
+						, (e) -> console.log "Error on /me", e
+				, (e) -> console.log "Error on login", e
+
 
 		$scope.logout = () ->
 			token = Auth.get config.sessionName
