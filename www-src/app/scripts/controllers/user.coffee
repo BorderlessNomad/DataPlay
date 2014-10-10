@@ -62,24 +62,23 @@ angular.module('dataplayApp')
 				.then (auth) ->
 					hello(auth.network).api('/me')
 						.then (data) ->
+							core =
+								network: type
+								id: data.id or ''
+								email: data.email or ''
+								name:
+									full: data.name or ''
+									first: data['first_name'] or ''
+									last: data['last_name'] or ''
+
 							if type is 'facebook'
-								obj =
-									id: data.id or ''
-									email: data.email or ''
-									name:
-										full: data.name or ''
-										first: data['first_name'] or ''
-										last: data['last_name'] or ''
-									image: data.picture or ''
+								core.image = data.picture or ''
+							else if type is 'twitter'
+								core.image = data['profile_image_url'] or ''
 							else if type is 'google'
-								obj =
-									id: data.id or ''
-									email: data.email or ''
-									name:
-										full: data.name or data.displayName or ''
-										first: data['first_name'] or ''
-										last: data['last_name'] or ''
-									image: data.image?.url or ''
+								core.image = data.image?.url or ''
+
+							console.log 'Social Login Data:', core
 						, (e) -> console.log "Error on /me", e
 				, (e) -> console.log "Error on login", e
 
