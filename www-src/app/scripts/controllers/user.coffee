@@ -1,5 +1,14 @@
 'use strict'
 
+hello.init {
+	facebook: '849402518433862'
+	# windows : '000000004812EF76'
+	google  : '233668141851-tjicormqo6m2ld7rdckk2ok2vnqf3ff3.apps.googleusercontent.com'
+}, {
+	redirect_uri: 'redirect.html'
+	scope: 'email'
+}
+
 ###*
  # @ngdoc function
  # @name dataplayApp.controller:UserCtrl
@@ -16,6 +25,7 @@ angular.module('dataplayApp')
 			password: null
 			password_confirm: null
 			message: null
+			type: null
 
 		$scope.forgotPassword =
 			valid: false
@@ -34,6 +44,7 @@ angular.module('dataplayApp')
 
 					return
 				).error (status, data) ->
+					$scope.user.type = 'login'
 					$scope.user.message = status
 					console.log "User::Login::Error:", status
 					return
@@ -48,6 +59,37 @@ angular.module('dataplayApp')
 
 			return
 
+		$scope.socialLogin = (type) ->
+			hello(type).login()
+				.then (auth) ->
+					hello(auth.network).api('/me')
+						.then (data) ->
+							core =
+								network: type
+								id: data.id or ''
+								email: data.email or ''
+								"full_name": data.name or ''
+								"first_name": data['first_name'] or ''
+								"last_name": data['last_name'] or ''
+
+							if type is 'facebook'
+								core.image = data.picture or ''
+							else if type is 'google'
+								core.image = data.image?.url or ''
+
+							User.socialLogin core
+								.success (res) ->
+									$scope.processLogin res
+								.error (msg) ->
+									$scope.user.type = 'socialLogin'
+									$scope.user.message = msg
+									console.log "User::SocialLogin::Error:", msg
+									return
+
+						, (e) -> console.log "Error on /me", e
+				, (e) -> console.log "Error on login", e
+
+
 		$scope.logout = () ->
 			token = Auth.get config.sessionName
 
@@ -59,6 +101,7 @@ angular.module('dataplayApp')
 					$location.path "/"
 					return
 				).error (status, data) ->
+					$scope.user.type = 'logout'
 					$scope.user.message = status
 					console.log "User::Logout::Error:", status
 					return
@@ -74,6 +117,7 @@ angular.module('dataplayApp')
 
 					return
 				).error (status, data) ->
+					$scope.user.type = 'register'
 					$scope.user.message = status
 					console.log "User::Register::Error:", status
 					return
@@ -93,10 +137,12 @@ angular.module('dataplayApp')
 						return
 					).error (status, data) ->
 						$scope.forgotPassword.valid = false
+						$scope.user.type = 'forgotPassword'
 						$scope.user.message = status
 						console.log "User::ForgotPassword::token::Error:", status, data
 						return
 				).error (status, data) ->
+					$scope.user.type = 'forgotPassword'
 					$scope.user.message = status
 					console.log "User::ForgotPassword::check::Error:", status, data
 					return
@@ -112,6 +158,7 @@ angular.module('dataplayApp')
 
 					return
 				).error (status, data) ->
+					$scope.user.type = 'resetPasswordCheck'
 					$scope.user.message = status
 					console.log "User::ResetPassword::check::Error:", status, data
 					return
@@ -125,14 +172,16 @@ angular.module('dataplayApp')
 
 					return
 				).error (status, data) ->
+					$scope.user.type = 'resetPassword'
 					$scope.user.message = status
 					console.log "User::ResetPassword::save::Error:", status, data
 					return
 
-		$scope.hasError = () ->
-			if $scope.user.message?.length then true else false
+		$scope.hasError = (type) ->
+			$scope.user.message?.length && $scope.user.type is type
 
 		$scope.closeAlert = () ->
+			$scope.user.type = null
 			$scope.user.message = null
 
 		$scope.changeTab = (tab) ->

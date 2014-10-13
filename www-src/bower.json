@@ -18,7 +18,8 @@
 		"angular-bootstrap": "^0.11",
 		"angular-dc": "master",
 		"angular-nvd3": "master",
-		"ng-tiny-scrollbar": "^0.6"
+		"ng-tiny-scrollbar": "^0.6",
+		"hello": "1.2.2"
 	},
 	"devDependencies": {
 		"angular-mocks": "^1.3",

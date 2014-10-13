@@ -85,7 +85,7 @@ angular.module('dataplayApp')
 				login: true
 			.when '/user/login',
 				templateUrl: 'views/user/login.html'
-				title: ['Login']
+				title: ['Login/Register']
 				login: false
 			.when '/user/logout',
 				templateUrl: 'views/user/login.html'
@@ -102,10 +102,6 @@ angular.module('dataplayApp')
 				controller: 'UserCtrl'
 				title: ['Reset Password']
 				login: false
-			.when '/user/register',
-				templateUrl: 'views/user/register.html'
-				title: ['Register']
-				login: false
 			.when '/user',
 				templateUrl: 'views/user/profile.html'
 				controller: 'ProfileCtrl'
@@ -115,6 +111,11 @@ angular.module('dataplayApp')
 				templateUrl: 'views/user/profile.html'
 				controller: 'ProfileCtrl'
 				title: ['Profile']
+				login: true
+			.when '/admin/users',
+				templateUrl: 'views/admin/users.html'
+				controller: 'AdminUsersCtrl'
+				title: ['Admin - Users']
 				login: true
 			.otherwise
 				redirectTo: '/'
