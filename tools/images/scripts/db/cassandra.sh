@@ -80,6 +80,7 @@ install_opscenter () {
 }
 
 backup_cassandra () {
+	echo "TODO: manually"
 	# On Source:
 	# cd /var/lib/cassandra/data/dp/
 	#

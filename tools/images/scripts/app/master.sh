@@ -16,8 +16,12 @@ WWW="www-src"
 REPO="DataPlay"
 BRANCH="develop"
 
-# LOADBALANCER="109.231.121.26"
-LOADBALANCER=$(ss-get --timeout 360 loadbalancer.hostname)
+HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
+PORT="3000"
+
+# LOADBALANCER_HOST="109.231.121.26"
+LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
+LOADBALANCER_PORT="1937"
 
 # DATABASE_HOST="109.231.121.13"
 DATABASE_HOST=$(ss-get --timeout 360 postgres.hostname)
@@ -64,7 +68,7 @@ install_go () {
 }
 
 export_variables () {
-	echo "export DP_LOADBALANCER=$LOADBALANCER" >> /etc/environment
+	echo "export DP_LOADBALANCER=$LOADBALANCER_HOST" >> /etc/environment
 	echo "export DP_DATABASE_HOST=$DATABASE_HOST" >> /etc/environment
 	echo "export DP_DATABASE_PORT=$DATABASE_PORT" >> /etc/environment
 	echo "export DP_REDIS_HOST=$REDIS_HOST" >> /etc/environment
@@ -141,11 +145,11 @@ install_nginx () {
 }
 
 init_frontend () {
-	sed -i "s/localhost:3000/$LOADBALANCER/g" $DEST/$APP/$WWW/dist/scripts/*.js
+	sed -i "s/localhost:3000/$LOADBALANCER_HOST/g" $DEST/$APP/$WWW/dist/scripts/*.js
 }
 
 configure_frontend () {
-	sed -i "s/localhost:3000/$LOADBALANCER/g" $DEST/$APP/$WWW/app/scripts/app.coffee
+	sed -i "s/localhost:3000/$LOADBALANCER_HOST/g" $DEST/$APP/$WWW/app/scripts/app.coffee
 
 	command -v grunt >/dev/null 2>&1 || { echo >&2 "Error: Command 'grunt' not found!"; exit 1; }
 
@@ -158,6 +162,11 @@ build_frontend () {
 	npm install && \
 	bower install && \
 	grunt build
+}
+
+inform_loadbalancer () {
+	PAYLOAD={\"ip\":\"$HOST:$PORT\"}
+	curl -i -H "Content-Type: application/json" -X POST -d '$PAYLOAD' http://$LOADBALANCER_HOST:$LOADBALANCER_PORT
 }
 
 update_iptables () {
@@ -194,7 +203,10 @@ init_frontend
 # echo "[$(timestamp)] ---- 7. Build Frontend ----"
 # su ubuntu -c "$(typeset -f build_frontend); build_frontend" # Run function as user 'ubuntu'
 
-echo "[$(timestamp)] ---- 8. Update IPTables rules ----"
+echo "[$(timestamp)] ---- 8. Inform Load Balancer (Add) ----"
+inform_loadbalancer
+
+echo "[$(timestamp)] ---- 9. Update IPTables rules ----"
 update_iptables
 
 echo "[$(timestamp)] ---- Completed ----"
