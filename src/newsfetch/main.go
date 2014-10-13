@@ -13,7 +13,7 @@ func main() {
 
 func Start(pos int) {
 	fmt.Println("STARTING...")
-	file, _ := os.Open("urls5000.csv") // url file
+	file, _ := os.Open("urls.csv") // url file
 	defer file.Close()
 	reader := csv.NewReader(file)
 	urls := make([]string, 0)
@@ -31,7 +31,7 @@ func Start(pos int) {
 		urls = append(urls, record[0])
 	}
 
-	c := NewClient(EmKey1)
+	c := NewClient(EmKey5)
 	options := Options{}
 	c.Extract(urls, options, pos)
 }

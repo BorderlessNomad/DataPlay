@@ -33,6 +33,16 @@ type UserNameForm struct {
 	Username string `json:"username" binding:"required"`
 }
 
+type UserSocialForm struct {
+	Network   string `json:"network" binding:"required"`
+	Id        string `json:"id" binding:"required"`
+	Email     string `json:"email" binding:"required"`
+	FullName  string `json:"full_name"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Image     string `json:"image"`
+}
+
 type UserDetailsForm struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
@@ -116,6 +126,83 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, login UserForm) str
 	usr, _ := json.Marshal(u)
 
 	return string(usr)
+}
+
+func HandleSocialLogin(res http.ResponseWriter, req *http.Request, login UserSocialForm) string {
+	if login.Network == "" || login.Id == "" || login.Email == "" {
+		http.Error(res, "Network/Id/Email missing.", http.StatusBadRequest)
+		return ""
+	}
+
+	user := User{}
+	var err error
+	err = DB.Where("email = ?", login.Email).Find(&user).Error
+
+	if err == nil { // if email is found then automatically log user in, no password required for social login
+		session, e := SetSession(user.Uid)
+		if e != nil {
+			http.Error(res, e.Message, e.Code)
+			return ""
+		}
+
+		u := map[string]interface{}{
+			"user":    user.Email,
+			"session": session.Value,
+		}
+		usr, _ := json.Marshal(u)
+
+		return string(usr)
+
+	} else if err != nil && err == gorm.RecordNotFound { // if user does not exist then create social user
+		user.Email = login.Email
+		user.Password = GetMD5Hash(user.Email + time.Now().String()) // not important here, just used hashed version of their email plus the time
+		user.Avatar = login.Image
+		user.Username = login.FirstName
+		user.Usertype = 1
+
+		err = DB.Save(&user).Error
+		if err != nil {
+			http.Error(res, ", database query failed - Unable to save user's standard details.", http.StatusInternalServerError)
+			return ""
+		}
+
+		social := Social{}
+		social.FirstName = login.FirstName
+		social.LastName = login.LastName
+		social.FullName = login.FullName
+		social.NetworkId = login.Network
+		err = DB.Where("email = ?", login.Email).Find(&user).Error // find just created user to get generated uid
+
+		if err != nil {
+			http.Error(res, ", could not recall user after creation", http.StatusInternalServerError)
+			return ""
+		}
+
+		social.Uid = user.Uid
+
+		err = DB.Save(&social).Error
+		if err != nil {
+			http.Error(res, ", database query failed - Unable to save user's social details.", http.StatusInternalServerError)
+			return ""
+		}
+
+		session, e := SetSession(user.Uid)
+		if e != nil {
+			http.Error(res, e.Message, e.Code)
+			return ""
+		}
+
+		u := map[string]interface{}{
+			"user":    user.Email,
+			"session": session.Value,
+		}
+		usr, _ := json.Marshal(u)
+
+		return string(usr)
+	}
+
+	http.Error(res, ", problem finding registered user", http.StatusInternalServerError)
+	return ""
 }
 
 func HandleLogout(res http.ResponseWriter, req *http.Request, params martini.Params) string {
