@@ -10,6 +10,13 @@
 angular.module('dataplayApp')
 	.controller 'AdminUsersCtrl', ['$scope', '$location', 'Auth', 'Overview', 'config', ($scope, $location, Auth, Overview, config) ->
 
+		$scope.modal =
+			shown: false
+			content:
+				title: null
+				type: null
+				item: null
+
 		$scope.headers = [
 			{key: 'id', display: '#'}
 			{key: 'avatar', display: 'Avatar'}
@@ -48,6 +55,37 @@ angular.module('dataplayApp')
 
 		$scope.isAdmin = () ->
 			true # TODO: actually check whether current user is an admin
+
+		$scope.showModal = (title, type, item) ->
+			if item?
+				$scope.modal.content.title = title
+				$scope.modal.content.type = type
+				$scope.modal.content.item = item
+
+				$scope.modal.shown = true
+				$('#admin-modal').modal 'show'
+
+		$scope.closeModal = () ->
+			$scope.modal.shown = false
+			$('#admin-modal').modal 'hide'
+			return
+
+
+
+		$scope.view = (user) ->
+			console.log '   '
+			$scope.showModal 'Viewing', 'view', user
+			return
+
+		$scope.edit = (user) ->
+			console.log '   '
+			$scope.showModal 'Editing', 'edit', user
+			return
+
+		$scope.disable = (user) ->
+			console.log '   '
+			$scope.showModal 'Disabling', 'disable', user
+			return
 
 		return
 	]
