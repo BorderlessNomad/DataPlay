@@ -25,6 +25,7 @@ angular.module('dataplayApp')
 			password: null
 			password_confirm: null
 			message: null
+			type: null
 
 		$scope.forgotPassword =
 			valid: false
@@ -43,6 +44,7 @@ angular.module('dataplayApp')
 
 					return
 				).error (status, data) ->
+					$scope.user.type = 'login'
 					$scope.user.message = status
 					console.log "User::Login::Error:", status
 					return
@@ -94,6 +96,7 @@ angular.module('dataplayApp')
 					$location.path "/"
 					return
 				).error (status, data) ->
+					$scope.user.type = 'logout'
 					$scope.user.message = status
 					console.log "User::Logout::Error:", status
 					return
@@ -109,6 +112,7 @@ angular.module('dataplayApp')
 
 					return
 				).error (status, data) ->
+					$scope.user.type = 'register'
 					$scope.user.message = status
 					console.log "User::Register::Error:", status
 					return
@@ -128,10 +132,12 @@ angular.module('dataplayApp')
 						return
 					).error (status, data) ->
 						$scope.forgotPassword.valid = false
+						$scope.user.type = 'forgotPassword'
 						$scope.user.message = status
 						console.log "User::ForgotPassword::token::Error:", status, data
 						return
 				).error (status, data) ->
+					$scope.user.type = 'forgotPassword'
 					$scope.user.message = status
 					console.log "User::ForgotPassword::check::Error:", status, data
 					return
@@ -147,6 +153,7 @@ angular.module('dataplayApp')
 
 					return
 				).error (status, data) ->
+					$scope.user.type = 'resetPasswordCheck'
 					$scope.user.message = status
 					console.log "User::ResetPassword::check::Error:", status, data
 					return
@@ -160,14 +167,16 @@ angular.module('dataplayApp')
 
 					return
 				).error (status, data) ->
+					$scope.user.type = 'resetPassword'
 					$scope.user.message = status
 					console.log "User::ResetPassword::save::Error:", status, data
 					return
 
-		$scope.hasError = () ->
-			if $scope.user.message?.length then true else false
+		$scope.hasError = (type) ->
+			$scope.user.message?.length && $scope.user.type is type
 
 		$scope.closeAlert = () ->
+			$scope.user.type = null
 			$scope.user.message = null
 
 		$scope.changeTab = (tab) ->
