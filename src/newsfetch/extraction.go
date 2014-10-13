@@ -27,7 +27,7 @@ func NewClient(key string) *Client {
 }
 
 func (c *Client) Extract(urls []string, options Options, startpos int) (error, int) {
-	f, _ := os.OpenFile("jsonout.txt", os.O_APPEND, 0666)
+
 	for i := startpos; i < len(urls); i += 10 {
 		fmt.Printf("Extracting %d out of %d URLS\n", i, len(urls))
 		fmt.Sprintf("Extracting")
@@ -38,11 +38,11 @@ func (c *Client) Extract(urls []string, options Options, startpos int) (error, i
 		res, err := c.extract(urls[i:to], options, i)
 
 		if err != nil {
-			f2, _ := os.OpenFile("log.txt", os.O_RDWR|os.O_APPEND, 0666)
+			f, _ := os.OpenFile("log.txt", os.O_RDWR|os.O_APPEND, 0666)
 			errStr := "FAILED AND RESTARTED ON URL " + strconv.Itoa(i) + " for reason " + err.Error() + " at " + time.Now().String() + "\n\n"
 			e := []byte(errStr + "\n")
-			f2.Write(e)
-			f2.Close()
+			f.Write(e)
+			f.Close()
 			return err, i
 		}
 
@@ -52,11 +52,11 @@ func (c *Client) Extract(urls []string, options Options, startpos int) (error, i
 
 		}
 
+		f, _ := os.OpenFile("jsonout.txt", os.O_APPEND, 0666)
 		for j := 0; j < reslen; j++ {
 			writeToCass(res[j])
 			f.WriteString(res[j])
 		}
-
 		f.Close()
 	}
 
