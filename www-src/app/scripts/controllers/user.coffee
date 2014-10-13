@@ -2,7 +2,7 @@
 
 hello.init {
 	facebook: '849402518433862'
-	twitter: 'd1rdbGQ4Hd6ZvURsaxAKcgUiW'
+	# windows : '000000004812EF76'
 	google  : '233668141851-tjicormqo6m2ld7rdckk2ok2vnqf3ff3.apps.googleusercontent.com'
 }, {
 	redirect_uri: 'redirect.html'
@@ -75,8 +75,6 @@ angular.module('dataplayApp')
 
 							if type is 'facebook'
 								core.image = data.picture or ''
-							else if type is 'twitter'
-								core.image = data['profile_image_url'] or ''
 							else if type is 'google'
 								core.image = data.image?.url or ''
 
