@@ -162,13 +162,13 @@ func (st SearchTerm) TableName() string {
 }
 
 type Social struct {
-	Uid       int
-	Network   string
-	FullName  string
-	FirstName string
-	LastName  string
-	NetworkId string
-	Sid       int
+	Uid           int
+	Network       string
+	FullName      string
+	FirstName     string
+	LastName      string
+	NetworkUserId string
+	Sid           int
 }
 
 func (so Social) TableName() string {

@@ -26,8 +26,8 @@ func NewClient(key string) *Client {
 	return &Client{key}
 }
 
-func (c *Client) Extract(urls []string, options Options, startpos int) error {
-
+func (c *Client) Extract(urls []string, options Options, startpos int) (error, int) {
+	f, _ := os.OpenFile("jsonout.txt", os.O_APPEND, 0666)
 	for i := startpos; i < len(urls); i += 10 {
 		fmt.Printf("Extracting %d out of %d URLS\n", i, len(urls))
 		fmt.Sprintf("Extracting")
@@ -38,12 +38,12 @@ func (c *Client) Extract(urls []string, options Options, startpos int) error {
 		res, err := c.extract(urls[i:to], options, i)
 
 		if err != nil {
-			f, _ := os.OpenFile("log.txt", os.O_RDWR|os.O_APPEND, 0666)
-			errStr := "FAILED AND RESTARTED ON URL " + strconv.Itoa(i) + " for reason " + err.Error()
+			f2, _ := os.OpenFile("log.txt", os.O_RDWR|os.O_APPEND, 0666)
+			errStr := "FAILED AND RESTARTED ON URL " + strconv.Itoa(i) + " for reason " + err.Error() + " at " + time.Now().String() + "\n\n"
 			e := []byte(errStr + "\n")
-			f.Write(e)
-			fmt.Println("RE-STARTING...")
-			Start(i)
+			f2.Write(e)
+			f2.Close()
+			return err, i
 		}
 
 		reslen := to - i
@@ -54,10 +54,13 @@ func (c *Client) Extract(urls []string, options Options, startpos int) error {
 
 		for j := 0; j < reslen; j++ {
 			writeToCass(res[j])
+			f.WriteString(res[j])
 		}
+
+		f.Close()
 	}
 
-	return nil
+	return nil, 0
 }
 
 // extract will call extract 10 urls at max.
@@ -90,8 +93,7 @@ func (c *Client) extract(urls []string, options Options, place int) ([]string, e
 	addr += "&" + v.Encode() + "&format=json"
 	resp, err := http.Get(addr)
 	if err != nil {
-		fmt.Println("RE-STARTING...")
-		Start(place)
+		return nil, errors.New("bad request")
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 500 {
@@ -243,8 +245,4 @@ func writeToCass(resp string) {
 			fmt.Println("HELP6!", err)
 		}
 	}
-
-	f, _ := os.OpenFile("jsonout.txt", os.O_APPEND, 0666)
-	f.WriteString(resp)
-	f.Close()
 }

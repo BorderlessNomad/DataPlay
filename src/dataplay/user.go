@@ -168,9 +168,10 @@ func HandleSocialLogin(res http.ResponseWriter, req *http.Request, login UserSoc
 
 		social := Social{}
 		social.FirstName = login.FirstName
+		social.Network = login.Network
 		social.LastName = login.LastName
 		social.FullName = login.FullName
-		social.NetworkId = login.Network
+		social.NetworkUserId = login.Id
 		err = DB.Where("email = ?", login.Email).Find(&user).Error // find just created user to get generated uid
 
 		if err != nil {
