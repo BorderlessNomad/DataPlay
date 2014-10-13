@@ -29,7 +29,7 @@ func NewClient(key string) *Client {
 func (c *Client) Extract(urls []string, options Options, startpos int) error {
 
 	for i := startpos; i < len(urls); i += 10 {
-		fmt.Printf("Extracting %d - %d out of %d URLS\n", i-10, i, len(urls))
+		fmt.Printf("Extracting %d out of %d URLS\n", i, len(urls))
 		fmt.Sprintf("Extracting")
 		to := len(urls)
 		if to > i+10 {
@@ -243,4 +243,8 @@ func writeToCass(resp string) {
 			fmt.Println("HELP6!", err)
 		}
 	}
+
+	f, _ := os.OpenFile("jsonout.txt", os.O_APPEND, 0666)
+	f.WriteString(resp)
+	f.Close()
 }

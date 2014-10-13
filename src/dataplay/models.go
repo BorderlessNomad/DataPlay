@@ -151,6 +151,30 @@ func (r Regions) TableName() string {
 	return "priv_regions"
 }
 
+type SearchTerm struct {
+	Id    int `gorm:"primary_key:yes"`
+	Term  string
+	Count int
+}
+
+func (st SearchTerm) TableName() string {
+	return "priv_searchterms"
+}
+
+type Social struct {
+	Uid       int
+	Network   string
+	FullName  string
+	FirstName string
+	LastName  string
+	NetworkId string
+	Sid       int
+}
+
+func (so Social) TableName() string {
+	return "priv_social"
+}
+
 func (sc StatsCheck) TableName() string {
 	return "priv_statcheck"
 }
@@ -164,16 +188,6 @@ type StringSearch struct {
 
 func (ss StringSearch) TableName() string {
 	return "priv_stringsearch"
-}
-
-type SearchTerm struct {
-	Id    int `gorm:"primary_key:yes"`
-	Term  string
-	Count int
-}
-
-func (st SearchTerm) TableName() string {
-	return "priv_searchterms"
 }
 
 type Tracking struct {
@@ -213,6 +227,7 @@ type User struct {
 	Reputation int
 	Avatar     string
 	Username   string
+	Usertype   int
 }
 
 func (u User) TableName() string {
