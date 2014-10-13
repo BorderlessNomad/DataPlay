@@ -425,13 +425,22 @@ func SessionApiHandler(res http.ResponseWriter, req *http.Request) {
 
 	pathTrimmed := strings.TrimLeft(req.URL.Path, "/")
 	path := strings.Split(pathTrimmed, "/")
-	pathA := "/" + path[0] + "/" + path[1]
+	pathA := "/"
+	if len(path) > 0 {
+		pathA = pathA + path[0]
+
+		if len(path) > 1 {
+			pathA = pathA + "/" + path[1]
+		}
+	}
 	pathB := pathA
 	if len(path) > 2 {
 		pathB = pathA + "/" + path[2]
 	}
 
-	if (!noAuthPaths[pathA] && !noAuthPaths[pathB]) && (len(req.Header.Get("X-API-SESSION")) <= 0 || req.Header.Get("X-API-SESSION") == "false") {
+	if pathA == "/" || pathA == "/favicon.ico" {
+		res.WriteHeader(http.StatusOK)
+	} else if (!noAuthPaths[pathA] && !noAuthPaths[pathB]) && (len(req.Header.Get("X-API-SESSION")) <= 0 || req.Header.Get("X-API-SESSION") == "false") {
 		res.WriteHeader(http.StatusUnauthorized)
 	}
 }

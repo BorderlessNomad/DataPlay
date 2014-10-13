@@ -23,7 +23,7 @@ install_haproxy () {
 setup_haproxy_api () {
 	npm cache clean && npm install -g coffee-script forever 2> /dev/null
 
-	command -v haproxy 2>/dev/null || { echo >&2 "Error: Command 'haproxy' not found!"; exit 1; }
+	command -v haproxy >/dev/null 2>&1 || { echo >&2 "Error: Command 'haproxy' not found!"; exit 1; }
 
 	command -v forever >/dev/null 2>&1 || { echo >&2 "Error: 'forever' is not installed!"; exit 1; }
 
@@ -41,7 +41,11 @@ setup_haproxy_api () {
 
 	coffee -cb app.coffee > app.js
 
-	forever start -l forever.log -o output.log -e errors.log app.js 2>/dev/null
+	forever start -l forever.log -o output.log -e errors.log app.js >/dev/null 2>&1
+
+	# curl -i -H "Accept: application/json" http://109.231.121.47:1937
+	# curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"ip":"109.231.121.61:3000"}' http://109.231.121.47:1937
+	# curl -i -H "Accept: application/json" -X DELETE http://109.231.121.47:1937/109.231.121.61:3000
 }
 
 update_iptables () {
@@ -56,9 +60,9 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
-command -v node 2>/dev/null || { echo >&2 "Error: Command 'node' not found!"; exit 1; }
+command -v node >/dev/null 2>&1 || { echo >&2 "Error: Command 'node' not found!"; exit 1; }
 
-command -v npm 2>/dev/null || { echo >&2 "Error: Command 'npm' not found!"; exit 1; }
+command -v npm >/dev/null 2>&1 || { echo >&2 "Error: Command 'npm' not found!"; exit 1; }
 
 echo "[$(timestamp)] ---- 1. Setup Host ----"
 setuphost

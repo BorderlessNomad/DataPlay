@@ -53,7 +53,8 @@ angular.module('dataplayApp')
 				OverviewScreen.get i
 					.success (data) ->
 						if data instanceof Array
-							$scope.mainSections[i].items = data
+							$scope.mainSections[i].items = data.filter (i) ->
+								!! i.term
 							maxTotal = 0
 
 							$scope.mainSections[i].items.forEach (item) ->
@@ -66,7 +67,12 @@ angular.module('dataplayApp')
 
 								$scope.mainSections[i].graph.push
 									id: item.id
-									term: item.term
+									term: do ->
+										return item.term unless item.term.toLowerCase() is item.term
+										words = item.term.split /_|\-|\'|\s/g
+										newTerm = words.map((w) -> "#{w.substring(0,1).toUpperCase()}#{w.substring(1).toLowerCase()}").join ' '
+										item.term = newTerm
+										newTerm
 									value: total
 
 								return
@@ -75,25 +81,47 @@ angular.module('dataplayApp')
 								lowercaseItems = {}
 								$scope.mainSections[i].graph.forEach (item) ->
 									newKey = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
-									if $scope.mapGen.locationDictionary[newKey]
-										newKey = $scope.mapGen.locationDictionary[newKey]
-
 									lowercaseItems[newKey] = item.value
 
 								$scope.mapGen.maxvalue = maxTotal
 
-								data = Object.keys($scope.mapGen.boundaryPaths).map (c) ->
+								regData = Object.keys($scope.mapGen.boundaryPaths).map (c) ->
 									name: c
 									value: lowercaseItems[c] || 0
 
-								$scope.mapGen.generate data
+								$scope.mapGen.generate regData
 
 								$scope.mainSections[i].items.forEach (item) ->
 									newKey = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
-									if $scope.mapGen.locationDictionary[newKey]
-										newKey = $scope.mapGen.locationDictionary[newKey]
 									item.corresponds = "county-#{newKey}"
 									item.color = $scope.mapGen.getColor lowercaseItems[newKey] || 0
+
+								counties = d3.selectAll '.county'
+
+								counties.on "mouseover", (d) ->
+									x = d3.event.pageX - $(window.document).scrollLeft()
+									y = d3.event.pageY - $(window.document).scrollTop()
+
+									el = d3.select @
+
+									county = _.find $scope.mainSections[i].graph, (it) ->
+										return it.id.replace('r-', '') is el.attr('id').replace('county-', '')
+									if not county?
+										county =
+											id: "r-#{el.attr('id').replace('county-', '')}"
+											term: el.attr 'data-display'
+											value: 0
+
+									d3.select "#pie-tooltip"
+										.style "left", "#{x}px"
+										.style "top", "#{y}px"
+										.attr "class", "tooltip fade top in"
+										.select ".tooltip-inner"
+											.text "#{county.term}: #{county.value}"
+
+								counties.on "mouseout", (d) ->
+									d3.select "#pie-tooltip"
+										.attr "class", "tooltip top hidden"
 
 					.error $scope.handleError i
 
@@ -158,7 +186,20 @@ angular.module('dataplayApp')
 				chart.dimension dimension
 				chart.group group
 
-				chart.colorAccessor (d, i) -> i + 1
+				dataRange = do ->
+					curr =
+						min: 100
+						max: 0
+					details.graph.forEach (g) ->
+						if g.value > curr.max then curr.max = g.value
+						if g.value < curr.min then curr.min = g.value
+					curr
+
+				chart.colors (d, i, j) ->
+					curr = 0
+					details.graph.forEach (g) ->
+						if g.term is d then curr = g.value
+					$scope.mapGen.getColor curr - dataRange.min, dataRange.max - dataRange.min
 
 				chart.renderlet (c) ->
 					svg = d3.select 'svg'
@@ -177,8 +218,8 @@ angular.module('dataplayApp')
 					slices.on "mouseover", (d) ->
 						slice = d3.select @
 
-						x = d3.event.pageX - 200
-						y = d3.event.pageY - 100
+						x = d3.event.pageX - $(window.document).scrollLeft()
+						y = d3.event.pageY - $(window.document).scrollTop()
 
 						percent = (d.data.value / groupSum * 100).toFixed(2)
 
@@ -193,13 +234,10 @@ angular.module('dataplayApp')
 						d3.select "#pie-tooltip"
 							.attr "class", "tooltip top hidden"
 
-		$scope.highlightPieSlice = (id) ->
-			slice = document.getElementById("slice-#{id}")
-			if not slice?
-				return null
-
-			# elem = $("#legend-#{id}").tooltip "HelloWOrld!"
-			return
+		$scope.highlightPieSlice = (id, highlight) ->
+			slice = d3.select "#slice-#{id}"
+			return unless slice?
+			slice.style 'opacity', if highlight is false then null else 0.75
 
 		$scope.handleError = (type) ->
 			(err, status) ->

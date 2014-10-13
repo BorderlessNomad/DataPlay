@@ -32,7 +32,7 @@ QUEUE_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
 QUEUE_PORT="5672"
 
 # CASSANDRA_HOST="109.231.121.13"
-CASSANDRA_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
+CASSANDRA_HOST=$(ss-get --timeout 360 cassandra.hostname)
 CASSANDRA_PORT="9042"
 
 timestamp () {
@@ -54,27 +54,27 @@ install_go () {
 	wget -Nq https://storage.googleapis.com/golang/$GO_VERSION.linux-amd64.tar.gz
 	tar xf $GO_VERSION.linux-amd64.tar.gz
 
-	echo "export GOROOT=/home/ubuntu/go" >> /home/ubuntu/.profile
-	echo "PATH=\$PATH:\$GOROOT/bin" >> /home/ubuntu/.profile
+	echo "export GOROOT=/home/ubuntu/go" >> /etc/environment
+	echo "PATH=\$PATH:\$GOROOT/bin" >> /etc/environment
 
-	echo "export GOPATH=/home/ubuntu/gocode" >> /home/ubuntu/.profile
-	echo "PATH=\$PATH:\$GOPATH/bin" >> /home/ubuntu/.profile
+	echo "export GOPATH=/home/ubuntu/gocode" >> /etc/environment
+	echo "PATH=\$PATH:\$GOPATH/bin" >> /etc/environment
 
-	. /home/ubuntu/.profile
+	. /etc/environment
 }
 
 export_variables () {
-	echo "export DP_LOADBALANCER=$LOADBALANCER" >> /home/ubuntu/.profile
-	echo "export DP_DATABASE_HOST=$DATABASE_HOST" >> /home/ubuntu/.profile
-	echo "export DP_DATABASE_PORT=$DATABASE_PORT" >> /home/ubuntu/.profile
-	echo "export DP_REDIS_HOST=$REDIS_HOST" >> /home/ubuntu/.profile
-	echo "export DP_REDIS_PORT=$REDIS_PORT" >> /home/ubuntu/.profile
-	echo "export DP_QUEUE_HOST=$QUEUE_HOST" >> /home/ubuntu/.profile
-	echo "export DP_QUEUE_PORT=$QUEUE_PORT" >> /home/ubuntu/.profile
-	echo "export DP_CASSANDRA_HOST=$CASSANDRA_HOST" >> /home/ubuntu/.profile
-	echo "export DP_CASSANDRA_PORT=$CASSANDRA_PORT" >> /home/ubuntu/.profile
+	echo "export DP_LOADBALANCER=$LOADBALANCER" >> /etc/environment
+	echo "export DP_DATABASE_HOST=$DATABASE_HOST" >> /etc/environment
+	echo "export DP_DATABASE_PORT=$DATABASE_PORT" >> /etc/environment
+	echo "export DP_REDIS_HOST=$REDIS_HOST" >> /etc/environment
+	echo "export DP_REDIS_PORT=$REDIS_PORT" >> /etc/environment
+	echo "export DP_QUEUE_HOST=$QUEUE_HOST" >> /etc/environment
+	echo "export DP_QUEUE_PORT=$QUEUE_PORT" >> /etc/environment
+	echo "export DP_CASSANDRA_HOST=$CASSANDRA_HOST" >> /etc/environment
+	echo "export DP_CASSANDRA_PORT=$CASSANDRA_PORT" >> /etc/environment
 
-	. /home/ubuntu/.profile
+	. /etc/environment
 }
 
 run_node () {

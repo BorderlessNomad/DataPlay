@@ -21,7 +21,9 @@ install_java () {
 	apt-get install -y oracle-java7-installer && \
 	apt-get autoclean
 
-	echo "export JAVA_HOME=/usr/lib/jvm/java-7-oracle" > /home/ubuntu/.profile
+	echo "export JAVA_HOME=/usr/lib/jvm/java-7-oracle" > /etc/environment
+
+	. /etc/environment
 }
 
 install_cassandra () {
@@ -38,8 +40,9 @@ install_cassandra () {
 	done
 	echo "Cassandra is UP!"
 
-	echo "export CASSANDRA_CONFIG=/etc/cassandra" > /home/ubuntu/.profile
-	. /home/ubuntu/.profile
+	echo "export CASSANDRA_CONFIG=/etc/cassandra" > /etc/environment
+
+	. /etc/environment
 
 	# nodetool status # Verify that DataStax Community is running
 }
@@ -74,6 +77,44 @@ install_opscenter () {
 	service opscenterd start
 
 	# Connect using http://<IP>:8888
+}
+
+backup_cassandra () {
+	echo "TODO: manually"
+	# On Source:
+	# cd /var/lib/cassandra/data/dp/
+	#
+	# For each column family
+	#
+	# tar -zcf author.tar.gz 1412773254804/
+	# scp author.tar.gz ubuntu@109.231.121.88:/home/ubuntu/cassandra-backup
+	#
+	# tar -zcf entity.tar.gz 1412773254804/
+	# scp entity.tar.gz ubuntu@109.231.121.88:/home/ubuntu/cassandra-backup
+	#
+	# tar -zcf image.tar.gz 1412773254804/
+	# scp image.tar.gz ubuntu@109.231.121.88:/home/ubuntu/cassandra-backup
+	#
+	# tar -zcf keyword.tar.gz 1412773254804/
+	# scp keyword.tar.gz ubuntu@109.231.121.88:/home/ubuntu/cassandra-backup
+	#
+	# tar -zcf related.tar.gz 1412773254804/
+	# scp related.tar.gz ubuntu@109.231.121.88:/home/ubuntu/cassandra-backup
+	#
+	# tar -zcf response.tar.gz 1412773254804/
+	# scp response.tar.gz ubuntu@109.231.121.88:/home/ubuntu/cassandra-backup
+	#
+	#
+	# On Destination:
+	#	1. Make sure that schema defination exists
+	#	2. nodetool snapshot dp
+	#	3. sevice cassandra stop
+	#	4. clean commitlog, cd /var/lib/cassandra/data/commitlog/ && rm -r *.log
+	#	5. extract files to individual column dir
+	# 		e.g. /var/lib/cassandra/data/dp/keyword-<UUID>
+	# 		tar -zxf /home/ubuntu/cassandra-backup/keyword.tar.gz -C .
+	#		mv 1412773254804/* .
+	#		rm -r 1412773254804
 }
 
 update_iptables () {

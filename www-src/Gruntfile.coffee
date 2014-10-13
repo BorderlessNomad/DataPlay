@@ -156,11 +156,29 @@ module.exports = (grunt) ->
 					ext: ".js"
 				]
 
-		uglify:
+		# Allow the use of non-minsafe AngularJS files. Automatically makes it
+		# minsafe compatible so Uglify does not destroy the ng references
+		ngAnnotate:
+			dist:
+				files: [
+					expand: true
+					cwd: ".tmp/scripts"
+					src: "**/*.js"
+					dest: ".tmp/scripts"
+				]
+
+		# Package all the html partials into a single javascript payload
+		ngtemplates:
 			options:
-				report: 'min'
-				mangle: false # AngularJS is not very happy about mangling globals e.g. $scope
-				beautify: false # Debug
+				module: "testApp"
+				htmlmin:
+					collapseBooleanAttributes: true
+					collapseWhitespace: true
+					removeAttributeQuotes: true
+					removeEmptyAttributes: true
+					removeRedundantAttributes: true
+					removeScriptTypeAttributes: true
+					removeStyleLinkTypeAttributes: true
 
 		less:
 			options:
@@ -189,6 +207,7 @@ module.exports = (grunt) ->
 					"<%= yeoman.dist %>/styles/**/*.css"
 					"<%= yeoman.dist %>/images/**/*.{png,jpg,jpeg,gif,webp,svg}"
 					"<%= yeoman.dist %>/styles/fonts/*"
+					"bower_components/components-font-awesome/fonts/*"
 				]
 
 
@@ -284,8 +303,16 @@ module.exports = (grunt) ->
 					}
 					{
 						expand: true
+						dot: true
 						cwd: "bower_components/bootstrap/dist"
-						src: "fonts/*"
+						src: ["fonts/*.*"]
+						dest: "<%= yeoman.dist %>"
+					}
+					{
+						expand: true
+						dot: true
+						cwd: "bower_components/font-awesome"
+						src: ["fonts/*.*"]
 						dest: "<%= yeoman.dist %>"
 					}
 				]
@@ -329,18 +356,17 @@ module.exports = (grunt) ->
 				"build"
 				"connect:dist:keepalive"
 			]
+
 		grunt.task.run [
 			"clean:server"
 			"concurrent:server"
 			"connect:livereload"
 			"watch"
 		]
-		return
 
 	grunt.registerTask "server", "DEPRECATED TASK. Use the \"serve\" task instead", (target) ->
 		grunt.log.warn "The `server` task has been deprecated. Use `grunt serve` to start a server."
 		grunt.task.run ["serve:" + target]
-		return
 
 	grunt.registerTask "test", [
 		"clean:server"
@@ -357,6 +383,7 @@ module.exports = (grunt) ->
 		"concat"
 		"copy:dist"
 		"cssmin"
+		"ngAnnotate"
 		"uglify"
 		"filerev"
 		"usemin"
