@@ -68,17 +68,24 @@ angular.module('dataplayApp')
 								network: type
 								id: data.id or ''
 								email: data.email or ''
-								name:
-									full: data.name or ''
-									first: data['first_name'] or ''
-									last: data['last_name'] or ''
+								"full_name": data.name or ''
+								"first_name": data['first_name'] or ''
+								"last_name": data['last_name'] or ''
 
 							if type is 'facebook'
 								core.image = data.picture or ''
 							else if type is 'google'
 								core.image = data.image?.url or ''
 
-							console.log 'Social Login Data:', core
+							User.socialLogin core
+								.success (res) ->
+									$scope.processLogin res
+								.error (msg) ->
+									$scope.user.type = 'socialLogin'
+									$scope.user.message = msg
+									console.log "User::SocialLogin::Error:", msg
+									return
+
 						, (e) -> console.log "Error on /me", e
 				, (e) -> console.log "Error on login", e
 

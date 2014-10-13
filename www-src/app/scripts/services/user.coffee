@@ -22,6 +22,16 @@ angular.module('dataplayApp')
 				username: username
 				password: password
 
+		socialLogin: (data) ->
+			$http.post config.api.base_url + "/login/social",
+				'network': data['network'] or ''
+				'id': data['id'] or ''
+				'email': data['email'] or ''
+				'full_name': data['full_name'] or ''
+				'first_name': data['first_name'] or ''
+				'last_name': data['last_name'] or ''
+				'image': data['image'] or ''
+
 		check: (username) ->
 			$http.post config.api.base_url + "/user/check",
 				username: username
