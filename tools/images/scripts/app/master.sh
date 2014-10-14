@@ -145,11 +145,11 @@ install_nginx () {
 }
 
 init_frontend () {
-	sed -i "s/localhost:3000/$HOST:$PORT/g" $DEST/$APP/$WWW/dist/scripts/*.js
+	sed -i "s/localhost:3000/$LOADBALANCER_HOST/g" $DEST/$APP/$WWW/dist/scripts/*.js
 }
 
 configure_frontend () {
-	sed -i "s/localhost:3000/$HOST:$PORT/g" $DEST/$APP/$WWW/app/scripts/app.coffee
+	sed -i "s/localhost:3000/$LOADBALANCER_HOST/g" $DEST/$APP/$WWW/app/scripts/app.coffee
 
 	command -v grunt >/dev/null 2>&1 || { echo >&2 "Error: Command 'grunt' not found!"; exit 1; }
 
