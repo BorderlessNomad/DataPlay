@@ -15,9 +15,9 @@ setuphost () {
 }
 
 install_postgres () {
-	apt-get install -y postgresql postgresql-contrib postgresql-client libpq-dev
+	apt-get install -y axel postgresql postgresql-contrib postgresql-client libpq-dev
 	apt-get autoclean
-	service postgresql start
+	service postgresql restart
 }
 
 setup_database () {
@@ -35,7 +35,21 @@ setup_database () {
 }
 
 import_data () {
-	echo "TODO"
+	echo "localhost:5432:dataplay:playgen:aDam3ntiUm" > .pgpass && chmod 0600 .pgpass
+	YESTERDAY=$(date +%Y-%m-%d) # Today
+	BACKUP_HOST="108.61.197.87"
+	BACKUP_PORT="8080"
+	BACKUP_DIR="postgresql/$YESTERDAY-daily"
+	BACKUP_FILE="dataplay.sql.gz"
+
+	until axel -a "http://$BACKUP_HOST:$BACKUP_PORT/$BACKUP_DIR/$BACKUP_FILE"; do
+		YESTERDAY=$(date +%Y-%m-%d --date="$YESTERDAY -1 days") # Decrement by 1 Day
+		BACKUP_DIR="postgresql/$YESTERDAY-daily"
+		echo "Latest backup not available, try fetching $YESTERDAY"
+	done
+
+	gunzip -vk dataplay.sql.gz
+	nohup psql -h localhost -U playgen -d dataplay -f dataplay.sql > postgres-import.log &
 	# on Dev
 	# echo "10.0.0.2:5432:dataplay:playgen:aDam3ntiUm" > .pgpass
 	# chmod 0600 .pgpass
@@ -65,10 +79,13 @@ setuphost
 echo "[$(timestamp)] ---- 2. Install PostgresSQL ----"
 install_postgres
 
-echo "[$(timestamp)] ---- 3. Export Database ----"
+echo "[$(timestamp)] ---- 3. Setup Database ----"
 su postgres -c "$(typeset -f setup_database); setup_database" # Run function as user 'postgres'
 
-echo "[$(timestamp)] ---- 4. Update IPTables rules ----"
+echo "[$(timestamp)] ---- 4. Import Data ----"
+import_data
+
+echo "[$(timestamp)] ---- 5. Update IPTables rules ----"
 update_iptables
 
 echo "[$(timestamp)] ---- Completed ----"
