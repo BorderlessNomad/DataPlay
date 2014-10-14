@@ -16,10 +16,6 @@ angular.module('dataplayApp')
 				title: null
 				type: null
 				item: null
-			actions:
-				view: 'Viewing'
-				edit: 'Editing'
-				disable: 'Disabling'
 
 		$scope.headers = [
 			{key: 'id', display: '#'}
@@ -43,15 +39,16 @@ angular.module('dataplayApp')
 			total = 27
 			result = []
 			samples = [
-				{ id: 1, username: 'jack', avatar: 'https://pbs.twimg.com/profile_images/3164870237/efe0014851567f9dca856297f8292bf1.jpeg', reputation: 25, usertype: 0 }
-				{ id: 2, username: 'mayur', avatar: 'http://www.gravatar.com/avatar/848f09d47991c7995cb7ba9bbf3e8b93?d=identicon', reputation: 207, usertype: 1}
-				{ id: 3, username: 'glyn', avatar: 'http://www.gravatar.com/avatar/9f1839175aab93c0a0fd9e36623fe17d?d=identicon', reputation: 9001, usertype: 0 }
+				{ id: 1, username: 'jack', avatar: 'https://pbs.twimg.com/profile_images/3164870237/efe0014851567f9dca856297f8292bf1.jpeg', reputation: 25, usertype: 0, enabled: true }
+				{ id: 2, username: 'mayur', avatar: '', MD5Email: '848f09d47991c7995cb7ba9bbf3e8b93', reputation: 207, usertype: 1, enabled: true }
+				{ id: 3, username: 'glyn', avatar: 'http://www.gravatar.com/avatar/9f1839175aab93c0a0fd9e36623fe17d?d=identicon', reputation: 9001, usertype: 0, enabled: true }
 			]
 			for item in [1..total]
 				newItem = _.clone samples[Math.floor(Math.random() * samples.length)]
 				newItem.id = item
 				newItem.reputation += Math.floor(Math.random() * 30)
 				newItem.usertype = Math.floor(Math.random() * 2)
+				newItem.enabled = !! Math.floor(Math.random() * 5)
 				result.push newItem
 			result
 
@@ -97,10 +94,16 @@ angular.module('dataplayApp')
 				result = {}
 				Object.keys(before).forEach (k) ->
 					if k is 'id' or before[k] isnt after[k]
-						result[k] = after[k]
+						if k is 'reputation'
+							result[k] = after[k] - before[k]
+						else
+							result[k] = after[k]
 				result
 
-			console.log diff
+			if Object.keys().length > 1
+				# Make request
+				console.log diff
+
 			return
 
 		$scope.disable = () ->
