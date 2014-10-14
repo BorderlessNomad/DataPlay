@@ -16,6 +16,10 @@ angular.module('dataplayApp')
 				title: null
 				type: null
 				item: null
+			actions:
+				view: 'Viewing'
+				edit: 'Editing'
+				disable: 'Disabling'
 
 		$scope.headers = [
 			{key: 'id', display: '#'}
@@ -26,6 +30,7 @@ angular.module('dataplayApp')
 		]
 
 		$scope.pagination =
+			perPage: 15
 			pageNumber: 1
 
 		# $scope.users = [
@@ -59,24 +64,54 @@ angular.module('dataplayApp')
 		$scope.isAdmin = () ->
 			true # TODO: actually check whether current user is an admin
 
-		$scope.showModal = (title, type, item) ->
+		$scope.showModal = (type, item) ->
 			if item?
-				$scope.modal.content.title = title
 				$scope.modal.content.type = type
-				$scope.modal.content.item = item
+				$scope.modal.content.item = _.cloneDeep item
+				$scope.modal.content.itemOriginal = item
+
+				$scope.modal.content.item.usertype = !! item.usertype
 
 				$scope.modal.shown = true
 				$('#admin-modal').modal 'show'
+			return
 
 		$scope.closeModal = () ->
 			$scope.modal.shown = false
 			$('#admin-modal').modal 'hide'
 			return
 
+		$scope.submitForm = () ->
+			if $scope.modal.content.type is 'edit'
+				$scope.edit()
+			else if $scope.modal.content.type is 'disable'
+				$scope.disable()
+
+		$scope.edit = () ->
+			before = _.cloneDeep $scope.modal.content.itemOriginal
+			after = _.cloneDeep $scope.modal.content.item
+
+			after.usertype = parseInt after.usertype * 1
+
+			diff = do ->
+				result = {}
+				Object.keys(before).forEach (k) ->
+					if k is 'id' or before[k] isnt after[k]
+						result[k] = after[k]
+				result
+
+			console.log diff
+			return
+
+		$scope.disable = () ->
+			console.log "Disable the user"
+			return
+
+
 
 		# Pagination
 		$scope.totalPages = (total) ->
-			Math.ceil total / 10
+			Math.ceil total / $scope.pagination.perPage
 
 		$scope.range = (usrsLen) ->
 			end = $scope.totalPages usrsLen
@@ -86,22 +121,6 @@ angular.module('dataplayApp')
 			newVal = if add? then $scope.pagination.pageNumber + page else page
 			if newVal > 0 and newVal <= $scope.totalPages $scope.users.length
 				$scope.pagination.pageNumber = newVal
-
-		# LI Functions
-		$scope.view = (user) ->
-			console.log '   '
-			$scope.showModal 'Viewing', 'view', user
-			return
-
-		$scope.edit = (user) ->
-			console.log '   '
-			$scope.showModal 'Editing', 'edit', user
-			return
-
-		$scope.disable = (user) ->
-			console.log '   '
-			$scope.showModal 'Disabling', 'disable', user
-			return
 
 		return
 	]
