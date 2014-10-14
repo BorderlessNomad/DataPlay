@@ -114,6 +114,8 @@ angular.module('dataplayApp')
 
 						xy = "#{x.replace(/\W/g, '')}-#{y.replace(/\W/g, '')}"
 						$scope.userObservationsMessage[xy] = obsv.comment
+						if obsv.user.avatar is ''
+							obsv.user.avatar = "http://www.gravatar.com/avatar/#{obsv.user.email}?d=identicon"
 						$scope.userObservations.push
 							xy: xy
 							oid : obsv['observation_id']

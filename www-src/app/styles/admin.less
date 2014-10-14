@@ -16,6 +16,50 @@
 		border-radius: 3px;
 	}
 
+	.avatar-150 {
+		max-height: 150px;
+		max-width: 150px;
+		margin: 5px auto;
+		border-radius: 10%;
+	}
+
 	.gold { color: #F1C40F; }
 	.bold { font-weight: bold; }
+	.check { color: #2ECC40; }
+	.times { color: #FF4136; }
+}
+
+.pagination-plain {
+	@paginationPlainBgColour: #EFEFEF;
+	@paginationPlainTextColour: #222222;
+	li a {
+		color: @paginationPlainTextColour;
+		background-color: @paginationPlainBgColour;
+		border-color: darken(@paginationPlainBgColour, 10%);
+		&:hover {
+			color: @paginationPlainTextColour;
+			background-color: darken(@paginationPlainBgColour, 5%);
+			border-color: darken(@paginationPlainBgColour, 15%);
+		}
+	}
+	li.active a {
+		color: @paginationPlainTextColour;
+		background-color: darken(@paginationPlainBgColour, 5%);
+		border-color: darken(@paginationPlainBgColour, 15%);
+		&:hover {
+			color: @paginationPlainTextColour;
+			background-color: darken(@paginationPlainBgColour, 5%);
+			border-color: darken(@paginationPlainBgColour, 15%);
+		}
+	}
+	li.disabled a {
+		color: darken(@paginationPlainBgColour, 10%);
+		background-color: lighten(@paginationPlainBgColour, 2%);
+		border-color: darken(@paginationPlainBgColour, 10%);
+		&:hover {
+			color: darken(@paginationPlainBgColour, 10%);
+			background-color: lighten(@paginationPlainBgColour, 2%);
+			border-color: darken(@paginationPlainBgColour, 10%);
+		}
+	}
 }

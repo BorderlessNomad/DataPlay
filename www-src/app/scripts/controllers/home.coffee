@@ -124,7 +124,7 @@ angular.module('dataplayApp')
 						$scope.recentObservations = data.map (d) ->
 							user:
 								name: d.username
-								avatar: "http://www.gravatar.com/avatar/#{d.MD5email}?d=identicon"
+								avatar: d.avatar or "http://www.gravatar.com/avatar/#{d.MD5email}?d=identicon"
 							text: d.comment
 							url: d.linkstring
 					else
@@ -142,7 +142,7 @@ angular.module('dataplayApp')
 							obj =
 								rank: key + 1
 								name: d.username
-								avatar: "http://www.gravatar.com/avatar/#{d.MD5email}?d=identicon"
+								avatar: d.avatar or "http://www.gravatar.com/avatar/#{d.MD5email}?d=identicon"
 								score: d.reputation
 
 							if obj.rank <= 3 then obj.rankclass = medals[obj.rank - 1]

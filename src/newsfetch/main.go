@@ -8,10 +8,6 @@ import (
 )
 
 func main() {
-	Start(0)
-}
-
-func Start(pos int) {
 	fmt.Println("STARTING...")
 	file, _ := os.Open("urls.csv") // url file
 	defer file.Close()
@@ -33,5 +29,16 @@ func Start(pos int) {
 
 	c := NewClient(EmKey5)
 	options := Options{}
-	c.Extract(urls, options, pos)
+
+	pos := 0
+
+	for {
+		e, p := c.Extract(urls, options, pos)
+		pos = p
+		if e == nil {
+			file.Close()
+			break
+		}
+		fmt.Println("RE-STARTING...")
+	}
 }
