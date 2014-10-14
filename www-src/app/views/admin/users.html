@@ -45,11 +45,18 @@
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<h4>{{modal.actions[modal.content.type]}} {{modal.content.item.username}}</h4>
+				<div class="text-center">
+					<ul class="pagination pagination-xs pagination-plain no-margin">
+						<li ng-class="{active: modal.content.type == 'view'}"><a href="#" ng-click="modal.content.type = 'view'"><i class="fa fa-search"></i> View</a></li>
+						<li ng-class="{active: modal.content.type == 'edit'}"><a href="#" ng-click="modal.content.type = 'edit'"><i class="fa fa-pencil"></i> Edit</a></li>
+						<li ng-class="{active: modal.content.type == 'disable'}"><a href="#" ng-click="modal.content.type = 'disable'"><i class="fa fa-times"></i> Disable</a></li>
+					</ul>
+				</div>
 				<div ng-if="modal.content.type == 'view' || modal.content.type == 'edit'">
 					<form name="editForm" role="form" ng-submit="submitForm()">
 						<div class="text-center">
 							<img class="avatar-150 inline" ng-src="{{modal.content.item.avatar}}"/>
-							<div class="inline" ng-if="modal.content.type == 'edit'">
+							<div class="inline" ng-if="modal.content.type == 'edit' && false">
 								<button class="btn btn-danger btn-xs">Remove</button>
 							</div>
 						</div>
@@ -90,9 +97,7 @@
 							</tr>
 						</table>
 						<div class="text-center">
-							<button type="button" class="btn btn-info text-center" ng-click="modal.content.type = 'edit'" ng-if="modal.content.type == 'view'"><i class="fa fa-pencil"></i> Edit</button>
 							<button type="button" class="btn btn-primary text-center" ng-click="edit()" ng-if="modal.content.type == 'edit'" ng-disabled="!editForm.$valid"><i class="fa fa-save"></i> Save</button>
-							<button type="button" class="btn btn-danger text-center" ng-click="modal.content.type = 'disable'"><i class="fa fa-times"></i> Disable User</button>
 							<button type="button" class="btn btn-default text-center" ng-click="closeModal()">Close</button>
 						</div>
 					</form>
