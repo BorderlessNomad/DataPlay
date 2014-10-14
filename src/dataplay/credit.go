@@ -144,7 +144,7 @@ func CreditChartHttp(res http.ResponseWriter, req *http.Request, params martini.
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
+		return ""
 	}
 
 	credflag := false

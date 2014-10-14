@@ -30,11 +30,41 @@ DataPlay alpha contains a rudimentary selection of datasets drawn from [data.gov
 
 ## Installation
 
-TODO: Describe the installation process
+1. Install Ubuntu & Node.js [Refer `tools/images/scripts/base.sh`]
+2. Install all necessary dependencies `npm install`
+
+### Production:
+
+1. HAProxy Load Balancer [`tools/images/scripts/app/loadbalancer.sh`]
+2. Gamification instances [`tools/images/scripts/app/master.sh`]
+3. Computation instances [`tools/images/scripts/app/node.sh`]
+4. PostgreSQL DB instance [`tools/images/scripts/db/postgresql.sh`]
+5. Cassandra DB instance [`tools/images/scripts/db/cassandra.sh`]
+6. Redis & RabbitMQ instance [`tools/images/scripts/queue/redis_rabbitmq.sh`]
+
+### Monitoring:
+
+1. API response time monitoring [`tools/images/scripts/monitoring/api.sh`]
+2. HAProxy API for dynamic scaling [`tools/images/scripts/app/haproxy-api/`]
 
 ## Usage
 
-TODO: Write usage instructions
+### Development:
+
+1. Run Go in Classic mode `./run.sh --mode=3`
+2. Run AngularJS `cd www-src && npm install && grunt serve`
+
+### Staging:
+
+1. Run Gamification server in Master mode `./run.sh --mode=2`
+2. Run Compute server in Node mode `./run.sh --mode=1`
+3. Deploy & run Frontend in `cd www-src && npm install && grunt serve:dist`
+
+### Production:
+
+1. Run Gamification server in Master mode `./run.sh --mode=2`
+2. Run Compute server in Node mode `./run.sh --mode=1`
+3. Deploy & run Frontend in `cd www-src && npm install && grunt build`
 
 ## Contributing
 
@@ -46,12 +76,42 @@ TODO: Write usage instructions
 
 ## History
 
-TODO: Write history
+v1.0.0: 	CELAR compatible scripts
 
-## Credits
+v0.9.1: 	Deployment Scripts
 
-TODO: Write credits
+v0.9.0: 	Update to AngularJS v1.3
+
+v0.8.9: 	Use NVD3 for Correlated Charts
+
+v0.8.5: 	Added Correlated Charts
+
+v0.8.0: 	Added Related Charts
+
+v0.7.5: 	Added DC.js for Charts
+
+v0.7.2: 	Use Bootstrap for HTML
+
+v0.7.0: 	Migrated frontend to AngularJS
+
+v0.6.1: 	Moved Sessions to Redis
+
+v0.6.0: 	Use GORM for PostgreSQL
+
+v0.5.0: 	Go 1.1 with embedded HTML views
+
+## Authors
+
+Mayur Ahir [mayur@playgen.com]
+
+Glyn Dimond [glyn@playgen.com]
+
+Jack Cannon [jack@playgen.com]
+
+Lex Robinson [lex@playgen.com]
 
 ## License
 
 TODO: Write license
+
+CC BY-NC-SA or GPL v3 or MIT?

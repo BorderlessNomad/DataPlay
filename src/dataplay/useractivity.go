@@ -146,19 +146,20 @@ func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
+		return ""
 	}
 
 	uid, err := GetUserID(session)
 	if err != nil {
 		http.Error(res, err.Message, err.Code)
-		return "Could not validate user"
+		return ""
 	}
 
 	var discovered []Discovered
 	err1 := DB.Where("uid = ?", uid).Find(&discovered).Error
-	if err1 != nil {
-		return "not found"
+	if err1 != nil && err1 != gorm.RecordNotFound {
+		http.Error(res, "Database query failed! (Discovered)", http.StatusInternalServerError)
+		return ""
 	}
 
 	profileDiscoveries := make([]ProfileDiscovery, 0)
@@ -190,7 +191,7 @@ func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request) string {
 	r, err2 := json.Marshal(profileDiscoveries)
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
+		return ""
 	}
 
 	return string(r)
@@ -200,19 +201,19 @@ func GetCreditedDiscoveriesHttp(res http.ResponseWriter, req *http.Request) stri
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
+		return ""
 	}
 
 	uid, err := GetUserID(session)
 	if err != nil {
 		http.Error(res, err.Message, err.Code)
-		return "Could not validate user"
+		return ""
 	}
 
 	discovered := []Discovered{}
 	err1 := DB.Where("uid = ?", uid).Where("credit > ?", 0).Find(&discovered).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {
-		http.Error(res, "Database query failed", http.StatusInternalServerError)
+		http.Error(res, "Database query failed! (Discovered)", http.StatusInternalServerError)
 		return ""
 	}
 
@@ -254,28 +255,36 @@ func GetCreditedDiscoveriesHttp(res http.ResponseWriter, req *http.Request) stri
 func GetHomePageDataHttp(res http.ResponseWriter, req *http.Request) string {
 	var result [3]HomeData
 	result[0].Label = "players"
+	result[0].Value = 0
+
 	result[1].Label = "discoveries"
+	result[1].Value = 0
+
 	result[2].Label = "datasets"
+	result[2].Value = 0
 
 	err := DB.Model(User{}).Count(&result[0].Value).Error
-	if err != nil {
-		return "not found"
+	if err != nil && err != gorm.RecordNotFound {
+		http.Error(res, "Database query failed! (User)", http.StatusInternalServerError)
+		return ""
 	}
 
 	err = DB.Model(Discovered{}).Count(&result[1].Value).Error
-	if err != nil {
-		return "not found"
+	if err != nil && err != gorm.RecordNotFound {
+		http.Error(res, "Database query failed! (Discovered)", http.StatusInternalServerError)
+		return ""
 	}
 
 	err = DB.Model(OnlineData{}).Count(&result[2].Value).Error
-	if err != nil {
-		return "not found"
+	if err != nil && err != gorm.RecordNotFound {
+		http.Error(res, "Database query failed! (OnlineData)", http.StatusInternalServerError)
+		return ""
 	}
 
 	r, err2 := json.Marshal(result)
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
+		return ""
 	}
 
 	return string(r)
@@ -285,19 +294,20 @@ func GetReputationHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
+		return ""
 	}
 
 	uid, err := GetUserID(session)
 	if err != nil {
 		http.Error(res, err.Message, err.Code)
-		return "Could not validate user"
+		return ""
 	}
 
-	var rep int
+	rep := 0
 	err1 := DB.Model(User{}).Select("reputation").Where("uid = ?", uid).Find(&rep).Error
-	if err1 != nil {
-		return "not found"
+	if err1 != nil && err1 != gorm.RecordNotFound {
+		http.Error(res, "Database query failed! (User)", http.StatusInternalServerError)
+		return ""
 	}
 
 	return string(rep)
@@ -307,19 +317,20 @@ func GetAmountDiscoveriesHttp(res http.ResponseWriter, req *http.Request) string
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
+		return ""
 	}
 
 	uid, err := GetUserID(session)
 	if err != nil {
 		http.Error(res, err.Message, err.Code)
-		return "Could not validate user"
+		return ""
 	}
 
 	count := 0
 	err1 := DB.Model(Discovered{}).Where("uid = ?", uid).Count(&count).Error
-	if err1 != nil {
-		return "not found"
+	if err1 != nil && err1 != gorm.RecordNotFound {
+		http.Error(res, "Database query failed! (Discovered)", http.StatusInternalServerError)
+		return ""
 	}
 
 	return string(count)
@@ -329,13 +340,14 @@ func GetDataExpertsHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
+		return ""
 	}
 
 	users := []User{}
-	err1 := DB.Order("reputation desc").Limit(5).Find(&users).Error
-	if err1 != nil {
-		return "not found"
+	err1 := DB.Order("reputation DESC").Limit(5).Find(&users).Error
+	if err1 != nil && err1 != gorm.RecordNotFound {
+		http.Error(res, "Database query failed! (User)", http.StatusInternalServerError)
+		return ""
 	}
 
 	var tmpDE DataExpert
@@ -351,7 +363,7 @@ func GetDataExpertsHttp(res http.ResponseWriter, req *http.Request) string {
 	r, err2 := json.Marshal(dataExperts)
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
+		return ""
 	}
 
 	return string(r)
@@ -433,11 +445,13 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 		if a.Type == "Comment" {
 			tmpA.Activity = "You commented on pattern "
 			tmpA.PatternId = a.DiscoveredId
+
 			discovered := Discovered{}
 			err = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
 			if err != nil {
 				return activities
 			}
+
 			if discovered.CorrelationId == 0 {
 				tmpA.Link = "charts/related/" + discovered.RelationId
 			} else {
@@ -457,6 +471,7 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 				tmpA.Activity = "Bad credited observation activity 2"
 				tmpA.PatternId = 0
 			}
+
 			tmpA.Activity = "You agreed with " + user.Username + "'s observation on pattern "
 
 			tmpA.PatternId = obs.DiscoveredId
@@ -465,6 +480,7 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			if err != nil {
 				return activities
 			}
+
 			if discovered.CorrelationId == 0 {
 				tmpA.Link = "charts/related/" + discovered.RelationId
 			} else {
@@ -490,6 +506,7 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			if err != nil {
 				return activities
 			}
+
 			if discovered.CorrelationId == 0 {
 				tmpA.Link = "charts/related/" + discovered.RelationId
 			} else {
@@ -498,17 +515,18 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 		} else if a.Type == "Credited Chart" {
 			tmpA.Activity = "You credited pattern "
 			tmpA.PatternId = a.DiscoveredId
+
 			discovered := Discovered{}
 			err = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
 			if err != nil {
 				return activities
 			}
+
 			if discovered.CorrelationId == 0 {
 				tmpA.Link = "charts/related/" + discovered.RelationId
 			} else {
 				tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
 			}
-
 		} else if a.Type == "Discredited Chart" {
 			tmpA.Activity = "You discredited pattern "
 			tmpA.PatternId = a.DiscoveredId
@@ -517,12 +535,12 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			if err != nil {
 				return activities
 			}
+
 			if discovered.CorrelationId == 0 {
 				tmpA.Link = "charts/related/" + discovered.RelationId
 			} else {
 				tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
 			}
-
 		} else {
 			tmpA.Activity = "No activity"
 			tmpA.PatternId = 0
@@ -587,11 +605,13 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		if err != nil {
 			return activities
 		}
+
 		if discovered.CorrelationId == 0 {
 			tmpA.Link = "charts/related/" + discovered.RelationId
 		} else {
 			tmpA.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
 		}
+
 		activities = append(activities, tmpA)
 	}
 
@@ -620,6 +640,7 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		if err != nil {
 			return activities
 		}
+
 		if discovered.CorrelationId == 0 {
 			tmpA.Link = "charts/related/" + discovered.RelationId
 		} else {
@@ -647,6 +668,7 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		if err != nil {
 			return activities
 		}
+
 		if discovered.CorrelationId == 0 {
 			tmpA.Link = "charts/related/" + discovered.RelationId
 		} else {
@@ -657,5 +679,4 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 	}
 
 	return activities
-
 }

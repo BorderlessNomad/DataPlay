@@ -5,8 +5,11 @@
 		vertical-align: middle;
 	}
 
-	td.minimum-width {
+	td.userControls {
 		width: 125px;
+		button {
+			width: 36px;
+		}
 	}
 
 	.avatar {
@@ -19,14 +22,35 @@
 	.avatar-150 {
 		max-height: 150px;
 		max-width: 150px;
+		height: 150px;
 		margin: 5px auto;
 		border-radius: 10%;
+	}
+
+	.reputation {
+		.gold;
+		.bold;
+		input {
+			display: inline-block;
+			width: calc(~"100% - 18px");
+			.gold;
+			.bold;
+		}
 	}
 
 	.gold { color: #F1C40F; }
 	.bold { font-weight: bold; }
 	.check { color: #2ECC40; }
 	.times { color: #FF4136; }
+	.inline { display: inline-block; }
+	.no-margin { margin: 0; }
+}
+
+.pagination-xs {
+	> li > a, > li > span {
+		padding: 5px 7px;
+		font-size: 10px;
+	}
 }
 
 .pagination-plain {

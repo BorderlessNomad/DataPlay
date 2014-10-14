@@ -4,6 +4,11 @@
 
 set -ex
 
+if [ "$(id -u)" != "0" ]; then
+	echo "Error: This script must be run as root" 1>&2
+	exit 1
+fi
+
 timestamp () {
 	date +"%F %T,%3N"
 }
@@ -21,35 +26,45 @@ install_postgres () {
 }
 
 setup_database () {
-	cd
+	cd # /var/lib/postgresql
+
+	HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
 	# Create a PostgreSQL user named 'playgen' with 'aDam3ntiUm' as the password and
 	# then create a database 'dataplay' owned by the 'playgen' role.
 	psql --command "CREATE USER playgen WITH SUPERUSER PASSWORD 'aDam3ntiUm';" && \
 	createdb -O playgen dataplay
 
 	# Adjust PostgreSQL configuration so that remote connections to the database are possible.
-	echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/9.3/main/pg_hba.conf
+	# From Private cluster & PlayGen dev IP
+	echo "host    all             all             $HOST/24       md5" >> /etc/postgresql/9.3/main/pg_hba.conf
+	echo "host    all             all             213.122.181.2/32        md5" >> /etc/postgresql/9.3/main/pg_hba.conf
 
 	# And add 'listen_addresses' to '/etc/postgresql/9.3/main/postgresql.conf'
 	echo "listen_addresses='*'" >> /etc/postgresql/9.3/main/postgresql.conf
+
+	service postgresql restart
 }
 
 import_data () {
-	echo "localhost:5432:dataplay:playgen:aDam3ntiUm" > .pgpass && chmod 0600 .pgpass
-	YESTERDAY=$(date +%Y-%m-%d) # Today
+	cd # /var/lib/postgresql
+
+	LASTDATE=$(date +%Y-%m-%d) # Today
 	BACKUP_HOST="108.61.197.87"
 	BACKUP_PORT="8080"
-	BACKUP_DIR="postgresql/$YESTERDAY-daily"
+	BACKUP_DIR="postgresql/$LASTDATE-daily"
 	BACKUP_FILE="dataplay.sql.gz"
 
+	echo "localhost:5432:dataplay:playgen:aDam3ntiUm" > .pgpass && chmod 0600 .pgpass
+
 	until axel -a "http://$BACKUP_HOST:$BACKUP_PORT/$BACKUP_DIR/$BACKUP_FILE"; do
-		YESTERDAY=$(date +%Y-%m-%d --date="$YESTERDAY -1 days") # Decrement by 1 Day
-		BACKUP_DIR="postgresql/$YESTERDAY-daily"
-		echo "Latest backup not available, try fetching $YESTERDAY"
+		LASTDATE=$(date +%Y-%m-%d --date="$LASTDATE -1 days") # Decrement by 1 Day
+		BACKUP_DIR="postgresql/$LASTDATE-daily"
+		echo "Latest backup not available, try fetching $LASTDATE"
 	done
 
 	gunzip -vk dataplay.sql.gz
-	nohup psql -h localhost -U playgen -d dataplay -f dataplay.sql > postgres-import.log &
+	nohup psql -h localhost -U playgen -d dataplay -f dataplay.sql > postgres-import.log 2>&1&
+	###
 	# on Dev
 	# echo "10.0.0.2:5432:dataplay:playgen:aDam3ntiUm" > .pgpass
 	# chmod 0600 .pgpass
@@ -60,6 +75,7 @@ import_data () {
 	# on Server
 	# gunzip -vk dataplay.sql.gz
 	# psql -h localhost -U playgen -d dataplay -f dataplay.sql >> postgres-import.log
+	###
 }
 
 update_iptables () {
@@ -67,11 +83,6 @@ update_iptables () {
 
 	iptables-save
 }
-
-if [ "$(id -u)" != "0" ]; then
-	echo "Error: This script must be run as root" 1>&2
-	exit 1
-fi
 
 echo "[$(timestamp)] ---- 1. Setup Host ----"
 setuphost
@@ -83,7 +94,7 @@ echo "[$(timestamp)] ---- 3. Setup Database ----"
 su postgres -c "$(typeset -f setup_database); setup_database" # Run function as user 'postgres'
 
 echo "[$(timestamp)] ---- 4. Import Data ----"
-import_data
+su postgres -c "$(typeset -f import_data); import_data" # Run function as user 'postgres'
 
 echo "[$(timestamp)] ---- 5. Update IPTables rules ----"
 update_iptables
