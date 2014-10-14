@@ -67,7 +67,8 @@ angular.module('dataplayApp')
 		$scope.showModal = (type, item) ->
 			if item?
 				$scope.modal.content.type = type
-				$scope.modal.content.item = _.clone item
+				$scope.modal.content.item = _.cloneDeep item
+				$scope.modal.content.itemOriginal = item
 
 				$scope.modal.content.item.usertype = !! item.usertype
 
@@ -87,7 +88,19 @@ angular.module('dataplayApp')
 				$scope.disable()
 
 		$scope.edit = () ->
-			console.log "Save the edit"
+			before = _.cloneDeep $scope.modal.content.itemOriginal
+			after = _.cloneDeep $scope.modal.content.item
+
+			after.usertype = parseInt after.usertype * 1
+
+			diff = do ->
+				result = {}
+				Object.keys(before).forEach (k) ->
+					if k is 'id' or before[k] isnt after[k]
+						result[k] = after[k]
+				result
+
+			console.log diff
 			return
 
 		$scope.disable = () ->
