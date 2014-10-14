@@ -17,7 +17,7 @@ REPO="DataPlay"
 BRANCH="develop"
 
 HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
-PORT="3000"
+PORT="80"
 
 # LOADBALANCER_HOST="109.231.121.26"
 LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
@@ -145,11 +145,11 @@ install_nginx () {
 }
 
 init_frontend () {
-	sed -i "s/localhost:3000/$LOADBALANCER_HOST/g" $DEST/$APP/$WWW/dist/scripts/*.js
+	sed -i "s/localhost:3000/$HOST:$PORT/g" $DEST/$APP/$WWW/dist/scripts/*.js
 }
 
 configure_frontend () {
-	sed -i "s/localhost:3000/$LOADBALANCER_HOST/g" $DEST/$APP/$WWW/app/scripts/app.coffee
+	sed -i "s/localhost:3000/$HOST:$PORT/g" $DEST/$APP/$WWW/app/scripts/app.coffee
 
 	command -v grunt >/dev/null 2>&1 || { echo >&2 "Error: Command 'grunt' not found!"; exit 1; }
 
@@ -165,8 +165,11 @@ build_frontend () {
 }
 
 inform_loadbalancer () {
-	PAYLOAD={\"ip\":\"$HOST:$PORT\"}
-	curl -i -H "Content-Type: application/json" -X POST -d '$PAYLOAD' http://$LOADBALANCER_HOST:$LOADBALANCER_PORT
+	retries=0
+	until curl -H "Content-Type: application/json" -X POST -d "{\"ip\":\"$HOST:$PORT\"}" http://$LOADBALANCER_HOST:$LOADBALANCER_PORT; do
+		echo "[$(timestamp)] Load Balancer is not up yet, retry... [$(( retries++ ))]"
+		sleep 5
+	done
 }
 
 update_iptables () {

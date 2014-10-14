@@ -13,7 +13,7 @@ fi
 LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
 LOADBALANCER_PORT="1937"
 HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
-PORT="3000"
+PORT="80"
 
 timestamp () {
 	date +"%F %T,%3N"
