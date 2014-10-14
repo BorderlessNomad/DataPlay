@@ -11,7 +11,10 @@
 		</tr>
 		<tr ng-repeat="user in users | limitTo: (pagination.perPage * pagination.pageNumber) > users.length ? users.length : (pagination.perPage * pagination.pageNumber) | limitTo: pagination.perPage * pagination.pageNumber <= users.length ? -pagination.perPage : -(users.length % pagination.perPage)">
 			<td>{{user.id}}</td>
-			<td class="text-center"><img class="avatar" ng-src="{{user.avatar}}"/></td>
+			<td class="text-center">
+				<img class="avatar" ng-if="user.avatar !== ''" ng-src="{{user.avatar}}"/>
+				<img class="avatar" ng-if="user.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{user.MD5Email}}?d=identicon"/>
+			</td>
 			<td>{{user.username}}</td>
 			<td>
 				<div class="text-center gold bold">
@@ -56,7 +59,8 @@
 				<div ng-if="modal.content.type == 'view' || modal.content.type == 'edit'">
 					<form name="editForm" role="form" ng-submit="submitForm()">
 						<div class="text-center">
-							<img class="avatar-150 inline" ng-src="{{modal.content.item.avatar}}"/>
+							<img class="avatar-150 inline" ng-if="modal.content.item.avatar !== ''" ng-src="{{modal.content.item.avatar}}"/>
+							<img class="avatar-150 inline" ng-if="modal.content.item.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{modal.content.item.MD5Email}}?d=identicon"/>
 							<div class="inline" ng-if="modal.content.type == 'edit' && false">
 								<button class="btn btn-danger btn-xs">Remove</button>
 							</div>
