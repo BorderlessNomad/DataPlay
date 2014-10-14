@@ -1,3 +1,5 @@
+# OLD IMPORT IO SCRAPING SCRIPT FOR BBC OLD STYLE NEWS SITE ARTICLES 01/01/2010 - 20/08/2014
+
 import logging, json, importio, latch
 
 client = importio.importio(user_id="cf592fba-bd1f-4128-8e98-e729c2bb7dec", api_key="aledxqRLOCLFo9O7cYeeC58aotifmZbL2C57Mg1zicz6ZLVSY94xttvI9AjeV1Fw9DpBg2y/cbrNZXM23yiWBg==", host="https://query.import.io")
