@@ -9,7 +9,7 @@
 			<th>Admin?</th>
 			<th></th>
 		</tr>
-		<tr ng-repeat="user in users">
+		<tr ng-repeat="user in users | limitTo: (10 * pagination.pageNumber) > users.length ? users.length : (10 * pagination.pageNumber) | limitTo: 10 * pagination.pageNumber <= users.length ? -10 : -(users.length % 10)">
 			<td>{{user.id}}</td>
 			<td class="text-center"><img class="avatar" ng-src="{{user.avatar}}"/></td>
 			<td>{{user.username}}</td>
@@ -32,6 +32,14 @@
 			</td>
 		</tr>
 	</table>
+
+	<div class="text-center">
+		<ul class="pagination pagination-sm pagination-plain">
+			<li ng-class="{disabled: pagination.pageNumber == 1}"><a href="#" ng-click="changePage(-1, true)">&laquo;</a></li>
+			<li ng-repeat="i in range(users.length)" ng-class="{active: i == pagination.pageNumber}"><a href="#" ng-click="changePage(i)">{{i}}</a></li>
+			<li ng-class="{disabled: pagination.pageNumber == totalPages(users.length)}"><a href="#" ng-click="changePage(1, true)">&raquo;</a></li>
+		</ul>
+	</div>
 
 	<div id="admin-modal" class="modal fade" role="dialog">
 		<div class="modal-dialog">
