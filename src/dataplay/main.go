@@ -377,9 +377,9 @@ func sendToQueue(res http.ResponseWriter, req *http.Request, params martini.Para
 	q := Queue{}
 	go q.Response()
 
-	session := params["session"]
+	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
-		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+		http.Error(res, "Missing session parameter", http.StatusBadRequest)
 		return ""
 	}
 

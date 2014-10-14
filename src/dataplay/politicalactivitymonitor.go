@@ -272,7 +272,7 @@ func GetPoliticalActivityHttp(res http.ResponseWriter, req *http.Request, params
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
+		return ""
 	}
 
 	var result []PoliticalActivity
@@ -288,18 +288,18 @@ func GetPoliticalActivityHttp(res http.ResponseWriter, req *http.Request, params
 		r, err := json.Marshal(pResult)
 		if err != nil {
 			http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-			return "Unable to parse JSON"
+			return ""
 		}
 		return string(r)
 	} else {
 		http.Error(res, "Bad type param", http.StatusInternalServerError)
-		return "Bad type param"
+		return ""
 	}
 
 	r, err := json.Marshal(result)
 	if err != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
+		return ""
 	}
 
 	return string(r)

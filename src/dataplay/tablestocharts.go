@@ -719,39 +719,39 @@ func GetChartHttp(res http.ResponseWriter, req *http.Request, params martini.Par
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
+		return ""
 	}
 
 	uid, err1 := GetUserID(session)
 	if err1 != nil {
 		http.Error(res, err1.Message, err1.Code)
-		return "Could not credit user"
+		return ""
 	}
 
 	if params["tablename"] == "" {
 		http.Error(res, "Invalid tablename", http.StatusBadRequest)
-		return "Invalid tablename"
+		return ""
 	}
 
 	tablenum, err := strconv.Atoi(params["tablenum"])
 	if err != nil {
 		http.Error(res, "Invalid tablenum parameter", http.StatusBadRequest)
-		return "Invalid tablenum parameter"
+		return ""
 	}
 
 	if params["type"] == "" {
 		http.Error(res, "Invalid chart type", http.StatusBadRequest)
-		return "Invalid chart type"
+		return ""
 	}
 
 	if params["x"] == "" {
 		http.Error(res, "Invalid x label", http.StatusBadRequest)
-		return "Invalid x label"
+		return "I"
 	}
 
 	if params["y"] == "" {
 		http.Error(res, "Invalid y label", http.StatusBadRequest)
-		return "Invalid y label"
+		return ""
 	}
 
 	var result PatternInfo
@@ -774,7 +774,7 @@ func GetChartHttp(res http.ResponseWriter, req *http.Request, params martini.Par
 	r, err3 := json.Marshal(result)
 	if err3 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
+		return ""
 	}
 
 	return string(r)
@@ -784,19 +784,19 @@ func GetChartCorrelatedHttp(res http.ResponseWriter, req *http.Request, params m
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
+		return ""
 	}
 
 	cid, err := strconv.Atoi(params["cid"])
 	if err != nil {
 		http.Error(res, "Invalid id parameter", http.StatusBadRequest)
-		return "Invalid id parameter"
+		return ""
 	}
 
 	uid, err1 := GetUserID(session)
 	if err1 != nil {
 		http.Error(res, err1.Message, err1.Code)
-		return "Could not credit user"
+		return ""
 	}
 
 	result, error := GetChartCorrelated(cid, uid)
@@ -808,7 +808,7 @@ func GetChartCorrelatedHttp(res http.ResponseWriter, req *http.Request, params m
 	r, err2 := json.Marshal(result)
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
+		return ""
 	}
 
 	return string(r)
@@ -818,7 +818,7 @@ func GetRelatedChartsHttp(res http.ResponseWriter, req *http.Request, params mar
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
+		return ""
 	}
 
 	var offset, count int
@@ -830,7 +830,7 @@ func GetRelatedChartsHttp(res http.ResponseWriter, req *http.Request, params mar
 		offset, err = strconv.Atoi(params["offset"])
 		if err != nil {
 			http.Error(res, "Invalid offset parameter", http.StatusBadRequest)
-			return "Invalid offset parameter"
+			return ""
 		}
 	}
 
@@ -840,7 +840,7 @@ func GetRelatedChartsHttp(res http.ResponseWriter, req *http.Request, params mar
 		count, err = strconv.Atoi(params["count"])
 		if err != nil {
 			http.Error(res, "Invalid count parameter", http.StatusBadRequest)
-			return "Invalid count parameter"
+			return ""
 		}
 	}
 
@@ -853,7 +853,7 @@ func GetRelatedChartsHttp(res http.ResponseWriter, req *http.Request, params mar
 	r, err1 := json.Marshal(result)
 	if err1 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
+		return ""
 	}
 
 	return string(r)
@@ -863,7 +863,7 @@ func GetCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, params 
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
+		return ""
 	}
 
 	var search, offset, count int
@@ -875,7 +875,7 @@ func GetCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, params 
 		offset, err = strconv.Atoi(params["offset"])
 		if err != nil {
 			http.Error(res, "Invalid offset parameter", http.StatusBadRequest)
-			return "Invalid offset parameter"
+			return ""
 		}
 	}
 
@@ -885,7 +885,7 @@ func GetCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, params 
 		count, err = strconv.Atoi(params["count"])
 		if err != nil {
 			http.Error(res, "Invalid count parameter", http.StatusBadRequest)
-			return "Invalid count parameter"
+			return ""
 		}
 	}
 
@@ -904,7 +904,7 @@ func GetCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, params 
 	r, err1 := json.Marshal(result)
 	if err1 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
+		return ""
 	}
 
 	return string(r)
@@ -914,7 +914,7 @@ func GetDiscoveredChartsHttp(res http.ResponseWriter, req *http.Request, params 
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
+		return ""
 	}
 
 	var offset, count int
@@ -931,7 +931,7 @@ func GetDiscoveredChartsHttp(res http.ResponseWriter, req *http.Request, params 
 		offset, err = strconv.Atoi(params["offset"])
 		if err != nil {
 			http.Error(res, "Invalid offset parameter", http.StatusBadRequest)
-			return "Invalid offset parameter"
+			return ""
 		}
 	}
 
@@ -941,7 +941,7 @@ func GetDiscoveredChartsHttp(res http.ResponseWriter, req *http.Request, params 
 		count, err = strconv.Atoi(params["count"])
 		if err != nil {
 			http.Error(res, "Invalid count parameter", http.StatusBadRequest)
-			return "Invalid count parameter"
+			return ""
 		}
 	}
 
@@ -954,7 +954,7 @@ func GetDiscoveredChartsHttp(res http.ResponseWriter, req *http.Request, params 
 	r, err1 := json.Marshal(result)
 	if err1 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
+		return ""
 	}
 
 	return string(r)
