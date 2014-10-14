@@ -1,63 +1,63 @@
 package main
 
-import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"os"
-)
+// import (
+// 	"encoding/json"
+// 	"fmt"
+// 	"io/ioutil"
+// 	"os"
+// )
 
-type Container struct {
-	Name           string `json:"name"`
-	Frequency      string `json:"frequency"`
-	Version        int    `json:"version"`
-	Newdata        bool   `json:"newdata"`
-	Lastrunstatus  string `json:"lastrunstatus"`
-	Thisversionrun string `json:"thisversionrun"`
-	Lastsuccess    string `json:"lastsuccess"`
-	Results        Result `json:"results"`
-	Count          int    `json:"count"`
-}
+// type Container struct {
+// 	Name           string `json:"name"`
+// 	Frequency      string `json:"frequency"`
+// 	Version        int    `json:"version"`
+// 	Newdata        bool   `json:"newdata"`
+// 	Lastrunstatus  string `json:"lastrunstatus"`
+// 	Thisversionrun string `json:"thisversionrun"`
+// 	Lastsuccess    string `json:"lastsuccess"`
+// 	Results        Result `json:"results"`
+// 	Count          int    `json:"count"`
+// }
 
-type Result struct {
-	Collections []Collection `json:"collection1"`
-}
+// type Result struct {
+// 	Collections []Collection `json:"collection1"`
+// }
 
-type Collection struct {
-	Properties Property `json:"property1"`
-}
+// type Collection struct {
+// 	Properties Property `json:"property1"`
+// }
 
-type Property struct {
-	Text string `json:"text"`
-	Href string `json:"href"`
-}
+// type Property struct {
+// 	Text string `json:"text"`
+// 	Href string `json:"href"`
+// }
 
-func Jparser() {
+// func Jparser() {
 
-	file, e := ioutil.ReadFile("./urls.json")
-	if e != nil {
-		fmt.Printf("File error: %v\n", e)
-		os.Exit(1)
-	}
-	fmt.Printf("%s\n", string(file))
+// 	file, e := ioutil.ReadFile("./urls.json")
+// 	if e != nil {
+// 		fmt.Printf("File error: %v\n", e)
+// 		os.Exit(1)
+// 	}
+// 	fmt.Printf("%s\n", string(file))
 
-	var container Container
-	e = json.Unmarshal(file, &container)
-	if e != nil {
-		fmt.Println(e.Error())
-	}
+// 	var container Container
+// 	e = json.Unmarshal(file, &container)
+// 	if e != nil {
+// 		fmt.Println(e.Error())
+// 	}
 
-	var output string
-	for _, x := range container.Results.Collections {
-		output += x.Properties.Href + ",\n"
-	}
+// 	var output string
+// 	for _, x := range container.Results.Collections {
+// 		output += x.Properties.Href + ",\n"
+// 	}
 
-	err = ioutil.WriteFile("urls2.txt", []byte(output), 0644)
-	if err != nil {
-		panic(err)
-	}
+// 	err = ioutil.WriteFile("urls2.txt", []byte(output), 0644)
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-}
+// }
 
 // type YN struct {
 // 	year int
