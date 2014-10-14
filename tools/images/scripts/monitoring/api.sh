@@ -21,7 +21,7 @@ killall -9 $APP
 
 cd $DEST
 echo "Fetching latest ZIP"
-wget -Nq $SOURCE$BRANCH.zip -O $BRANCH.zip
+wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE$BRANCH.zip -O $BRANCH.zip
 echo "Extracting from $BRANCH.zip"
 unzip -oq $BRANCH.zip
 if [ -d $APP ]; then
