@@ -8,37 +8,46 @@ import (
 )
 
 func main() {
-	fmt.Println("STARTING...")
-	file, _ := os.Open("urls.csv") // url file
-	defer file.Close()
-	reader := csv.NewReader(file)
-	urls := make([]string, 0)
+	e := DailyKimono()
 
-	for {
-		record, err := reader.Read()
+	if e == nil {
 
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			fmt.Println("Error:", err)
-			return
+		fmt.Println("STARTING...")
+		file, _ := os.Open("urls.csv") // url file @TODO: change to dailyURLs.txt!!!!!
+		defer file.Close()
+		reader := csv.NewReader(file)
+		urls := make([]string, 0)
+
+		for {
+			record, err := reader.Read()
+
+			if err == io.EOF {
+				break
+			} else if err != nil {
+				fmt.Println("Error:", err)
+				return
+			}
+
+			urls = append(urls, record[0])
 		}
 
-		urls = append(urls, record[0])
-	}
+		c := NewClient(EmKey5)
+		options := Options{}
 
-	c := NewClient(EmKey5)
-	options := Options{}
+		pos := 0
 
-	pos := 0
-
-	for {
-		e, p := c.Extract(urls, options, pos)
-		pos = p
-		if e == nil {
-			file.Close()
-			break
+		for {
+			e, p := c.Extract(urls, options, pos)
+			pos = p
+			if e == nil {
+				file.Close()
+				break
+			}
+			fmt.Println("RE-STARTING...")
 		}
-		fmt.Println("RE-STARTING...")
+
+	} else {
+		fmt.Println(e.Error())
 	}
+
 }
