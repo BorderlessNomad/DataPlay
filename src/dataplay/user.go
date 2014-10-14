@@ -162,7 +162,7 @@ func HandleSocialLogin(res http.ResponseWriter, req *http.Request, login UserSoc
 
 		err = DB.Save(&user).Error
 		if err != nil {
-			http.Error(res, ", database query failed - Unable to save user's standard details.", http.StatusInternalServerError)
+			http.Error(res, err.Error()+" - database query failed - Unable to save user's standard details.", http.StatusInternalServerError)
 			return ""
 		}
 
@@ -172,18 +172,19 @@ func HandleSocialLogin(res http.ResponseWriter, req *http.Request, login UserSoc
 		social.LastName = login.LastName
 		social.FullName = login.FullName
 		social.NetworkUserId = login.Id
-		err = DB.Where("email = ?", login.Email).Find(&user).Error // find just created user to get generated uid
+		newUser := User{}
+		err = DB.Where("email = ?", login.Email).Find(&newUser).Error // find newly created user to get generated uid
 
 		if err != nil {
-			http.Error(res, ", could not recall user after creation", http.StatusInternalServerError)
+			http.Error(res, err.Error()+" - could not recall user after creation", http.StatusInternalServerError)
 			return ""
 		}
 
-		social.Uid = user.Uid
+		social.Uid = newUser.Uid
 
 		err = DB.Save(&social).Error
 		if err != nil {
-			http.Error(res, ", database query failed - Unable to save user's social details.", http.StatusInternalServerError)
+			http.Error(res, err.Error()+" - database query failed - Unable to save user's social details.", http.StatusInternalServerError)
 			return ""
 		}
 
@@ -202,7 +203,7 @@ func HandleSocialLogin(res http.ResponseWriter, req *http.Request, login UserSoc
 		return string(usr)
 	}
 
-	http.Error(res, ", problem finding registered user", http.StatusInternalServerError)
+	http.Error(res, err.Error()+" - problem finding registered user", http.StatusInternalServerError)
 	return ""
 }
 

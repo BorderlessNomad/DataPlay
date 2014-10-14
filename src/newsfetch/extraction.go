@@ -28,12 +28,12 @@ func NewClient(key string) *Client {
 
 func (c *Client) Extract(urls []string, options Options, startpos int) (error, int) {
 
-	for i := startpos; i < len(urls); i += 10 {
+	for i := startpos; i < len(urls); i += 20 {
 		fmt.Printf("Extracting %d out of %d URLS\n", i, len(urls))
 		fmt.Sprintf("Extracting")
 		to := len(urls)
-		if to > i+10 {
-			to = i + 10
+		if to > i+20 {
+			to = i + 20
 		}
 		res, err := c.extract(urls[i:to], options, i)
 

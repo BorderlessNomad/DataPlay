@@ -168,7 +168,7 @@ type Social struct {
 	FirstName     string
 	LastName      string
 	NetworkUserId string
-	Sid           int
+	Sid           int `gorm:"primary_key:yes"`
 }
 
 func (so Social) TableName() string {
