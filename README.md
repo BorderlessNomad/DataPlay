@@ -33,37 +33,38 @@ DataPlay alpha contains a rudimentary selection of datasets drawn from [data.gov
 1. Install Ubuntu & Node.js [Refer `tools/images/scripts/base.sh`]
 2. Install all necessary dependencies `npm install`
 
-Backend:
-
-`./run.sh --mode=3`
-
-Frontend:
-
-`cd www-src`
-
-`grunt build`
-
-## Usage
-
-Development:
-
-1. Run Go in Classic mode `./run.sh --mode=3`
-2. Run AngularJS `cd www-src && npm install && grunt serve`
-
-Staging:
-
-1. Run Gamification server in Master mode `./run.sh --mode=2`
-2. Run Compute server in Node mode `./run.sh --mode=1`
-3. Deploy & run Frontend in `cd www-src && npm install && grunt serve:dist`
-
-Production:
+### Production:
 
 1. HAProxy Load Balancer [`tools/images/scripts/app/loadbalancer.sh`]
 2. Gamification instances [`tools/images/scripts/app/master.sh`]
 3. Computation instances [`tools/images/scripts/app/node.sh`]
 4. PostgreSQL DB instance [`tools/images/scripts/db/postgresql.sh`]
-5. Cassandra DB instance [`tools/images/scripts/app/cassandra.sh`]
+5. Cassandra DB instance [`tools/images/scripts/db/cassandra.sh`]
 6. Redis & RabbitMQ instance [`tools/images/scripts/queue/redis_rabbitmq.sh`]
+
+### Monitoring:
+
+1. API response time monitoring [`tools/images/scripts/monitoring/api.sh`]
+2. HAProxy API for dynamic scaling [`tools/images/scripts/app/haproxy-api/`]
+
+## Usage
+
+### Development:
+
+1. Run Go in Classic mode `./run.sh --mode=3`
+2. Run AngularJS `cd www-src && npm install && grunt serve`
+
+### Staging:
+
+1. Run Gamification server in Master mode `./run.sh --mode=2`
+2. Run Compute server in Node mode `./run.sh --mode=1`
+3. Deploy & run Frontend in `cd www-src && npm install && grunt serve:dist`
+
+### Production:
+
+1. Run Gamification server in Master mode `./run.sh --mode=2`
+2. Run Compute server in Node mode `./run.sh --mode=1`
+3. Deploy & run Frontend in `cd www-src && npm install && grunt build`
 
 ## Contributing
 
