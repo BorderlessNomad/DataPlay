@@ -132,7 +132,7 @@ func initClassicMode() {
 
 	m.Use(JsonApiHandler)
 
-	m.Use(SessionApiHandler)
+	m.Use(UserApiSessionHandler)
 
 	m.Run()
 }
@@ -233,7 +233,7 @@ func initMasterMode() {
 
 	m.Use(LogRequest)
 
-	m.Use(SessionApiHandler)
+	m.Use(UserApiSessionHandler)
 
 	m.Run()
 }
@@ -301,6 +301,7 @@ func initAPI() *martini.ClassicMartini { // initialise martini and add in common
 	m.Delete("/api/logout", HandleLogout)
 	m.Delete("/api/logout/:session", HandleLogout)
 
+	m.Get("/api/admin/user/get/:order/:offset/:count", GetUserTableHttp)
 	m.Get("/api/chart/awaitingcredit", GetAwaitingCreditHttp)
 	m.Get("/api/chart/toprated", GetTopRatedChartsHttp)
 	m.Get("/api/chartinfo/:tablename", GetChartInfoHttp)
@@ -343,6 +344,9 @@ func initAPI() *martini.ClassicMartini { // initialise martini and add in common
 		return TrackVisitedHttp(res, req, visited)
 	})
 
+	m.Put("/api/admin/user/edit", binding.Bind(UserEdit{}), func(res http.ResponseWriter, req *http.Request, userEdit UserEdit) string {
+		return EditUserHttp(res, req, userEdit)
+	})
 	m.Put("/api/chart", binding.Bind(CreditRequest{}), func(res http.ResponseWriter, req *http.Request, params martini.Params, credit CreditRequest) string {
 		return CreditChartHttp(res, req, params, credit)
 	})
@@ -412,7 +416,11 @@ func JsonApiHandler(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func SessionApiHandler(res http.ResponseWriter, req *http.Request) {
+func AdminApiSessionHandler(res http.ResponseWriter, req *http.Request) {
+	//@TODO !!!!
+}
+
+func UserApiSessionHandler(res http.ResponseWriter, req *http.Request) {
 	noAuthPaths := map[string]bool{
 		"/api/login":          true,
 		"/api/register":       true,
