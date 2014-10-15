@@ -171,8 +171,8 @@ configure_frontend () {
 }
 
 build_frontend () {
-	npm install && \
-	bower install && \
+	npm install -d
+	bower install
 	grunt build
 }
 

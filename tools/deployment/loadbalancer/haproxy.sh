@@ -21,7 +21,7 @@ setuphost () {
 
 install_haproxy () {
 	apt-add-repository -y ppa:vbernat/haproxy-1.5
-	apt-get update > /dev/null
+	apt-get update
 	apt-get install -y haproxy
 }
 
@@ -32,7 +32,8 @@ setup_haproxy_api () {
 	BRANCH="master"
 	SOURCE="$URL/$USER/$REPO/$BRANCH"
 
-	npm cache clean && npm install -g coffee-script forever 2> /dev/null
+	npm cache clean
+	npm install -gd coffee-script forever
 
 	command -v haproxy >/dev/null 2>&1 || { echo >&2 "Error: Command 'haproxy' not found!"; exit 1; }
 
@@ -48,7 +49,7 @@ setup_haproxy_api () {
 	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/loadbalancer/api/backend.json && \
 	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/loadbalancer/api/haproxy.cfg.template
 
-	npm install
+	npm install -d
 
 	coffee -cb app.coffee > app.js
 
