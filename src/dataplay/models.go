@@ -228,6 +228,7 @@ type User struct {
 	Avatar     string
 	Username   string
 	Usertype   int
+	Enabled    bool
 }
 
 func (u User) TableName() string {
