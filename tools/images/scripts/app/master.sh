@@ -55,7 +55,7 @@ install_go () {
 	mkdir -p /home/ubuntu && cd /home/ubuntu
 	mkdir -p gocode && mkdir -p www
 
-	wget -Nq https://storage.googleapis.com/golang/$GO_VERSION.linux-amd64.tar.gz
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N https://storage.googleapis.com/golang/$GO_VERSION.linux-amd64.tar.gz
 	tar xf $GO_VERSION.linux-amd64.tar.gz
 
 	echo "export GOROOT=/home/ubuntu/go" >> /etc/environment
@@ -108,7 +108,7 @@ run_master () {
 
 	cd $DEST
 	echo "Fetching latest ZIP"
-	wget -Nq $SOURCE$BRANCH.zip -O $BRANCH.zip
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE$BRANCH.zip -O $BRANCH.zip
 	echo "Extracting from $BRANCH.zip"
 	unzip -oq $BRANCH.zip
 	if [ -d $APP ]; then
@@ -136,7 +136,7 @@ install_nginx () {
 	destination="$DEST/$APP/$WWW/dist"
 
 	cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.$unixts
-	wget -Nq "https://raw.githubusercontent.com/playgenhub/$REPO/$BRANCH/tools/images/scripts/app/nginx.default" -O /etc/nginx/sites-available/default
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N "https://raw.githubusercontent.com/playgenhub/$REPO/$BRANCH/tools/images/scripts/app/nginx.default" -O /etc/nginx/sites-available/default
 	sed -i 's,'"$keyword"','"$destination"',g' /etc/nginx/sites-available/default
 
 	chown ubuntu:www-data $DEST/$APP/$WWW

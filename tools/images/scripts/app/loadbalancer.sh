@@ -32,10 +32,10 @@ setup_haproxy_api () {
 	mkdir -p /home/ubuntu && cd /home/ubuntu
 	mkdir -p haproxy-api && cd haproxy-api
 
-	wget -Nq https://raw.githubusercontent.com/playgenhub/DataPlay/develop/tools/images/scripts/app/haproxy-api/app.coffee && \
-	wget -Nq https://raw.githubusercontent.com/playgenhub/DataPlay/develop/tools/images/scripts/app/haproxy-api/package.json && \
-	wget -Nq https://raw.githubusercontent.com/playgenhub/DataPlay/develop/tools/images/scripts/app/haproxy-api/backend.json && \
-	wget -Nq https://raw.githubusercontent.com/playgenhub/DataPlay/develop/tools/images/scripts/app/haproxy-api/haproxy.cfg.template
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N https://raw.githubusercontent.com/playgenhub/DataPlay/develop/tools/images/scripts/app/haproxy-api/app.coffee && \
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N https://raw.githubusercontent.com/playgenhub/DataPlay/develop/tools/images/scripts/app/haproxy-api/package.json && \
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N https://raw.githubusercontent.com/playgenhub/DataPlay/develop/tools/images/scripts/app/haproxy-api/backend.json && \
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N https://raw.githubusercontent.com/playgenhub/DataPlay/develop/tools/images/scripts/app/haproxy-api/haproxy.cfg.template
 
 	npm install
 
