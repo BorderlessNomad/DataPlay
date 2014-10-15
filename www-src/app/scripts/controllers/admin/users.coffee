@@ -18,6 +18,7 @@ angular.module('dataplayApp')
 				item: null
 
 		$scope.pagination =
+			orderby: 'uid'
 			perPage: 10
 			pageNumber: 1
 			total: 0
@@ -34,11 +35,11 @@ angular.module('dataplayApp')
 
 
 		$scope.updateUsers = () ->
-			$scope.users.splice 0
 			offset = ($scope.pagination.pageNumber - 1) * $scope.pagination.perPage
-			Admin.getUsers 'uid', offset, $scope.pagination.perPage
+			Admin.getUsers $scope.pagination.orderby, offset, $scope.pagination.perPage
 				.success (data) ->
 					if data.count and data.users?
+						$scope.users.splice 0
 						data.users.forEach (u) ->
 							console.log u.username, u.enabled
 							$scope.users.push
@@ -116,6 +117,12 @@ angular.module('dataplayApp')
 
 
 		# Pagination
+		$scope.orderby = (col) ->
+			if $scope.pagination.orderby isnt col
+				$scope.pagination.orderby = col
+				$scope.pagination.pageNumber = 1
+				$scope.updateUsers()
+
 		$scope.totalPages = (total) ->
 			Math.ceil total / $scope.pagination.perPage
 
