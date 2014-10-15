@@ -30,22 +30,24 @@ DataPlay alpha contains a rudimentary selection of datasets drawn from [data.gov
 
 ## Installation
 
-1. Install Ubuntu & Node.js [Refer `tools/deployment/base.sh`]
+1. Install Ubuntu & Node.js
 2. Install all necessary dependencies `npm install`
+
+*Note*: Refer [`tools/deployment/base.sh`](tools/deployment/base.sh) for base system config and libs.
 
 ### Production:
 
-1. HAProxy Load Balancer [`tools/deployment/loadbalancer/haproxy.sh`]
-2. Gamification instances [`tools/deployment/app/master.sh`]
-3. Computation instances [`tools/deployment/app/node.sh`]
-4. PostgreSQL DB instance [`tools/deployment/db/postgresql.sh`]
-5. Cassandra DB instance [`tools/deployment/db/cassandra.sh`]
-6. Redis & RabbitMQ instance [`tools/deployment/queue/redis_rabbitmq.sh`]
+1. HAProxy Load Balancer [`tools/deployment/loadbalancer/haproxy.sh`](tools/deployment/loadbalancer/haproxy.sh)
+2. Gamification instances [`tools/deployment/app/master.sh`](tools/deployment/app/master.sh)
+3. Computation instances [`tools/deployment/app/node.sh`](tools/deployment/app/node.sh)
+4. PostgreSQL DB instance [`tools/deployment/db/postgresql.sh`](tools/deployment/db/postgresql.sh)
+5. Cassandra DB instance [`tools/deployment/db/cassandra.sh`](tools/deployment/db/cassandra.sh)
+6. Redis & RabbitMQ instance [`tools/deployment/queue/redis_rabbitmq.sh`](tools/deployment/queue/redis_rabbitmq.sh)
 
 ### Monitoring:
 
-1. API response time monitoring [`tools/deployment/monitoring/api.sh`]
-2. HAProxy API for dynamic scaling [`tools/deployment/loadbalancer/api/`]
+1. API response time monitoring [`tools/deployment/monitoring/api.sh`](tools/deployment/monitoring/api.sh)
+2. HAProxy API for dynamic scaling [`tools/deployment/loadbalancer/api/`](tools/deployment/loadbalancer/api/)
 
 ## Usage
 
@@ -75,6 +77,8 @@ DataPlay alpha contains a rudimentary selection of datasets drawn from [data.gov
 5. Submit a pull request :D
 
 ## History
+
+v1.0.1: 	System-wide environment variables
 
 v1.0.0: 	CELAR compatible scripts
 
