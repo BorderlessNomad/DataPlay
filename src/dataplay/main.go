@@ -302,6 +302,7 @@ func initAPI() *martini.ClassicMartini { // initialise martini and add in common
 	m.Delete("/api/logout", HandleLogout)
 	m.Delete("/api/logout/:session", HandleLogout)
 
+	m.Get("/api/admin/observations/get/:order/:offset/:count/:flagged", GetObservationsTableHttp)
 	m.Get("/api/admin/user/get/:order/:offset/:count", GetUserTableHttp)
 	m.Get("/api/chart/awaitingcredit", GetAwaitingCreditHttp)
 	m.Get("/api/chart/toprated", GetTopRatedChartsHttp)

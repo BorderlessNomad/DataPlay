@@ -21,3 +21,19 @@ func TestGetUserTableHttp(t *testing.T) {
 		So(result, ShouldNotBeNil)
 	})
 }
+
+func TestGetObservationsTableHttp(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+	res := httptest.NewRecorder()
+	params := map[string]string{
+		"order":   "username",
+		"offset":  "0",
+		"count":   "100",
+		"flagged": "true",
+	}
+	Convey("Should return users for admin", t, func() {
+		result := GetObservationsTableHttp(res, req, params)
+		So(result, ShouldNotBeNil)
+	})
+}
