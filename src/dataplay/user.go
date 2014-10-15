@@ -14,15 +14,19 @@ import (
 )
 
 // REPUTATION POINTS
-const obsVal int = 5     // observation is voted up
-const discVal int = 15   // discovery is valdiated
-const discObs int = 2    // discovery receives an observation
-const rankUp int = 10    // reach new rank
-const topRank int = 100  // reach top 10 Experts rank
-const discHot int = 50   // discovery is hot
-const obsInval int = -1  // observation is voted down
-const discInval int = -2 // discovery is voted down
-const obsSpam int = -100 // observation receives spam/flagged
+const obsCredit int = 5      // observation is voted up
+const discCredit int = 15    // discovery is valdiated
+const discObs int = 2        // discovery receives an observation
+const rankUp int = 10        // reach new rank
+const topRank int = 100      // reach top 10 Experts rank
+const discHot int = 50       // discovery is hot
+const obsDiscredit int = -1  // observation is voted down
+const discDiscredit int = -2 // discovery is voted down
+const obsSpam int = -100     // observation receives spam/flagged
+
+/// USER TYPES
+const UserTypeNormal int = 0
+const UserTypeAdmin int = 1
 
 type UserForm struct {
 	Username string `json:"username" binding:"required"`

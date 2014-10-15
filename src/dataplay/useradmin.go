@@ -6,7 +6,6 @@ import (
 	"github.com/codegangsta/martini"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type UserEdit struct {
