@@ -10,10 +10,10 @@
 			<th></th>
 		</tr>
 		<tr ng-repeat="user in users | limitTo: pagination.perPage">
-			<td>{{user.id}}</td>
+			<td>{{user.uid}}</td>
 			<td class="text-center">
 				<img class="avatar" ng-if="user.avatar !== ''" ng-src="{{user.avatar}}"/>
-				<img class="avatar" ng-if="user.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{user.MD5Email}}?d=identicon"/>
+				<img class="avatar" ng-if="user.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{user.md5email}}?d=identicon" />
 			</td>
 			<td>{{user.username}}</td>
 			<td>
@@ -60,7 +60,7 @@
 					<form name="editForm" role="form" ng-submit="submitForm()">
 						<div class="text-center">
 							<img class="avatar-150 inline" ng-if="modal.content.item.avatar !== ''" ng-src="{{modal.content.item.avatar}}"/>
-							<img class="avatar-150 inline" ng-if="modal.content.item.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{modal.content.item.MD5Email}}?d=identicon"/>
+							<img class="avatar-150 inline" ng-if="modal.content.item.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{modal.content.item.md5email}}?d=identicon" src="http://www.gravatar.com/avatar/{{modal.content.item.md5email}}?d=identicon" />
 							<div class="inline" ng-if="modal.content.type == 'edit' && false">
 								<button class="btn btn-danger btn-xs">Remove</button>
 							</div>
@@ -68,7 +68,7 @@
 						<table class="table table-bordered table-hover table-striped">
 							<tr>
 								<th class="col-xs-4">#</th>
-								<td class="col-xs-8">{{modal.content.item.id}}</td>
+								<td class="col-xs-8">{{modal.content.item.uid}}</td>
 							</tr>
 							<tr>
 								<th>Username</th>
