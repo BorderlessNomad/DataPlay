@@ -60,11 +60,11 @@ func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
 
 	if credflag {
 		discovered.Credited++
-		Reputation(discovered.Uid, discVal) // add points for discovery credit
+		Reputation(discovered.Uid, discCredit) // add points for discovery credit
 		AddActivity(uid, "vc", t, discovered.DiscoveredId, 0)
 	} else {
 		discovered.Discredited++
-		Reputation(discovered.Uid, discInval) // remove points for discovery discredit
+		Reputation(discovered.Uid, discDiscredit) // remove points for discovery discredit
 		AddActivity(uid, "ic", t, discovered.DiscoveredId, 0)
 	}
 	discovered.Rating = RankCredits(discovered.Credited, discovered.Discredited)
@@ -111,11 +111,11 @@ func CreditObservation(oid int, uid int, credflag bool) *appError {
 
 	if credflag {
 		observation.Credited++
-		Reputation(observation.Uid, obsVal) // add points for observation credit
+		Reputation(observation.Uid, obsCredit) // add points for observation credit
 		AddActivity(uid, "vo", t, 0, observation.ObservationId)
 	} else {
 		observation.Credited++
-		Reputation(observation.Uid, obsInval) // remove points for observation incredit
+		Reputation(observation.Uid, obsDiscredit) // remove points for observation incredit
 		AddActivity(uid, "io", t, 0, observation.ObservationId)
 	}
 

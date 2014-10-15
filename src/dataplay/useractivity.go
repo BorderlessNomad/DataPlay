@@ -589,12 +589,12 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		}
 
 		if d.Credflag == true {
-			tmpA.Activity = "You gained " + strconv.Itoa(discVal) + " reputation when " + user.Username + " credited your pattern "
+			tmpA.Activity = "You gained " + strconv.Itoa(discCredit) + " reputation when " + user.Username + " credited your pattern "
 			tmpA.PatternId = d.DiscoveredId
 			tmpA.Created = t.Sub(d.Created).Seconds()
 			tmpA.Time = d.Created
 		} else {
-			tmpA.Activity = "You lost " + strconv.Itoa(discInval) + " reputation when " + user.Username + " discredited your pattern "
+			tmpA.Activity = "You lost " + strconv.Itoa(discDiscredit) + " reputation when " + user.Username + " discredited your pattern "
 			tmpA.PatternId = d.DiscoveredId
 			tmpA.Created = t.Sub(d.Created).Seconds()
 			tmpA.Time = d.Created
@@ -624,12 +624,12 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		}
 
 		if o.Credflag == true {
-			tmpA.Activity = "You gained " + strconv.Itoa(obsVal) + " reputation when " + user.Username + " credited your observation on pattern "
+			tmpA.Activity = "You gained " + strconv.Itoa(obsCredit) + " reputation when " + user.Username + " credited your observation on pattern "
 			tmpA.PatternId = o.Did
 			tmpA.Created = t.Sub(o.Created).Seconds()
 			tmpA.Time = o.Created
 		} else {
-			tmpA.Activity = "You lost " + strconv.Itoa(obsInval) + " reputation when " + user.Username + " discredited your observation on pattern "
+			tmpA.Activity = "You lost " + strconv.Itoa(obsDiscredit) + " reputation when " + user.Username + " discredited your observation on pattern "
 			tmpA.PatternId = o.Did
 			tmpA.Created = t.Sub(o.Created).Seconds()
 			tmpA.Time = o.Created
