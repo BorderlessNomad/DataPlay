@@ -39,7 +39,7 @@
 			<td>{{user.uid}}</td>
 			<td class="text-center">
 				<img class="avatar" ng-if="user.avatar !== ''" ng-src="{{user.avatar}}"/>
-				<img class="avatar" ng-if="user.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{user.md5email}}?d=identicon" />
+				<img class="avatar" ng-if="user.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{user.md5email}}?d=identicon&s=50" />
 			</td>
 			<td>{{user.username}}</td>
 			<td>{{user.email}}</td>
@@ -87,7 +87,7 @@
 					<form name="editForm" role="form" ng-submit="submitForm()">
 						<div class="text-center">
 							<img class="avatar-150 inline" ng-if="modal.content.item.avatar !== ''" ng-src="{{modal.content.item.avatar}}"/>
-							<img class="avatar-150 inline" ng-if="modal.content.item.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{modal.content.item.md5email}}?d=identicon" src="http://www.gravatar.com/avatar/{{modal.content.item.md5email}}?d=identicon" />
+							<img class="avatar-150 inline" ng-if="modal.content.item.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{modal.content.item.md5email}}?d=identicon&s=200" />
 							<div class="inline" ng-if="modal.content.type == 'edit' && false">
 								<button class="btn btn-danger btn-xs">Remove</button>
 							</div>
