@@ -107,6 +107,14 @@
 									<input type="checkbox" ng-model="modal.content.item.usertype">
 								</td>
 							</tr>
+							<tr ng-if="modal.content.type == 'edit'">
+								<th>Reset Password</th>
+								<td>
+									<input type="text" id="password-field" class="form-control input-sm" ng-model="modal.content.item.password" ng-required="false"></input>
+									<button type="button" id="password-random" class="btn btn-default btn-sm" ng-click="generateRandom()" ><i class="fa fa-reorder"></i> Random</button>
+								</td>
+							</tr>
+
 						</table>
 						<div class="text-center">
 							<button type="button" class="btn btn-primary text-center" ng-click="edit()" ng-if="modal.content.type == 'edit'" ng-disabled="!editForm.$valid"><i class="fa fa-save"></i> Save</button>

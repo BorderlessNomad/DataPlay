@@ -34,12 +34,24 @@ angular.module('dataplayApp')
 
 
 		$scope.updateUsers = () ->
+			$scope.users.splice 0
 			offset = ($scope.pagination.pageNumber - 1) * $scope.pagination.perPage
 			Admin.getUsers 'uid', offset, $scope.pagination.perPage
 				.success (data) ->
 					if data.count and data.users?
-						$scope.users.splice 0
-						data.users.forEach (u) -> $scope.users.push u
+						data.users.forEach (u) ->
+							$scope.users.push
+								uid: u.uid || 0
+								avatar: u.avatar || ''
+								username: u.username || ''
+								email: u.email || ''
+								md5email: u.md5email || ''
+								reputation: u.reputation || 0
+								usertype: u.usertype || 0
+								enabled: u.enabled || true
+								password: ''
+								randomPassword: false
+						console.log $scope.users
 						$scope.pagination.total = data.count
 
 		$scope.isAdmin = () ->
@@ -62,6 +74,14 @@ angular.module('dataplayApp')
 			$('#admin-modal').modal 'hide'
 			return
 
+		$scope.generateRandom = () ->
+			$scope.modal.content.item.password = do ->
+				chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012345679-_.'
+				result = ''
+				for i in [0..(12 + Math.floor(Math.random() * 8))]
+					result += chars.charAt Math.floor(Math.random() * chars.length)
+				result
+
 		$scope.submitForm = () ->
 			if $scope.modal.content.type is 'edit'
 				$scope.edit()
@@ -73,11 +93,12 @@ angular.module('dataplayApp')
 			after = _.cloneDeep $scope.modal.content.item
 
 			after.usertype = parseInt after.usertype * 1
+			if after.randomPassword then after.password = "!"
 
 			diff = do ->
 				result = {}
 				Object.keys(before).forEach (k) ->
-					if k is 'uid' or before[k] isnt after[k]
+					if k isnt 'randomPassword' and (k is 'uid' or before[k] isnt after[k])
 						if k is 'reputation'
 							result[k] = after[k] - before[k]
 						else
