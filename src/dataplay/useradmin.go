@@ -28,6 +28,7 @@ type UserReturn struct {
 	Username   string `json:"username"`
 	Reputation int    `json:"reputation"`
 	Usertype   int    `json:"usertype"`
+	Enabled    bool   `json:"enabled"`
 }
 
 type UserReturnAndCount struct {
@@ -46,7 +47,7 @@ func GetUserTableHttp(res http.ResponseWriter, req *http.Request, params martini
 
 	order := params["order"] + " asc"
 
-	e := DB.Model(User{}).Select("uid, email, email, avatar, username, reputation, usertype").Order(order).Scan(&userReturn).Error
+	e := DB.Model(User{}).Select("uid, email, email, avatar, username, reputation, usertype, enabled").Order(order).Scan(&userReturn).Error
 	if e != nil {
 		http.Error(res, "Unable to get users", http.StatusInternalServerError)
 		return ""
