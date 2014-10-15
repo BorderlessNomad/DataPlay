@@ -31,6 +31,7 @@ const UserTypeAdmin int = 1
 type UserForm struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
+	Email    string `json:"email" binding:"required"`
 }
 
 type UserNameForm struct {
@@ -74,7 +75,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, login UserForm) str
 
 	user := User{}
 	var err error
-	err = DB.Where("email = ?", login.Username).Find(&user).Error
+	err = DB.Where("username = ?", login.Username).Find(&user).Error
 	if err == gorm.RecordNotFound {
 		http.Error(res, "No such user found!", http.StatusNotFound)
 		return ""
@@ -124,7 +125,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, login UserForm) str
 	}
 
 	u := map[string]interface{}{
-		"user":    user.Email,
+		"user":    user.Username,
 		"session": session.Value,
 	}
 	usr, _ := json.Marshal(u)
@@ -161,7 +162,7 @@ func HandleSocialLogin(res http.ResponseWriter, req *http.Request, login UserSoc
 		user.Email = login.Email
 		user.Password = GetMD5Hash(user.Email + time.Now().String()) // not important here, just used hashed version of their email plus the time
 		user.Avatar = login.Image
-		user.Username = login.FirstName
+		user.Username = login.FirstName + login.LastName
 		user.Usertype = 1
 
 		err = DB.Save(&user).Error
@@ -228,15 +229,21 @@ func HandleLogout(res http.ResponseWriter, req *http.Request, params martini.Par
 }
 
 func HandleRegister(res http.ResponseWriter, req *http.Request, register UserForm) string {
-	if register.Username == "" || register.Password == "" {
-		http.Error(res, "Username/Password missing.", http.StatusBadRequest)
+	if register.Username == "" || register.Password == "" || register.Email == "" {
+		http.Error(res, "Username, Password or Email missing.", http.StatusBadRequest)
 		return ""
 	}
 
 	user := User{}
-	err := DB.Where("email = ?", register.Username).First(&user).Error
+	err := DB.Where("username = ?", register.Username).First(&user).Error
 	if err != gorm.RecordNotFound {
 		http.Error(res, "Username already exists.", http.StatusConflict)
+		return ""
+	}
+
+	err = DB.Where("email = ?", register.Email).First(&user).Error
+	if err != gorm.RecordNotFound {
+		http.Error(res, "Email already exists.", http.StatusConflict)
 		return ""
 	}
 
@@ -246,7 +253,8 @@ func HandleRegister(res http.ResponseWriter, req *http.Request, register UserFor
 		return ""
 	}
 
-	user.Email = register.Username
+	user.Email = register.Email
+	user.Username = register.Username
 	user.Password = string(hashedPassword)
 	err2 := DB.Save(&user).Error
 	if err2 != nil {
@@ -263,7 +271,7 @@ func HandleRegister(res http.ResponseWriter, req *http.Request, register UserFor
 	}
 
 	u := map[string]interface{}{
-		"user":    user.Email,
+		"user":    user.Username,
 		"session": session.Value,
 	}
 	usr, _ := json.Marshal(u)
@@ -278,7 +286,7 @@ func HandleCheckUsername(res http.ResponseWriter, req *http.Request, user UserNa
 	}
 
 	validUser := User{}
-	err := DB.Where("email = ?", user.Username).First(&validUser).Error
+	err := DB.Where("username = ?", user.Username).First(&validUser).Error
 	if err != nil && err != gorm.RecordNotFound {
 		http.Error(res, "Unable to find that User.", http.StatusInternalServerError)
 		return ""
@@ -288,7 +296,7 @@ func HandleCheckUsername(res http.ResponseWriter, req *http.Request, user UserNa
 	}
 
 	u := map[string]interface{}{
-		"user":   validUser.Email,
+		"user":   validUser.Username,
 		"exists": true,
 	}
 	usr, _ := json.Marshal(u)
@@ -303,7 +311,7 @@ func HandleForgotPassword(res http.ResponseWriter, req *http.Request, user UserN
 	}
 
 	validUser := User{}
-	err := DB.Where("email = ?", user.Username).First(&validUser).Error
+	err := DB.Where("username = ?", user.Username).First(&validUser).Error
 	if err != nil && err != gorm.RecordNotFound {
 		http.Error(res, "Database query failed (User)", http.StatusInternalServerError)
 		return ""
@@ -335,7 +343,7 @@ func HandleForgotPassword(res http.ResponseWriter, req *http.Request, user UserN
 	}
 
 	u := map[string]interface{}{
-		"user":  validUser.Email,
+		"user":  validUser.Username,
 		"token": hash,
 	}
 	usr, _ := json.Marshal(u)
@@ -349,7 +357,7 @@ func ResetPassword(hash, username, password string) *appError {
 	}
 
 	user := User{}
-	err := DB.Where("email = ?", username).First(&user).Error
+	err := DB.Where("username = ?", username).First(&user).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return &appError{nil, "Database query failed (User).", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {

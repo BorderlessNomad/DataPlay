@@ -59,7 +59,7 @@ func handleLoginValidData(t *testing.T) {
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
 	response := httptest.NewRecorder()
 	u := UserForm{}
-	u.Username = "glyn@dataplay.com"
+	u.Username = "glyn"
 	u.Password = "123456"
 
 	Convey("When Correct data is provided", func() {
@@ -114,8 +114,9 @@ func handleRegisterExisitingData(t *testing.T) {
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
 	response := httptest.NewRecorder()
 	u := UserForm{}
-	u.Username = "glyn@dataplay.com"
+	u.Username = "glyn"
 	u.Password = "123456"
+	u.Email = "glyn@dataplay.com"
 
 	Convey("When User already exists", func() {
 		HandleRegister(response, request, u)
