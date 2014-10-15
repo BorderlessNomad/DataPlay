@@ -5,6 +5,7 @@
 			<th>#</th>
 			<th>Avatar</th>
 			<th>Username</th>
+			<th>Email Address</th>
 			<th>Reputation</th>
 			<th>Admin?</th>
 			<th></th>
@@ -16,6 +17,7 @@
 				<img class="avatar" ng-if="user.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{user.md5email}}?d=identicon" />
 			</td>
 			<td>{{user.username}}</td>
+			<td>{{user.email}}</td>
 			<td>
 				<div class="text-center gold bold">
 					<i class="glyphicon glyphicon-star"></i>
@@ -73,7 +75,12 @@
 							<tr>
 								<th>Username</th>
 								<td ng-if="modal.content.type == 'view'">{{modal.content.item.username}}</td>
-								<td ng-if="modal.content.type == 'edit'"><input type="text" class="form-control input-sm" ng-model="modal.content.item.username" ng-pattern="/^([A-Za-z0-9]{4,})$/" ng-required="true"></input></td>
+								<td ng-if="modal.content.type == 'edit'"><input type="text" class="form-control input-sm" ng-model="modal.content.item.username" ng-pattern="/^([A-Za-z0-9]{3,})$/" ng-required="true"></input></td>
+							</tr>
+							<tr>
+								<th>Email Address</th>
+								<td ng-if="modal.content.type == 'view'">{{modal.content.item.email}}</td>
+								<td ng-if="modal.content.type == 'edit'"><input type="text" class="form-control input-sm" ng-model="modal.content.item.email" ng-pattern="/^\S+@\S+\.\S+$/" ng-required="true"></input></td>
 							</tr>
 							<tr>
 								<th>Reputation</th>
@@ -100,6 +107,14 @@
 									<input type="checkbox" ng-model="modal.content.item.usertype">
 								</td>
 							</tr>
+							<tr ng-if="modal.content.type == 'edit'">
+								<th>Reset Password</th>
+								<td>
+									<input type="text" id="password-field" class="form-control input-sm" ng-model="modal.content.item.password" ng-required="false"></input>
+									<button type="button" id="password-random" class="btn btn-default btn-sm" ng-click="generateRandom()" ><i class="fa fa-reorder"></i> Random</button>
+								</td>
+							</tr>
+
 						</table>
 						<div class="text-center">
 							<button type="button" class="btn btn-primary text-center" ng-click="edit()" ng-if="modal.content.type == 'edit'" ng-disabled="!editForm.$valid"><i class="fa fa-save"></i> Save</button>

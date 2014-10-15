@@ -12,6 +12,12 @@
 		}
 	}
 
+	input[type="text"], input[type="number"] {
+		height: 2em;
+		padding-top: 0;
+		padding-bottom: 0;
+	}
+
 	.avatar {
 		max-height: 2em;
 		max-width: 2em;
@@ -36,6 +42,18 @@
 			.gold;
 			.bold;
 		}
+	}
+
+	#password-field {
+		width: calc(~"100% - 105px");
+		display: inline-block;
+	}
+
+	#password-random {
+		width: 100px;
+		height: 2em;
+		padding-top: 0;
+		padding-bottom: 0;
 	}
 
 	.gold { color: #F1C40F; }
