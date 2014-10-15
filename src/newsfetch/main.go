@@ -8,12 +8,12 @@ import (
 )
 
 func main() {
-	e := DailyKimono()
+	e := DailyKimono() // generate the day's news urls
 
 	if e == nil {
 
 		fmt.Println("STARTING...")
-		file, _ := os.Open("urls.csv") // url file @TODO: change to dailyURLs.txt!!!!!
+		file, _ := os.Open("dailyurls.txt")
 		defer file.Close()
 		reader := csv.NewReader(file)
 		urls := make([]string, 0)
@@ -31,7 +31,7 @@ func main() {
 			urls = append(urls, record[0])
 		}
 
-		c := NewClient(EmKey5) // @TODO: change to EmKey6 !!!!!!!!
+		c := NewClient(EmKey4)
 		options := Options{}
 
 		pos := 0

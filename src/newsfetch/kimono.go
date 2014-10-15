@@ -72,12 +72,12 @@ func DailyKimono() error {
 		output += x.Properties.Href + ",\n"
 	}
 
-	err = ioutil.WriteFile("dailyURLs.txt", []byte(output), 0644)
+	err = ioutil.WriteFile("dailyurls.txt", []byte(output), 0644)
 	if err != nil {
 		return err
 	}
 
-	f, _ := os.OpenFile("URLs.txt", os.O_APPEND, 0666)
+	f, _ := os.OpenFile("urls.txt", os.O_APPEND, 0666)
 	f.Write([]byte(output))
 	f.Close()
 
