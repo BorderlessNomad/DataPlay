@@ -10,6 +10,7 @@
 			<th>Admin?</th>
 			<th></th>
 		</tr>
+		<tr ng-if="users.length === 0"><td colspan="7" ng-include="'../views/loader.html'"></td></tr>
 		<tr ng-repeat="user in users | limitTo: pagination.perPage">
 			<td>{{user.uid}}</td>
 			<td class="text-center">
