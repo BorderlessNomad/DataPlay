@@ -8,7 +8,7 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'AdminUsersCtrl', ['$scope', '$location', 'Admin', 'Overview', 'config', ($scope, $location, Admin, Overview, config) ->
+	.controller 'AdminUsersCtrl', ['$scope', '$location', 'Admin', 'Auth', 'Overview', 'config', ($scope, $location, Admin, Auth, Overview, config) ->
 
 		$scope.modal =
 			shown: false
@@ -28,11 +28,12 @@ angular.module('dataplayApp')
 
 		# General controls
 		$scope.init = () ->
-			if not $scope.isAdmin()
-				$location.path '/home'
-
+			$scope.bootNonAdmins()
 			$scope.updateUsers()
 
+		$scope.bootNonAdmins = () ->
+			if not Auth.isAdmin()
+				$location.path '/home'
 
 		$scope.updateUsers = (cb = (() ->)) ->
 			offset = ($scope.pagination.pageNumber - 1) * $scope.pagination.perPage
@@ -53,9 +54,6 @@ angular.module('dataplayApp')
 								password: ''
 						$scope.pagination.total = data.count
 					cb()
-
-		$scope.isAdmin = () ->
-			true # TODO: actually check whether current user is an admin
 
 		$scope.showModal = (type, item) ->
 			if item?
