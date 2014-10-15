@@ -151,8 +151,8 @@
 					<p ng-if="modal.content.item.enabled">Are you sure you want to disable this user?</p>
 					<p ng-if="!modal.content.item.enabled">Are you sure you want to enable this user?</p>
 					<div class="text-center">
-						<button type="button" class="btn btn-danger text-center" ng-if="modal.content.item.enabled" ng-click="disable(false)"><i class="fa fa-times"></i> Disable</button>
-						<button type="button" class="btn btn-success text-center" ng-if="!modal.content.item.enabled" ng-click="disable(true)"><i class="fa fa-check"></i> Enable</button>
+						<button type="button" class="btn btn-danger text-center" ng-if="modal.content.item.enabled" ng-click="disable()"><i class="fa fa-times"></i> Disable</button>
+						<button type="button" class="btn btn-success text-center" ng-if="!modal.content.item.enabled" ng-click="disable()"><i class="fa fa-check"></i> Enable</button>
 						<button type="button" class="btn btn-default text-center" ng-click="closeModal()">Cancel</button>
 					</div>
 				</div>

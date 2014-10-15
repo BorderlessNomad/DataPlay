@@ -15,4 +15,7 @@ angular.module('dataplayApp')
 			if orderbys.indexOf(orderby) is -1 then orderby = 'uid'
 			$http.get config.api.base_url + "/admin/user/get/#{orderby}/#{offset}/#{count}"
 
+		editUser: (data) ->
+			$http.put config.api.base_url + "/admin/user/edit", data
+
 	]

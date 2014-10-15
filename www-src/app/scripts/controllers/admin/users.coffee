@@ -34,14 +34,13 @@ angular.module('dataplayApp')
 			$scope.updateUsers()
 
 
-		$scope.updateUsers = () ->
+		$scope.updateUsers = (cb = (() ->)) ->
 			offset = ($scope.pagination.pageNumber - 1) * $scope.pagination.perPage
 			Admin.getUsers $scope.pagination.orderby, offset, $scope.pagination.perPage
 				.success (data) ->
 					if data.count and data.users?
 						$scope.users.splice 0
 						data.users.forEach (u) ->
-							console.log u.username, u.enabled
 							$scope.users.push
 								uid: u.uid || 0
 								avatar: u.avatar || ''
@@ -53,6 +52,7 @@ angular.module('dataplayApp')
 								enabled: if not u.enabled? then true else u.enabled
 								password: ''
 						$scope.pagination.total = data.count
+					cb()
 
 		$scope.isAdmin = () ->
 			true # TODO: actually check whether current user is an admin
@@ -105,13 +105,20 @@ angular.module('dataplayApp')
 				result
 
 			if Object.keys(diff).length > 1
-				# Make request
-				console.log diff
-
+				Admin.editUser diff
+					.success (data) ->
+						$scope.updateUsers () ->
+							$scope.closeModal()
 			return
 
 		$scope.disable = () ->
-			console.log "Disable the user"
+			params =
+				uid: $scope.modal.content.item.uid
+				enabled: not $scope.modal.content.item.enabled
+			Admin.editUser params
+				.success (data) ->
+					$scope.updateUsers () ->
+						$scope.closeModal()
 			return
 
 
