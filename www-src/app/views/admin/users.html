@@ -9,7 +9,7 @@
 			<th>Admin?</th>
 			<th></th>
 		</tr>
-		<tr ng-repeat="user in users | limitTo: (pagination.perPage * pagination.pageNumber) > users.length ? users.length : (pagination.perPage * pagination.pageNumber) | limitTo: pagination.perPage * pagination.pageNumber <= users.length ? -pagination.perPage : -(users.length % pagination.perPage)">
+		<tr ng-repeat="user in users | limitTo: pagination.perPage">
 			<td>{{user.id}}</td>
 			<td class="text-center">
 				<img class="avatar" ng-if="user.avatar !== ''" ng-src="{{user.avatar}}"/>
@@ -40,8 +40,8 @@
 	<div class="text-center">
 		<ul class="pagination pagination-sm pagination-plain">
 			<li ng-class="{disabled: pagination.pageNumber == 1}"><a href="#" ng-click="changePage(-1, true)">&laquo;</a></li>
-			<li ng-repeat="i in range(users.length)" ng-class="{active: i == pagination.pageNumber}"><a href="#" ng-click="changePage(i)">{{i}}</a></li>
-			<li ng-class="{disabled: pagination.pageNumber == totalPages(users.length)}"><a href="#" ng-click="changePage(1, true)">&raquo;</a></li>
+			<li ng-repeat="i in range(pagination.total)" ng-class="{active: i == pagination.pageNumber}"><a href="#" ng-click="changePage(i)">{{i}}</a></li>
+			<li ng-class="{disabled: pagination.pageNumber == totalPages(pagination.total)}"><a href="#" ng-click="changePage(1, true)">&raquo;</a></li>
 		</ul>
 	</div>
 

@@ -13,8 +13,8 @@ func TestGetUserTableHttp(t *testing.T) {
 	res := httptest.NewRecorder()
 	params := map[string]string{
 		"order":  "uid",
-		"offset": "0",
-		"count":  "0",
+		"offset": "3",
+		"count":  "3",
 	}
 	Convey("Should return users for admin", t, func() {
 		result := GetUserTableHttp(res, req, params)
