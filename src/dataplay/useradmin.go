@@ -16,7 +16,7 @@ type UserEdit struct {
 	Username         string `json:"username"`
 	ReputationPoints int    `json:"reputationpoints"`
 	Admin            int    `json:"admin"`
-	Enabled          bool   `json:"enable"`
+	Enabled          bool   `json:"enabled"`
 	Password         string `json:"password"`
 }
 
@@ -109,11 +109,7 @@ func EditUserHttp(res http.ResponseWriter, req *http.Request, userEdit UserEdit)
 	user.Usertype = userEdit.Admin
 	user.Enabled = userEdit.Enabled
 
-	if userEdit.Password == "!" { // generate random password
-
-		user.Password = GetMD5Hash(user.Email + time.Now().String())
-
-	} else if userEdit.Password != "" { // generate whatever password has been passed
+	if userEdit.Password != "" { // generate whatever password has been passed
 
 		hashedPassword, err1 := bcrypt.GenerateFromPassword([]byte(userEdit.Password), bcrypt.DefaultCost)
 		if err1 != nil {
