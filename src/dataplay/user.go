@@ -24,6 +24,10 @@ const obsInval int = -1  // observation is voted down
 const discInval int = -2 // discovery is voted down
 const obsSpam int = -100 // observation receives spam/flagged
 
+/// USER TYPES
+const UserTypeNormal int = 0
+const UserTypeAdmin int = 1
+
 type UserForm struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`

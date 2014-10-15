@@ -18,6 +18,6 @@ func TestGetUserTableHttp(t *testing.T) {
 	}
 	Convey("Should return users for admin", t, func() {
 		result := GetUserTableHttp(res, req, params)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 }
