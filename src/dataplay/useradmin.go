@@ -103,7 +103,7 @@ func EditUserHttp(res http.ResponseWriter, req *http.Request, userEdit UserEdit)
 	}
 
 	user := User{}
-	rep := 0
+	var rep []int
 
 	err := DB.Model(User{}).Where("uid = ?", userEdit.Uid).Pluck("reputation", &rep).Error
 
@@ -116,7 +116,7 @@ func EditUserHttp(res http.ResponseWriter, req *http.Request, userEdit UserEdit)
 	user.Uid = userEdit.Uid
 	user.Avatar = userEdit.Avatar
 	user.Username = userEdit.Username
-	user.Reputation = rep + userEdit.ReputationPoints
+	user.Reputation = rep[0] + userEdit.ReputationPoints
 	user.Usertype = userEdit.Admin
 	user.Enabled = userEdit.Enabled
 
