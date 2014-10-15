@@ -36,7 +36,7 @@ compileTemplate = (data) ->
 		console.log "Copy /etc/haproxy/haproxy.cfg to /etc/haproxy/haproxy.cfg.#{timestamp}"
 		exec "cp -rf /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.#{timestamp}", puts
 
-		console.log "Replace old config file"
+		console.log "Replace old config file [Use some force if needed]"
 		exec "cp -rf haproxy.cfg /etc/haproxy/haproxy.cfg", puts
 
 		console.log "Reload HAProxy"

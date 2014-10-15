@@ -54,27 +54,29 @@ install_go () {
 	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N https://storage.googleapis.com/golang/$GO_VERSION.linux-amd64.tar.gz
 	tar xf $GO_VERSION.linux-amd64.tar.gz
 
-	echo "export GOROOT=/home/ubuntu/go" >> /etc/environment
-	echo "PATH=\$PATH:\$GOROOT/bin" >> /etc/environment
+	echo "export GOROOT=/home/ubuntu/go" >> /etc/profile.d/dataplay.sh
+	echo "PATH=\$PATH:\$GOROOT/bin" >> /etc/profile.d/dataplay.sh
 
-	echo "export GOPATH=/home/ubuntu/gocode" >> /etc/environment
-	echo "PATH=\$PATH:\$GOPATH/bin" >> /etc/environment
+	echo "export GOPATH=/home/ubuntu/gocode" >> /etc/profile.d/dataplay.sh
+	echo "PATH=\$PATH:\$GOPATH/bin" >> /etc/profile.d/dataplay.sh
 
-	. /etc/environment
+	. /etc/profile
 }
 
 export_variables () {
-	echo "export DP_LOADBALANCER=$LOADBALANCER" >> /etc/environment
-	echo "export DP_DATABASE_HOST=$DATABASE_HOST" >> /etc/environment
-	echo "export DP_DATABASE_PORT=$DATABASE_PORT" >> /etc/environment
-	echo "export DP_REDIS_HOST=$REDIS_HOST" >> /etc/environment
-	echo "export DP_REDIS_PORT=$REDIS_PORT" >> /etc/environment
-	echo "export DP_QUEUE_HOST=$QUEUE_HOST" >> /etc/environment
-	echo "export DP_QUEUE_PORT=$QUEUE_PORT" >> /etc/environment
-	echo "export DP_CASSANDRA_HOST=$CASSANDRA_HOST" >> /etc/environment
-	echo "export DP_CASSANDRA_PORT=$CASSANDRA_PORT" >> /etc/environment
+	echo "export DP_LOADBALANCER=$LOADBALANCER" >> /etc/profile.d/dataplay.sh
+	echo "export DP_DATABASE_HOST=$DATABASE_HOST" >> /etc/profile.d/dataplay.sh
+	echo "export DP_DATABASE_PORT=$DATABASE_PORT" >> /etc/profile.d/dataplay.sh
+	echo "export DP_REDIS_HOST=$REDIS_HOST" >> /etc/profile.d/dataplay.sh
+	echo "export DP_REDIS_PORT=$REDIS_PORT" >> /etc/profile.d/dataplay.sh
+	echo "export DP_QUEUE_HOST=$QUEUE_HOST" >> /etc/profile.d/dataplay.sh
+	echo "export DP_QUEUE_PORT=$QUEUE_PORT" >> /etc/profile.d/dataplay.sh
+	echo "export DP_CASSANDRA_HOST=$CASSANDRA_HOST" >> /etc/profile.d/dataplay.sh
+	echo "export DP_CASSANDRA_PORT=$CASSANDRA_PORT" >> /etc/profile.d/dataplay.sh
 
-	. /etc/environment
+	. /etc/profile
+
+	su - ubuntu -c ". /etc/profile"
 }
 
 run_node () {

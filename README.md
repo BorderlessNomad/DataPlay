@@ -30,22 +30,22 @@ DataPlay alpha contains a rudimentary selection of datasets drawn from [data.gov
 
 ## Installation
 
-1. Install Ubuntu & Node.js [Refer `tools/images/scripts/base.sh`]
+1. Install Ubuntu & Node.js [Refer `tools/deployment/base.sh`]
 2. Install all necessary dependencies `npm install`
 
 ### Production:
 
-1. HAProxy Load Balancer [`tools/images/scripts/app/loadbalancer.sh`]
-2. Gamification instances [`tools/images/scripts/app/master.sh`]
-3. Computation instances [`tools/images/scripts/app/node.sh`]
-4. PostgreSQL DB instance [`tools/images/scripts/db/postgresql.sh`]
-5. Cassandra DB instance [`tools/images/scripts/db/cassandra.sh`]
-6. Redis & RabbitMQ instance [`tools/images/scripts/queue/redis_rabbitmq.sh`]
+1. HAProxy Load Balancer [`tools/deployment/loadbalancer/haproxy.sh`]
+2. Gamification instances [`tools/deployment/app/master.sh`]
+3. Computation instances [`tools/deployment/app/node.sh`]
+4. PostgreSQL DB instance [`tools/deployment/db/postgresql.sh`]
+5. Cassandra DB instance [`tools/deployment/db/cassandra.sh`]
+6. Redis & RabbitMQ instance [`tools/deployment/queue/redis_rabbitmq.sh`]
 
 ### Monitoring:
 
-1. API response time monitoring [`tools/images/scripts/monitoring/api.sh`]
-2. HAProxy API for dynamic scaling [`tools/images/scripts/app/haproxy-api/`]
+1. API response time monitoring [`tools/deployment/monitoring/api.sh`]
+2. HAProxy API for dynamic scaling [`tools/deployment/loadbalancer/api/`]
 
 ## Usage
 

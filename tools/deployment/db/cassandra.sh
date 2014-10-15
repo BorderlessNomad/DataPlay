@@ -21,9 +21,9 @@ install_java () {
 	apt-get install -y oracle-java7-installer && \
 	apt-get autoclean
 
-	echo "export JAVA_HOME=/usr/lib/jvm/java-7-oracle" > /etc/environment
+	echo "export JAVA_HOME=/usr/lib/jvm/java-7-oracle" >> /etc/profile.d/dataplay.sh
 
-	. /etc/environment
+	. /etc/profile
 }
 
 install_cassandra () {
@@ -40,9 +40,9 @@ install_cassandra () {
 	done
 	echo "Cassandra is UP!"
 
-	echo "export CASSANDRA_CONFIG=/etc/cassandra" > /etc/environment
+	echo "export CASSANDRA_CONFIG=/etc/cassandra" >> /etc/profile.d/dataplay.sh
 
-	. /etc/environment
+	. /etc/profile
 
 	# nodetool status # Verify that DataStax Community is running
 }
@@ -117,6 +117,12 @@ backup_cassandra () {
 	#		rm -r 1412773254804
 }
 
+export_variables () {
+	. /etc/profile
+
+	su - ubuntu -c ". /etc/profile"
+}
+
 update_iptables () {
 	# iptables -A INPUT -p tcp --dport 7000 -j ACCEPT # Internode communication (not used if TLS enabled) Used internal by Cassandra
 	iptables -A INPUT -p tcp --dport 7199 -j ACCEPT # JMX
@@ -144,7 +150,10 @@ install_cassandra
 echo "[$(timestamp)] ---- 4. Configure Cassandra ----"
 configure_cassandra
 
-echo "[$(timestamp)] ---- 5. Update IPTables rules ----"
+echo "[$(timestamp)] ---- 5. Export Variables ----"
+export_variables
+
+echo "[$(timestamp)] ---- 6. Update IPTables rules ----"
 update_iptables
 
 echo "[$(timestamp)] ---- Completed ----"
