@@ -5,6 +5,7 @@
 			<th>#</th>
 			<th>Avatar</th>
 			<th>Username</th>
+			<th>Email Address</th>
 			<th>Reputation</th>
 			<th>Admin?</th>
 			<th></th>
@@ -16,6 +17,7 @@
 				<img class="avatar" ng-if="user.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{user.md5email}}?d=identicon" />
 			</td>
 			<td>{{user.username}}</td>
+			<td>{{user.email}}</td>
 			<td>
 				<div class="text-center gold bold">
 					<i class="glyphicon glyphicon-star"></i>
@@ -73,7 +75,12 @@
 							<tr>
 								<th>Username</th>
 								<td ng-if="modal.content.type == 'view'">{{modal.content.item.username}}</td>
-								<td ng-if="modal.content.type == 'edit'"><input type="text" class="form-control input-sm" ng-model="modal.content.item.username" ng-pattern="/^([A-Za-z0-9]{4,})$/" ng-required="true"></input></td>
+								<td ng-if="modal.content.type == 'edit'"><input type="text" class="form-control input-sm" ng-model="modal.content.item.username" ng-pattern="/^([A-Za-z0-9]{3,})$/" ng-required="true"></input></td>
+							</tr>
+							<tr>
+								<th>Email Address</th>
+								<td ng-if="modal.content.type == 'view'">{{modal.content.item.email}}</td>
+								<td ng-if="modal.content.type == 'edit'"><input type="text" class="form-control input-sm" ng-model="modal.content.item.email" ng-pattern="/^\S+@\S+\.\S+$/" ng-required="true"></input></td>
 							</tr>
 							<tr>
 								<th>Reputation</th>

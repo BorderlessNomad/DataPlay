@@ -17,14 +17,6 @@ angular.module('dataplayApp')
 				type: null
 				item: null
 
-		$scope.headers = [
-			{key: 'uid', display: '#'}
-			{key: 'avatar', display: 'Avatar'}
-			{key: 'username', display: 'Username'}
-			{key: 'reputation', display: 'Reputation'}
-			{key: 'isAdmin', display: 'Admin?'}
-		]
-
 		$scope.pagination =
 			perPage: 10
 			pageNumber: 1
@@ -92,7 +84,7 @@ angular.module('dataplayApp')
 							result[k] = after[k]
 				result
 
-			if Object.keys().length > 1
+			if Object.keys(diff).length > 1
 				# Make request
 				console.log diff
 
