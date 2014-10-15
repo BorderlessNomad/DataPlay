@@ -9,7 +9,7 @@ import (
 )
 
 type UserEdit struct {
-	Uid              int    `json:"Uid"`
+	Uid              int    `json:"uid"`
 	Avatar           string `json:"avatar"`
 	Email            string `json:"email"`
 	Username         string `json:"username"`
@@ -33,6 +33,18 @@ type UserReturn struct {
 type UserReturnAndCount struct {
 	Users []UserReturn `json:"users"`
 	Count int          `json:"count"`
+}
+
+type ObservationReturn struct {
+	Comment  string `json:"comment"`
+	Uid      int    `json:"uid"`
+	Username string `json:"username"`
+	Flagged  bool   `json:"flagged"`
+}
+
+type ObsReturnAndCount struct {
+	Observations []ObservationReturn `json:"comments"`
+	Count        int                 `json:"count"`
 }
 
 func GetUserTableHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
@@ -131,4 +143,55 @@ func EditUserHttp(res http.ResponseWriter, req *http.Request, userEdit UserEdit)
 	}
 
 	return "success"
+}
+
+func GetObservationsTableHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter", http.StatusBadRequest)
+		return ""
+	}
+
+	observationReturn := []ObservationReturn{}
+
+	ob := Observation{}
+	u := User{}
+	uCount := 0
+	joinStr := "JOIN " + u.TableName() + " ON " + u.TableName() + ".uid = " + ob.TableName() + ".uid"
+	selectStr := "comment, " + ob.TableName() + ".uid, username, flagged"
+	order := params["order"] + " asc"
+
+	if params["flagged"] == "true" {
+		e := DB.Model(ob).Select(selectStr).Joins(joinStr).Order(order).Where("flagged = ?", true).Scan(&observationReturn).Error
+		if e != nil {
+			http.Error(res, "Unable to get observations", http.StatusInternalServerError)
+			return ""
+		}
+		DB.Model(Observation{}).Where("flagged = ?", true).Count(&uCount)
+	} else {
+		e := DB.Model(ob).Select(selectStr).Joins(joinStr).Order(order).Scan(&observationReturn).Error
+		if e != nil {
+			http.Error(res, "Unable to get observations", http.StatusInternalServerError)
+			return ""
+		}
+		DB.Model(Observation{}).Count(&uCount)
+	}
+
+	offset, _ := strconv.Atoi(params["offset"])
+	count, _ := strconv.Atoi(params["count"])
+	if offset+count > len(observationReturn) || count == 0 {
+		observationReturn = observationReturn[offset:len(observationReturn)]
+	} else {
+		observationReturn = observationReturn[offset : offset+count]
+	}
+
+	obsReturnAndCount := ObsReturnAndCount{observationReturn, uCount}
+
+	r, err := json.Marshal(obsReturnAndCount)
+	if err != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return ""
+	}
+
+	return string(r)
 }

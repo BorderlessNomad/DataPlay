@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"net/http"
@@ -77,8 +76,6 @@ func AddObservation(did int, uid int, comment string, x string, y string) (strin
 	if err3 != nil {
 		return "Database query failed - add observation (find observation)", &appError{err3, "Database query failed - add observation (find observation)", http.StatusInternalServerError}
 	}
-
-	fmt.Println("MACARINA", observation)
 
 	return strconv.Itoa(observation.ObservationId), nil
 }
