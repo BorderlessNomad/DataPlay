@@ -18,6 +18,7 @@ angular.module('dataplayApp')
 				item: null
 
 		$scope.pagination =
+			orderby: 'uid'
 			perPage: 10
 			pageNumber: 1
 			total: 0
@@ -34,12 +35,13 @@ angular.module('dataplayApp')
 
 
 		$scope.updateUsers = () ->
-			$scope.users.splice 0
 			offset = ($scope.pagination.pageNumber - 1) * $scope.pagination.perPage
-			Admin.getUsers 'uid', offset, $scope.pagination.perPage
+			Admin.getUsers $scope.pagination.orderby, offset, $scope.pagination.perPage
 				.success (data) ->
 					if data.count and data.users?
+						$scope.users.splice 0
 						data.users.forEach (u) ->
+							console.log u.username, u.enabled
 							$scope.users.push
 								uid: u.uid || 0
 								avatar: u.avatar || ''
@@ -48,10 +50,8 @@ angular.module('dataplayApp')
 								md5email: u.md5email || ''
 								reputation: u.reputation || 0
 								usertype: u.usertype || 0
-								enabled: u.enabled || true
+								enabled: if not u.enabled? then true else u.enabled
 								password: ''
-								randomPassword: false
-						console.log $scope.users
 						$scope.pagination.total = data.count
 
 		$scope.isAdmin = () ->
@@ -93,12 +93,11 @@ angular.module('dataplayApp')
 			after = _.cloneDeep $scope.modal.content.item
 
 			after.usertype = parseInt after.usertype * 1
-			if after.randomPassword then after.password = "!"
 
 			diff = do ->
 				result = {}
 				Object.keys(before).forEach (k) ->
-					if k isnt 'randomPassword' and (k is 'uid' or before[k] isnt after[k])
+					if k is 'uid' or before[k] isnt after[k]
 						if k is 'reputation'
 							result[k] = after[k] - before[k]
 						else
@@ -118,6 +117,12 @@ angular.module('dataplayApp')
 
 
 		# Pagination
+		$scope.orderby = (col) ->
+			if $scope.pagination.orderby isnt col
+				$scope.pagination.orderby = col
+				$scope.pagination.pageNumber = 1
+				$scope.updateUsers()
+
 		$scope.totalPages = (total) ->
 			Math.ceil total / $scope.pagination.perPage
 

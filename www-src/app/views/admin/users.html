@@ -2,12 +2,36 @@
 	<h2>Administrate Users</h2>
 	<table class="table table-bordered table-hover table-striped">
 		<tr>
-			<th>#</th>
-			<th>Avatar</th>
-			<th>Username</th>
-			<th>Email Address</th>
-			<th>Reputation</th>
-			<th>Admin?</th>
+			<th>
+				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'uid'" ng-click="orderby('uid')"></i>
+				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'uid'"></i>
+				<span>#</span>
+			</th>
+			<th>
+				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'avatar'" ng-click="orderby('avatar')"></i>
+				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'avatar'"></i>
+				<span>Avatar</span>
+			</th>
+			<th>
+				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'username'" ng-click="orderby('username')"></i>
+				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'username'"></i>
+				<span>Username</span>
+			</th>
+			<th>
+				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'email'" ng-click="orderby('email')"></i>
+				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'email'"></i>
+				<span>Email Address</span>
+			</th>
+			<th>
+				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'reputation'" ng-click="orderby('reputation')"></i>
+				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'reputation'"></i>
+				<span>Reputation</span>
+			</th>
+			<th>
+				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'usertype'" ng-click="orderby('usertype')"></i>
+				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'usertype'"></i>
+				<span>Admin?</span>
+			</th>
 			<th></th>
 		</tr>
 		<tr ng-if="users.length === 0"><td colspan="7" ng-include="'../views/loader.html'"></td></tr>
@@ -15,7 +39,7 @@
 			<td>{{user.uid}}</td>
 			<td class="text-center">
 				<img class="avatar" ng-if="user.avatar !== ''" ng-src="{{user.avatar}}"/>
-				<img class="avatar" ng-if="user.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{user.md5email}}?d=identicon" />
+				<img class="avatar" ng-if="user.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{user.md5email}}?d=identicon&s=50" />
 			</td>
 			<td>{{user.username}}</td>
 			<td>{{user.email}}</td>
@@ -63,7 +87,7 @@
 					<form name="editForm" role="form" ng-submit="submitForm()">
 						<div class="text-center">
 							<img class="avatar-150 inline" ng-if="modal.content.item.avatar !== ''" ng-src="{{modal.content.item.avatar}}"/>
-							<img class="avatar-150 inline" ng-if="modal.content.item.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{modal.content.item.md5email}}?d=identicon" src="http://www.gravatar.com/avatar/{{modal.content.item.md5email}}?d=identicon" />
+							<img class="avatar-150 inline" ng-if="modal.content.item.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{modal.content.item.md5email}}?d=identicon&s=200" />
 							<div class="inline" ng-if="modal.content.type == 'edit' && false">
 								<button class="btn btn-danger btn-xs">Remove</button>
 							</div>
