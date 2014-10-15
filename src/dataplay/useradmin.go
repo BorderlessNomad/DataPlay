@@ -16,7 +16,7 @@ type UserEdit struct {
 	Username         string `json:"username"`
 	ReputationPoints int    `json:"reputationpoints"`
 	Admin            int    `json:"admin"`
-	Enabled          bool   `json:"enable"`
+	Enabled          bool   `json:"enabled"`
 	Password         string `json:"password"`
 }
 
