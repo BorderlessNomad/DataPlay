@@ -103,9 +103,8 @@ func EditUserHttp(res http.ResponseWriter, req *http.Request, userEdit UserEdit)
 	}
 
 	user := User{}
-	var rep []int
 
-	err := DB.Model(User{}).Where("uid = ?", userEdit.Uid).Pluck("reputation", &rep).Error
+	err := DB.Model(User{}).Where("uid = ?", userEdit.Uid).Find(&user).Error
 
 	if err != nil {
 		http.Error(res, "failed to get user's reputation", http.StatusBadRequest)
@@ -113,12 +112,24 @@ func EditUserHttp(res http.ResponseWriter, req *http.Request, userEdit UserEdit)
 	}
 
 	// fields to update
-	user.Uid = userEdit.Uid
-	user.Avatar = userEdit.Avatar
-	user.Username = userEdit.Username
-	user.Reputation = rep[0] + userEdit.ReputationPoints
-	user.Usertype = userEdit.Admin
-	user.Enabled = userEdit.Enabled
+	if userEdit.Email != "" {
+		user.Email = userEdit.Email
+	}
+	if userEdit.Avatar != "" {
+		user.Avatar = userEdit.Avatar
+	}
+	if userEdit.Username != "" {
+		user.Username = userEdit.Username
+	}
+	if userEdit.ReputationPoints != 0 {
+		user.Reputation = user.Reputation + userEdit.ReputationPoints
+	}
+	if userEdit.Admin != user.Usertype {
+		user.Usertype = userEdit.Admin
+	}
+	if userEdit.Enabled != user.Enabled {
+		user.Enabled = userEdit.Enabled
+	}
 
 	if userEdit.Password != "" { // generate whatever password has been passed
 
