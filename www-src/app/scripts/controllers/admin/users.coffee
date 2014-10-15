@@ -18,7 +18,7 @@ angular.module('dataplayApp')
 				item: null
 
 		$scope.headers = [
-			{key: 'id', display: '#'}
+			{key: 'uid', display: '#'}
 			{key: 'avatar', display: 'Avatar'}
 			{key: 'username', display: 'Username'}
 			{key: 'reputation', display: 'Reputation'}
@@ -48,8 +48,7 @@ angular.module('dataplayApp')
 					if data.count and data.users?
 						$scope.users.splice 0
 						data.users.forEach (u) -> $scope.users.push u
-						# $scope.pagination.total = data.count
-						$scope.pagination.total = 11
+						$scope.pagination.total = data.count
 
 		$scope.isAdmin = () ->
 			true # TODO: actually check whether current user is an admin
@@ -86,7 +85,7 @@ angular.module('dataplayApp')
 			diff = do ->
 				result = {}
 				Object.keys(before).forEach (k) ->
-					if k is 'id' or before[k] isnt after[k]
+					if k is 'uid' or before[k] isnt after[k]
 						if k is 'reputation'
 							result[k] = after[k] - before[k]
 						else
