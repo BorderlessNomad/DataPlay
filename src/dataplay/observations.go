@@ -54,6 +54,7 @@ func AddObservation(did int, uid int, comment string, x string, y string) (strin
 	observation.X = x
 	observation.Y = y
 	observation.Created = time.Now()
+	observation.Flagged = false
 
 	discovered := Discovered{}
 	err := DB.Where("discovered_id = ?", did).First(&discovered).Error
