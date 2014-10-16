@@ -43,4 +43,8 @@ angular.module('dataplayApp')
 
 		creditObservation: (id, valFlag) ->
 			$http.put config.api.base_url + "/observations/#{id}/#{valFlag}"
+
+		flagObservation: (id) ->
+			$http.post config.api.base_url + "/observations/flag/#{id}"
+
 	]
