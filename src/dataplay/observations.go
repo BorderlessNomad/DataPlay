@@ -273,3 +273,26 @@ func GetRecentObservationsHttp(res http.ResponseWriter, req *http.Request) strin
 		return string(r)
 	}
 }
+
+func FlagObservationHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+		return ""
+	}
+
+	if params["id"] == "" {
+		http.Error(res, "Missing id parameter.", http.StatusBadRequest)
+		return ""
+	}
+
+	id, _ := strconv.Atoi(params["id"])
+
+	err := DB.Model(Observation{}).Where("observation_id= ?", id).Update("flagged", true).Error
+	if err != nil {
+		http.Error(res, "Missing session parameter.", http.StatusInternalServerError)
+		return ""
+	}
+
+	return "success"
+}

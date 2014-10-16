@@ -337,6 +337,7 @@ func initAPI() *martini.ClassicMartini { // initialise martini and add in common
 	m.Post("/api/login/social", binding.Bind(UserSocialForm{}), func(res http.ResponseWriter, req *http.Request, login UserSocialForm) string {
 		return HandleSocialLogin(res, req, login)
 	})
+	m.Post("/api/observations/flag/:id", FlagObservationHttp)
 	m.Post("/api/user/check", binding.Bind(UserNameForm{}), func(res http.ResponseWriter, req *http.Request, username UserNameForm) string {
 		return HandleCheckUsername(res, req, username)
 	})
