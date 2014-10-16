@@ -19,7 +19,7 @@ angular.module('dataplayApp')
 			$http.put config.api.base_url + "/admin/user/edit", data
 
 		getObservations: (orderby = 'observation_id', offset = 0, count = 15, flagged = false) ->
-			orderbys = ['comment', 'flagged', 'observation_id', 'uid', 'username']
+			orderbys = ['comment', 'discovered_id', 'uid', 'rating', 'credited', 'discredited', 'observation_id', 'created', 'x', 'y', 'flagged']
 			if orderbys.indexOf(orderby) is -1 then orderby = 'observation_id'
 			$http.get config.api.base_url + "/admin/observations/get/#{orderby}/#{offset}/#{count}/#{flagged}"
 

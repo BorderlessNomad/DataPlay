@@ -18,7 +18,7 @@ angular.module('dataplayApp')
 				item: null
 
 		$scope.pagination =
-			flaggedonly: true
+			flaggedonly: false
 			orderby: 'observation_id'
 			perPage: 10
 			pageNumber: 1
@@ -38,19 +38,30 @@ angular.module('dataplayApp')
 
 		$scope.updateObservations = (cb = (() ->)) ->
 			offset = ($scope.pagination.pageNumber - 1) * $scope.pagination.perPage
-			Admin.getObservations $scope.pagination.orderby, offset, $scope.pagination.perPage
+			Admin.getObservations $scope.pagination.orderby, offset, $scope.pagination.perPage, $scope.pagination.flaggedonly
 				.success (data) ->
 					if data.count and data.comments?
 						$scope.observations.splice 0
 						data.comments.forEach (u) ->
 							$scope.observations.push
-								comment: u.comment || 0
-								flagged: if not u.flagged? then false else u.flagged
 								observationid: u.observationid || 0
+								created: $scope.humanDate u.created
+								comment: u.comment || 0
 								uid: u.uid || 0
 								username: u.username || ''
+								rating: (u.credited || 0) - (u.discredited)
+								flagged: if not u.flagged? then false else u.flagged
 						$scope.pagination.total = data.count
 					cb()
+
+		$scope.humanDate = (str) ->
+			monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+			dat = new Date str
+			if dat.toString() is 'Invalid Date'
+				dat = new Date 0
+			console.log str, dat.getFullYear()
+			"#{dat.getDate()} #{monthNames[dat.getMonth()]}, #{dat.getFullYear()}"
+
 
 		$scope.showModal = (type, item) ->
 			if item?
@@ -138,6 +149,10 @@ angular.module('dataplayApp')
 			if newVal > 0 and newVal <= $scope.totalPages $scope.pagination.total
 				$scope.pagination.pageNumber = newVal
 				$scope.updateObservations()
+
+		$scope.setFilter = (flaggedonly) ->
+			$scope.pagination.flaggedonly = flaggedonly
+			$scope.updateObservations()
 
 		return
 	]

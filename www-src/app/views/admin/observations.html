@@ -2,8 +2,8 @@
 	<h2>Administrate Observations</h2>
 	<div class="text-center">
 		<ul class="pagination pagination-sm pagination-plain">
-			<li ng-class="{active: !modal.pagination.flaggedonly}"><a href="#" ng-click="modal.pagination.flaggedonly = false"><i class="fa fa-circle-o"></i> All</a></li>
-			<li ng-class="{active: modal.pagination.flaggedonly}"><a href="#" ng-click="modal.pagination.flaggedonly = true"><i class="fa fa-flag"></i> Flagged</a></li>
+			<li ng-class="{active: !pagination.flaggedonly}"><a href="#" ng-click="setFilter(false)"><i class="fa fa-circle-o"></i> All</a></li>
+			<li ng-class="{active: pagination.flaggedonly}"><a href="#" ng-click="setFilter(true)"><i class="fa fa-flag"></i> Flagged</a></li>
 		</ul>
 	</div>
 	<table class="table table-bordered table-hover table-striped">
@@ -14,14 +14,22 @@
 				<span>#</span>
 			</th>
 			<th>
+				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'created'" ng-click="orderby('created')"></i>
+				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'created'"></i>
+				<span>Created</span>
+			</th>
+			<th>
 				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'comment'" ng-click="orderby('comment')"></i>
 				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'comment'"></i>
 				<span>Comment</span>
 			</th>
 			<th>
-				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'username'" ng-click="orderby('username')"></i>
-				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'username'"></i>
 				<span>Username</span>
+			</th>
+			<th>
+				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'rating'" ng-click="orderby('rating')"></i>
+				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'rating'"></i>
+				<span>Rating</span>
 			</th>
 			<th>
 				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'flagged'" ng-click="orderby('flagged')"></i>
@@ -33,8 +41,10 @@
 		<tr ng-if="observations.length === 0"><td colspan="5" ng-include="'../views/loader.html'"></td></tr>
 		<tr ng-repeat="observation in observations | limitTo: pagination.perPage">
 			<td>{{observation.observationid}}</td>
+			<td>{{observation.created}}</td>
 			<td>{{observation.comment}}</td>
 			<td>{{observation.username}}</td>
+			<td>{{observation.rating}}</td>
 			<td class="text-center">
 				<i class="fa fa-2x fa-check check" title="This observation has been flagged" ng-if="observation.flagged"></i>
 				<i class="fa fa-2x fa-times times" title="This observation has not been flagged" ng-if="!observation.flagged"></i>
@@ -57,5 +67,69 @@
 		</ul>
 	</div>
 
-	<!-- Modal here -->
+	<div id="admin-modal" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="text-center">
+					<ul class="pagination pagination-sm pagination-plain">
+						<li ng-class="{active: modal.content.type == 'view'}"><a href="#" ng-click="modal.content.type = 'view'"><i class="fa fa-search"></i> View</a></li>
+						<li ng-class="{active: modal.content.type == 'edit'}"><a href="#" ng-click="modal.content.type = 'edit'"><i class="fa fa-pencil"></i> Edit</a></li>
+						<li ng-class="{active: modal.content.type == 'delete'}"><a href="#" ng-click="modal.content.type = 'delete'"><i class="fa fa-trash"></i> Delete</a></li>
+					</ul>
+				</div>
+				<div ng-if="modal.content.type == 'view' || modal.content.type == 'edit'">
+					<form name="editForm" role="form" ng-submit="submitForm()">
+						<table class="table table-bordered table-hover table-striped">
+							<tr>
+								<th class="col-xs-4">#</th>
+								<td class="col-xs-8">{{modal.content.item.observationid}}</td>
+							</tr>
+							<tr>
+								<th>Created</th>
+								<td>{{modal.content.item.created}}</td>
+							</tr>
+							<tr>
+								<th>Comment</th>
+								<td ng-if="modal.content.type == 'view'">{{modal.content.item.comment}}</td>
+								<td ng-if="modal.content.type == 'edit'"><textarea class="form-control input-sm" ng-model="modal.content.item.comment" ng-required="true"></textarea></td>
+							</tr>
+							<tr>
+								<th>Username</th>
+								<td>{{modal.content.item.username}}</td>
+							</tr>
+							<tr>
+								<th>Rating</th>
+								<td ng-if="modal.content.type == 'view'">{{modal.content.item.rating}}</td>
+								<td ng-if="modal.content.type == 'edit'">
+									<input type="number" class="form-control input-sm" ng-model="modal.content.item.rating" ng-required="true"></input>
+								</td>
+							</tr>
+							<tr>
+								<th>Flagged?</th>
+								<td ng-if="modal.content.type == 'view'">
+									<i class="fa fa-lg fa-check check" title="This observation has been flagged" ng-if="modal.content.item.flagged"></i>
+									<i class="fa fa-lg fa-times times" title="This observation has not been flagged" ng-if="!modal.content.item.flagged"></i>
+								</td>
+								<td ng-if="modal.content.type == 'edit'">
+									<input type="checkbox" ng-model="modal.content.item.flagged">
+								</td>
+							</tr>
+
+						</table>
+						<div class="text-center">
+							<button type="button" class="btn btn-primary text-center" ng-click="edit()" ng-if="modal.content.type == 'edit'" ng-disabled="!editForm.$valid"><i class="fa fa-save"></i> Save</button>
+							<button type="button" class="btn btn-default text-center" ng-click="closeModal()">Close</button>
+						</div>
+					</form>
+				</div>
+				<div ng-if="modal.content.type == 'delete'">
+					<p>Are you sure you want to delete this user?</p>
+					<div class="text-center">
+						<button type="button" class="btn btn-danger text-center" ng-click="delete()"><i class="fa fa-trash"></i> Delete</button>
+						<button type="button" class="btn btn-default text-center" ng-click="closeModal()">Cancel</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
