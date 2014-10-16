@@ -52,11 +52,13 @@ import_data () {
 	BACKUP_HOST="108.61.197.87"
 	BACKUP_PORT="8080"
 	BACKUP_DIR="postgresql/$LASTDATE-daily"
+	BACKUP_USER="playgen"
+	BACKUP_PASS="D@taP1aY"
 	BACKUP_FILE="dataplay.sql.gz"
 
 	echo "localhost:5432:dataplay:playgen:aDam3ntiUm" > .pgpass && chmod 0600 .pgpass
 
-	until axel -a "http://$BACKUP_HOST:$BACKUP_PORT/$BACKUP_DIR/$BACKUP_FILE"; do
+	until axel -a "http://$BACKUP_USER:$BACKUP_PASS@$BACKUP_HOST:$BACKUP_PORT/$BACKUP_DIR/$BACKUP_FILE"; do
 		LASTDATE=$(date +%Y-%m-%d --date="$LASTDATE -1 days") # Decrement by 1 Day
 		BACKUP_DIR="postgresql/$LASTDATE-daily"
 		echo "Latest backup not available, try fetching $LASTDATE"

@@ -109,6 +109,15 @@ backup_cassandra () {
 	# tar -zcf response.tar.gz 1412773254804/
 	# scp response.tar.gz ubuntu@109.231.121.88:/home/ubuntu/cassandra-backup
 	#
+	# On Source:
+	#	1. run $ nodetool snapshot dp (using CRON)
+	#		output is,
+	#			Requested creating snapshot(s) for [dp] with snapshot name [1413378613098]
+	#			Snapshot directory: 1413378613098
+	#	2. extract timestamp info from output of 1. e.g. Snapshot directory: 1413378613098
+	#	3. for each dir in /var/lib/cassandra/data/dp copy content of snapshots/<timestamp>
+	#		e.g. /var/lib/cassandra/data/dp/response-3b35cc404d6311e497ddbd0e0515b177/snapshots/1413378613098
+	#	4. compress the dir and place it in response-3b35cc404d6311e497ddbd0e0515b177
 	#
 	# On Destination:
 	#	1. Make sure that schema defination exists
@@ -116,10 +125,11 @@ backup_cassandra () {
 	#	3. sevice cassandra stop
 	#	4. clean commitlog, cd /var/lib/cassandra/data/commitlog/ && rm -r *.log
 	#	5. extract files to individual column dir
-	# 		e.g. /var/lib/cassandra/data/dp/keyword-<UUID>
+	# 		e.g.
+	#		/var/lib/cassandra/data/dp/response-3b35cc404d6311e497ddbd0e0515b177
 	# 		tar -zxf /home/ubuntu/cassandra-backup/keyword.tar.gz -C .
-	#		mv 1412773254804/* .
-	#		rm -r 1412773254804
+	#		mv 1413378613098/* .
+	#		rm -r 1413378613098
 }
 
 export_variables () {
