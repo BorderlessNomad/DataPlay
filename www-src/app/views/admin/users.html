@@ -76,7 +76,7 @@
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="text-center">
-					<ul class="pagination pagination-xs pagination-plain">
+					<ul class="pagination pagination-sm pagination-plain">
 						<li ng-class="{active: modal.content.type == 'view'}"><a href="#" ng-click="modal.content.type = 'view'"><i class="fa fa-search"></i> View</a></li>
 						<li ng-class="{active: modal.content.type == 'edit'}"><a href="#" ng-click="modal.content.type = 'edit'"><i class="fa fa-pencil"></i> Edit</a></li>
 						<li ng-class="{active: modal.content.type == 'disable'}" ng-if="modal.content.item.enabled"><a href="#" ng-click="modal.content.type = 'disable'"><i class="fa fa-times"></i> Disable</a></li>
@@ -136,7 +136,7 @@
 								<th>Reset Password</th>
 								<td>
 									<input type="text" id="password-field" class="form-control input-sm" ng-model="modal.content.item.password" ng-required="false"></input>
-									<button type="button" id="password-random" class="btn btn-default btn-sm" ng-click="generateRandom()" ><i class="fa fa-reorder"></i> Random</button>
+									<button type="button" id="password-random" class="btn btn-default btn-sm" ng-click="generateRandom()" ><i class="fa fa-reorder"></i> Generate</button>
 								</td>
 							</tr>
 
@@ -151,8 +151,8 @@
 					<p ng-if="modal.content.item.enabled">Are you sure you want to disable this user?</p>
 					<p ng-if="!modal.content.item.enabled">Are you sure you want to enable this user?</p>
 					<div class="text-center">
-						<button type="button" class="btn btn-danger text-center" ng-if="modal.content.item.enabled" ng-click="disable(false)"><i class="fa fa-times"></i> Disable</button>
-						<button type="button" class="btn btn-success text-center" ng-if="!modal.content.item.enabled" ng-click="disable(true)"><i class="fa fa-check"></i> Enable</button>
+						<button type="button" class="btn btn-danger text-center" ng-if="modal.content.item.enabled" ng-click="disable()"><i class="fa fa-times"></i> Disable</button>
+						<button type="button" class="btn btn-success text-center" ng-if="!modal.content.item.enabled" ng-click="disable()"><i class="fa fa-check"></i> Enable</button>
 						<button type="button" class="btn btn-default text-center" ng-click="closeModal()">Cancel</button>
 					</div>
 				</div>

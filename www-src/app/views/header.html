@@ -16,6 +16,7 @@
 			<li ng-class="{active: isActive('/overview')}"><a href="overview">Overview</a></li>
 		</ul>
 		<ul class="nav navbar-nav navbar-right">
+			<li ng-class="{active: isActive('/admin')}" ng-if="Auth.isAdmin()"><a href="admin">Admin</a></li>
 			<li ng-class="{active: isActive('/user')}"><a href="user/profile">My Profile</a></li>
 			<li><a href="user/logout" ng-controller="UserCtrl" ng-click="logout()">Logout</a></li>
 		</ul>

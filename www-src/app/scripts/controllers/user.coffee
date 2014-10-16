@@ -20,12 +20,19 @@ angular.module('dataplayApp')
 	.controller 'UserCtrl', ['$scope', '$location', '$routeParams', 'User', 'Auth', 'config', ($scope, $location, $routeParams, User, Auth, config) ->
 		$scope.params = $routeParams
 		$scope.user =
-			token: $scope.params.token
-			username: null
-			password: null
-			password_confirm: null
-			message: null
 			type: null
+			login:
+				token: $scope.params.token
+				username: null
+				password: null
+				message: null
+			register:
+				token: $scope.params.token
+				username: null
+				email: null
+				password: null
+				password_confirm: null
+				message: null
 
 		$scope.forgotPassword =
 			valid: false
@@ -45,7 +52,7 @@ angular.module('dataplayApp')
 					return
 				).error (status, data) ->
 					$scope.user.type = 'login'
-					$scope.user.message = status
+					$scope.user.login.message = status
 					console.log "User::Login::Error:", status
 					return
 
@@ -82,7 +89,7 @@ angular.module('dataplayApp')
 									$scope.processLogin res
 								.error (msg) ->
 									$scope.user.type = 'socialLogin'
-									$scope.user.message = msg
+									$scope.user.login.message = msg
 									console.log "User::SocialLogin::Error:", msg
 									return
 
@@ -102,7 +109,7 @@ angular.module('dataplayApp')
 					return
 				).error (status, data) ->
 					$scope.user.type = 'logout'
-					$scope.user.message = status
+					$scope.user.login.message = status
 					console.log "User::Logout::Error:", status
 					return
 
@@ -111,14 +118,14 @@ angular.module('dataplayApp')
 			return
 
 		$scope.register = (user) ->
-			if user.username? and user.password?
-				User.register(user.username, user.password).success((data) ->
+			if user.username? and user.email? and user.password?
+				User.register(user.username, user.email, user.password).success((data) ->
 					$scope.processLogin data
 
 					return
 				).error (status, data) ->
 					$scope.user.type = 'register'
-					$scope.user.message = status
+					$scope.user.register.message = status
 					console.log "User::Register::Error:", status
 					return
 
@@ -133,17 +140,18 @@ angular.module('dataplayApp')
 
 					User.forgotPassword(user.username).success((data) ->
 						$scope.forgotPassword.sent = true
-						$scope.user.token = data.token
+						$scope.user.login.token = data.token
+						$scope.user.register.token = data.token
 						return
 					).error (status, data) ->
 						$scope.forgotPassword.valid = false
 						$scope.user.type = 'forgotPassword'
-						$scope.user.message = status
+						$scope.user.login.message = status
 						console.log "User::ForgotPassword::token::Error:", status, data
 						return
 				).error (status, data) ->
 					$scope.user.type = 'forgotPassword'
-					$scope.user.message = status
+					$scope.user.login.message = status
 					console.log "User::ForgotPassword::check::Error:", status, data
 					return
 
@@ -159,7 +167,7 @@ angular.module('dataplayApp')
 					return
 				).error (status, data) ->
 					$scope.user.type = 'resetPasswordCheck'
-					$scope.user.message = status
+					$scope.user.login.message = status
 					console.log "User::ResetPassword::check::Error:", status, data
 					return
 
@@ -173,16 +181,17 @@ angular.module('dataplayApp')
 					return
 				).error (status, data) ->
 					$scope.user.type = 'resetPassword'
-					$scope.user.message = status
+					$scope.user.login.message = status
 					console.log "User::ResetPassword::save::Error:", status, data
 					return
 
 		$scope.hasError = (type) ->
-			$scope.user.message?.length && $scope.user.type is type
+			$scope.user[type]?.message?.length && $scope.user.type is type
 
 		$scope.closeAlert = () ->
 			$scope.user.type = null
-			$scope.user.message = null
+			$scope.user.login.message = null
+			$scope.user.register.message = null
 
 		$scope.changeTab = (tab) ->
 			$scope.currentTab = tab

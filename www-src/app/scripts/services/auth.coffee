@@ -24,5 +24,8 @@ angular.module('dataplayApp')
 		isAuthenticated: () ->
 			token = ipCookie config.sessionName
 			if token? and token.length then true else false
+
+		isAdmin: () ->
+			true
 	]
 
