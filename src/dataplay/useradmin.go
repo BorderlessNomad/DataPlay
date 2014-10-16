@@ -36,10 +36,11 @@ type UserReturnAndCount struct {
 }
 
 type ObservationReturn struct {
-	Comment  string `json:"comment"`
-	Uid      int    `json:"uid"`
-	Username string `json:"username"`
-	Flagged  bool   `json:"flagged"`
+	Comment       string `json:"comment"`
+	Uid           int    `json:"uid"`
+	Username      string `json:"username"`
+	Flagged       bool   `json:"flagged"`
+	ObservationId bool   `json:"observationid"`
 }
 
 type ObsReturnAndCount struct {
@@ -169,7 +170,7 @@ func GetObservationsTableHttp(res http.ResponseWriter, req *http.Request, params
 	u := User{}
 	uCount := 0
 	joinStr := "JOIN " + u.TableName() + " ON " + u.TableName() + ".uid = " + ob.TableName() + ".uid"
-	selectStr := "comment, " + ob.TableName() + ".uid, username, flagged"
+	selectStr := "comment, " + ob.TableName() + ".uid, username, flagged, observation_id"
 	order := params["order"] + " asc"
 
 	if params["flagged"] == "true" {
@@ -205,4 +206,38 @@ func GetObservationsTableHttp(res http.ResponseWriter, req *http.Request, params
 	}
 
 	return string(r)
+}
+
+func DeleteObservationHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter", http.StatusBadRequest)
+		return ""
+	}
+
+	if params["id"] == "" {
+		http.Error(res, "Missing observation id", http.StatusBadRequest)
+		return ""
+	}
+
+	oid, _ := strconv.Atoi(params["id"])
+	observation := Observation{}
+
+	e := DB.Where("observation_id = ?", oid).Find(&observation).Error
+
+	if e != nil {
+		http.Error(res, "Unable to find observation", http.StatusInternalServerError)
+		return ""
+	}
+
+	uid := observation.Uid
+
+	e = DB.Where("observation_id = ?", oid).Delete(&observation).Error
+	if e != nil {
+		http.Error(res, "Unable to delete observation", http.StatusInternalServerError)
+	}
+
+	Reputation(uid, obsSpam) // knock off some points
+
+	return "success"
 }

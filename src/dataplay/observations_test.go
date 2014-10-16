@@ -53,3 +53,16 @@ func TestGetRecentObservationsHttp(t *testing.T) {
 		So(result, ShouldNotBeNil)
 	})
 }
+
+func TestFlagObservationHttp(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+	res := httptest.NewRecorder()
+	params := map[string]string{}
+	params["id"] = "755"
+
+	Convey("Should get observations", t, func() {
+		result := FlagObservationHttp(res, req, params)
+		So(result, ShouldNotBeNil)
+	})
+}
