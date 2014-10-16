@@ -17,9 +17,10 @@ angular.module('dataplayApp')
 		logOut: (token) ->
 			$http.delete config.api.base_url + "/logout"
 
-		register: (username, password) ->
+		register: (username, email, password) ->
 			$http.post config.api.base_url + "/register",
 				username: username
+				email: email
 				password: password
 
 		socialLogin: (data) ->
