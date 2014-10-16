@@ -18,6 +18,7 @@ type Observations struct {
 	Created       time.Time `json:"created, omitempty"`
 	Credited      int       `json:"credits, omitempty"`
 	Discredited   int       `json:"discredits, omitempty"`
+	Flagged       bool      `json:"flagged, omitempty"`
 }
 
 type UserData struct {
@@ -53,6 +54,7 @@ func AddObservation(did int, uid int, comment string, x string, y string) (strin
 	observation.X = x
 	observation.Y = y
 	observation.Created = time.Now()
+	observation.Flagged = false
 
 	discovered := Discovered{}
 	err := DB.Where("discovered_id = ?", did).First(&discovered).Error
@@ -110,6 +112,7 @@ func GetObservations(did int) ([]Observations, *appError) {
 		tmpOD.Discredited = o.Discredited
 		tmpOD.Created = o.Created
 		tmpOD.ObservationId = o.ObservationId
+		tmpOD.Flagged = o.Flagged
 
 		user := make([]User, 0)
 		err2 := DB.Where("uid= ?", o.Uid).Find(&user).Error
