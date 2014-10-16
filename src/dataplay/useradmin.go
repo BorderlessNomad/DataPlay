@@ -6,6 +6,7 @@ import (
 	"github.com/codegangsta/martini"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type UserEdit struct {
@@ -36,11 +37,14 @@ type UserReturnAndCount struct {
 }
 
 type ObservationReturn struct {
-	Comment       string `json:"comment"`
-	Uid           int    `json:"uid"`
-	Username      string `json:"username"`
-	Flagged       bool   `json:"flagged"`
-	ObservationId int    `json:"observationid"`
+	Comment       string    `json:"comment"`
+	Uid           int       `json:"uid"`
+	Username      string    `json:"username"`
+	Flagged       bool      `json:"flagged"`
+	ObservationId int       `json:"observationid"`
+	Credited      int       `json:"credited"`
+	Discredited   int       `json:"discredited"`
+	Created       time.Time `json:"created"`
 }
 
 type ObsReturnAndCount struct {
@@ -170,7 +174,7 @@ func GetObservationsTableHttp(res http.ResponseWriter, req *http.Request, params
 	u := User{}
 	uCount := 0
 	joinStr := "JOIN " + u.TableName() + " ON " + u.TableName() + ".uid = " + ob.TableName() + ".uid"
-	selectStr := "comment, " + ob.TableName() + ".uid, username, flagged, observation_id"
+	selectStr := "comment, " + ob.TableName() + ".uid, username, flagged, observation_id, credited, discredited, created"
 	order := params["order"] + " asc"
 
 	if params["flagged"] == "true" {
