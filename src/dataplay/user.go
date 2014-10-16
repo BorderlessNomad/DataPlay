@@ -22,7 +22,7 @@ const topRank int = 100      // reach top 10 Experts rank
 const discHot int = 50       // discovery is hot
 const obsDiscredit int = -1  // observation is voted down
 const discDiscredit int = -2 // discovery is voted down
-const obsSpam int = -100     // observation receives spam/flagged
+const obsSpam int = -100     // observation deleted after being flagged
 
 /// USER TYPES
 const UserTypeNormal int = 0
@@ -68,20 +68,32 @@ func CheckAuthRedirect(res http.ResponseWriter, req *http.Request) {
 }
 
 func HandleLogin(res http.ResponseWriter, req *http.Request, login UserForm) string {
-	if login.Username == "" || login.Password == "" {
+	if login.Username == "" && login.Email == "" || login.Password == "" {
 		http.Error(res, "Username/Password missing.", http.StatusBadRequest)
 		return ""
 	}
 
 	user := User{}
 	var err error
-	err = DB.Where("username = ?", login.Username).Find(&user).Error
-	if err == gorm.RecordNotFound {
-		http.Error(res, "No such user found!", http.StatusNotFound)
-		return ""
-	} else if err != nil {
-		http.Error(res, "No such user found!", http.StatusInternalServerError)
-		return ""
+
+	if login.Username != "" {
+		err = DB.Where("username = ?", login.Username).Find(&user).Error
+		if err == gorm.RecordNotFound {
+			http.Error(res, "No such user found!", http.StatusNotFound)
+			return ""
+		} else if err != nil {
+			http.Error(res, "No such user found!", http.StatusInternalServerError)
+			return ""
+		}
+	} else {
+		err = DB.Where("email = ?", login.Email).Find(&user).Error
+		if err == gorm.RecordNotFound {
+			http.Error(res, "No such user found!", http.StatusNotFound)
+			return ""
+		} else if err != nil {
+			http.Error(res, "No such user found!", http.StatusInternalServerError)
+			return ""
+		}
 	}
 
 	// Check the password with bcrypt
@@ -125,8 +137,9 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, login UserForm) str
 	}
 
 	u := map[string]interface{}{
-		"user":    user.Username,
-		"session": session.Value,
+		"user":     user.Username,
+		"session":  session.Value,
+		"usertype": user.Usertype,
 	}
 	usr, _ := json.Marshal(u)
 
@@ -200,8 +213,9 @@ func HandleSocialLogin(res http.ResponseWriter, req *http.Request, login UserSoc
 		}
 
 		u := map[string]interface{}{
-			"user":    user.Email,
-			"session": session.Value,
+			"user":     user.Email,
+			"session":  session.Value,
+			"usertype": user.Usertype,
 		}
 		usr, _ := json.Marshal(u)
 
@@ -271,8 +285,9 @@ func HandleRegister(res http.ResponseWriter, req *http.Request, register UserFor
 	}
 
 	u := map[string]interface{}{
-		"user":    user.Username,
-		"session": session.Value,
+		"user":     user.Username,
+		"session":  session.Value,
+		"usertype": user.Usertype,
 	}
 	usr, _ := json.Marshal(u)
 
@@ -442,6 +457,7 @@ func GetUserDetails(res http.ResponseWriter, req *http.Request) string {
 	u := map[string]interface{}{
 		"username": user.Username,
 		"email":    user.Email,
+		"usertype": user.Usertype,
 	}
 	usr, _ := json.Marshal(u)
 
@@ -502,14 +518,17 @@ func UpdateUserDetails(res http.ResponseWriter, req *http.Request, data UserDeta
 func Reputation(uid int, points int) string {
 	usr := User{}
 
-	err := DB.Model(User{}).Where("uid = ?", uid).First(&usr).Error
+	err := DB.Where("uid = ?", uid).Find(&usr).Error
 	if err != nil {
 		return "failed to find user"
 	}
+
 	r := usr.Reputation + points
-	err = DB.Model(User{}).Where("uid = ?", uid).Update("reputation", r).Error
+
+	err = DB.Model(usr).Where("uid = ?", uid).Update("reputation", r).Error
 	if err != nil {
 		return "failed to update reputation"
 	}
+
 	return ""
 }

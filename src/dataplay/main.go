@@ -299,6 +299,7 @@ func initAPI() *martini.ClassicMartini { // initialise martini and add in common
 
 	m.Get("/api/ping", func(res http.ResponseWriter, req *http.Request) string { return "pong" })
 
+	m.Delete("/api/admin/observations/:id", DeleteObservationHttp)
 	m.Delete("/api/logout", HandleLogout)
 	m.Delete("/api/logout/:session", HandleLogout)
 
