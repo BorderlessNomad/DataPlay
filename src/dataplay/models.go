@@ -112,6 +112,7 @@ type Observation struct {
 	Created       time.Time
 	X             string
 	Y             string
+	Flagged       bool
 }
 
 func (ob Observation) TableName() string {
