@@ -40,7 +40,7 @@ type ObservationReturn struct {
 	Uid           int    `json:"uid"`
 	Username      string `json:"username"`
 	Flagged       bool   `json:"flagged"`
-	ObservationId bool   `json:"observationid"`
+	ObservationId int    `json:"observationid"`
 }
 
 type ObsReturnAndCount struct {
