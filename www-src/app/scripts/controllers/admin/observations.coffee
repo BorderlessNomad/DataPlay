@@ -59,7 +59,6 @@ angular.module('dataplayApp')
 			dat = new Date str
 			if dat.toString() is 'Invalid Date'
 				dat = new Date 0
-			console.log str, dat.getFullYear()
 			"#{dat.getDate()} #{monthNames[dat.getMonth()]}, #{dat.getFullYear()}"
 
 
