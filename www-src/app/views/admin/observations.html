@@ -1,0 +1,61 @@
+<div class="admin admin-observations" ng-init="init()">
+	<h2>Administrate Observations</h2>
+	<div class="text-center">
+		<ul class="pagination pagination-sm pagination-plain">
+			<li ng-class="{active: !modal.pagination.flaggedonly}"><a href="#" ng-click="modal.pagination.flaggedonly = false"><i class="fa fa-circle-o"></i> All</a></li>
+			<li ng-class="{active: modal.pagination.flaggedonly}"><a href="#" ng-click="modal.pagination.flaggedonly = true"><i class="fa fa-flag"></i> Flagged</a></li>
+		</ul>
+	</div>
+	<table class="table table-bordered table-hover table-striped">
+		<tr>
+			<th>
+				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'observation_id'" ng-click="orderby('observationid')"></i>
+				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'observation_id'"></i>
+				<span>#</span>
+			</th>
+			<th>
+				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'comment'" ng-click="orderby('comment')"></i>
+				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'comment'"></i>
+				<span>Comment</span>
+			</th>
+			<th>
+				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'username'" ng-click="orderby('username')"></i>
+				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'username'"></i>
+				<span>Username</span>
+			</th>
+			<th>
+				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'flagged'" ng-click="orderby('flagged')"></i>
+				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'flagged'"></i>
+				<span>Flagged</span>
+			</th>
+			<th></th>
+		</tr>
+		<tr ng-if="observations.length === 0"><td colspan="5" ng-include="'../views/loader.html'"></td></tr>
+		<tr ng-repeat="observation in observations | limitTo: pagination.perPage">
+			<td>{{observation.observationid}}</td>
+			<td>{{observation.comment}}</td>
+			<td>{{observation.username}}</td>
+			<td class="text-center">
+				<i class="fa fa-2x fa-check check" title="This observation has been flagged" ng-if="observation.flagged"></i>
+				<i class="fa fa-2x fa-times times" title="This observation has not been flagged" ng-if="!observation.flagged"></i>
+			</td>
+			<td class="userControls text-right">
+				<div class="btn-group">
+					<button type="button" class="btn btn-sm btn-primary" ng-click="showModal('view', observation)" title="View"><i class="fa fa-search"></i></button>
+					<button type="button" class="btn btn-sm btn-info" ng-click="showModal('edit', observation)" title="Edit"><i class="fa fa-pencil"></i></button>
+					<button type="button" class="btn btn-sm btn-danger" ng-click="showModal('delete', observation)" title="Delete"><i class="fa fa-trash"></i></button>
+				</div>
+			</td>
+		</tr>
+	</table>
+
+	<div class="text-center">
+		<ul class="pagination pagination-sm pagination-plain">
+			<li ng-class="{disabled: pagination.pageNumber == 1}"><a href="#" ng-click="changePage(-1, true)">&laquo;</a></li>
+			<li ng-repeat="i in range(pagination.total)" ng-class="{active: i == pagination.pageNumber}"><a href="#" ng-click="changePage(i)">{{i}}</a></li>
+			<li ng-class="{disabled: pagination.pageNumber == totalPages(pagination.total)}"><a href="#" ng-click="changePage(1, true)">&raquo;</a></li>
+		</ul>
+	</div>
+
+	<!-- Modal here -->
+</div>
