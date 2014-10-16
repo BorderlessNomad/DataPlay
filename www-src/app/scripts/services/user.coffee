@@ -10,9 +10,13 @@
 angular.module('dataplayApp')
 	.factory 'User', ['$http', 'Auth', 'config', ($http, Auth, config) ->
 		logIn: (username, password) ->
-			$http.post config.api.base_url + "/login",
-				username: username
+			params =
 				password: password
+			if /^\S+@\S+\.\S+$/.test username
+				params.email = username
+			else
+				params.username = username
+			$http.post config.api.base_url + "/login", params
 
 		logOut: (token) ->
 			$http.delete config.api.base_url + "/logout"
