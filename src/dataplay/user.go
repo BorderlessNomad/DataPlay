@@ -164,8 +164,9 @@ func HandleSocialLogin(res http.ResponseWriter, req *http.Request, login UserSoc
 		}
 
 		u := map[string]interface{}{
-			"user":    user.Email,
-			"session": session.Value,
+			"user":     user.Email,
+			"session":  session.Value,
+			"usertype": user.Usertype,
 		}
 		usr, _ := json.Marshal(u)
 
@@ -206,16 +207,16 @@ func HandleSocialLogin(res http.ResponseWriter, req *http.Request, login UserSoc
 			return ""
 		}
 
-		session, e := SetSession(user.Uid)
+		session, e := SetSession(social.Uid)
 		if e != nil {
 			http.Error(res, e.Message, e.Code)
 			return ""
 		}
 
 		u := map[string]interface{}{
-			"user":     user.Email,
+			"user":     newUser.Email,
 			"session":  session.Value,
-			"usertype": user.Usertype,
+			"usertype": newUser.Usertype,
 		}
 		usr, _ := json.Marshal(u)
 

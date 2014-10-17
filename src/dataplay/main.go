@@ -321,6 +321,7 @@ func initAPI() *martini.ClassicMartini { // initialise martini and add in common
 	m.Get("/api/recentobservations", GetRecentObservationsHttp)
 	m.Get("/api/stringmatch/:word", FindStringMatches)
 	m.Get("/api/stringmatch/:word/:x", FindStringMatches)
+	m.Get("/api/tweets/:searchterms", GetTweetsHttp)
 	m.Get("/api/user", GetUserDetails)
 	m.Get("/api/user/discoveries", GetAmountDiscoveriesHttp)
 	m.Get("/api/user/experts", GetDataExpertsHttp)
