@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/codegangsta/martini"
 	"github.com/pmylund/sortutil"
+	// "io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -20,6 +22,10 @@ type Tweet struct {
 	Hashtags []string  `json:"hashtags"`
 	Urls     []string  `json:"urls"`
 	Media    []string  `json:"mediaurls"`
+}
+
+type Sanitized struct {
+	Result string `json:"result"`
 }
 
 func GetTweetsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
@@ -45,11 +51,14 @@ func GetTweetsHttp(res http.ResponseWriter, req *http.Request, params martini.Pa
 		tmpTweet := Tweet{}
 
 		for _, tweet := range searchResult {
-			if tweet.User.Lang == "en" && !strings.Contains(tweet.Text, "RT @") {
+			if tweet.User.Lang == "en" && !strings.Contains(tweet.Text, "RT @") && !tweet.PossiblySensitive {
 				tmpTweet.Created, _ = tweet.CreatedAtTime()
+
 				tmpTweet.Retweets = tweet.RetweetCount
 				tmpTweet.Source = tweet.Source
-				tmpTweet.Text = tweet.Text
+				// tmpTweet.Text = Sanitize(tweet.Text)
+				fmt.Println("JUNGLE", tweet.Text)
+				fmt.Println("JUNGLE2", tmpTweet.Text)
 				tmpTweet.Name = tweet.User.Name
 				tmpTweet.User = tweet.User.ScreenName
 
@@ -84,3 +93,14 @@ func GetTweetsHttp(res http.ResponseWriter, req *http.Request, params martini.Pa
 
 	return string(r)
 }
+
+// func Sanitize(text string) string {
+// 	strings.Replace(text, " ", "%20", -1)
+// 	url := "http://www.purgomalum.com/service/json?text=" + text
+// 	resp, _ := http.Get(url)
+// 	defer resp.Body.Close()
+// 	r, _ := ioutil.ReadAll(resp.Body)
+// 	result := Sanitized{}
+// 	json.Unmarshal(r, &result)
+// 	return string(result.Result)
+// }
