@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Cassandra source backup script (should run as CRON)
+#
 ###
 # # Daily backup of Cassandra data on 22:30
 # 30      22      *       *       *       /root/cassandra_backup.sh >> /root/cassandra_backup.log
@@ -8,7 +9,15 @@
 # # Sync it with Backup server
 # *       *       *       *       *       /usr/bin/rsync -a --no-group --no-owner --no-perms -v -z -r --delete /var/lib/cassandra/backups/ root@108.61.197.87:~/backups/cassandara/ >> /var/lib/cassandra/rsync.log
 ###
-
+#	1. run $ nodetool snapshot dp (using CRON)
+#		output is,
+#			Requested creating snapshot(s) for [dp] with snapshot name [1413378613098]
+#			Snapshot directory: 1413378613098
+#	2. extract timestamp info from output of 1. e.g. Snapshot directory: 1413378613098
+#	3. for each dir in /var/lib/cassandra/data/dp copy content of snapshots/<timestamp>
+#		e.g. /var/lib/cassandra/data/dp/response-3b35cc404d6311e497ddbd0e0515b177/snapshots/1413378613098
+#	4. compress the dir and place it in response-3b35cc404d6311e497ddbd0e0515b177
+###
 
 set -ex
 
