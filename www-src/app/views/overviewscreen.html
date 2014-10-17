@@ -26,12 +26,12 @@
 						dc-post-setup-chart="renderPie(sect)"
  					></div>
 				</div>
-				<div class="row sect-graph map text-center" id="regionMap" ng-if="sect.type == 'map'"></div>
-
 				<div class="alert alert-warning" ng-if="sect.error">
 					<h5>Something went wrong</h5>
 					<p>{{sect.error}}</p>
 				</div>
+				<div class="row sect-graph map text-center" id="regionMap" ng-if="sect.type == 'map'"></div>
+
 
 				<div class="row list" ng-if="sect.items.length > 0 && !sect.error">
 					<div class="row sect-header">
