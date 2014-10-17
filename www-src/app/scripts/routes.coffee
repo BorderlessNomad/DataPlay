@@ -112,10 +112,20 @@ angular.module('dataplayApp')
 				controller: 'ProfileCtrl'
 				title: ['Profile']
 				login: true
+			.when '/admin',
+				templateUrl: 'views/admin/dashboard.html'
+				controller: 'AdminUsersCtrl'
+				title: ['Admin']
+				login: true
 			.when '/admin/users',
 				templateUrl: 'views/admin/users.html'
 				controller: 'AdminUsersCtrl'
 				title: ['Admin - Users']
+				login: true
+			.when '/admin/observations',
+				templateUrl: 'views/admin/observations.html'
+				controller: 'AdminObservationsCtrl'
+				title: ['Admin - Observations']
 				login: true
 			.otherwise
 				redirectTo: '/'

@@ -1,4 +1,4 @@
-.admin-users {
+.admin {
 
 	td {
 		line-height: 2em;
@@ -7,9 +7,20 @@
 
 	td.userControls {
 		width: 125px;
+
+		&.userControls-2 {
+			width: 90px;
+		}
+
 		button {
 			width: 36px;
 		}
+	}
+
+	input[type="text"], input[type="number"] {
+		height: 2em;
+		padding-top: 0;
+		padding-bottom: 0;
 	}
 
 	.avatar {
@@ -38,12 +49,25 @@
 		}
 	}
 
+	#password-field {
+		width: calc(~"100% - 105px");
+		display: inline-block;
+	}
+
+	#password-random {
+		width: 100px;
+		height: 2em;
+		padding-top: 0;
+		padding-bottom: 0;
+	}
+
 	.gold { color: #F1C40F; }
 	.bold { font-weight: bold; }
 	.check { color: #2ECC40; }
 	.times { color: #FF4136; }
 	.inline { display: inline-block; }
 	.no-margin { margin: 0; }
+	.clickable { cursor: pointer; }
 }
 
 .pagination-xs {

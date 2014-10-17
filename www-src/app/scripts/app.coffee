@@ -25,5 +25,6 @@ angular.module('dataplayApp')
 		sessionHeader: "X-API-SESSION"
 		sessionName: "DPSession"
 		userName: "DPUser"
+		userType: "DPType"
 		api:
 			base_url: "http://localhost:3000/api"

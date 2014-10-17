@@ -4,6 +4,11 @@
 
 set -ex
 
+if [ "$(id -u)" != "0" ]; then
+	echo >&2 "Error: This script must be run as user 'root'";
+	exit 1
+fi
+
 timestamp () {
 	date +"%F %T,%3N"
 }
@@ -54,11 +59,6 @@ update_iptables () {
 
 	iptables-save
 }
-
-if [ "$(id -u)" != "0" ]; then
-	echo >&2 "Error: This script must be run as user 'root'";
-	exit 1
-fi
 
 command -v node >/dev/null 2>&1 || { echo >&2 "Error: Command 'node' not found!"; exit 1; }
 

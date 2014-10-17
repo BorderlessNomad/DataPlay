@@ -2,13 +2,13 @@
 
 ###*
  # @ngdoc function
- # @name dataplayApp.controller:AdminUsersCtrl
+ # @name dataplayApp.controller:AdminObservationsCtrl
  # @description
- # # AdminUsersCtrl
+ # # AdminObservationsCtrl
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'AdminUsersCtrl', ['$scope', '$location', 'Admin', 'Auth', 'Overview', 'config', ($scope, $location, Admin, Auth, Overview, config) ->
+	.controller 'AdminObservationsCtrl', ['$scope', '$location', 'Admin', 'Auth', 'Overview', 'config', ($scope, $location, Admin, Auth, Overview, config) ->
 
 		$scope.modal =
 			shown: false
@@ -18,50 +18,56 @@ angular.module('dataplayApp')
 				item: null
 
 		$scope.pagination =
-			orderby: 'uid'
+			flaggedonly: false
+			orderby: 'observation_id'
 			perPage: 10
 			pageNumber: 1
 			total: 0
 
-		$scope.users = []
+		$scope.observations = []
 
 
 		# General controls
 		$scope.init = () ->
 			$scope.bootNonAdmins()
-			$scope.updateUsers()
+			$scope.updateObservations()
 
 		$scope.bootNonAdmins = () ->
 			if not Auth.isAdmin()
 				$location.path '/home'
 
-		$scope.updateUsers = (cb = (() ->)) ->
+		$scope.updateObservations = (cb = (() ->)) ->
 			offset = ($scope.pagination.pageNumber - 1) * $scope.pagination.perPage
-			Admin.getUsers $scope.pagination.orderby, offset, $scope.pagination.perPage
+			Admin.getObservations $scope.pagination.orderby, offset, $scope.pagination.perPage, $scope.pagination.flaggedonly
 				.success (data) ->
-					if data.count and data.users?
-						$scope.users.splice 0
-						data.users.forEach (u) ->
-							$scope.users.push
+					if data.count and data.comments?
+						$scope.observations.splice 0
+						data.comments.forEach (u) ->
+							$scope.observations.push
+								observationid: u.observationid || 0
+								created: u.created
+								comment: u.comment || 0
 								uid: u.uid || 0
-								avatar: u.avatar || ''
 								username: u.username || ''
-								email: u.email || ''
-								md5email: u.md5email || ''
-								reputation: u.reputation || 0
-								usertype: u.usertype || 0
-								enabled: if not u.enabled? then true else u.enabled
-								password: ''
+								rating: (u.credited || 0) - (u.discredited)
+								flagged: if not u.flagged? then false else u.flagged
 						$scope.pagination.total = data.count
 					cb()
+
+		$scope.humanDate = (str) ->
+			days = ['Sun', 'Mon', 'Tues', 'Wed', 'Thu', 'Fri', 'Sat']
+			monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+			dat = new Date str
+			if dat.toString() is 'Invalid Date'
+				dat = new Date 0
+			"#{days[dat.getDay()]} #{dat.getDate()} #{monthNames[dat.getMonth()]}, #{dat.getFullYear()}"
+
 
 		$scope.showModal = (type, item) ->
 			if item?
 				$scope.modal.content.type = type
 				$scope.modal.content.item = _.cloneDeep item
 				$scope.modal.content.itemOriginal = item
-
-				$scope.modal.content.item.usertype = !! item.usertype
 
 				$scope.modal.shown = true
 				$('#admin-modal').modal 'show'
@@ -86,36 +92,10 @@ angular.module('dataplayApp')
 			else if $scope.modal.content.type is 'disable'
 				$scope.disable()
 
-		$scope.edit = () ->
-			before = _.cloneDeep $scope.modal.content.itemOriginal
-			after = _.cloneDeep $scope.modal.content.item
-
-			after.usertype = parseInt after.usertype * 1
-
-			diff = do ->
-				result = {}
-				Object.keys(before).forEach (k) ->
-					if k is 'uid' or before[k] isnt after[k]
-						if k is 'reputation'
-							result[k] = after[k] - before[k]
-						else
-							result[k] = after[k]
-				result
-
-			if Object.keys(diff).length > 1
-				Admin.editUser diff
-					.success (data) ->
-						$scope.updateUsers () ->
-							$scope.closeModal()
-			return
-
-		$scope.disable = () ->
-			params =
-				uid: $scope.modal.content.item.uid
-				enabled: not $scope.modal.content.item.enabled
-			Admin.editUser params
+		$scope.delete = () ->
+			Admin.deleteObservation $scope.modal.content.item.observationid
 				.success (data) ->
-					$scope.updateUsers () ->
+					$scope.updateObservations () ->
 						$scope.closeModal()
 			return
 
@@ -126,7 +106,7 @@ angular.module('dataplayApp')
 			if $scope.pagination.orderby isnt col
 				$scope.pagination.orderby = col
 				$scope.pagination.pageNumber = 1
-				$scope.updateUsers()
+				$scope.updateObservations()
 
 		$scope.totalPages = (total) ->
 			Math.ceil total / $scope.pagination.perPage
@@ -140,7 +120,11 @@ angular.module('dataplayApp')
 			newVal = if add? then $scope.pagination.pageNumber + page else page
 			if newVal > 0 and newVal <= $scope.totalPages $scope.pagination.total
 				$scope.pagination.pageNumber = newVal
-				$scope.updateUsers()
+				$scope.updateObservations()
+
+		$scope.setFilter = (flaggedonly) ->
+			$scope.pagination.flaggedonly = flaggedonly
+			$scope.updateObservations()
 
 		return
 	]

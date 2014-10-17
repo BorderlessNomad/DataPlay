@@ -92,21 +92,13 @@ angular.module('dataplayApp')
 			return
 
 		$scope.initObservations = (redraw) ->
-			id = "#{$scope.params.correlationid}"
-
 			Charts.getObservations $scope.info.discoveredId
 				.then (res) ->
 					$scope.userObservations.splice 0, $scope.userObservations.length
 
 					res.data?.forEach? (obsv) ->
-						x = obsv.x
-						y = obsv.y
-						if $scope.chart.patterns[$scope.chart.table1.xLabel].valuePattern is 'date'
-							if not(x instanceof Date) and (typeof x is 'string')
-								xdate = new Date x
-								if xdate.toString() isnt 'Invalid Date' then x = xdate
-							x = Overview.humanDate x
-
+						x = "0"
+						y = "0"
 						xy = "#{x.replace(/\W/g, '')}-#{y.replace(/\W/g, '')}"
 						$scope.userObservationsMessage[xy] = obsv.comment
 						if obsv.user.avatar is ''
@@ -121,6 +113,7 @@ angular.module('dataplayApp')
 							coor:
 								x: obsv.x
 								y: obsv.y
+							flagged: !! obsv.flagged
 
 				, $scope.handleError
 			return
@@ -203,11 +196,32 @@ angular.module('dataplayApp')
 		$scope.resetObservations = ->
 			$scope.observations = []
 
+		$scope.flagObservation = (obsv) ->
+			Charts.flagObservation obsv.oid
+				.success (data) ->
+					obsv.flagged = true
+
 		$scope.resetAll = ->
 			dc.filterAll()
 			dc.redrawAll()
 
 			$scope.resetObservations()
+
+		$scope.showCreditMessage = (type) ->
+			$scope.creditMsg = type
+			$timeout ->
+				$scope.creditMsg = null
+			, 3000
+			return
+
+		$scope.handleError = (err, status) ->
+			$scope.error =
+				message: switch
+					when err and err.message then err.message
+					when err and err.data and err.data.message then err.data.message
+					when err and err.data then err.data
+					when err then err
+					else ''
 
 		return
 	]
