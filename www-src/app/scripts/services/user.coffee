@@ -69,6 +69,9 @@ angular.module('dataplayApp')
 					path += "/#{count}"
 			$http.get config.api.base_url + path
 
+		searchTweets: (word) ->
+			$http.get config.api.base_url + "/tweets/#{word}"
+
 		getNews: (query) ->
 			if query instanceof Array
 				query = query.join '_'
