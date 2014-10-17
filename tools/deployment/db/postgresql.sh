@@ -64,7 +64,7 @@ import_data () {
 		echo "Latest backup not available, try fetching $LASTDATE"
 	done
 
-	gunzip -vk dataplay.sql.gz
+	gunzip -vk $BACKUP_FILE
 	nohup psql -h localhost -U playgen -d dataplay -f dataplay.sql > postgres-import.log 2>&1&
 	###
 	# on Dev

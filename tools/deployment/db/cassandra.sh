@@ -5,9 +5,11 @@
 set -ex
 
 if [ "$(id -u)" != "0" ]; then
-	echo "Error: This script must be run as root" 1>&2
+	echo >&2 "Error: This script must be run as user 'root'";
 	exit 1
 fi
+
+IP=`ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`
 
 timestamp () {
 	date +"%F %T,%3N"
@@ -23,7 +25,7 @@ install_java () {
 	echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
 	apt-add-repository -y ppa:webupd8team/java && \
 	apt-get update && \
-	apt-get install -y oracle-java7-installer && \
+	apt-get install -y axel oracle-java7-installer && \
 	apt-get autoclean
 
 	echo "export JAVA_HOME=/usr/lib/jvm/java-7-oracle" >> /etc/profile.d/dataplay.sh
@@ -37,7 +39,7 @@ install_cassandra () {
 	apt-get update && \
 	apt-get install -y cassandra
 
-	service cassandra restart > cassandra-service.log & # Start Cassandara in background
+	service cassandra restart >> cassandra-service.log & # Start Cassandara in background
 	echo "Waiting for Cassandra initialize..."
 	sleep 1
 	while ! grep -m1 '...done.' < cassandra-service.log ; do
@@ -52,16 +54,7 @@ install_cassandra () {
 	# nodetool status # Verify that DataStax Community is running
 }
 
-test_cassandra () {
-	if [[ -n $(cqlsh -e "CREATE KEYSPACE test WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };") ]]; then
-		echo >&2 "Error: Cassandra is not running.";
-		exit 1
-	fi
-}
-
 configure_cassandra () {
-	IP=`ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`
-
 	# sed -i -e "s/num_tokens/\#num_tokens/" /etc/cassandra/cassandra.yaml # Disable virtual nodes
 	sed -i -e "s/^listen_address.*/listen_address: $IP/" /etc/cassandra/cassandra.yaml # Listen on IP of the container
 	sed -i -e "s/^rpc_address.*/rpc_address: $IP/" /etc/cassandra/cassandra.yaml # Enable Remote connections
@@ -84,58 +77,76 @@ install_opscenter () {
 	# Connect using http://<IP>:8888
 }
 
-backup_cassandra () {
-	echo "TODO: manually"
-	# On Source:
-	# cd /var/lib/cassandra/data/dp/
-	#
-	# For each column family
-	#
-	# tar -zcf author.tar.gz 1412773254804/
-	# scp author.tar.gz ubuntu@109.231.121.88:/home/ubuntu/cassandra-backup
-	#
-	# tar -zcf entity.tar.gz 1412773254804/
-	# scp entity.tar.gz ubuntu@109.231.121.88:/home/ubuntu/cassandra-backup
-	#
-	# tar -zcf image.tar.gz 1412773254804/
-	# scp image.tar.gz ubuntu@109.231.121.88:/home/ubuntu/cassandra-backup
-	#
-	# tar -zcf keyword.tar.gz 1412773254804/
-	# scp keyword.tar.gz ubuntu@109.231.121.88:/home/ubuntu/cassandra-backup
-	#
-	# tar -zcf related.tar.gz 1412773254804/
-	# scp related.tar.gz ubuntu@109.231.121.88:/home/ubuntu/cassandra-backup
-	#
-	# tar -zcf response.tar.gz 1412773254804/
-	# scp response.tar.gz ubuntu@109.231.121.88:/home/ubuntu/cassandra-backup
-	#
-	# On Source:
-	#	1. run $ nodetool snapshot dp (using CRON)
-	#		output is,
-	#			Requested creating snapshot(s) for [dp] with snapshot name [1413378613098]
-	#			Snapshot directory: 1413378613098
-	#	2. extract timestamp info from output of 1. e.g. Snapshot directory: 1413378613098
-	#	3. for each dir in /var/lib/cassandra/data/dp copy content of snapshots/<timestamp>
-	#		e.g. /var/lib/cassandra/data/dp/response-3b35cc404d6311e497ddbd0e0515b177/snapshots/1413378613098
-	#	4. compress the dir and place it in response-3b35cc404d6311e497ddbd0e0515b177
-	#
-	# On Destination:
-	#	1. Make sure that schema defination exists
-	#	2. nodetool snapshot dp
-	#	3. sevice cassandra stop
-	#	4. clean commitlog, cd /var/lib/cassandra/data/commitlog/ && rm -r *.log
-	#	5. extract files to individual column dir
-	# 		e.g.
-	#		/var/lib/cassandra/data/dp/response-3b35cc404d6311e497ddbd0e0515b177
-	# 		tar -zxf /home/ubuntu/cassandra-backup/keyword.tar.gz -C .
-	#		mv 1413378613098/* .
-	#		rm -r 1413378613098
-}
-
 export_variables () {
 	. /etc/profile
 
 	su - ubuntu -c ". /etc/profile"
+}
+
+import_data () {
+	LASTDATE=$(date +%Y-%m-%d) # Today
+	BACKUP_HOST="108.61.197.87"
+	BACKUP_PORT="8080"
+	BACKUP_DIR="cassandra/$LASTDATE"
+	BACKUP_USER="playgen"
+	BACKUP_PASS="D@taP1aY"
+	BACKUP_SCHEMA_FILE="dp-schema.cql"
+	BACKUP_DATA_FILE="dp-data.tar.gz"
+	KEYSPACE="dp"
+	CASSANDRA_DIR="/var/lib/cassandra"
+	DATA_DIR="$CASSANDRA_DIR/data"
+	LOG_DIR="$CASSANDRA_DIR/commitlog"
+	SOURCE_DIR="/tmp/cassandra-data"
+	MAX_RETRIES="60"
+
+	i="1"
+	until [[ $i -lt $MAX_RETRIES ]] && axel -a "http://$BACKUP_USER:$BACKUP_PASS@$BACKUP_HOST:$BACKUP_PORT/$BACKUP_DIR/$BACKUP_SCHEMA_FILE"; do
+		LASTDATE=$(date +%Y-%m-%d --date="$LASTDATE -1 days") # Decrement by 1 Day
+		BACKUP_DIR="cassandra/$LASTDATE"
+		echo "Latest $BACKUP_SCHEMA_FILE backup not available, trying $LASTDATE"
+		i=$[$i+1]
+	done
+	if [[ $i -gt $MAX_RETRIES ]]; then
+		echo >&2 "Error: Unable to fetch '$BACKUP_SCHEMA_FILE' from backup server."; exit 1;
+	fi
+
+	j="1"
+	until [[ $j -lt $MAX_RETRIES ]] && axel -a "http://$BACKUP_USER:$BACKUP_PASS@$BACKUP_HOST:$BACKUP_PORT/$BACKUP_DIR/$BACKUP_DATA_FILE"; do
+		LASTDATE=$(date +%Y-%m-%d --date="$LASTDATE -1 days") # Decrement by 1 Day
+		BACKUP_DIR="cassandra/$LASTDATE"
+		echo "Latest $BACKUP_DATA_FILE backup not available, trying $LASTDATE"
+		j=$[$j+1]
+	done
+	if [[ $j -gt $MAX_RETRIES ]]; then
+		echo >&2 "Error: Unable to fetch '$BACKUP_DATA_FILE' from backup server."; exit 1;
+	fi
+
+	cqlsh $IP -f $BACKUP_SCHEMA_FILE
+
+	service cassandra stop
+
+	mkdir -p $SOURCE_DIR
+	tar -xzvf $BACKUP_DATA_FILE -C $SOURCE_DIR
+	SOURCE_TABLES=`ls -l $SOURCE_DIR | egrep '^d' | awk '{print $9}'`
+	for table in $SOURCE_TABLES; do
+		table_name=$(echo $table | awk -F'-' '{print $1}')
+		mv $SOURCE_DIR/$table/* $DATA_DIR/$KEYSPACE/$table_name-*
+	done
+
+	rm -rf $LOG_DIR/*.log
+
+	service cassandra restart >> cassandra-service.log & # Start Cassandara in background
+	echo "Waiting for Cassandra restart..."
+	sleep 2
+	while ! grep -m1 '...done.' < cassandra-service.log ; do
+		sleep 2
+	done
+	echo "Cassandra is UP!"
+
+	# sleep 5
+	# nodetool -h $IP repair $KEYSPACE
+
+	rm -rf $SOURCE_DIR
 }
 
 update_iptables () {
@@ -163,7 +174,10 @@ configure_cassandra
 echo "[$(timestamp)] ---- 5. Export Variables ----"
 export_variables
 
-echo "[$(timestamp)] ---- 6. Update IPTables rules ----"
+echo "[$(timestamp)] ---- 6. Import Data ----"
+import_data
+
+echo "[$(timestamp)] ---- 7. Update IPTables rules ----"
 update_iptables
 
 echo "[$(timestamp)] ---- Completed ----"

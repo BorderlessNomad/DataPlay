@@ -27,22 +27,27 @@ timestamp () {
 
 echo "[$(timestamp)] ---- Started ----"
 
+HOST="172.17.0.78"
 KEYSPACE="dp"
-NODETOOL=$(nodetool snapshot $KEYSPACE)
+NODETOOL=$(nodetool -h $HOST snapshot $KEYSPACE)
 TIMESTAMP=${NODETOOL#*: }
 SOURCE="/var/lib/cassandra/data/$KEYSPACE"
 TABLES=`ls -l $SOURCE | egrep '^d' | awk '{print $9}'`
 BACKUP="/var/lib/cassandra/backups"
 DATE=$(date +%Y-%m-%d)
 
+mkdir -p $BACKUP/$DATE && cd $BACKUP/$DATE
+
+# Schema
+cqlsh $HOST -e "DESCRIBE KEYSPACE $KEYSPACE;" > $BACKUP/$DATE/$KEYSPACE-schema.cql 2>&1
+
+# Tables
 for table in $TABLES; do
 	mkdir -p $BACKUP/$KEYSPACE/$table
 	cp -R $SOURCE/$table/snapshots/$TIMESTAMP/. $BACKUP/$KEYSPACE/$table
 done
 
-mkdir -p $BACKUP/$DATE && cd $BACKUP/$DATE
 tar -czvf $KEYSPACE-data.tar.gz -C $BACKUP/$KEYSPACE .
-# tar -czvf $KEYSPACE-schema.tar.gz -C $BACKUP/$KEYSPACE .
 
 rm -rf $BACKUP/$KEYSPACE
 
