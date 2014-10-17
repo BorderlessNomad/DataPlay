@@ -2,10 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/codegangsta/martini"
+	"github.com/kennygrant/sanitize"
 	"github.com/pmylund/sortutil"
+	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -20,6 +24,10 @@ type Tweet struct {
 	Hashtags []string  `json:"hashtags"`
 	Urls     []string  `json:"urls"`
 	Media    []string  `json:"mediaurls"`
+}
+
+type Sanitized struct {
+	Result string `json:"result"`
 }
 
 func GetTweetsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
@@ -41,15 +49,20 @@ func GetTweetsHttp(res http.ResponseWriter, req *http.Request, params martini.Pa
 	tweets := []Tweet{}
 
 	for _, term := range terms {
-		searchResult, _ := api.GetSearch(term, nil)
+		v := url.Values{}
+		v.Set("count", "40") // take sample 40 tweets but will only use first best 10
+		searchResult, _ := api.GetSearch(term, v)
 		tmpTweet := Tweet{}
 
 		for _, tweet := range searchResult {
-			if tweet.User.Lang == "en" && !strings.Contains(tweet.Text, "RT @") {
+			if tweet.User.Lang == "en" && !strings.Contains(tweet.Text, "RT @") && !tweet.PossiblySensitive && len(tweets) <= 10 {
 				tmpTweet.Created, _ = tweet.CreatedAtTime()
+
 				tmpTweet.Retweets = tweet.RetweetCount
 				tmpTweet.Source = tweet.Source
-				tmpTweet.Text = tweet.Text
+				tmpTweet.Text = ProfanityCheck(tweet.Text)
+				fmt.Println("JUNGLE", tweet.Text)
+				fmt.Println("JUNGLE2", tmpTweet.Text)
 				tmpTweet.Name = tweet.User.Name
 				tmpTweet.User = tweet.User.ScreenName
 
@@ -65,7 +78,9 @@ func GetTweetsHttp(res http.ResponseWriter, req *http.Request, params martini.Pa
 					tmpTweet.Urls = append(tmpTweet.Urls, u.Url)
 				}
 
-				tweets = append(tweets, tmpTweet)
+				if tmpTweet.Text != "" { // if the profanity check was passed
+					tweets = append(tweets, tmpTweet)
+				}
 			}
 		}
 	}
@@ -83,4 +98,21 @@ func GetTweetsHttp(res http.ResponseWriter, req *http.Request, params martini.Pa
 	}
 
 	return string(r)
+}
+
+func ProfanityCheck(text string) string {
+	strings.Replace(text, " ", "%20", -1)
+	t := sanitize.Path(text)
+	url := "http://www.purgomalum.com/service/json?text=" + t
+	resp, _ := http.Get(url)
+	defer resp.Body.Close()
+	r, _ := ioutil.ReadAll(resp.Body)
+	sanitized := Sanitized{}
+	json.Unmarshal(r, &sanitized)
+
+	if !strings.Contains(sanitized.Result, "***") { // if there were no profane words returns the original string
+		return text
+	} else {
+		return ""
+	}
 }
