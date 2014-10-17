@@ -30,7 +30,7 @@ func TestGetObservationsTableHttp(t *testing.T) {
 		"order":   "username",
 		"offset":  "0",
 		"count":   "100",
-		"flagged": "true",
+		"flagged": "",
 	}
 	Convey("Should return users for admin", t, func() {
 		result := GetObservationsTableHttp(res, req, params)
