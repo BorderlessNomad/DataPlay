@@ -112,7 +112,7 @@ func TermFrequency(terms []TermKey) []PoliticalActivity {
 	session, _ := GetCassandraConnection("dp") // create connection to cassandra
 	defer session.Close()
 
-	iter1 := session.Query(`SELECT date, name FROM keyword WHERE date >= ? AND date <= ? ALLOW FILTERING`, FromDate, Today).Iter()
+	iter1 := session.Query(`SELECT date, name FROM keyword WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
 	for iter1.Scan(&date, &name) {
 		for _, term := range terms {
 			if name == term.KeyTerm { // for any key term matches
@@ -123,7 +123,7 @@ func TermFrequency(terms []TermKey) []PoliticalActivity {
 		}
 	}
 
-	iter2 := session.Query(`SELECT date, name FROM entity WHERE date >= ? AND date <= ? ALLOW FILTERING`, FromDate, Today).Iter()
+	iter2 := session.Query(`SELECT date, name FROM entity WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
 	for iter2.Scan(&date, &name) {
 		for _, term := range terms {
 			if name == term.KeyTerm { // for any key term matches
