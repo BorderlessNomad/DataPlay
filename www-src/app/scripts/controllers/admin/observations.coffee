@@ -45,7 +45,7 @@ angular.module('dataplayApp')
 						data.comments.forEach (u) ->
 							$scope.observations.push
 								observationid: u.observationid || 0
-								created: $scope.humanDate u.created
+								created: u.created
 								comment: u.comment || 0
 								uid: u.uid || 0
 								username: u.username || ''
@@ -55,11 +55,12 @@ angular.module('dataplayApp')
 					cb()
 
 		$scope.humanDate = (str) ->
+			days = ['Sun', 'Mon', 'Tues', 'Wed', 'Thu', 'Fri', 'Sat']
 			monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 			dat = new Date str
 			if dat.toString() is 'Invalid Date'
 				dat = new Date 0
-			"#{dat.getDate()} #{monthNames[dat.getMonth()]}, #{dat.getFullYear()}"
+			"#{days[dat.getDay()]} #{dat.getDate()} #{monthNames[dat.getMonth()]}, #{dat.getFullYear()}"
 
 
 		$scope.showModal = (type, item) ->
@@ -67,8 +68,6 @@ angular.module('dataplayApp')
 				$scope.modal.content.type = type
 				$scope.modal.content.item = _.cloneDeep item
 				$scope.modal.content.itemOriginal = item
-
-				$scope.modal.content.item.usertype = !! item.usertype
 
 				$scope.modal.shown = true
 				$('#admin-modal').modal 'show'
@@ -93,34 +92,8 @@ angular.module('dataplayApp')
 			else if $scope.modal.content.type is 'disable'
 				$scope.disable()
 
-		$scope.edit = () ->
-			before = _.cloneDeep $scope.modal.content.itemOriginal
-			after = _.cloneDeep $scope.modal.content.item
-
-			after.usertype = parseInt after.usertype * 1
-
-			diff = do ->
-				result = {}
-				Object.keys(before).forEach (k) ->
-					if k is 'uid' or before[k] isnt after[k]
-						if k is 'reputation'
-							result[k] = after[k] - before[k]
-						else
-							result[k] = after[k]
-				result
-
-			if Object.keys(diff).length > 1
-				Admin.editUser diff
-					.success (data) ->
-						$scope.updateObservations () ->
-							$scope.closeModal()
-			return
-
-		$scope.disable = () ->
-			params =
-				uid: $scope.modal.content.item.uid
-				enabled: not $scope.modal.content.item.enabled
-			Admin.editUser params
+		$scope.delete = () ->
+			Admin.deleteObservation $scope.modal.content.item.observationid
 				.success (data) ->
 					$scope.updateObservations () ->
 						$scope.closeModal()

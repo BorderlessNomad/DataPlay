@@ -23,7 +23,7 @@ angular.module('dataplayApp')
 			if orderbys.indexOf(orderby) is -1 then orderby = 'observation_id'
 			$http.get config.api.base_url + "/admin/observations/get/#{orderby}/#{offset}/#{count}/#{flagged}"
 
-		editObservation: (data) ->
-			$http.put config.api.base_url + "/admin/observations/edit", data
+		deleteObservation: (id) ->
+			$http.delete config.api.base_url + "/admin/observations/#{id}"
 
 	]
