@@ -60,6 +60,7 @@ angular.module('dataplayApp')
 
 		$scope.processLogin = (data) ->
 			Auth.set config.userName, data.user
+			Auth.set config.userType, data.usertype
 			Auth.set config.sessionName, data.session
 
 			$location.path "/home"
@@ -104,6 +105,7 @@ angular.module('dataplayApp')
 				User.logOut(token).success((data) ->
 					Auth.remove config.sessionName
 					Auth.remove config.userName
+					Auth.remove config.userType
 
 					$location.path "/"
 					return
