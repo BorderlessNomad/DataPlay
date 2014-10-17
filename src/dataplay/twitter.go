@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/codegangsta/martini"
 	"github.com/kennygrant/sanitize"
@@ -61,8 +60,6 @@ func GetTweetsHttp(res http.ResponseWriter, req *http.Request, params martini.Pa
 				tmpTweet.Retweets = tweet.RetweetCount
 				tmpTweet.Source = tweet.Source
 				tmpTweet.Text = ProfanityCheck(tweet.Text)
-				fmt.Println("JUNGLE", tweet.Text)
-				fmt.Println("JUNGLE2", tmpTweet.Text)
 				tmpTweet.Name = tweet.User.Name
 				tmpTweet.User = tweet.User.ScreenName
 
