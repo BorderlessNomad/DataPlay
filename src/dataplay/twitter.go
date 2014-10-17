@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/codegangsta/martini"
+	"github.com/pmylund/sortutil"
 	"net/http"
 	"strings"
 	"time"
@@ -11,6 +12,7 @@ import (
 
 type Tweet struct {
 	Text     string    `json:"comment"`
+	Name     string    `json:"name"`
 	User     string    `json:"username"`
 	Created  time.Time `json:"created"`
 	Retweets int       `json:"retweets"`
@@ -19,27 +21,6 @@ type Tweet struct {
 	Urls     []string  `json:"urls"`
 	Media    []string  `json:"mediaurls"`
 }
-
-// type Hashtag struct {
-// 	Text    string `json:"hashtag"`
-// }
-
-// type URL struct {
-// 	Indices      []int  `json:"-"`
-// 	Url          string `json:"url"`
-// 	Display_url  string `json:"-"`
-// 	Expanded_url string `json:"-"`
-// }
-
-// type Media struct {
-// 	Id              int64  `json:"-"`
-// 	Id_str          string `json:"-"`
-// 	Media_url       string `json:"-"`
-// 	Media_url_https string `json:"-"`
-// 	Url             string `json:"url"`
-// 	Display_url     string `json:"-"`
-// 	Expanded_url    string `json:"-"`
-// }
 
 func GetTweetsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 	session := req.Header.Get("X-API-SESSION")
@@ -64,30 +45,38 @@ func GetTweetsHttp(res http.ResponseWriter, req *http.Request, params martini.Pa
 		tmpTweet := Tweet{}
 
 		for _, tweet := range searchResult {
-			// if tweet.Text
-			tmpTweet.Created, _ = tweet.CreatedAtTime()
-			tmpTweet.Retweets = tweet.RetweetCount
-			tmpTweet.Source = tweet.Source
-			tmpTweet.Text = tweet.Text
-			tmpTweet.User = tweet.User.Name
+			if tweet.User.Lang == "en" && !strings.Contains(tweet.Text, "RT @") {
+				tmpTweet.Created, _ = tweet.CreatedAtTime()
+				tmpTweet.Retweets = tweet.RetweetCount
+				tmpTweet.Source = tweet.Source
+				tmpTweet.Text = tweet.Text
+				tmpTweet.Name = tweet.User.Name
+				tmpTweet.User = tweet.User.ScreenName
 
-			for _, h := range tweet.Entities.Hashtags {
-				tmpTweet.Hashtags = append(tmpTweet.Hashtags, h.Text)
+				for _, h := range tweet.Entities.Hashtags {
+					tmpTweet.Hashtags = append(tmpTweet.Hashtags, h.Text)
+				}
+
+				for _, m := range tweet.Entities.Media {
+					tmpTweet.Media = append(tmpTweet.Media, m.Url)
+				}
+
+				for _, u := range tweet.Entities.Urls {
+					tmpTweet.Urls = append(tmpTweet.Urls, u.Url)
+				}
+
+				tweets = append(tweets, tmpTweet)
 			}
-
-			for _, m := range tweet.Entities.Media {
-				tmpTweet.Media = append(tmpTweet.Media, m.Url)
-			}
-
-			for _, u := range tweet.Entities.Urls {
-				tmpTweet.Urls = append(tmpTweet.Urls, u.Url)
-			}
-
-			tweets = append(tweets, tmpTweet)
 		}
 	}
 
-	r, err := json.Marshal(tweets)
+	n := 10
+	if len(tweets) < 10 {
+		n = len(tweets)
+	}
+
+	sortutil.DescByField(tweets, "Retweets")
+	r, err := json.Marshal(tweets[0:n])
 	if err != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
 		return ""
