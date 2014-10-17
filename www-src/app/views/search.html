@@ -4,39 +4,56 @@
 
 <div class="row">
 	<div class="col-sm-9 col-xs-12">
-		<form novalidate>
-			<div class="form-group">
-				<input class="form-control" type="search" placeholder="Enter your query here (e.g. gold)" ng-model="query" ng-change="init(true)">
-			</div>
-		</form>
-
-		<div class="list-group search-results" ng-show="results.length > 0">
-			<div class="row">
-				<div class="list-group-item col-sm-4" ng-repeat="chart in chartsRelated" id="{{chart.id}}" ng-show="hasRelatedCharts() > 0">
-					<div class="media-heading">
-						<h5><a href="overview/{{chart.guid}}">{{chart.title}}</a></h5>
-					</div>
-					<a class="related media-body" href="overview/{{chart.guid}}">
-						<span ng-include="'views/charts/related/line.html'"></span>
-						<span ng-include="'views/charts/related/row.html'"></span>
-						<span ng-include="'views/charts/related/column.html'"></span>
-						<span ng-include="'views/charts/related/pie.html'"></span>
-						<span ng-include="'views/charts/related/bubble.html'"></span>
-					</a>
+		<div class="row">
+			<form novalidate>
+				<div class="form-group">
+					<input class="form-control" type="search" placeholder="Enter your query here (e.g. gold)" ng-model="query" ng-change="init(true)">
 				</div>
-			</div>
+			</form>
 
-			<div class="row show-more" ng-click="showMore()" ng-hide="rowedResults.length < rowLimit">
-				<button class="col-md-6 col-md-offset-3 btn btn-default text-center">Show More</button>
+			<div class="list-group search-results" ng-show="results.length > 0">
+				<div class="row">
+					<div class="list-group-item col-sm-4" ng-repeat="chart in chartsRelated" id="{{chart.id}}" ng-show="hasRelatedCharts() > 0">
+						<div class="media-heading">
+							<h5><a href="overview/{{chart.guid}}">{{chart.title}}</a></h5>
+						</div>
+						<a class="related media-body" href="overview/{{chart.guid}}">
+							<span ng-include="'views/charts/related/line.html'"></span>
+							<span ng-include="'views/charts/related/row.html'"></span>
+							<span ng-include="'views/charts/related/column.html'"></span>
+							<span ng-include="'views/charts/related/pie.html'"></span>
+							<span ng-include="'views/charts/related/bubble.html'"></span>
+						</a>
+					</div>
+				</div>
+
+				<div class="row show-more" ng-click="showMore()" ng-hide="rowedResults.length < rowLimit">
+					<button class="col-md-6 col-md-offset-3 btn btn-default text-center">Show More</button>
+				</div>
+
 			</div>
 
 			<div class="row">
 				<div class="col-md-12" ng-show="loading.related" ng-include="'views/loader.html'"></div>
 			</div>
+			<div class="jumbotron" ng-show="results.length <= 0 && query.length > 0">
+				<p class="text-center">Sorry we are unable to find any search results for given request.</p>
+			</div>
 		</div>
-
-		<div class="jumbotron" ng-show="results.length <= 0 && query.length > 0">
-			<p class="text-center">Sorry we are unable to find any search results for given request.</p>
+		<div class="row">
+			<div class="col-xs-12">
+				<h4>Tweets</h4>
+				<div class="row tweets" ng-repeat="tweet in tweets | limitTo: 10">
+					<p>
+						<i class="fa fa-twitter twitter-blue"></i>
+						<span>{{tweet.name}} (<a ng-href="https://twitter.com/{{tweet.username}}">@{{tweet.username}}</a>) said </span>
+						<span>"{{tweet.comment}}"</span>
+					</p>
+				</div>
+				<div class="row">
+					<div class="col-md-12" ng-if="tweets.length == 0" ng-include="'views/loader.html'"></div>
+				</div>
+			</div>
 		</div>
 	</div>
 
