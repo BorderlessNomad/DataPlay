@@ -7,13 +7,15 @@
 # 30      22      *       *       *       PGPASSWORD=aDam3ntiUm /var/lib/postgresql/pg_backup_rotated.sh >> /var/lib/postgresql/output.log
 #
 # # Sync it with Backup server
-# *       *       *       *       *       /usr/bin/rsync -a --no-group --no-owner --no-perms -v -z -r --delete /var/lib/postgresql/backups/ root@108.61.197.87:~/backups/postgresql/ >> /var/lib/postgresql/rsync.log
+# # VULTR
+# 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r --delete /var/lib/postgresql/backups/ root@108.61.197.87:~/backups/postgresql/ >> /var/lib/postgresql/rsync.vultr.log
+# # Flexiant
+# 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r --delete /var/lib/postgresql/backups/ ubuntu@109.231.121.85:~/backups/postgresql/ >> /var/lib/postgresql/rsync.flexiant.log
 ###
 
 ###########################
 ####### LOAD CONFIG #######
 ###########################
-
 while [ $# -gt 0 ]; do
 	case $1 in
 		-c)
@@ -42,7 +44,6 @@ source "${CONFIG_FILE_PATH}"
 ###########################
 #### PRE-BACKUP CHECKS ####
 ###########################
-
 # Make sure we're running as the required backup user
 if [ $BACKUP_USER != "" -a "$(id -un)" != "$BACKUP_USER" ] ; then
 	echo "This script must be run as $BACKUP_USER. Exiting." 1>&2
@@ -53,7 +54,6 @@ fi
 ###########################
 ### INITIALISE DEFAULTS ###
 ###########################
-
 if [ ! $HOSTNAME ]; then
 	HOSTNAME="localhost"
 fi;
@@ -62,11 +62,9 @@ if [ ! $USERNAME ]; then
 	USERNAME="postgres"
 fi;
 
-
 ###########################
 #### START THE BACKUPS ####
 ###########################
-
 function perform_backups() {
 	SUFFIX=$1
 	FINAL_BACKUP_DIR=$BACKUP_DIR"`date +\%Y-\%m-\%d`$SUFFIX/"
@@ -78,11 +76,9 @@ function perform_backups() {
 		exit 1;
 	fi;
 
-
 	###########################
 	### SCHEMA-ONLY BACKUPS ###
 	###########################
-
 	for SCHEMA_ONLY_DB in ${SCHEMA_ONLY_LIST//,/ }; do
 		SCHEMA_ONLY_CLAUSE="$SCHEMA_ONLY_CLAUSE or datname ~ '$SCHEMA_ONLY_DB'"
 	done
@@ -106,11 +102,9 @@ function perform_backups() {
 		fi
 	done
 
-
 	###########################
 	###### FULL BACKUPS #######
 	###########################
-
 	for SCHEMA_ONLY_DB in ${SCHEMA_ONLY_LIST//,/ }; do
 		EXCLUDE_SCHEMA_ONLY_CLAUSE="$EXCLUDE_SCHEMA_ONLY_CLAUSE and datname !~ '$SCHEMA_ONLY_DB'"
 	done
@@ -148,7 +142,6 @@ function perform_backups() {
 }
 
 # MONTHLY BACKUPS
-
 DAY_OF_MONTH=`date +%d`
 
 if [ $DAY_OF_MONTH -eq 1 ]; then
@@ -156,12 +149,9 @@ if [ $DAY_OF_MONTH -eq 1 ]; then
 	find $BACKUP_DIR -maxdepth 1 -name "*-monthly" -exec rm -rf '{}' ';'
 
 	perform_backups "-monthly"
-
-	exit 0;
 fi
 
 # WEEKLY BACKUPS
-
 DAY_OF_WEEK=`date +%u` #1-7 (Monday-Sunday)
 EXPIRED_DAYS=`expr $((($WEEKS_TO_KEEP * 7) + 1))`
 
@@ -170,12 +160,9 @@ if [ $DAY_OF_WEEK = $DAY_OF_WEEK_TO_KEEP ]; then
 	find $BACKUP_DIR -maxdepth 1 -mtime +$EXPIRED_DAYS -name "*-weekly" -exec rm -rf '{}' ';'
 
 	perform_backups "-weekly"
-
-	exit 0;
 fi
 
 # DAILY BACKUPS
-
 # Delete daily backups 7 days old or more
 find $BACKUP_DIR -maxdepth 1 -mtime +$DAYS_TO_KEEP -name "*-daily" -exec rm -rf '{}' ';'
 

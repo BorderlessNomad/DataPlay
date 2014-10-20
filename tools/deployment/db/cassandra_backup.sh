@@ -7,7 +7,10 @@
 # 30      22      *       *       *       /root/cassandra_backup.sh >> /root/cassandra_backup.log
 #
 # # Sync it with Backup server
-# *       *       *       *       *       /usr/bin/rsync -a --no-group --no-owner --no-perms -v -z -r --delete /var/lib/cassandra/backups/ root@108.61.197.87:~/backups/cassandara/ >> /var/lib/cassandra/rsync.log
+# # VULTR
+# 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r /var/lib/cassandra/backups/ root@108.61.197.87:~/backups/cassandra/ >> /var/lib/cassandra/rsync.vultr.log
+# # Flexiant
+# 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r /var/lib/cassandra/backups/ ubuntu@109.231.121.85:~/backups/cassandra/ >> /var/lib/cassandra/rsync.flexiant.log
 ###
 #	1. run $ nodetool snapshot dp (using CRON)
 #		output is,
@@ -27,7 +30,7 @@ timestamp () {
 
 echo "[$(timestamp)] ---- Started ----"
 
-HOST="172.17.0.78"
+HOST="172.17.0.78" # Local
 KEYSPACE="dp"
 NODETOOL=$(nodetool -h $HOST snapshot $KEYSPACE)
 TIMESTAMP=${NODETOOL#*: }

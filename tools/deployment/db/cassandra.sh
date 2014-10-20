@@ -33,19 +33,22 @@ install_java () {
 	. /etc/profile
 }
 
+restart_cassandra() {
+	service cassandra restart >> cassandra-service.log & # Start Cassandara in background
+	echo "Waiting for Cassandra restart..."
+	while ! grep -m1 '...done.' < cassandra-service.log ; do
+		sleep 1
+	done
+	echo "Cassandra is UP!"
+}
+
 install_cassandra () {
 	echo "deb http://debian.datastax.com/community stable main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list && \
 	curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add - && \
 	apt-get update && \
 	apt-get install -y cassandra
 
-	service cassandra restart >> cassandra-service.log & # Start Cassandara in background
-	echo "Waiting for Cassandra initialize..."
-	sleep 1
-	while ! grep -m1 '...done.' < cassandra-service.log ; do
-		sleep 1
-	done
-	echo "Cassandra is UP!"
+	restart_cassandra
 
 	echo "export CASSANDRA_CONFIG=/etc/cassandra" >> /etc/profile.d/dataplay.sh
 
@@ -67,7 +70,7 @@ configure_cassandra () {
 
 	# netstat -an | grep 9160.*LISTEN
 
-	service cassandra restart
+	restart_cassandra
 }
 
 install_opscenter () {
@@ -85,7 +88,7 @@ export_variables () {
 
 import_data () {
 	LASTDATE=$(date +%Y-%m-%d) # Today
-	BACKUP_HOST="108.61.197.87"
+	BACKUP_HOST="109.231.121.85"
 	BACKUP_PORT="8080"
 	BACKUP_DIR="cassandra/$LASTDATE"
 	BACKUP_USER="playgen"
@@ -135,13 +138,7 @@ import_data () {
 
 	rm -rf $LOG_DIR/*.log
 
-	service cassandra restart >> cassandra-service.log & # Start Cassandara in background
-	echo "Waiting for Cassandra restart..."
-	sleep 2
-	while ! grep -m1 '...done.' < cassandra-service.log ; do
-		sleep 2
-	done
-	echo "Cassandra is UP!"
+	restart_cassandra
 
 	# sleep 5
 	# nodetool -h $IP repair $KEYSPACE
