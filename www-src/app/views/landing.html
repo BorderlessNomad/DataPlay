@@ -45,21 +45,27 @@
 	</div>
 
 	<div class="row" id="graphs">
-		<div class="col-xs-3" ng-repeat="chart in chartsRelated | limitTo: 4">
-			<div ng-if="!chart.info">
-				{{chart.title}}
-				<span ng-include="'views/charts/related/line.html'"></span>
-				<span ng-include="'views/charts/related/row.html'"></span>
-				<span ng-include="'views/charts/related/column.html'"></span>
-				<span ng-include="'views/charts/related/pie.html'"></span>
-				<span ng-include="'views/charts/related/bubble.html'"></span>
-			</div>
 
-			<div ng-if="chart.info">
-				{{chart.info.title[0]}} and {{chart.info.title[1]}}
-				<span ng-include="'views/charts/correlated/line.html'"></span>
-				<span ng-include="'views/charts/correlated/column.html'"></span>
-				<span ng-include="'views/charts/correlated/scatter.html'"></span>
+		<div class="row">
+			<div class="col-xs-12"><h4>Top Rated Charts</h4></div>
+		</div>
+		<div class="row">
+			<div class="col-xs-3" ng-repeat="chart in chartsRelated | limitTo: 4">
+				<div ng-if="!chart.info">
+					{{chart.title}}
+					<span ng-include="'views/charts/related/line.html'"></span>
+					<span ng-include="'views/charts/related/row.html'"></span>
+					<span ng-include="'views/charts/related/column.html'"></span>
+					<span ng-include="'views/charts/related/pie.html'"></span>
+					<span ng-include="'views/charts/related/bubble.html'"></span>
+				</div>
+
+				<div ng-if="chart.info">
+					{{chart.info.title[0]}} and {{chart.info.title[1]}}
+					<span ng-include="'views/charts/correlated/line.html'"></span>
+					<span ng-include="'views/charts/correlated/column.html'"></span>
+					<span ng-include="'views/charts/correlated/scatter.html'"></span>
+				</div>
 			</div>
 		</div>
 	</div>

@@ -33,6 +33,7 @@ angular.module('dataplayApp')
 			return if $scope.query.length < 3
 
 			$scope.loading.related = true
+			$scope.loading.tweets = true
 
 			User.search $scope.query, offset, count
 				.success (data) ->
@@ -56,10 +57,13 @@ angular.module('dataplayApp')
 
 			User.searchTweets $scope.query
 				.success (data) ->
+					$scope.loading.tweets = false
 					if data? and data instanceof Array
 						$scope.tweets.splice(0)
 						data.forEach (tw) ->
 							$scope.tweets.push tw
+				.error () ->
+					$scope.loading.tweets = false
 
 			return
 

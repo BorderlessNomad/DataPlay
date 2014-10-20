@@ -8,23 +8,23 @@
  # Factory in the dataplayApp.
 ###
 angular.module('dataplayApp')
-  .factory 'Home', ['$http', 'Auth', 'config', ($http, Auth, config) ->
+	.factory 'Home', ['$http', 'Auth', 'config', ($http, Auth, config) ->
 
-    getStats: () ->
-      $http.get config.api.base_url + "/home/data"
+		getStats: () ->
+			$http.get config.api.base_url + "/home/data"
 
-    getTopRated: () ->
-      $http.get config.api.base_url + "/chart/toprated"
+		getTopRated: () ->
+			$http.get config.api.base_url + "/chart/toprated"
 
-    getAwaitingCredit: () ->
-      $http.get config.api.base_url + "/chart/awaitingcredit"
+		getAwaitingCredit: () ->
+			$http.get config.api.base_url + "/chart/awaitingcredit"
 
-    getActivityStream: () ->
-      $http.get config.api.base_url + "/user/activitystream"
+		getActivityStream: () ->
+			$http.get config.api.base_url + "/user/activitystream"
 
-    getRecentObservations: () ->
-      $http.get config.api.base_url + "/recentobservations"
+		getRecentObservations: () ->
+			$http.get config.api.base_url + "/recentobservations"
 
-    getDataExperts: () ->
-      $http.get config.api.base_url + "/user/experts"
-  ]
+		getDataExperts: () ->
+			$http.get config.api.base_url + "/user/experts"
+	]
