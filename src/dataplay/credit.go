@@ -38,7 +38,7 @@ func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
 	credit := Credit{}
 
 	if strings.ContainsAny(rcid, "/") { // if a relation id
-		err := DB.Where("relation_id = ?", rcid).First(&discovered).Error
+		err := DB.Where("relation_id = ?", rcid).Find(&discovered).Error
 		if err != nil && err != gorm.RecordNotFound {
 			return "", &appError{err, ", database query failed (relation_id)", http.StatusInternalServerError}
 		}
@@ -48,14 +48,10 @@ func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
 			return "", &appError{err, ", could not convert id to int", http.StatusInternalServerError}
 		}
 
-		err := DB.Where("correlation_id = ?", cid).First(&discovered).Error
+		err := DB.Where("correlation_id = ?", cid).Find(&discovered).Error
 		if err != nil && err != gorm.RecordNotFound {
 			return "", &appError{err, ", database query failed (correlation_id)", http.StatusInternalServerError}
 		}
-	}
-
-	if discovered.Uid == uid {
-		return "", &appError{err, ", user cannot credit own discovery.", http.StatusInternalServerError}
 	}
 
 	if credflag {
@@ -90,7 +86,7 @@ func CreditObservation(oid int, uid int, credflag bool) *appError {
 	observation := Observation{}
 	credit := Credit{}
 
-	err := DB.Where("observation_id = ?", oid).First(&observation).Error
+	err := DB.Where("observation_id = ?", oid).Find(&observation).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return &appError{err, " Database query failed - credit observation (get)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
