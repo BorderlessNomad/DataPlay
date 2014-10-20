@@ -210,7 +210,7 @@ func GetCreditedDiscoveriesHttp(res http.ResponseWriter, req *http.Request) stri
 	}
 
 	discovered := []Discovered{}
-	err1 := DB.Where("uid = ?", uid).Where("credit > ?", 0).Find(&discovered).Error
+	err1 := DB.Where("uid = ?", uid).Where("credited > ?", 0).Find(&discovered).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {
 		http.Error(res, "Database query failed! (Discovered)", http.StatusInternalServerError)
 		return ""
