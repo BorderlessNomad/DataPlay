@@ -54,10 +54,6 @@ func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
 		}
 	}
 
-	if discovered.Uid == uid {
-		return "", &appError{err, ", user cannot credit own discovery.", http.StatusInternalServerError}
-	}
-
 	if credflag {
 		discovered.Credited++
 		Reputation(discovered.Uid, discCredit) // add points for discovery credit
