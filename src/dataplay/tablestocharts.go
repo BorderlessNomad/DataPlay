@@ -153,7 +153,7 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 // use the id relating to the record stored in the generated correlations table to return the json with the specific chart info
 func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	pattern := PatternInfo{}
-	var chart string
+	var chart []string
 	var cd CorrelationData
 
 	err := DB.Model(Correlation{}).Where("correlation_id = ?", cid).Pluck("json", &chart).Error
@@ -167,7 +167,7 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	discovered := Discovered{}
 	err1 := DB.Where("correlation_id = ?", cid).Find(&discovered).Error
 	if err1 == gorm.RecordNotFound {
-		Discover(strconv.Itoa(cid), uid, []byte(chart), true)
+		Discover(strconv.Itoa(cid), uid, []byte(chart[0]), true)
 	}
 	fmt.Println("GUIDO", discovered.Uid)
 	user := User{}
