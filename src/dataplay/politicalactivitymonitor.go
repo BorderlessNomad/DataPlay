@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/gocql/gocql"
 	"github.com/jinzhu/gorm"
