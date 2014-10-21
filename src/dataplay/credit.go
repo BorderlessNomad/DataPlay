@@ -38,7 +38,7 @@ func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
 	credit := Credit{}
 
 	if strings.ContainsAny(rcid, "/") { // if a relation id
-		err := DB.Where("relation_id = ?", rcid).First(&discovered).Error
+		err := DB.Where("relation_id = ?", rcid).Find(&discovered).Error
 		if err != nil && err != gorm.RecordNotFound {
 			return "", &appError{err, ", database query failed (relation_id)", http.StatusInternalServerError}
 		}
@@ -48,23 +48,19 @@ func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
 			return "", &appError{err, ", could not convert id to int", http.StatusInternalServerError}
 		}
 
-		err := DB.Where("correlation_id = ?", cid).First(&discovered).Error
+		err := DB.Where("correlation_id = ?", cid).Find(&discovered).Error
 		if err != nil && err != gorm.RecordNotFound {
 			return "", &appError{err, ", database query failed (correlation_id)", http.StatusInternalServerError}
 		}
 	}
 
-	if discovered.Uid == uid {
-		return "", &appError{err, ", user cannot credit own discovery.", http.StatusInternalServerError}
-	}
-
 	if credflag {
 		discovered.Credited++
-		Reputation(discovered.Uid, discVal) // add points for discovery credit
+		Reputation(discovered.Uid, discCredit) // add points for discovery credit
 		AddActivity(uid, "vc", t, discovered.DiscoveredId, 0)
 	} else {
 		discovered.Discredited++
-		Reputation(discovered.Uid, discInval) // remove points for discovery discredit
+		Reputation(discovered.Uid, discDiscredit) // remove points for discovery discredit
 		AddActivity(uid, "ic", t, discovered.DiscoveredId, 0)
 	}
 	discovered.Rating = RankCredits(discovered.Credited, discovered.Discredited)
@@ -90,7 +86,7 @@ func CreditObservation(oid int, uid int, credflag bool) *appError {
 	observation := Observation{}
 	credit := Credit{}
 
-	err := DB.Where("observation_id = ?", oid).First(&observation).Error
+	err := DB.Where("observation_id = ?", oid).Find(&observation).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return &appError{err, " Database query failed - credit observation (get)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
@@ -111,11 +107,11 @@ func CreditObservation(oid int, uid int, credflag bool) *appError {
 
 	if credflag {
 		observation.Credited++
-		Reputation(observation.Uid, obsVal) // add points for observation credit
+		Reputation(observation.Uid, obsCredit) // add points for observation credit
 		AddActivity(uid, "vo", t, 0, observation.ObservationId)
 	} else {
 		observation.Credited++
-		Reputation(observation.Uid, obsInval) // remove points for observation incredit
+		Reputation(observation.Uid, obsDiscredit) // remove points for observation incredit
 		AddActivity(uid, "io", t, 0, observation.ObservationId)
 	}
 

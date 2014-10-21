@@ -2,20 +2,47 @@
 	<h2>Administrate Users</h2>
 	<table class="table table-bordered table-hover table-striped">
 		<tr>
-			<th>#</th>
-			<th>Avatar</th>
-			<th>Username</th>
-			<th>Reputation</th>
-			<th>Admin?</th>
+			<th>
+				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'uid'" ng-click="orderby('uid')"></i>
+				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'uid'"></i>
+				<span>#</span>
+			</th>
+			<th>
+				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'avatar'" ng-click="orderby('avatar')"></i>
+				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'avatar'"></i>
+				<span>Avatar</span>
+			</th>
+			<th>
+				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'username'" ng-click="orderby('username')"></i>
+				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'username'"></i>
+				<span>Username</span>
+			</th>
+			<th>
+				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'email'" ng-click="orderby('email')"></i>
+				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'email'"></i>
+				<span>Email Address</span>
+			</th>
+			<th>
+				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'reputation'" ng-click="orderby('reputation')"></i>
+				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'reputation'"></i>
+				<span>Reputation</span>
+			</th>
+			<th>
+				<i class="fa fa-caret-square-o-down clickable" ng-if="pagination.orderby != 'usertype'" ng-click="orderby('usertype')"></i>
+				<i class="fa fa-sort-desc" ng-if="pagination.orderby == 'usertype'"></i>
+				<span>Admin?</span>
+			</th>
 			<th></th>
 		</tr>
+		<tr ng-if="users.length === 0"><td colspan="7" ng-include="'../views/loader.html'"></td></tr>
 		<tr ng-repeat="user in users | limitTo: pagination.perPage">
-			<td>{{user.id}}</td>
+			<td>{{user.uid}}</td>
 			<td class="text-center">
 				<img class="avatar" ng-if="user.avatar !== ''" ng-src="{{user.avatar}}"/>
-				<img class="avatar" ng-if="user.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{user.MD5Email}}?d=identicon"/>
+				<img class="avatar" ng-if="user.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{user.md5email}}?d=identicon&s=50" />
 			</td>
 			<td>{{user.username}}</td>
+			<td>{{user.email}}</td>
 			<td>
 				<div class="text-center gold bold">
 					<i class="glyphicon glyphicon-star"></i>
@@ -49,7 +76,7 @@
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="text-center">
-					<ul class="pagination pagination-xs pagination-plain">
+					<ul class="pagination pagination-sm pagination-plain">
 						<li ng-class="{active: modal.content.type == 'view'}"><a href="#" ng-click="modal.content.type = 'view'"><i class="fa fa-search"></i> View</a></li>
 						<li ng-class="{active: modal.content.type == 'edit'}"><a href="#" ng-click="modal.content.type = 'edit'"><i class="fa fa-pencil"></i> Edit</a></li>
 						<li ng-class="{active: modal.content.type == 'disable'}" ng-if="modal.content.item.enabled"><a href="#" ng-click="modal.content.type = 'disable'"><i class="fa fa-times"></i> Disable</a></li>
@@ -60,7 +87,7 @@
 					<form name="editForm" role="form" ng-submit="submitForm()">
 						<div class="text-center">
 							<img class="avatar-150 inline" ng-if="modal.content.item.avatar !== ''" ng-src="{{modal.content.item.avatar}}"/>
-							<img class="avatar-150 inline" ng-if="modal.content.item.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{modal.content.item.MD5Email}}?d=identicon"/>
+							<img class="avatar-150 inline" ng-if="modal.content.item.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{modal.content.item.md5email}}?d=identicon&s=200" />
 							<div class="inline" ng-if="modal.content.type == 'edit' && false">
 								<button class="btn btn-danger btn-xs">Remove</button>
 							</div>
@@ -68,12 +95,17 @@
 						<table class="table table-bordered table-hover table-striped">
 							<tr>
 								<th class="col-xs-4">#</th>
-								<td class="col-xs-8">{{modal.content.item.id}}</td>
+								<td class="col-xs-8">{{modal.content.item.uid}}</td>
 							</tr>
 							<tr>
 								<th>Username</th>
 								<td ng-if="modal.content.type == 'view'">{{modal.content.item.username}}</td>
-								<td ng-if="modal.content.type == 'edit'"><input type="text" class="form-control input-sm" ng-model="modal.content.item.username" ng-pattern="/^([A-Za-z0-9]{4,})$/" ng-required="true"></input></td>
+								<td ng-if="modal.content.type == 'edit'"><input type="text" class="form-control input-sm" ng-model="modal.content.item.username" ng-pattern="/^([A-Za-z0-9]{3,})$/" ng-required="true"></input></td>
+							</tr>
+							<tr>
+								<th>Email Address</th>
+								<td ng-if="modal.content.type == 'view'">{{modal.content.item.email}}</td>
+								<td ng-if="modal.content.type == 'edit'"><input type="text" class="form-control input-sm" ng-model="modal.content.item.email" ng-pattern="/^\S+@\S+\.\S+$/" ng-required="true"></input></td>
 							</tr>
 							<tr>
 								<th>Reputation</th>
@@ -100,6 +132,14 @@
 									<input type="checkbox" ng-model="modal.content.item.usertype">
 								</td>
 							</tr>
+							<tr ng-if="modal.content.type == 'edit'">
+								<th>Reset Password</th>
+								<td>
+									<input type="text" id="password-field" class="form-control input-sm" ng-model="modal.content.item.password" ng-required="false"></input>
+									<button type="button" id="password-random" class="btn btn-default btn-sm" ng-click="generateRandom()" ><i class="fa fa-reorder"></i> Generate</button>
+								</td>
+							</tr>
+
 						</table>
 						<div class="text-center">
 							<button type="button" class="btn btn-primary text-center" ng-click="edit()" ng-if="modal.content.type == 'edit'" ng-disabled="!editForm.$valid"><i class="fa fa-save"></i> Save</button>
@@ -111,8 +151,8 @@
 					<p ng-if="modal.content.item.enabled">Are you sure you want to disable this user?</p>
 					<p ng-if="!modal.content.item.enabled">Are you sure you want to enable this user?</p>
 					<div class="text-center">
-						<button type="button" class="btn btn-danger text-center" ng-if="modal.content.item.enabled" ng-click="disable(false)"><i class="fa fa-times"></i> Disable</button>
-						<button type="button" class="btn btn-success text-center" ng-if="!modal.content.item.enabled" ng-click="disable(true)"><i class="fa fa-check"></i> Enable</button>
+						<button type="button" class="btn btn-danger text-center" ng-if="modal.content.item.enabled" ng-click="disable()"><i class="fa fa-times"></i> Disable</button>
+						<button type="button" class="btn btn-success text-center" ng-if="!modal.content.item.enabled" ng-click="disable()"><i class="fa fa-check"></i> Enable</button>
 						<button type="button" class="btn btn-default text-center" ng-click="closeModal()">Cancel</button>
 					</div>
 				</div>

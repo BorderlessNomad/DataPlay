@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/codegangsta/martini-contrib/binding"
+	"github.com/jinzhu/gorm"
 	"github.com/martini-contrib/cors"
 	"log"
 	"net/http"
@@ -132,7 +133,7 @@ func initClassicMode() {
 
 	m.Use(JsonApiHandler)
 
-	m.Use(UserApiSessionHandler)
+	m.Use(ApiSessionHandler)
 
 	m.Run()
 }
@@ -233,7 +234,7 @@ func initMasterMode() {
 
 	m.Use(LogRequest)
 
-	m.Use(UserApiSessionHandler)
+	m.Use(ApiSessionHandler)
 
 	m.Run()
 }
@@ -298,9 +299,11 @@ func initAPI() *martini.ClassicMartini { // initialise martini and add in common
 
 	m.Get("/api/ping", func(res http.ResponseWriter, req *http.Request) string { return "pong" })
 
+	m.Delete("/api/admin/observations/:id", DeleteObservationHttp)
 	m.Delete("/api/logout", HandleLogout)
 	m.Delete("/api/logout/:session", HandleLogout)
 
+	m.Get("/api/admin/observations/get/:order/:offset/:count/:flagged", GetObservationsTableHttp)
 	m.Get("/api/admin/user/get/:order/:offset/:count", GetUserTableHttp)
 	m.Get("/api/chart/awaitingcredit", GetAwaitingCreditHttp)
 	m.Get("/api/chart/toprated", GetTopRatedChartsHttp)
@@ -318,6 +321,7 @@ func initAPI() *martini.ClassicMartini { // initialise martini and add in common
 	m.Get("/api/recentobservations", GetRecentObservationsHttp)
 	m.Get("/api/stringmatch/:word", FindStringMatches)
 	m.Get("/api/stringmatch/:word/:x", FindStringMatches)
+	m.Get("/api/tweets/:searchterms", GetTweetsHttp)
 	m.Get("/api/user", GetUserDetails)
 	m.Get("/api/user/discoveries", GetAmountDiscoveriesHttp)
 	m.Get("/api/user/experts", GetDataExpertsHttp)
@@ -334,6 +338,7 @@ func initAPI() *martini.ClassicMartini { // initialise martini and add in common
 	m.Post("/api/login/social", binding.Bind(UserSocialForm{}), func(res http.ResponseWriter, req *http.Request, login UserSocialForm) string {
 		return HandleSocialLogin(res, req, login)
 	})
+	m.Post("/api/observations/flag/:id", FlagObservationHttp)
 	m.Post("/api/user/check", binding.Bind(UserNameForm{}), func(res http.ResponseWriter, req *http.Request, username UserNameForm) string {
 		return HandleCheckUsername(res, req, username)
 	})
@@ -416,8 +421,36 @@ func JsonApiHandler(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func ApiSessionHandler(res http.ResponseWriter, req *http.Request) {
+	if strings.HasPrefix(req.URL.Path, "/api/admin") {
+		AdminApiSessionHandler(res, req)
+	} else {
+		UserApiSessionHandler(res, req)
+	}
+}
+
 func AdminApiSessionHandler(res http.ResponseWriter, req *http.Request) {
-	//@TODO !!!!
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+	}
+
+	uid, err := GetUserID(session)
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
+	}
+
+	user := User{}
+	err1 := DB.Where("uid = ?", uid).First(&user).Error
+	if err1 != nil && err1 != gorm.RecordNotFound {
+		http.Error(res, "Database query failed (User).", http.StatusInternalServerError)
+	} else if err1 == gorm.RecordNotFound {
+		http.Error(res, "No such user found!", http.StatusNotFound)
+	}
+
+	if user.Usertype != UserTypeAdmin {
+		http.Error(res, "User is not authorised to perform this action.", http.StatusUnauthorized)
+	}
 }
 
 func UserApiSessionHandler(res http.ResponseWriter, req *http.Request) {
@@ -448,7 +481,7 @@ func UserApiSessionHandler(res http.ResponseWriter, req *http.Request) {
 
 	if pathA == "/" || pathA == "/favicon.ico" {
 		res.WriteHeader(http.StatusOK)
-	} else if (!noAuthPaths[pathA] && !noAuthPaths[pathB]) && (len(req.Header.Get("X-API-SESSION")) <= 0 || req.Header.Get("X-API-SESSION") == "false") {
+	} else if (!noAuthPaths[pathA] && !noAuthPaths[pathB]) && (len(req.Header.Get("X-API-SESSION")) < 64 || req.Header.Get("X-API-SESSION") == "false") {
 		res.WriteHeader(http.StatusUnauthorized)
 	}
 }

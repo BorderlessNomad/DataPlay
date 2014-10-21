@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"net/http"
@@ -19,6 +18,7 @@ type Observations struct {
 	Created       time.Time `json:"created, omitempty"`
 	Credited      int       `json:"credits, omitempty"`
 	Discredited   int       `json:"discredits, omitempty"`
+	Flagged       bool      `json:"flagged, omitempty"`
 }
 
 type UserData struct {
@@ -54,6 +54,7 @@ func AddObservation(did int, uid int, comment string, x string, y string) (strin
 	observation.X = x
 	observation.Y = y
 	observation.Created = time.Now()
+	observation.Flagged = false
 
 	discovered := Discovered{}
 	err := DB.Where("discovered_id = ?", did).First(&discovered).Error
@@ -77,8 +78,6 @@ func AddObservation(did int, uid int, comment string, x string, y string) (strin
 	if err3 != nil {
 		return "Database query failed - add observation (find observation)", &appError{err3, "Database query failed - add observation (find observation)", http.StatusInternalServerError}
 	}
-
-	fmt.Println("MACARINA", observation)
 
 	return strconv.Itoa(observation.ObservationId), nil
 }
@@ -113,6 +112,7 @@ func GetObservations(did int) ([]Observations, *appError) {
 		tmpOD.Discredited = o.Discredited
 		tmpOD.Created = o.Created
 		tmpOD.ObservationId = o.ObservationId
+		tmpOD.Flagged = o.Flagged
 
 		user := make([]User, 0)
 		err2 := DB.Where("uid= ?", o.Uid).Find(&user).Error
@@ -275,4 +275,27 @@ func GetRecentObservationsHttp(res http.ResponseWriter, req *http.Request) strin
 	} else {
 		return string(r)
 	}
+}
+
+func FlagObservationHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
+		return ""
+	}
+
+	if params["id"] == "" {
+		http.Error(res, "Missing id parameter.", http.StatusBadRequest)
+		return ""
+	}
+
+	id, _ := strconv.Atoi(params["id"])
+
+	err := DB.Model(Observation{}).Where("observation_id= ?", id).Update("flagged", true).Error
+	if err != nil {
+		http.Error(res, "Missing session parameter.", http.StatusInternalServerError)
+		return ""
+	}
+
+	return "success"
 }

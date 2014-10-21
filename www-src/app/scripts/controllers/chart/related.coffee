@@ -96,9 +96,6 @@ angular.module('dataplayApp')
 			return
 
 		$scope.initObservations = (redraw) ->
-			id = "#{$scope.params.id}/#{$scope.params.key}/#{$scope.params.type}/#{$scope.params.x}/#{$scope.params.y}"
-			id += "/#{$scope.params.z}" if $scope.params.z?.length > 0
-
 			Charts.getObservations $scope.info.discoveredId
 				.then (res) ->
 					$scope.userObservations.splice 0, $scope.userObservations.length
@@ -126,6 +123,7 @@ angular.module('dataplayApp')
 							coor:
 								x: obsv.x
 								y: obsv.y
+							flagged: !! obsv.flagged
 
 					if redraw? and redraw
 						$scope.redrawObservationIcons()
@@ -692,6 +690,12 @@ angular.module('dataplayApp')
 
 		$scope.resetObservations = ->
 			d3.selectAll('g.observations.new > *').remove()
+
+		$scope.flagObservation = (obsv) ->
+			Charts.flagObservation obsv.oid
+				.success (data) ->
+					obsv.flagged = true
+
 
 		$scope.resetAll = ->
 			dc.filterAll()

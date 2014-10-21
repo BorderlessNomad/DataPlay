@@ -4,10 +4,14 @@
 	<div class="media" ng-repeat="obsv in userObservations" id="observation_{{obsv.xy}}">
 		<div class="row">
 			<span class="text-muted"><small>{{obsv.date}}</small></span>
+			<span class="flag">
+				<button class="btn btn-default btn-xs" title="Flag this comment as inappropriate" ng-if="!obsv.flagged" ng-click="flagObservation(obsv)"><i class="fa fa-flag"></i> Flag</button>
+				<button class="btn btn-default btn-xs disabled" title="This comment has been flagged as inappropriate" ng-if="obsv.flagged" ><i class="fa fa-flag"></i> Flagged</button>
+			</span>
 		</div>
 		<div class="row">
 			<span class="left pull-left">
-				<img class="media-object" data-src="{{obsv.user.avatar}}" src="{{obsv.user.avatar}}">
+				<img class="media-object" ng-src="{{obsv.user.avatar}}">
 
 				<div class="votes">
 					<i class="glyphicon glyphicon-arrow-up" ng-click="creditObservation(obsv, true)"></i>
@@ -16,7 +20,8 @@
 				</div>
 			</span>
 			<div class="media-body">
-				<h4 class="media-heading">{{obsv.user.username}} <span class="text-warning"><i class="glyphicon glyphicon-star"></i>{{obsv.user.reputation}}</span> <span class="label label-primary" ng-show="obsv.user.discoverer">Discoverer</span></h4>
+				<h4 class="media-heading">{{obsv.user.username}} <span class="text-warning"><i class="glyphicon glyphicon-star"></i>{{obsv.user.reputation}}</span> <span class="label label-primary" ng-show="obsv.user.discoverer">Discoverer</span>
+				</h4>
 				{{obsv.message}}
 			</div>
 		</div>

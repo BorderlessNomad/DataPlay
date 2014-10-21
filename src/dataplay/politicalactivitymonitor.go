@@ -13,7 +13,7 @@ import (
 
 const numdays = 30
 
-var Today = time.Date(2010, 2, 1, 0, 0, 0, 0, time.UTC) // override today's date
+var Today = time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.UTC) // override today's date
 var FromDate = Today.AddDate(0, 0, -numdays)
 
 type TermKey struct {
@@ -242,8 +242,8 @@ func PopularPoliticalActivity() [3]Popular {
 }
 
 func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
-	cassandraHost := "10.0.0.2"
-	cassandraPort := 49211 //9042
+	cassandraHost := "109.231.121.129"
+	cassandraPort := 9042
 
 	if os.Getenv("DP_CASSANDRA_HOST") != "" {
 		cassandraHost = os.Getenv("DP_CASSANDRA_HOST")

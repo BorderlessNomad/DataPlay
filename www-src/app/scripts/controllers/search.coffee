@@ -11,6 +11,7 @@ angular.module('dataplayApp')
 	.controller 'SearchCtrl', ['$scope', '$location', '$routeParams', 'User', 'Overview', 'PatternMatcher', ($scope, $location, $routeParams, User, Overview, PatternMatcher) ->
 		$scope.query = if $routeParams.query? then $routeParams.query else ""
 		$scope.results = []
+		$scope.tweets = []
 
 		$scope.rowLimit = 3
 		$scope.overview = []
@@ -32,6 +33,7 @@ angular.module('dataplayApp')
 			return if $scope.query.length < 3
 
 			$scope.loading.related = true
+			$scope.loading.tweets = true
 
 			User.search $scope.query, offset, count
 				.success (data) ->
@@ -52,6 +54,17 @@ angular.module('dataplayApp')
 					$scope.loading.related = false
 					console.log "Search::search::Error:", status
 					return
+
+			User.searchTweets $scope.query
+				.success (data) ->
+					$scope.loading.tweets = false
+					if data? and data instanceof Array
+						$scope.tweets.splice(0)
+						data.forEach (tw) ->
+							$scope.tweets.push tw
+				.error () ->
+					$scope.loading.tweets = false
+
 			return
 
 		$scope.getNews = () ->
