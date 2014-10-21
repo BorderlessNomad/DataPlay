@@ -15,7 +15,7 @@ APP="dataplay"
 WWW="www-src"
 
 HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
-PORT="80"
+PORT="3000"
 
 # LOADBALANCER_HOST="109.231.121.26"
 LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
