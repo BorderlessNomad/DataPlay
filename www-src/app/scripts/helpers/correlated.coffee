@@ -19,6 +19,7 @@ tickFormatFunc = (type) ->
 		if type is 'date'
 			return d3.time.format("%d-%m-%Y") new Date d
 		return d3.format(",f") d
+		#
 
 optionsList =
 	line:
