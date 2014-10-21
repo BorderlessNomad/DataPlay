@@ -17,7 +17,7 @@ angular.module('dataplayApp')
 
 		$scope.chart = new CorrelatedChart
 
-		$scope.userObservations = []
+		$scope.userObservations = null
 		$scope.userObservationsMessage = []
 		$scope.observation =
 			x: null
@@ -94,7 +94,7 @@ angular.module('dataplayApp')
 		$scope.initObservations = (redraw) ->
 			Charts.getObservations $scope.info.discoveredId
 				.then (res) ->
-					$scope.userObservations.splice 0, $scope.userObservations.length
+					$scope.userObservations = []
 
 					res.data?.forEach? (obsv) ->
 						x = "0"

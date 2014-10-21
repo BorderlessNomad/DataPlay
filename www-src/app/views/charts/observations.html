@@ -28,6 +28,7 @@
 	</div>
 </div>
 
-<div class="nothing" ng-hide="userObservations.length > 0">
-	<p class="text-center text-muted">Oops! It seems like there is no data to show.</p>
+<div class="nothing">
+	<p class="text-center text-muted" ng-if="userObservations !== null && userObservations.length == 0">Doesn't look like there's any observations yet.<br/><a href="#" class="" ng-click="openAddObservationModal()">Be the first!</a></p>
+	<div ng-if="userObservations === null" class="loader-tight loader-faded" ng-include="'views/loader.html'"></div>
 </div>
