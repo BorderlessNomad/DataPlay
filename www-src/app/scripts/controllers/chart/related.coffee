@@ -35,7 +35,7 @@ angular.module('dataplayApp')
 			values: []
 		$scope.xScale = null
 		$scope.yDomain = null
-		$scope.userObservations = []
+		$scope.userObservations = null
 		$scope.userObservationsMessage = []
 		$scope.observation =
 			x: null
@@ -98,7 +98,7 @@ angular.module('dataplayApp')
 		$scope.initObservations = (redraw) ->
 			Charts.getObservations $scope.info.discoveredId
 				.then (res) ->
-					$scope.userObservations.splice 0, $scope.userObservations.length
+					$scope.userObservations = []
 
 					res.data?.forEach? (obsv) ->
 						x = obsv.x
@@ -238,6 +238,7 @@ angular.module('dataplayApp')
 			d3.selectAll('g.observations > *').remove()
 
 		$scope.renderObservationIcons = (xScale, yDomain, data, newObservations) ->
+			return unless $scope.userObservations isnt null
 			for p in $scope.userObservations
 				if (p.coor.x is 0 or p.coor.x is "0") and (p.coor.y is 0 or p.coor.y is "0")
 					continue
