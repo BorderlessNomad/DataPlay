@@ -10,6 +10,8 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 IP=`ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`
+MAX_RETRIES="50"
+TIMEOUT="5"
 
 timestamp () {
 	date +"%F %T,%3N"
@@ -33,12 +35,22 @@ install_java () {
 	. /etc/profile
 }
 
-restart_cassandra() {
-	service cassandra restart >> cassandra-service.log & # Start Cassandara in background
-	echo "Waiting for Cassandra restart..."
-	while ! grep -m1 '...done.' < cassandra-service.log ; do
-		sleep 1
+check_cassandra() {
+	TRY="1"
+	until [[ $TRY -lt $MAX_RETRIES ]] && cqlsh $IP -e "exit" ; do
+		echo "Connect: attempt $TRY failed! trying again in $TIMEOUT seconds..."
+		TRY=$[$TRY+1]
+		sleep $TIMEOUT
 	done
+	if [[ $TRY -ge $MAX_RETRIES ]]; then
+		echo >&2 "Error: Unable Connect to Cassandra."; exit 1;
+	fi
+}
+
+restart_cassandra() {
+	service cassandra restart
+	echo "Waiting for Cassandra restart..."
+	check_cassandra
 	echo "Cassandra is UP!"
 }
 
@@ -48,13 +60,9 @@ install_cassandra () {
 	apt-get update && \
 	apt-get install -y cassandra
 
-	restart_cassandra
-
 	echo "export CASSANDRA_CONFIG=/etc/cassandra" >> /etc/profile.d/dataplay.sh
 
 	. /etc/profile
-
-	# nodetool status # Verify that DataStax Community is running
 }
 
 configure_cassandra () {
@@ -100,7 +108,6 @@ import_data () {
 	DATA_DIR="$CASSANDRA_DIR/data"
 	LOG_DIR="$CASSANDRA_DIR/commitlog"
 	SOURCE_DIR="/tmp/cassandra-data"
-	MAX_RETRIES="60"
 
 	i="1"
 	until [[ $i -lt $MAX_RETRIES ]] && axel -a "http://$BACKUP_USER:$BACKUP_PASS@$BACKUP_HOST:$BACKUP_PORT/$BACKUP_DIR/$BACKUP_SCHEMA_FILE"; do
@@ -109,7 +116,7 @@ import_data () {
 		echo "Latest $BACKUP_SCHEMA_FILE backup not available, trying $LASTDATE"
 		i=$[$i+1]
 	done
-	if [[ $i -gt $MAX_RETRIES ]]; then
+	if [[ $i -ge $MAX_RETRIES ]]; then
 		echo >&2 "Error: Unable to fetch '$BACKUP_SCHEMA_FILE' from backup server."; exit 1;
 	fi
 
@@ -120,9 +127,11 @@ import_data () {
 		echo "Latest $BACKUP_DATA_FILE backup not available, trying $LASTDATE"
 		j=$[$j+1]
 	done
-	if [[ $j -gt $MAX_RETRIES ]]; then
+	if [[ $j -ge $MAX_RETRIES ]]; then
 		echo >&2 "Error: Unable to fetch '$BACKUP_DATA_FILE' from backup server."; exit 1;
 	fi
+
+	check_cassandra
 
 	cqlsh $IP -f $BACKUP_SCHEMA_FILE
 
@@ -140,7 +149,6 @@ import_data () {
 
 	restart_cassandra
 
-	# sleep 5
 	# nodetool -h $IP repair $KEYSPACE
 
 	rm -rf $SOURCE_DIR
