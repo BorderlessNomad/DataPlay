@@ -16,6 +16,6 @@ func TestTweet(t *testing.T) {
 	}
 	Convey("Should return tweets", t, func() {
 		result := GetTweetsHttp(res, req, params)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 }

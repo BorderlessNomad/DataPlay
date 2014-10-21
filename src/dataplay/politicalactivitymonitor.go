@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/gocql/gocql"
 	"github.com/jinzhu/gorm"
@@ -12,9 +13,6 @@ import (
 )
 
 const numdays = 30
-
-var Today = time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.UTC) // override today's date
-var FromDate = Today.AddDate(0, 0, -numdays)
 
 type TermKey struct {
 	KeyTerm  string
@@ -108,11 +106,17 @@ func TermFrequency(terms []TermKey) []PoliticalActivity {
 	var date time.Time
 	var name string
 	politicalActivity := make([]PoliticalActivity, 0)
+	now := time.Now()
+	var Today = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC) // override today's date
+	var FromDate = Today.AddDate(0, 0, -numdays)
 
 	session, _ := GetCassandraConnection("dp") // create connection to cassandra
 	defer session.Close()
 
+	a := time.Now()
 	iter1 := session.Query(`SELECT date, name FROM keyword WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
+	b := time.Now()
+	fmt.Println("ROBOCOP DEPT", b.Sub(a).Seconds())
 	for iter1.Scan(&date, &name) {
 		for _, term := range terms {
 			if name == term.KeyTerm { // for any key term matches
@@ -122,8 +126,10 @@ func TermFrequency(terms []TermKey) []PoliticalActivity {
 			}
 		}
 	}
-
+	c := time.Now()
 	iter2 := session.Query(`SELECT date, name FROM entity WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
+	d := time.Now()
+	fmt.Println("ROBOCOP DEPT", d.Sub(c).Seconds())
 	for iter2.Scan(&date, &name) {
 		for _, term := range terms {
 			if name == term.KeyTerm { // for any key term matches
@@ -133,6 +139,7 @@ func TermFrequency(terms []TermKey) []PoliticalActivity {
 			}
 		}
 	}
+
 	return RankPA(politicalActivity)
 }
 

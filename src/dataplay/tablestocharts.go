@@ -93,18 +93,18 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	//if the table is as yet undiscovered then add to the discovered table as an initial discovery
 	discovered := Discovered{}
 	var err3 *appError
-	err2 := DB.Where("relation_id = ?", id).First(&discovered).Error
+	err2 := DB.Where("relation_id = ?", id).Find(&discovered).Error
 	if err2 == gorm.RecordNotFound {
 		discovered, err3 = Discover(id, uid, jByte, false)
 		if err3 != nil {
 			return pattern, err3
 		}
 	}
-
+	fmt.Println("CARAVAN", discovered.Uid)
 	user := User{}
-	err4 := DB.Where("uid = ?", discovered.Uid).First(&user).Error
+	err4 := DB.Where("uid = ?", discovered.Uid).Find(&user).Error
 	if err4 != nil && err4 != gorm.RecordNotFound {
-		return pattern, &appError{err4, "unable to retrieve user", http.StatusInternalServerError}
+		return pattern, &appError{err4, "unable to retrieve user for related chart", http.StatusInternalServerError}
 	}
 
 	creditors := make([]string, 0)
@@ -116,6 +116,7 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	query = query.Where("discovered_id = ?", discovered.DiscoveredId)
 	query = query.Where("credflag = ?", true)
 	err5 := query.Find(&creditingUsers).Error
+	fmt.Println("RAVENWITCH")
 	if err5 != nil && err5 != gorm.RecordNotFound {
 		return pattern, &appError{err5, "find creditors failed", http.StatusInternalServerError}
 	} else {
@@ -152,7 +153,7 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 // use the id relating to the record stored in the generated correlations table to return the json with the specific chart info
 func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	pattern := PatternInfo{}
-	var chart []string
+	var chart string
 	var cd CorrelationData
 
 	err := DB.Model(Correlation{}).Where("correlation_id = ?", cid).Pluck("json", &chart).Error
@@ -166,13 +167,13 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	discovered := Discovered{}
 	err1 := DB.Where("correlation_id = ?", cid).Find(&discovered).Error
 	if err1 == gorm.RecordNotFound {
-		Discover(strconv.Itoa(cid), uid, []byte(chart[0]), true)
+		Discover(strconv.Itoa(cid), uid, []byte(chart), true)
 	}
-
+	fmt.Println("GUIDO", discovered.Uid)
 	user := User{}
-	err2 := DB.Where("uid = ?", discovered.Uid).First(&user).Error
+	err2 := DB.Where("uid = ?", discovered.Uid).Find(&user).Error
 	if err2 != nil && err2 != gorm.RecordNotFound {
-		return pattern, &appError{err2, "unable to retrieve user", http.StatusInternalServerError}
+		return pattern, &appError{err2, "unable to retrieve user for correlated chart", http.StatusInternalServerError}
 	}
 
 	creditors := make([]string, 0)
@@ -232,26 +233,28 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 
 // save chart to valdiated table
 func Discover(id string, uid int, json []byte, correlated bool) (Discovered, *appError) {
-	val := Discovered{}
+	discovered := Discovered{}
 
 	if correlated {
-		val.CorrelationId, _ = strconv.Atoi(id)
+		discovered.CorrelationId, _ = strconv.Atoi(id)
 	} else {
-		val.RelationId = id
+		discovered.RelationId = id
 	}
 
-	val.Uid = uid
-	val.Json = json
-	val.Created = time.Now()
-	val.Rating = 0
-	val.Discredited = 0
-	val.Credited = 0
-	err := DB.Save(&val).Error
+	discovered.Uid = uid
+	discovered.Json = json
+	discovered.Created = time.Now()
+	discovered.Rating = 0
+	discovered.Discredited = 0
+	discovered.Credited = 0
+
+	err := DB.Model(Discovered{}).Save(&discovered).Error
 	if err != nil {
-		return val, &appError{err, "unable to create discovery", http.StatusInternalServerError}
+		fmt.Println("Ninjamoo", err)
+		return discovered, &appError{err, "unable to create discovery", http.StatusInternalServerError}
 	}
 
-	return val, nil
+	return discovered, nil
 }
 
 // generate all the potentially valid charts that relate to a single tablename, add apt charting types,

@@ -62,6 +62,8 @@ func SearchForNewsQ(params map[string]string) string {
 // also searches sql tables to find relevant dates to tie in with table search
 // also checks if dates are entered in the search
 func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
+	now := time.Now()
+	var Today = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC) // override today's date
 
 	session, _ := GetCassandraConnection("dp") // create connection to cassandra
 	defer session.Close()
