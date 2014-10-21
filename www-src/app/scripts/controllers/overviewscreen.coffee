@@ -248,5 +248,12 @@ angular.module('dataplayApp')
 					when err then err
 					else ''
 
+				if $scope.mainSections[type].error.substring(0, 6) is '<html>'
+					$scope.mainSections[type].error = do ->
+						curr = $scope.mainSections[type].error
+						curr = curr.replace(/(\r\n|\n|\r)/gm, '')
+						curr = curr.replace(/.{0,}(\<title\>)/, '')
+						curr = curr.replace(/(\<\/title\>).{0,}/, '')
+						curr
 		return
 	]
