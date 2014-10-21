@@ -53,8 +53,8 @@ DataPlay alpha contains a rudimentary selection of datasets drawn from [data.gov
 
 ### Development:
 
-1. Run Go in Classic mode `./run.sh --mode=3`
-2. Run AngularJS `cd www-src && npm install && grunt serve`
+1. Run Backend in Classic mode `./run.sh --mode=3`
+2. Run Frontend `cd www-src && npm install && grunt serve`
 
 ### Staging:
 

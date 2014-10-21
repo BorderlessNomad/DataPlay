@@ -13,11 +13,13 @@ GO_VERSION="go1.3.3"
 DEST="/home/ubuntu/www"
 APP="dataplay"
 WWW="www-src"
-REPO="DataPlay"
-BRANCH="develop"
 
-# LOADBALANCER="109.231.121.27"
-LOADBALANCER=$(ss-get --timeout 360 loadbalancer.hostname)
+HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
+PORT="80"
+
+# LOADBALANCER_HOST="109.231.121.26"
+LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
+LOADBALANCER_PORT="1937"
 
 # DATABASE_HOST="109.231.121.13"
 DATABASE_HOST=$(ss-get --timeout 360 postgres.hostname)
@@ -64,7 +66,8 @@ install_go () {
 }
 
 export_variables () {
-	echo "export DP_LOADBALANCER=$LOADBALANCER" >> /etc/profile.d/dataplay.sh
+	echo "export DP_LOADBALANCER_HOST=$LOADBALANCER_HOST" >> /etc/profile.d/dataplay.sh
+	echo "export DP_LOADBALANCER_PORT=$LOADBALANCER_PORT" >> /etc/profile.d/dataplay.sh
 	echo "export DP_DATABASE_HOST=$DATABASE_HOST" >> /etc/profile.d/dataplay.sh
 	echo "export DP_DATABASE_PORT=$DATABASE_PORT" >> /etc/profile.d/dataplay.sh
 	echo "export DP_REDIS_HOST=$REDIS_HOST" >> /etc/profile.d/dataplay.sh
@@ -80,7 +83,12 @@ export_variables () {
 }
 
 run_node () {
-	SOURCE="https://github.com/playgenhub/$REPO/archive/"
+	URL="https://github.com"
+	USER="playgenhub"
+	REPO="DataPlay"
+	BRANCH="master"
+	SOURCE="$URL/$USER/$REPO"
+
 	START="start.sh"
 	LOG="ouput.log"
 
@@ -106,7 +114,7 @@ run_node () {
 
 	cd $DEST
 	echo "Fetching latest ZIP"
-	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE$BRANCH.zip -O $BRANCH.zip
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/archive/$BRANCH.zip -O $BRANCH.zip
 	echo "Extracting from $BRANCH.zip"
 	unzip -oq $BRANCH.zip
 	if [ -d $APP ]; then

@@ -266,7 +266,7 @@ func initNodeMode() {
 	myfuncs.registerCallback("GetDiscoveredChartsQ", GetDiscoveredChartsQ)
 	myfuncs.registerCallback("GetObservationsQ", GetObservationsQ)
 	myfuncs.registerCallback("GetPoliticalActivityQ", GetPoliticalActivityQ)
-	myfuncs.registerCallback("GetActivityStreamQ ", GetActivityStreamQ)
+	myfuncs.registerCallback("GetActivityStreamQ", GetActivityStreamQ)
 	myfuncs.registerCallback("SearchForNewsQ", SearchForNewsQ)
 
 	/* Start request consumer in Listen mode */

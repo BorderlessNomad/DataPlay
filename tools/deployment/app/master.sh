@@ -13,8 +13,6 @@ GO_VERSION="go1.3.3"
 DEST="/home/ubuntu/www"
 APP="dataplay"
 WWW="www-src"
-REPO="DataPlay"
-BRANCH="develop"
 
 HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
 PORT="80"
@@ -68,7 +66,8 @@ install_go () {
 }
 
 export_variables () {
-	echo "export DP_LOADBALANCER=$LOADBALANCER_HOST" >> /etc/profile.d/dataplay.sh
+	echo "export DP_LOADBALANCER_HOST=$LOADBALANCER_HOST" >> /etc/profile.d/dataplay.sh
+	echo "export DP_LOADBALANCER_PORT=$LOADBALANCER_PORT" >> /etc/profile.d/dataplay.sh
 	echo "export DP_DATABASE_HOST=$DATABASE_HOST" >> /etc/profile.d/dataplay.sh
 	echo "export DP_DATABASE_PORT=$DATABASE_PORT" >> /etc/profile.d/dataplay.sh
 	echo "export DP_REDIS_HOST=$REDIS_HOST" >> /etc/profile.d/dataplay.sh
@@ -84,7 +83,12 @@ export_variables () {
 }
 
 run_master () {
-	SOURCE="https://github.com/playgenhub/$REPO/archive/"
+	URL="https://github.com"
+	USER="playgenhub"
+	REPO="DataPlay"
+	BRANCH="master"
+	SOURCE="$URL/$USER/$REPO"
+
 	START="start.sh"
 	LOG="ouput.log"
 
@@ -110,7 +114,7 @@ run_master () {
 
 	cd $DEST
 	echo "Fetching latest ZIP"
-	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE$BRANCH.zip -O $BRANCH.zip
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/archive/$BRANCH.zip -O $BRANCH.zip
 	echo "Extracting from $BRANCH.zip"
 	unzip -oq $BRANCH.zip
 	if [ -d $APP ]; then
@@ -127,6 +131,12 @@ run_master () {
 }
 
 install_nginx () {
+	URL="https://raw.githubusercontent.com"
+	USER="playgenhub"
+	REPO="DataPlay"
+	BRANCH="master"
+	SOURCE="$URL/$USER/$REPO/$BRANCH"
+
 	mkdir -p $DEST/$APP/$WWW/dist
 
 	apt-add-repository -y ppa:nginx/stable && \
@@ -138,7 +148,7 @@ install_nginx () {
 	destination="$DEST/$APP/$WWW/dist"
 
 	cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.$unixts
-	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N "https://raw.githubusercontent.com/playgenhub/$REPO/$BRANCH/tools/deployment/app/nginx.default" -O /etc/nginx/sites-available/default
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/app/nginx.default -O /etc/nginx/sites-available/default
 	sed -i 's,'"$keyword"','"$destination"',g' /etc/nginx/sites-available/default
 
 	chown ubuntu:www-data $DEST/$APP/$WWW
@@ -161,8 +171,8 @@ configure_frontend () {
 }
 
 build_frontend () {
-	npm install && \
-	bower install && \
+	npm install -d
+	bower install
 	grunt build
 }
 
