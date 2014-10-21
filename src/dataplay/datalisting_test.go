@@ -43,7 +43,6 @@ func TestSearchForData(t *testing.T) {
 	// 	result, _ := SearchForData(0, "nhs", nil)
 	// 	r, _ := json.Marshal(result)
 
-	// 	fmt.Println("BABADOOK", string(r))
 	// 	So(result, ShouldEqual, "")
 	// })
 }
