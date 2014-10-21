@@ -42,34 +42,38 @@ type TermAmt struct {
 }
 
 // gets names of all departments, checks for mentions in specified time period and returns ranked array of 15 most popular terms and their 30 day frequencies
-func DepartmentsPoliticalActivity() []PoliticalActivity {
+func DepartmentsPoliticalActivity() ([]PoliticalActivity, error) {
 	var dept []Departments // get all departments from postgres sql table
 	var terms []TermKey
-	err := DB.Find(&dept).Error
 
+	err := DB.Find(&dept).Error
 	if err != nil && err != gorm.RecordNotFound {
-		return nil
+		return nil, err
 	}
 
 	var tmp TermKey
-
 	for _, d := range dept {
 		tmp.KeyTerm = d.Key
 		tmp.MainTerm = d.Dept
 		terms = append(terms, tmp)
 	}
 
-	return TermFrequency(terms)
+	termFrequency, termError := TermFrequency(terms)
+	if termError != nil {
+		return nil, termError
+	}
+
+	return termFrequency, nil
 }
 
 // gets names of all events, checks for mentions in specified time period and returns ranked array of 15 most popular terms and their 30 day frequencies
-func EventsPoliticalActivity() []PoliticalActivity {
+func EventsPoliticalActivity() ([]PoliticalActivity, error) {
 	var event []Events
 	var terms []TermKey
-	err := DB.Find(&event).Error
 
+	err := DB.Find(&event).Error
 	if err != nil && err != gorm.RecordNotFound {
-		return nil
+		return nil, err
 	}
 
 	var tmp TermKey
@@ -79,17 +83,22 @@ func EventsPoliticalActivity() []PoliticalActivity {
 		terms = append(terms, tmp)
 	}
 
-	return TermFrequency(terms)
+	termFrequency, termError := TermFrequency(terms)
+	if termError != nil {
+		return nil, termError
+	}
+
+	return termFrequency, nil
 }
 
 // gets names of all regions, checks for mentions in specified time period and returns ranked array of 15 most popular terms and their 30 day frequencies
-func RegionsPoliticalActivity() []PoliticalActivity {
+func RegionsPoliticalActivity() ([]PoliticalActivity, error) {
 	var region []Regions
 	var terms []TermKey
-	err := DB.Find(&region).Error
 
+	err := DB.Find(&region).Error
 	if err != nil && err != gorm.RecordNotFound {
-		return nil
+		return nil, err
 	}
 
 	var tmp TermKey
@@ -99,10 +108,15 @@ func RegionsPoliticalActivity() []PoliticalActivity {
 		terms = append(terms, tmp)
 	}
 
-	return TermFrequency(terms)
+	termFrequency, termError := TermFrequency(terms)
+	if termError != nil {
+		return nil, termError
+	}
+
+	return termFrequency, nil
 }
 
-func TermFrequency(terms []TermKey) []PoliticalActivity {
+func TermFrequency(terms []TermKey) ([]PoliticalActivity, error) {
 	var date time.Time
 	var name string
 	politicalActivity := make([]PoliticalActivity, 0)
@@ -110,13 +124,13 @@ func TermFrequency(terms []TermKey) []PoliticalActivity {
 	var Today = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC) // override today's date
 	var FromDate = Today.AddDate(0, 0, -numdays)
 
-	session, _ := GetCassandraConnection("dp") // create connection to cassandra
+	session, err := GetCassandraConnection("dp") // create connection to cassandra
+	if err != nil {
+		return nil, err
+	}
 	defer session.Close()
 
-	a := time.Now()
 	iter1 := session.Query(`SELECT date, name FROM keyword WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
-	b := time.Now()
-	fmt.Println("ROBOCOP DEPT", b.Sub(a).Seconds())
 	for iter1.Scan(&date, &name) {
 		for _, term := range terms {
 			if name == term.KeyTerm { // for any key term matches
@@ -126,10 +140,12 @@ func TermFrequency(terms []TermKey) []PoliticalActivity {
 			}
 		}
 	}
-	c := time.Now()
+	err1 := iter1.Close()
+	if err1 != nil {
+		return nil, err1
+	}
+
 	iter2 := session.Query(`SELECT date, name FROM entity WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
-	d := time.Now()
-	fmt.Println("ROBOCOP DEPT", d.Sub(c).Seconds())
 	for iter2.Scan(&date, &name) {
 		for _, term := range terms {
 			if name == term.KeyTerm { // for any key term matches
@@ -139,8 +155,12 @@ func TermFrequency(terms []TermKey) []PoliticalActivity {
 			}
 		}
 	}
+	err2 := iter2.Close()
+	if err2 != nil {
+		return nil, err2
+	}
 
-	return RankPA(politicalActivity)
+	return RankPA(politicalActivity), nil
 }
 
 func PaPlace(pa *[]PoliticalActivity, t string) int {
@@ -149,15 +169,16 @@ func PaPlace(pa *[]PoliticalActivity, t string) int {
 			return i
 		}
 	}
+
 	var tmp PoliticalActivity
 	tmp.Term = t
 	*pa = append(*pa, tmp)
+
 	return len(*pa) - 1
 }
 
 // sort PA array and returns slice of top 15
 func RankPA(activities []PoliticalActivity) []PoliticalActivity {
-
 	for i, _ := range activities {
 		total := 0
 		for j, _ := range activities[i].Mentions {
@@ -182,8 +203,8 @@ func RankPA(activities []PoliticalActivity) []PoliticalActivity {
 				newn = i
 			}
 		}
-		n = newn
 
+		n = newn
 		if n == 0 {
 			chk = false
 		}
@@ -192,7 +213,7 @@ func RankPA(activities []PoliticalActivity) []PoliticalActivity {
 	return activities[0:15]
 }
 
-func PopularPoliticalActivity() [3]Popular {
+func PopularPoliticalActivity() ([3]Popular, error) {
 	var popular [3]Popular
 
 	popular[0].Id = "most_popular"
@@ -214,12 +235,12 @@ func PopularPoliticalActivity() [3]Popular {
 	searchterm := []SearchTerm{}
 	err := DB.Select("term, count").Order("count desc").Limit(5).Find(&searchterm).Error
 	if err != nil && err != gorm.RecordNotFound {
-		return popular
+		return popular, err
 	}
 
 	err = DB.Select("priv_users.username, count(priv_discovered.uid) as counter").Joins("LEFT JOIN priv_users ON priv_discovered.uid = priv_users.uid").Group("priv_users.username, priv_discovered.uid").Order("counter DESC").Limit(5).Find(&results).Error
 	if err != nil && err != gorm.RecordNotFound {
-		return popular
+		return popular, err
 	}
 
 	n := 5
@@ -245,7 +266,7 @@ func PopularPoliticalActivity() [3]Popular {
 		popular[2].TA[i].Amount = results[i].Counter
 	}
 
-	return popular
+	return popular, nil
 }
 
 func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
@@ -261,9 +282,12 @@ func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
 	}
 
 	cluster := gocql.NewCluster(cassandraHost)
+	cluster.Timeout = 1 * time.Minute
 	cluster.Port = cassandraPort
 	cluster.Keyspace = keyspace
 	cluster.Consistency = gocql.Quorum
+	cluster.Compressor = gocql.SnappyCompressor{}
+	cluster.RetryPolicy = &gocql.SimpleRetryPolicy{NumRetries: 5}
 	session, err := cluster.CreateSession()
 
 	if err != nil {
@@ -283,23 +307,35 @@ func GetPoliticalActivityHttp(res http.ResponseWriter, req *http.Request, params
 	}
 
 	var result []PoliticalActivity
+	var err error
 
 	if params["type"] == "d" {
-		result = DepartmentsPoliticalActivity()
+		result, err = DepartmentsPoliticalActivity()
 	} else if params["type"] == "e" {
-		result = EventsPoliticalActivity()
+		result, err = EventsPoliticalActivity()
 	} else if params["type"] == "r" {
-		result = RegionsPoliticalActivity()
+		result, err = RegionsPoliticalActivity()
 	} else if params["type"] == "p" {
-		pResult := PopularPoliticalActivity()
+		pResult, errP := PopularPoliticalActivity()
+		if errP != nil {
+			http.Error(res, errP.Error(), http.StatusInternalServerError)
+			return ""
+		}
+
 		r, err := json.Marshal(pResult)
 		if err != nil {
 			http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
 			return ""
 		}
+
 		return string(r)
 	} else {
 		http.Error(res, "Bad type param", http.StatusInternalServerError)
+		return ""
+	}
+
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return ""
 	}
 
@@ -314,22 +350,32 @@ func GetPoliticalActivityHttp(res http.ResponseWriter, req *http.Request, params
 
 func GetPoliticalActivityQ(params map[string]string) string {
 	var result []PoliticalActivity
+	var err error
 
 	if params["type"] == "d" {
-		result = DepartmentsPoliticalActivity()
+		result, err = DepartmentsPoliticalActivity()
 	} else if params["type"] == "e" {
-		result = EventsPoliticalActivity()
+		result, err = EventsPoliticalActivity()
 	} else if params["type"] == "r" {
-		result = RegionsPoliticalActivity()
+		result, err = RegionsPoliticalActivity()
 	} else if params["type"] == "p" {
-		pResult := PopularPoliticalActivity()
+		pResult, errP := PopularPoliticalActivity()
+		if errP != nil {
+			return errP.Error()
+		}
+
 		r, e := json.Marshal(pResult)
 		if e != nil {
 			return e.Error()
 		}
+
 		return string(r)
 	} else {
 		return "Bad type param"
+	}
+
+	if err != nil {
+		return err.Error()
 	}
 
 	r, e := json.Marshal(result)
