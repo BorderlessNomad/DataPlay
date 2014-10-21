@@ -45,6 +45,7 @@ setuphost () {
 	HOSTNAME=$(hostname)
 	HOSTLOCAL="127.0.1.1"
 	echo "$HOSTLOCAL $HOSTNAME" >> /etc/hosts
+	echo "173.194.40.164 code.google.com" >> /etc/hosts # Remove this once code.google.com is Fixed
 }
 
 install_go () {
@@ -130,52 +131,6 @@ run_master () {
 	echo "Done! $ sudo tail -f $DEST/$APP/$LOG for more details"
 }
 
-install_nginx () {
-	URL="https://raw.githubusercontent.com"
-	USER="playgenhub"
-	REPO="DataPlay"
-	BRANCH="master"
-	SOURCE="$URL/$USER/$REPO/$BRANCH"
-
-	mkdir -p $DEST/$APP/$WWW/dist
-
-	apt-add-repository -y ppa:nginx/stable && \
-	apt-get update && \
-	apt-get install -y nginx
-
-	unixts="$(date +'%Y%m%d%H%M%S')"
-	keyword="<filesystem>"
-	destination="$DEST/$APP/$WWW/dist"
-
-	cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.$unixts
-	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/app/nginx.default -O /etc/nginx/sites-available/default
-	sed -i 's,'"$keyword"','"$destination"',g' /etc/nginx/sites-available/default
-
-	chown ubuntu:www-data $DEST/$APP/$WWW
-
-	service nginx reload
-}
-
-init_frontend () {
-	sed -i "s/localhost:3000/$LOADBALANCER_HOST/g" $DEST/$APP/$WWW/dist/scripts/*.js
-}
-
-configure_frontend () {
-	sed -i "s/localhost:3000/$LOADBALANCER_HOST/g" $DEST/$APP/$WWW/app/scripts/app.coffee
-
-	command -v grunt >/dev/null 2>&1 || { echo >&2 "Error: Command 'grunt' not found!"; exit 1; }
-
-	command -v coffee >/dev/null 2>&1 || { echo >&2 "Error: 'coffee' is not installed!"; exit 1; }
-
-	command -v bower >/dev/null 2>&1 || { echo >&2 "Error: 'bower' is not installed!"; exit 1; }
-}
-
-build_frontend () {
-	npm install -d
-	bower install
-	grunt build
-}
-
 inform_loadbalancer () {
 	retries=0
 	until curl -H "Content-Type: application/json" -X POST -d "{\"ip\":\"$HOST:$PORT\"}" http://$LOADBALANCER_HOST:$LOADBALANCER_PORT; do
@@ -204,24 +159,10 @@ export_variables
 echo "[$(timestamp)] ---- 4. Run Gamification API (Master) Server ----"
 run_master
 
-echo "[$(timestamp)] ---- 5. Install Nginx ----"
-install_nginx
-
-# We either Init frontend which is quicker and doesn't install any extra libraries
-# or do configure and build which is very time consuming process due to lots of node.js libraries
-echo "[$(timestamp)] ---- 6. Init Frotnend ----"
-init_frontend
-
-# echo "[$(timestamp)] ---- 6. Configure Frotnend ----"
-# configure_frontend
-
-# echo "[$(timestamp)] ---- 7. Build Frontend ----"
-# su ubuntu -c "$(typeset -f build_frontend); build_frontend" # Run function as user 'ubuntu'
-
-echo "[$(timestamp)] ---- 8. Inform Load Balancer (Add) ----"
+echo "[$(timestamp)] ---- 5. Inform Load Balancer (Add) ----"
 inform_loadbalancer
 
-echo "[$(timestamp)] ---- 9. Update IPTables rules ----"
+echo "[$(timestamp)] ---- 6. Update IPTables rules ----"
 update_iptables
 
 echo "[$(timestamp)] ---- Completed ----"
