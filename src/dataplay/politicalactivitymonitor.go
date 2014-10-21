@@ -130,10 +130,11 @@ func TermFrequency(terms []TermKey) ([]PoliticalActivity, error) {
 	defer session.Close()
 
 	iter1 := session.Query(`SELECT date, name FROM keyword WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
+
 	for iter1.Scan(&date, &name) {
 		for _, term := range terms {
 			if name == term.KeyTerm { // for any key term matches
-				i := PaPlace(&politicalActivity, term.MainTerm)                                       // either get place of main term or add to array if doesn't exist
+				i := PaPlace(&politicalActivity, term.MainTerm) // either get place of main term or add to array if doesn't exist
 				dayindex := int((Today.Round(time.Hour).Sub(date.Round(time.Hour)) / 24).Hours() - 1) // get day index
 				politicalActivity[i].Mentions[dayindex].Y++
 			}
@@ -145,6 +146,7 @@ func TermFrequency(terms []TermKey) ([]PoliticalActivity, error) {
 	}
 
 	iter2 := session.Query(`SELECT date, name FROM entity WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
+
 	for iter2.Scan(&date, &name) {
 		for _, term := range terms {
 			if name == term.KeyTerm { // for any key term matches
