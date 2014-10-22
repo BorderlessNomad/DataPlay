@@ -100,3 +100,37 @@ type Response struct {
 	RelatedArticles []Related `json:"related,omitempty"`
 	Images          []Image   `json:"images"`
 }
+
+type Entity2 struct {
+	Date time.Time `json:"date"`
+	Name string    `json:"name"`
+	Url  string    `json:"url"`
+}
+
+type Keyword2 struct {
+	Date time.Time `json:"date"`
+	Name string    `json:"name"`
+	Url  string    `json:"url"`
+}
+
+type Image2 struct {
+	Date     time.Time `json:"date"`
+	PicIndex int       `json:"pic_index"`
+	PicUrl   string    `json:"pic_url"`
+	Url      string    `json:"url"`
+}
+
+type Related2 struct {
+	Date        time.Time `json:"date"`
+	Description string    `json:"description"`
+	Title       string    `json:"title"`
+	RelatedUrl  string    `json:"related_url"`
+	Url         string    `json:"url"`
+}
+
+type Response2 struct {
+	Date        time.Time `json:"date"`
+	Description string    `json:"description"`
+	Url         string    `json:"url"`
+	Title       string    `json:"title"`
+}

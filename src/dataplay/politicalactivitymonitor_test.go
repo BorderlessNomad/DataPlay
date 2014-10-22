@@ -28,31 +28,31 @@ package main
 // 	b := time.Now()
 // 	fmt.Println("ROBOCOP MAIN", b.Sub(a).Seconds())
 
-// Convey("Should return events PoliticalActivity", t, func() {
-// 	result := GetPoliticalActivityHttp(res, req, params)
-// 	So(result, ShouldNotBeNil)
-// })
+// 	Convey("Should return events PoliticalActivity", t, func() {
+// 		result := GetPoliticalActivityHttp(res, req, params)
+// 		So(result, ShouldNotBeNil)
+// 	})
 
-// params["type"] = "r"
+// 	params["type"] = "r"
 
-// c := time.Now()
-// fmt.Println("ROBOCOP2", c.Sub(b).Seconds())
+// 	c := time.Now()
+// 	fmt.Println("ROBOCOP2", c.Sub(b).Seconds())
 
-// Convey("Should return regions PoliticalActivity", t, func() {
-// 	result := GetPoliticalActivityHttp(res, req, params)
-// 	So(result, ShouldNotBeNil)
-// })
+// 	Convey("Should return regions PoliticalActivity", t, func() {
+// 		result := GetPoliticalActivityHttp(res, req, params)
+// 		So(result, ShouldNotBeNil)
+// 	})
 
-// params["type"] = "p"
+// 	params["type"] = "p"
 
-// d := time.Now()
-// fmt.Println("ROBOCOP3", d.Sub(c).Seconds())
+// 	d := time.Now()
+// 	fmt.Println("ROBOCOP3", d.Sub(c).Seconds())
 
-// Convey("Should return popular PoliticalActivity", t, func() {
-// 	result := GetPoliticalActivityHttp(res, req, params)
-// 	So(result, ShouldNotBeNil)
-// })
+// 	Convey("Should return popular PoliticalActivity", t, func() {
+// 		result := GetPoliticalActivityHttp(res, req, params)
+// 		So(result, ShouldNotBeNil)
+// 	})
 
-// z := time.Now()
-// fmt.Println("ROBOCOP4", z.Sub(d).Seconds())
+// 	z := time.Now()
+// 	fmt.Println("ROBOCOP4", z.Sub(d).Seconds())
 // }

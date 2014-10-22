@@ -17,6 +17,6 @@ package main
 
 // 	Convey("Should return news", t, func() {
 // 		result := SearchForNewsHttp(res, req, params)
-// 		So(result, ShouldNotBeNil)
+// 		So(result, ShouldEqual, "")
 // 	})
 // }

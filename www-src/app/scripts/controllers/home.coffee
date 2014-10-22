@@ -19,13 +19,18 @@ angular.module('dataplayApp')
 		$scope.recentObservations = null
 		$scope.dataExperts = null
 
+		$scope.loading =
+			charts: true
+
 		$scope.chartsRelated = []
 
 		$scope.relatedChart = new RelatedCharts $scope.chartsRelated
 
 		$scope.init = ->
+			$scope.loading.charts = true;
 			Home.getAwaitingCredit()
 				.success (data) ->
+					$scope.loading.charts = false;
 					if data? and data.charts? and data.charts.length > 0
 						for key, chart of data.charts
 							continue unless $scope.relatedChart.isPlotAllowed chart.type

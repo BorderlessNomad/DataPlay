@@ -399,6 +399,7 @@ func sendToQueue(res http.ResponseWriter, req *http.Request, params martini.Para
 	}
 
 	params["user"] = strconv.Itoa(uid)
+	params["session"] = session
 	message := q.Encode(method, params)
 
 	fmt.Println("Sending request to Queue", request, params, message)

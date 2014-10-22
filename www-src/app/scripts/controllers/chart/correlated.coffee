@@ -17,7 +17,7 @@ angular.module('dataplayApp')
 
 		$scope.chart = new CorrelatedChart
 
-		$scope.userObservations = []
+		$scope.userObservations = null
 		$scope.userObservationsMessage = []
 		$scope.observation =
 			x: null
@@ -94,7 +94,7 @@ angular.module('dataplayApp')
 		$scope.initObservations = (redraw) ->
 			Charts.getObservations $scope.info.discoveredId
 				.then (res) ->
-					$scope.userObservations.splice 0, $scope.userObservations.length
+					$scope.userObservations = []
 
 					res.data?.forEach? (obsv) ->
 						x = "0"
@@ -222,6 +222,14 @@ angular.module('dataplayApp')
 					when err and err.data then err.data
 					when err then err
 					else ''
+
+			if $scope.error.substring(0, 6) is '<html>'
+				$scope.error = do ->
+					curr = $scope.error
+					curr = curr.replace(/(\r\n|\n|\r)/gm, '')
+					curr = curr.replace(/.{0,}(\<title\>)/, '')
+					curr = curr.replace(/(\<\/title\>).{0,}/, '')
+					curr
 
 		return
 	]

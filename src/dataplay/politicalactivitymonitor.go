@@ -120,21 +120,22 @@ func TermFrequency(terms []TermKey) ([]PoliticalActivity, error) {
 	var name string
 	politicalActivity := make([]PoliticalActivity, 0)
 	now := time.Now()
-	var Today = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC) // override today's date
-	var FromDate = Today.AddDate(0, 0, -numdays)
+	var today = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC) // override today's date
+	var from = today.AddDate(0, 0, -numdays)
 
-	session, err := GetCassandraConnection("dp") // create connection to cassandra
+	session, err := GetCassandraConnection("dp2") // create connection to cassandra
 	if err != nil {
 		return nil, err
 	}
 	defer session.Close()
 
-	iter1 := session.Query(`SELECT date, name FROM keyword WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
+	iter1 := session.Query(`SELECT date, name FROM keyword2 LIMIT 60000`).Iter()
+
 	for iter1.Scan(&date, &name) {
 		for _, term := range terms {
-			if name == term.KeyTerm { // for any key term matches
+			if name == term.KeyTerm && (date.Equal(from) || date.After(from) && date.Before(today)) { // for any key term matches in date
 				i := PaPlace(&politicalActivity, term.MainTerm)                                       // either get place of main term or add to array if doesn't exist
-				dayindex := int((Today.Round(time.Hour).Sub(date.Round(time.Hour)) / 24).Hours() - 1) // get day index
+				dayindex := int((today.Round(time.Hour).Sub(date.Round(time.Hour)) / 24).Hours() - 1) // get day index
 				politicalActivity[i].Mentions[dayindex].Y++
 			}
 		}
@@ -144,12 +145,13 @@ func TermFrequency(terms []TermKey) ([]PoliticalActivity, error) {
 		return nil, err1
 	}
 
-	iter2 := session.Query(`SELECT date, name FROM entity WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, Today).Iter()
+	iter2 := session.Query(`SELECT date, name FROM entity2 LIMIT 60000`).Iter()
+
 	for iter2.Scan(&date, &name) {
 		for _, term := range terms {
-			if name == term.KeyTerm { // for any key term matches
+			if name == term.KeyTerm && (date.Equal(from) || date.After(from) && date.Before(today)) { // for any key term matches in date
 				i := PaPlace(&politicalActivity, term.MainTerm)                                       // either get place of main term or add to array if doesn't exist
-				dayindex := int((Today.Round(time.Hour).Sub(date.Round(time.Hour)) / 24).Hours() - 1) // get day index
+				dayindex := int((today.Round(time.Hour).Sub(date.Round(time.Hour)) / 24).Hours() - 1) // get day index
 				politicalActivity[i].Mentions[dayindex].Y++
 			}
 		}

@@ -100,7 +100,7 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 			return pattern, err3
 		}
 	}
-	fmt.Println("CARAVAN", discovered.Uid)
+
 	user := User{}
 	err4 := DB.Where("uid = ?", discovered.Uid).Find(&user).Error
 	if err4 != nil && err4 != gorm.RecordNotFound {
@@ -116,7 +116,7 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	query = query.Where("discovered_id = ?", discovered.DiscoveredId)
 	query = query.Where("credflag = ?", true)
 	err5 := query.Find(&creditingUsers).Error
-	fmt.Println("RAVENWITCH")
+
 	if err5 != nil && err5 != gorm.RecordNotFound {
 		return pattern, &appError{err5, "find creditors failed", http.StatusInternalServerError}
 	} else {
@@ -169,7 +169,7 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	if err1 == gorm.RecordNotFound {
 		Discover(strconv.Itoa(cid), uid, []byte(chart[0]), true)
 	}
-	fmt.Println("GUIDO", discovered.Uid)
+
 	user := User{}
 	err2 := DB.Where("uid = ?", discovered.Uid).Find(&user).Error
 	if err2 != nil && err2 != gorm.RecordNotFound {
@@ -186,6 +186,7 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	query = query.Where("discovered_id = ?", discovered.DiscoveredId)
 	query = query.Where("credflag = ?", true)
 	err3 := query.Find(&creditingUsers).Error
+
 	if err3 != nil && err3 != gorm.RecordNotFound {
 		return pattern, &appError{err3, "find creditors failed", http.StatusInternalServerError}
 	} else {
@@ -241,6 +242,7 @@ func Discover(id string, uid int, json []byte, correlated bool) (Discovered, *ap
 		discovered.RelationId = id
 	}
 
+	discovered.DiscoveredId = 0
 	discovered.Uid = uid
 	discovered.Json = json
 	discovered.Created = time.Now()
@@ -248,12 +250,10 @@ func Discover(id string, uid int, json []byte, correlated bool) (Discovered, *ap
 	discovered.Discredited = 0
 	discovered.Credited = 0
 
-	err := DB.Model(Discovered{}).Save(&discovered).Error
+	err = DB.Save(&discovered).Error
 	if err != nil {
-		fmt.Println("Ninjamoo", err)
-		return discovered, &appError{err, "unable to create discovery", http.StatusInternalServerError}
+		return discovered, &appError{err, "could not save discovery", http.StatusInternalServerError}
 	}
-
 	return discovered, nil
 }
 
@@ -964,6 +964,11 @@ func GetDiscoveredChartsHttp(res http.ResponseWriter, req *http.Request, params 
 }
 
 func GetChartQ(params map[string]string) string {
+	uid, err1 := GetUserID(params["session"])
+	if err1 != nil {
+		return "invalid uid"
+	}
+
 	if params["tablename"] == "" {
 		return "no tablename"
 	}
@@ -975,11 +980,6 @@ func GetChartQ(params map[string]string) string {
 
 	if params["type"] == "" {
 		return "no type"
-	}
-
-	uid, err1 := strconv.Atoi(params["uid"])
-	if err1 != nil {
-		return "invalid uid"
 	}
 
 	if params["x"] == "" {
@@ -1163,9 +1163,10 @@ func GetAwaitingCreditHttp(res http.ResponseWriter, req *http.Request) string {
 			}
 
 			correlationData.CorrelationId = d.CorrelationId
+			correlationData.Discovered = true
 
 			type correlationExtender struct {
-				*CorrelationData
+				CorrelationData
 				Source  string `json:"source_title"`
 				SourceX string `json:"source_X"`
 				SourceY string `json:"source_Y"`
@@ -1180,12 +1181,14 @@ func GetAwaitingCreditHttp(res http.ResponseWriter, req *http.Request) string {
 			}
 
 			var c correlationExtender
+			c.CorrelationData = correlationData
 			c.Source = correlation.Tbl1
 			c.SourceX = correlation.Col1
 			c.SourceY = correlation.Col2
 			c.SourceZ = correlation.Col3
 
 			charts = append(charts, c)
+			fmt.Println("BABBADOOK", correlationData)
 
 		} else {
 			var tableData TableData
