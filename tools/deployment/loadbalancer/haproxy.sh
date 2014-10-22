@@ -15,7 +15,7 @@ APP="dataplay-monitoring"
 WWW="www-src"
 
 HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
-PORT="3000"
+PORT="1938"
 
 # REDIS_HOST="109.231.121.13"
 REDIS_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
@@ -136,6 +136,7 @@ run_monitoring () {
 export_variables () {
 	echo "export DP_REDIS_HOST=$REDIS_HOST" >> /etc/profile.d/dataplay.sh
 	echo "export DP_REDIS_PORT=$REDIS_PORT" >> /etc/profile.d/dataplay.sh
+	echo "export DP_MONITORING_PORT=$PORT" >> /etc/profile.d/dataplay.sh
 
 	. /etc/profile
 
@@ -145,7 +146,7 @@ export_variables () {
 update_iptables () {
 	iptables -A INPUT -p tcp --dport 1936 -j ACCEPT # HAProxy statistics
 	iptables -A INPUT -p tcp --dport 1937 -j ACCEPT # HAProxy API
-	iptables -A INPUT -p tcp --dport 1938 -j ACCEPT # API Health monitor
+	iptables -A INPUT -p tcp --dport $PORT -j ACCEPT # API Health monitor
 
 	iptables-save
 }
