@@ -14,13 +14,17 @@
 			margin-bottom: 2px;
 		}
 
+			.logo {
+				margin: 0 0 30px 0;
+				max-width: 90vw;
+			}
+
 		#stats {
 			min-height: 70px;
 			margin-top: 10px;
 			margin-bottom: 10px;
 
 			& > div {
-				height: 70px;
 				font-size: 20px;
 				line-height: 35px;
 				padding: 0;
@@ -40,7 +44,24 @@
 	#affiliates {
 		img {
 			background-color: white;
+			max-width: 90vw;
 		}
 	}
 
+}
+
+@media all and (max-width: 992px) {
+	#landingpage {
+		background-image: none;
+
+		#main {
+			[class*="col-"] {
+				padding: 5px 0 5px 0;
+			}
+		}
+	}
+
+	div.dc-chart {
+		float: initial;
+	}
 }
