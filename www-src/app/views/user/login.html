@@ -1,5 +1,5 @@
 <div class="row" ng-controller="UserCtrl">
-	<div class="col-md-4 col-md-offset-1">
+	<div class="col-xs-8 col-xs-offset-2 col-md-4 col-md-offset-1">
 		<h4 class="text-center">Log in with existing account</h4>
 		<form name="loginForm" class="form-signin" role="form" ng-submit="login(user.login)" novalidate>
 			<div ng-show="hasError('login')" class="alert alert-dismissable alert-danger">
@@ -35,7 +35,7 @@
 		</div>
 	</div>
 
-	<div class="col-md-4 col-md-offset-2">
+	<div class="col-xs-8 col-xs-offset-2 col-md-4 col-md-offset-2">
 		<h4 class="text-center">Register a new account</h4>
 		<form name="registerForm" class="form-signin" role="form" ng-submit="register(user.register)" novalidate>
 			<div ng-show="hasError('register')" class="alert alert-dismissable alert-danger">
