@@ -49,7 +49,7 @@ install_haproxy () {
 setup_haproxy_api () {
 	URL="https://raw.githubusercontent.com"
 	USER="playgenhub"
-	REPO="DataPlay"
+	REPO="DataPlay-Monitoring"
 	BRANCH="master"
 	SOURCE="$URL/$USER/$REPO/$BRANCH"
 

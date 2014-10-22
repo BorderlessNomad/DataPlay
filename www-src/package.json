@@ -1,6 +1,6 @@
 {
 	"name": "dataplay",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"author": "PlayGen",
 	"description": "General Purpose Dataset Visualization",
 	"private": "true",
