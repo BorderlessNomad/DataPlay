@@ -53,19 +53,19 @@ DataPlay alpha contains a rudimentary selection of datasets drawn from [data.gov
 
 ### Development:
 
-1. Run Backend in Classic mode `./run.sh --mode=3`
+1. Run Backend in Classic mode `./start.sh --mode=3`
 2. Run Frontend `cd www-src && npm install && grunt serve`
 
 ### Staging:
 
-1. Run Gamification server in Master mode `./run.sh --mode=2`
-2. Run Compute server in Node mode `./run.sh --mode=1`
+1. Run Gamification server in Master mode `./start.sh --mode=2`
+2. Run Compute server in Node mode `./start.sh --mode=1`
 3. Deploy & run Frontend in `cd www-src && npm install && grunt serve:dist`
 
 ### Production:
 
-1. Run Gamification server in Master mode `./run.sh --mode=2`
-2. Run Compute server in Node mode `./run.sh --mode=1`
+1. Run Gamification server in Master mode `./start.sh --mode=2`
+2. Run Compute server in Node mode `./start.sh --mode=1`
 3. Deploy & run Frontend in `cd www-src && npm install && grunt build`
 
 ## Contributing
@@ -77,6 +77,8 @@ DataPlay alpha contains a rudimentary selection of datasets drawn from [data.gov
 5. Submit a pull request :D
 
 ## History
+
+v1.0.2: 	Added API health monitoring probes.
 
 v1.0.1: 	System-wide environment variables
 
