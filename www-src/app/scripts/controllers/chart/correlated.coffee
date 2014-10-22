@@ -119,10 +119,7 @@ angular.module('dataplayApp')
 			return
 
 		$scope.creditChart = (valFlag) ->
-			id = "#{$scope.params.id}/#{$scope.params.key}/#{$scope.params.type}/#{$scope.params.x}/#{$scope.params.y}"
-			id += "/#{$scope.params.z}" if $scope.params.z?.length > 0
-
-			Charts.creditChart "rid", id, valFlag
+			Charts.creditChart "cid", $scope.params.correlationid, valFlag
 				.then ->
 					$scope.showCreditMessage valFlag
 					if valFlag
