@@ -70,10 +70,8 @@ angular.module('dataplayApp')
 								if not chartObj.error
 									chartObj.info =
 										key: key
-										# id: "correlated-#{$scope.params.id}-#{chart.key + $scope.offset.correlated}-#{chart.type}"
-										# url: "charts/correlated/#{$scope.params.id}/#{chart.correlationid}/#{chart.type}/#{chart.table1.xLabel}/#{chart.table1.yLabel}"
-										id: "corr"
-										url: "corr"
+										id: "correlated-#{chart.correlationid}"
+										url: "charts/correlated/#{chart['source_title']}/#{chart.correlationid}/#{chart.type}/#{chart['source_X']}/#{chart['source_Y']}"
 										title: [chart.table1.title, chart.table2.title]
 									chartObj.info.url += "/#{chart.table1.zLabel}" if chart.type is 'bubble'
 
