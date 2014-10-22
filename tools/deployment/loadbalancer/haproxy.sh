@@ -23,6 +23,15 @@ install_haproxy () {
 	apt-add-repository -y ppa:vbernat/haproxy-1.5
 	apt-get update
 	apt-get install -y haproxy
+
+	# Using single quotes to avoid bash $ variable expansion
+	echo '# HAProxy' >> /etc/rsyslog.conf
+	echo '$ModLoad imudp' >> /etc/rsyslog.conf
+	echo '$UDPServerAddress 127.0.0.1' >> /etc/rsyslog.conf
+	echo '$UDPServerRun 514' >> /etc/rsyslog.conf
+
+	service rsyslog restart
+	service haproxy restart
 }
 
 setup_haproxy_api () {

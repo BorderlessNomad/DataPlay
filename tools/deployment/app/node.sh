@@ -91,7 +91,7 @@ run_node () {
 	SOURCE="$URL/$USER/$REPO"
 
 	START="start.sh"
-	LOG="ouput.log"
+	LOG="output.log"
 
 	QUEUE_USERNAME="playgen"
 	QUEUE_PASSWORD="aDam3ntiUm"
