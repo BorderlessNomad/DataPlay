@@ -964,6 +964,11 @@ func GetDiscoveredChartsHttp(res http.ResponseWriter, req *http.Request, params 
 }
 
 func GetChartQ(params map[string]string) string {
+	uid, err1 := GetUserID(params["session"])
+	if err1 != nil {
+		return "invalid uid"
+	}
+
 	if params["tablename"] == "" {
 		return "no tablename"
 	}
@@ -975,11 +980,6 @@ func GetChartQ(params map[string]string) string {
 
 	if params["type"] == "" {
 		return "no type"
-	}
-
-	uid, err1 := strconv.Atoi(params["uid"])
-	if err1 != nil {
-		return "invalid uid"
 	}
 
 	if params["x"] == "" {
@@ -1163,9 +1163,10 @@ func GetAwaitingCreditHttp(res http.ResponseWriter, req *http.Request) string {
 			}
 
 			correlationData.CorrelationId = d.CorrelationId
+			correlationData.Discovered = true
 
 			type correlationExtender struct {
-				*CorrelationData
+				CorrelationData
 				Source  string `json:"source_title"`
 				SourceX string `json:"source_X"`
 				SourceY string `json:"source_Y"`
@@ -1180,12 +1181,14 @@ func GetAwaitingCreditHttp(res http.ResponseWriter, req *http.Request) string {
 			}
 
 			var c correlationExtender
+			c.CorrelationData = correlationData
 			c.Source = correlation.Tbl1
 			c.SourceX = correlation.Col1
 			c.SourceY = correlation.Col2
 			c.SourceZ = correlation.Col3
 
 			charts = append(charts, c)
+			fmt.Println("BABBADOOK", correlationData)
 
 		} else {
 			var tableData TableData

@@ -32,7 +32,7 @@ type CorrelationData struct {
 
 type TableData struct {
 	RelationId string  `json:"relationid, omitempty"`
-	ChartType  string  `json:"type"`
+	ChartType  string  `json:"type, omitempty"`
 	Discovered bool    `json:"discovered,omitempty"`
 	Title      string  `json:"title"`
 	Desc       string  `json:"desc"`
