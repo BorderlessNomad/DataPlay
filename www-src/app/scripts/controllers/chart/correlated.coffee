@@ -8,7 +8,7 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'ChartsCorrelatedCtrl', ['$scope', '$location', '$timeout', '$routeParams', 'Overview', 'PatternMatcher', 'Charts', 'Tracker', ($scope, $location, $timeout, $routeParams, Overview, PatternMatcher, Charts, Tracker) ->
+	.controller 'ChartsCorrelatedCtrl', ['$scope', '$location', '$timeout', '$routeParams', 'Overview', 'PatternMatcher', 'Charts', ($scope, $location, $timeout, $routeParams, Overview, PatternMatcher, Charts) ->
 
 		$scope.params = $routeParams
 		$scope.mode = 'correlated'
@@ -83,9 +83,6 @@ angular.module('dataplayApp')
 
 					$scope.initObservations()
 					console.log "Chart", $scope.chart
-
-					# Track a page visit
-					Tracker.visited $scope.params.id, $scope.params.key, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
 				.error (data, status) ->
 					console.log "Charts::init::Error:", status
 
