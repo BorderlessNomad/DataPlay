@@ -7,11 +7,11 @@
 			"www-src"
 		],
 		"follow_symlinks": true,
-		"name": "Data Play",
+		"name": "Extras",
 		"path": "."
 	}, {
 		"follow_symlinks": true,
-		"name": "Go",
+		"name": "Backend",
 		"path": "src/dataplay"
 	}, {
 		"follow_symlinks": true,
@@ -21,6 +21,10 @@
 		"follow_symlinks": true,
 		"name": "Frontend",
 		"path": "www-src"
+	}, {
+		"follow_symlinks": true,
+		"name": "Monitoring",
+		"path": "../dataplay-monitoring"
 	}],
 	"settings": {
 		"translate_tabs_to_spaces": false,

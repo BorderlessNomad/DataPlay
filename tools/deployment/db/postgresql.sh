@@ -5,7 +5,7 @@
 set -ex
 
 if [ "$(id -u)" != "0" ]; then
-	echo "Error: This script must be run as root" 1>&2
+	echo >&2 "Error: This script must be run as user 'root'";
 	exit 1
 fi
 
