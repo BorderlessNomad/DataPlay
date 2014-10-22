@@ -186,6 +186,7 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	query = query.Where("discovered_id = ?", discovered.DiscoveredId)
 	query = query.Where("credflag = ?", true)
 	err3 := query.Find(&creditingUsers).Error
+
 	if err3 != nil && err3 != gorm.RecordNotFound {
 		return pattern, &appError{err3, "find creditors failed", http.StatusInternalServerError}
 	} else {
@@ -248,7 +249,7 @@ func Discover(id string, uid int, json []byte, correlated bool) (Discovered, *ap
 	discovered.Rating = 0
 	discovered.Discredited = 0
 	discovered.Credited = 0
-	fmt.Print("Moondaddy")
+
 	err = DB.Save(&discovered).Error
 	if err != nil {
 		return discovered, &appError{err, "could not save discovery", http.StatusInternalServerError}

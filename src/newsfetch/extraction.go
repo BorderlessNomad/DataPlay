@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -38,11 +37,6 @@ func (c *Client) Extract(urls []string, options Options, startpos int) (error, i
 		res, err := c.extract(urls[i:to], options, i)
 
 		if err != nil {
-			f, _ := os.OpenFile("log.txt", os.O_RDWR|os.O_APPEND, 0666)
-			errStr := "FAILED AND RESTARTED ON URL " + strconv.Itoa(i) + " for reason " + err.Error() + " at " + time.Now().String() + "\n\n"
-			e := []byte(errStr + "\n")
-			f.Write(e)
-			f.Close()
 			return err, i
 		}
 
@@ -52,12 +46,9 @@ func (c *Client) Extract(urls []string, options Options, startpos int) (error, i
 
 		}
 
-		f, _ := os.OpenFile("jsonout.txt", os.O_APPEND, 0666)
 		for j := 0; j < reslen; j++ {
 			writeToCass(res[j])
-			f.WriteString(res[j])
 		}
-		f.Close()
 	}
 
 	return nil, 0
@@ -188,6 +179,7 @@ func Hash(str string) []byte {
 }
 
 // write json string to cassandra
+
 func writeToCass(resp string) {
 	session, _ := GetCassandraConnection("dp")
 	defer session.Close()
@@ -198,8 +190,8 @@ func writeToCass(resp string) {
 		panic(err)
 	}
 
-	if err := session.Query(`INSERT INTO response (id, original_url, url, type, provider_name, provider_url, 
-		provider_display, favicon_url, title, description, date, published, lead, content) 
+	if err := session.Query(`INSERT INTO response (id, original_url, url, type, provider_name, provider_url,
+		provider_display, favicon_url, title, description, date, published, lead, content)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		r.Id, r.OriginalUrl, r.Url, r.Type, r.ProviderName, r.ProviderUrl,
 		r.ProviderDisplay, r.FaviconUrl, r.Title, r.Description, r.Date, r.Published, r.Lead, r.Content).Exec(); err != nil {
@@ -207,7 +199,7 @@ func writeToCass(resp string) {
 	}
 
 	for _, a := range r.Authors {
-		if err := session.Query(`INSERT INTO author (id, date, name, url) 
+		if err := session.Query(`INSERT INTO author (id, date, name, url)
 			VALUES (?, ?, ?, ?)`,
 			a.Id, r.Date, a.Name, a.Url).Exec(); err != nil {
 			fmt.Println("HELP2!", err)
@@ -215,7 +207,7 @@ func writeToCass(resp string) {
 	}
 
 	for _, k := range r.Keywords {
-		if err := session.Query(`INSERT INTO keyword (id, url, date, score, name) 
+		if err := session.Query(`INSERT INTO keyword (id, url, date, score, name)
 			VALUES (?, ?, ?, ?, ?)`,
 			k.Id, r.Url, r.Date, k.Score, k.Name).Exec(); err != nil {
 			fmt.Println("HELP3!", err)
@@ -223,7 +215,7 @@ func writeToCass(resp string) {
 	}
 
 	for _, e := range r.Entities {
-		if err := session.Query(`INSERT INTO entity (id, url, date, count, name) 
+		if err := session.Query(`INSERT INTO entity (id, url, date, count, name)
 			VALUES (?, ?, ?, ?, ?)`,
 			e.Id, r.Url, r.Date, e.Count, e.Name).Exec(); err != nil {
 			fmt.Println("HELP4!", err)
@@ -231,7 +223,7 @@ func writeToCass(resp string) {
 	}
 
 	for index, i := range r.Images {
-		if err := session.Query(`INSERT INTO image (pic_index, id, date, caption, url, width, height, entropy, size) 
+		if err := session.Query(`INSERT INTO image (pic_index, id, date, caption, url, width, height, entropy, size)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			index, i.Id, r.Date, i.Caption, i.Url, i.Width, i.Height, i.Entropy, i.Size).Exec(); err != nil {
 			fmt.Println("HELP5!", err)
@@ -239,10 +231,57 @@ func writeToCass(resp string) {
 	}
 
 	for _, ra := range r.RelatedArticles {
-		if err := session.Query(`INSERT INTO related (id, date, description, title, url, thumbnail_width, score, thumbnail_height, thumbnail_url) 
+		if err := session.Query(`INSERT INTO related (id, date, description, title, url, thumbnail_width, score, thumbnail_height, thumbnail_url)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			ra.Id, r.Date, ra.Description, ra.Title, ra.Url, ra.ThumbnailWidth, ra.Score, ra.ThumbnailHeight, ra.ThumbnailUrl).Exec(); err != nil {
 			fmt.Println("HELP6!", err)
 		}
 	}
 }
+
+// func writeToCass(resp string) {
+// 	session, _ := GetCassandraConnection("dp2")
+// 	defer session.Close()
+
+// 	var r Response
+// 	err := json.Unmarshal([]byte(resp), &r)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// 	if err := session.Query(`INSERT INTO response2 (date, dummy, description, url, title)
+// 		VALUES (?, ?, ?, ?, ?)`,
+// 		r.Date, 1, r.Description, r.Url, r.Title).Exec(); err != nil {
+// 		fmt.Println("HELP1!", err)
+// 	}
+
+// 	for _, k := range r.Keywords {
+// 		if err := session.Query(`INSERT INTO keyword2 (date, dummy, name, url)
+// 			VALUES (?, ?, ?, ?)`,
+// 			r.Date, 1, k.Name, r.Url).Exec(); err != nil {
+// 			fmt.Println("HELP3!", err)
+// 		}
+// 	}
+
+// 	for _, e := range r.Entities {
+// 		if err := session.Query(`INSERT INTO entity2 (date, dummy, name, url)
+// 			VALUES (?, ?, ?, ?)`,
+// 			r.Date, 1, e.Name, r.Url).Exec(); err != nil {
+// 			fmt.Println("HELP4!", err)
+// 		}
+// 	}
+
+// 	if err := session.Query(`INSERT INTO image2 (date, dummy, pic_url, url)
+// 		VALUES (?, ?, ?, ?)`,
+// 		r.Date, 1, r.Images[0].Url, r.Url).Exec(); err != nil {
+// 		fmt.Println("HELP5!", err)
+// 	}
+
+// 	for _, ra := range r.RelatedArticles {
+// 		if err := session.Query(`INSERT INTO related2 (date, dummy, description, title, related_url, url)
+// 			VALUES (?, ?, ?, ?, ?, ?)`,
+// 			r.Date, 1, ra.Description, ra.Title, ra.Url, r.Url).Exec(); err != nil {
+// 			fmt.Println("HELP6!", err)
+// 		}
+// 	}
+// }
