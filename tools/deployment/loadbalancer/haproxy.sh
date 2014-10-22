@@ -10,9 +10,6 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 GO_VERSION="go1.3.3"
-DEST="/home/ubuntu/www"
-APP="dataplay-monitoring"
-WWW="www-src"
 
 HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
 PORT="1938"
@@ -105,6 +102,8 @@ run_monitoring () {
 	REPO="DataPlay-Monitoring"
 	BRANCH="master"
 	SOURCE="$URL/$USER/$REPO"
+	DEST="/home/ubuntu/www"
+	APP="dataplay-monitoring"
 
 	START="start.sh"
 	LOG="output.log"
