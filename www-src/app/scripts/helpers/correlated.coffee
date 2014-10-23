@@ -29,7 +29,7 @@ optionsList =
 			x: (d, i) -> i
 			y: (d) -> d[1]
 			color: d3.scale.category10().range()
-			transitionDuration: 250
+			transitionDuration: 0
 			xAxis:
 				axisLabel: ""
 				showMaxMin: false
@@ -57,7 +57,7 @@ optionsList =
 			x: (d, i) -> i
 			y: (d) -> d[1]
 			color: d3.scale.category10().range()
-			transitionDuration: 250
+			transitionDuration: 0
 			xAxis:
 				axisLabel: ""
 				showMaxMin: false
@@ -89,7 +89,7 @@ optionsList =
 			color: d3.scale.category10().range()
 			scatter:
 				onlyCircles: true
-			transitionDuration: 250
+			transitionDuration: 0
 			xAxis:
 				axisLabel: ""
 				showMaxMin: false
