@@ -54,8 +54,8 @@ enable_rabbitmqadmin () {
 
 	service rabbitmq-server restart
 
-	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 http://localhost:15672/cli/rabbitmqadmin
-	chmod +x rabbitmqadmin
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 http://localhost:15672/cli/rabbitmqadmin && \
+	chmod +x rabbitmqadmin && \
 	mv rabbitmqadmin /usr/local/sbin
 
 	service rabbitmq-server restart

@@ -14,24 +14,23 @@ DEST="/home/ubuntu/www"
 APP="dataplay"
 WWW="www-src"
 
-HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
-PORT="80"
+APP_HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
+APP_PORT="3000"
+APP_TYPE="compute"
+APP_MODE="1"
 
 # LOADBALANCER_HOST="109.231.121.26"
 LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
-LOADBALANCER_PORT="1937"
+LOADBALANCER_REQUEST_PORT="3000"
+LOADBALANCER_API_PORT="1937"
 
 # DATABASE_HOST="109.231.121.13"
 DATABASE_HOST=$(ss-get --timeout 360 postgres.hostname)
 DATABASE_PORT="5432"
 
 # REDIS_HOST="109.231.121.13"
-REDIS_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
+REDIS_HOST=$(ss-get --timeout 360 redis.hostname)
 REDIS_PORT="6379"
-
-# QUEUE_HOST="109.231.121.13"
-QUEUE_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
-QUEUE_PORT="5672"
 
 # CASSANDRA_HOST="109.231.121.13"
 CASSANDRA_HOST=$(ss-get --timeout 360 cassandra.hostname)
@@ -68,13 +67,12 @@ install_go () {
 
 export_variables () {
 	echo "export DP_LOADBALANCER_HOST=$LOADBALANCER_HOST" >> /etc/profile.d/dataplay.sh
-	echo "export DP_LOADBALANCER_PORT=$LOADBALANCER_PORT" >> /etc/profile.d/dataplay.sh
+	echo "export DP_LOADBALANCER_REQUEST_PORT=$LOADBALANCER_REQUEST_PORT" >> /etc/profile.d/dataplay.sh
+	echo "export DP_LOADBALANCER_API_PORT=$LOADBALANCER_API_PORT" >> /etc/profile.d/dataplay.sh
 	echo "export DP_DATABASE_HOST=$DATABASE_HOST" >> /etc/profile.d/dataplay.sh
 	echo "export DP_DATABASE_PORT=$DATABASE_PORT" >> /etc/profile.d/dataplay.sh
 	echo "export DP_REDIS_HOST=$REDIS_HOST" >> /etc/profile.d/dataplay.sh
 	echo "export DP_REDIS_PORT=$REDIS_PORT" >> /etc/profile.d/dataplay.sh
-	echo "export DP_QUEUE_HOST=$QUEUE_HOST" >> /etc/profile.d/dataplay.sh
-	echo "export DP_QUEUE_PORT=$QUEUE_PORT" >> /etc/profile.d/dataplay.sh
 	echo "export DP_CASSANDRA_HOST=$CASSANDRA_HOST" >> /etc/profile.d/dataplay.sh
 	echo "export DP_CASSANDRA_PORT=$CASSANDRA_PORT" >> /etc/profile.d/dataplay.sh
 
@@ -83,29 +81,15 @@ export_variables () {
 	su - ubuntu -c ". /etc/profile"
 }
 
-run_node () {
+run_compute_server () {
 	URL="https://github.com"
 	USER="playgenhub"
 	REPO="DataPlay"
-	BRANCH="master"
+	BRANCH="noqueue"
 	SOURCE="$URL/$USER/$REPO"
 
 	START="start.sh"
 	LOG="output.log"
-
-	QUEUE_USERNAME="playgen"
-	QUEUE_PASSWORD="aDam3ntiUm"
-	QUEUE_ADDRESS="amqp://$QUEUE_USERNAME:$QUEUE_PASSWORD@$QUEUE_HOST:$QUEUE_PORT/"
-	QUEUE_EXCHANGE="playgen-prod"
-
-	REQUEST_QUEUE="dataplay-request-prod"
-	REQUEST_KEY="api-request-prod"
-	REQUEST_TAG="consumer-request-prod"
-	RESPONSE_QUEUE="dataplay-response-prod"
-	RESPONSE_KEY="api-response-prod"
-	RESPONSE_TAG="consumer-response-prod"
-
-	MODE="1" # Node mode
 
 	# Kill any running process
 	if ps ax | grep -v grep | grep $APP > /dev/null; then
@@ -126,9 +110,17 @@ run_node () {
 	mv -f $REPO-$BRANCH/* $APP
 	cd $APP
 	chmod u+x $START
-	echo "Starting $START in Mode=$MODE"
-	nohup sh $START --mode=$MODE --uri="$QUEUE_ADDRESS" --exchange="$QUEUE_EXCHANGE" --requestqueue="$REQUEST_QUEUE" --requestkey="$REQUEST_KEY" --reqtag="$REQUEST_TAG" --responsequeue="$RESPONSE_QUEUE" --responsekey="$RESPONSE_KEY" --restag="$RESPONSE_TAG" > $LOG 2>&1&
+	echo "Starting $APP_TYPE in Mode=$APP_MODE"
+	nohup sh $START --mode=$APP_MODE --loadbalancer=$LOADBALANCER_HOST:$LOADBALANCER_REQUEST_PORT > $LOG 2>&1&
 	echo "Done! $ sudo tail -f $DEST/$APP/$LOG for more details"
+}
+
+inform_loadbalancer () {
+	retries=0
+	until curl -H "Content-Type: application/json" -X POST -d "{\"ip\":\"$APP_HOST:$APP_PORT\"}" http://$LOADBALANCER_HOST:$LOADBALANCER_API_PORT/$APP_TYPE; do
+		echo "[$(timestamp)] Load Balancer is not up yet, retry... [$(( retries++ ))]"
+		sleep 5
+	done
 }
 
 update_iptables () {
@@ -136,17 +128,8 @@ update_iptables () {
 	iptables -A INPUT -p tcp --dport 3000 -j ACCEPT # HTTP
 	iptables -A INPUT -p tcp --dport 3443 -j ACCEPT # HTTPS
 
-	# NAT Redirect
-	iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 3000
-	iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 443 -j REDIRECT --to-port 3443
-
 	iptables-save
 }
-
-if [ "$(id -u)" != "0" ]; then
-	echo "Error: This script must be run as root" 1>&2
-	exit 1
-fi
 
 echo "[$(timestamp)] ---- 1. Setup Host ----"
 setuphost
@@ -158,9 +141,12 @@ echo "[$(timestamp)] ---- 3. Export Variables ----"
 export_variables
 
 echo "[$(timestamp)] ---- 4. Run Compute (Node) Server ----"
-run_node
+run_compute_server
 
-echo "[$(timestamp)] ---- 5. Update IPTables rules ----"
+echo "[$(timestamp)] ---- 5. Inform Load Balancer (Add) ----"
+inform_loadbalancer
+
+echo "[$(timestamp)] ---- 6. Update IPTables rules ----"
 update_iptables
 
 echo "[$(timestamp)] ---- Completed ----"

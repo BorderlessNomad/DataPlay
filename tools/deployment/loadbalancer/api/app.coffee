@@ -7,7 +7,7 @@ fs = require "fs"
 swig = require "swig"
 sys = require "sys"
 exec = require("child_process").exec
-backend = path.join process.cwd(), 'backend.json'
+proxy = path.join process.cwd(), 'proxy.json'
 
 app = express()
 
@@ -20,13 +20,17 @@ port = process.env.PORT or 1937
 puts = (error, stdout, stderr) -> sys.puts stdout
 
 compileTemplate = (data) ->
-	for value, key in data.backends
-		data.backends[key].id = "master#{key+1}"
+	for value, key in data.gamification
+		data.gamification[key].id = "gamification#{key+1}"
+
+	for value, key in data.compute
+		data.compute[key].id = "compute#{key+1}"
 
 	timestamp = Date.now()
 	output = swig.renderFile "haproxy.cfg.template",
 		generatedOn: timestamp
-		backends: data.backends
+		gamification: data.gamification
+		compute: data.compute
 
 	fs.writeFile "haproxy.cfg", output, (err) ->
 		return err if err
@@ -45,25 +49,40 @@ compileTemplate = (data) ->
 router = express.Router()
 
 router.route("/").get (req, res) ->
-	jsonFile backend, (err, file) ->
+	jsonFile proxy, (err, file) ->
 		return res.status(500).json error: "Error while reading file." if err
 
 		# compileTemplate file.data
 
-		res.json file.data.backends
+		res.json file.data
 
-router.route("/").post (req, res) ->
-	jsonFile backend, (err, file) ->
+router.route("/:type").get (req, res) ->
+	jsonFile proxy, (err, file) ->
 		return res.status(500).json error: "Error while reading file." if err
 
+		return res.status(400).json error: "No Type to remove." unless req.params?.type?.length > 0
+
+		# compileTemplate file.data
+
+		if file.data[req.params.type]? then res.json file.data[req.params.type] else res.status(400).json error: "Invalid Type specified."
+
+router.route("/:type").post (req, res) ->
+	jsonFile proxy, (err, file) ->
+		return res.status(500).json error: "Error while reading file." if err
+
+		return res.status(400).json error: "No Type to specified." unless req.params?.type?.length > 0
+
+		return res.status(400).json error: "Invalid Type specified." unless file.data[req.params.type]?
+
+		console.log req.body
 		return res.status(400).json error: "No IP to add." unless req.body?.ip?.length > 0
 
-		for value, key in file.data.backends
+		for value, key in file.data[req.params.type]
 			return res.status(409).json error: "IP already exists!" if value.endpoint is req.body.ip
 
 		timestamp = Date.now()
 
-		file.data.backends.push
+		file.data[req.params.type].push
 			endpoint: req.body.ip
 			timestamp: timestamp
 
@@ -72,38 +91,44 @@ router.route("/").post (req, res) ->
 
 			compileTemplate file.data
 
-			res.json file.data.backends
+			res.json file.data[req.params.type]
 		), (err) ->
 			return res.status(500).json error: "Error while saving file."
 
-router.route("/:ip").delete (req, res) ->
-	jsonFile backend, (err, file) ->
+router.route("/:type/:ip").delete (req, res) ->
+	jsonFile proxy, (err, file) ->
 		return res.status(500).json error: "Error while reading file." if err
+
+		return res.status(400).json error: "No Type to specified." unless req.params?.type?.length > 0
+
+		return res.status(400).json error: "Invalid Type specified." unless file.data[req.params.type]?
 
 		return res.status(400).json error: "No IP to remove." unless req.params?.ip?.length > 0
 
-		index = false
-		for value, key in file.data.backends
+		for value, key in file.data[req.params.type]
 			if value.endpoint is req.params.ip
 				index = key
 				break
 
-		return res.status(404).json error: "No such IP found!" if index is false
+		return res.status(404).json error: "No such IP found!" unless index?
 
 		timestamp = Date.now()
 
-		file.data.backends.splice index, 1
+		file.data[req.params.type].splice index, 1
 
 		file.save().then (->
 			console.log "[#{new Date(timestamp)}] removed endpoint:", req.params.ip
 
 			compileTemplate file.data
 
-			res.json file.data.backends
+			res.json file.data[req.params.type]
 		), (err) ->
 			return res.status(500).json error: "Error while saving file"
 
 app.use '/', router
 
-app.listen port, ->
-	console.log "Express server listening on port %d in %s mode", port, app.settings.env
+server = app.listen port, ->
+	host = server.address().address
+	port = server.address().port
+
+	console.log "Express server listening on http://%s:%d in '%s' mode", host, port, app.settings.env

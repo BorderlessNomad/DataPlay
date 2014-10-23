@@ -42,7 +42,7 @@ install_nginx () {
 	URL="https://raw.githubusercontent.com"
 	USER="playgenhub"
 	REPO="DataPlay"
-	BRANCH="master"
+	BRANCH="noqueue"
 	SOURCE="$URL/$USER/$REPO/$BRANCH"
 
 	mkdir -p $DEST/$APP/$WWW/dist
@@ -68,7 +68,7 @@ download_app () {
 	URL="https://github.com"
 	USER="playgenhub"
 	REPO="DataPlay"
-	BRANCH="master"
+	BRANCH="noqueue"
 	SOURCE="$URL/$USER/$REPO"
 
 	cd $DEST

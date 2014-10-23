@@ -1,15 +1,17 @@
 {
 	"name": "dataplay-haproxy-api",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"author": "PlayGen",
 	"license": "All Rights Reserved",
 	"private": "true",
-	"devDependencies": {
-		"coffee-script": "^1.7",
+	"dependencies": {
+		"swig": "^1.4",
 		"express": "^4.9",
 		"body-parser": "^1.9",
 		"errorhandler": "^1.2",
-		"json-file-plus": "^2.0",
-		"swig": "^1.4"
+		"json-file-plus": "^2.0"
+	},
+	"devDependencies": {
+		"coffee-script": "^1.7"
 	}
 }

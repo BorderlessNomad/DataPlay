@@ -47,7 +47,7 @@ setup_haproxy_api () {
 	URL="https://raw.githubusercontent.com"
 	USER="playgenhub"
 	REPO="DataPlay"
-	BRANCH="master"
+	BRANCH="noqueue"
 	SOURCE="$URL/$USER/$REPO/$BRANCH"
 
 	npm cache clean
@@ -64,7 +64,7 @@ setup_haproxy_api () {
 
 	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/loadbalancer/api/app.coffee && \
 	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/loadbalancer/api/package.json && \
-	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/loadbalancer/api/backend.json && \
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/loadbalancer/api/proxy.json && \
 	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/loadbalancer/api/haproxy.cfg.template
 
 	npm install -d
@@ -100,7 +100,7 @@ run_monitoring () {
 	URL="https://github.com"
 	USER="playgenhub"
 	REPO="DataPlay-Monitoring"
-	BRANCH="master"
+	BRANCH="noqueue"
 	SOURCE="$URL/$USER/$REPO"
 	DEST="/home/ubuntu/www"
 	APP="dataplay-monitoring"
