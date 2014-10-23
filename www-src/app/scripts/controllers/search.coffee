@@ -19,12 +19,17 @@ angular.module('dataplayApp')
 		$scope.chartsRelated = []
 
 		$scope.relatedChart = new RelatedCharts $scope.chartsRelated
+		$scope.relatedChart.setPreview true
 
 		$scope.init = (reset = false) ->
 			# Initiate search if we have /search/:query
 			if reset
 				$scope.chartsRelated = []
 				$scope.relatedChart.chartsRelated = $scope.chartsRelated
+				$scope.tweets = []
+
+			$scope.loading.related = true
+			$scope.loading.tweets = true
 
 			$scope.search()
 			$scope.getNews()
@@ -66,6 +71,8 @@ angular.module('dataplayApp')
 					$scope.loading.tweets = false
 
 			return
+		# debounce to stop unneeded requests (e.g. searching 'gol' when typing 'gold')
+		$scope.search = _.debounce $scope.search, 750
 
 		$scope.getNews = () ->
 			return if $scope.query.length < 3

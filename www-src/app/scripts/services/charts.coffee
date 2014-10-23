@@ -22,14 +22,11 @@ angular.module('dataplayApp')
 				data: bookmarks
 
 		creditChart: (type, chartId, valFlag) ->
-			path = if typeof valFlag == 'boolean' then "/chart/#{valFlag}" else "/chart"
+			path = '/chart/'
+			path += if type is 'rid' then chartId.replace /\//g, '_' else chartId
+			path += "/#{valFlag}"
 
-			if type is "rid"
-				$http.put config.api.base_url + path,
-					"rid": chartId
-			else
-				$http.put config.api.base_url + path,
-					"cid": chartId
+			$http.put config.api.base_url + path
 
 		getObservations: (id) ->
 			$http.get config.api.base_url + "/observations/#{id}"

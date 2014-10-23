@@ -25,6 +25,7 @@ angular.module('dataplayApp')
 		$scope.chartsRelated = []
 
 		$scope.relatedChart = new RelatedCharts $scope.chartsRelated
+		$scope.relatedChart.setPreview true
 
 		$scope.init = ->
 			$scope.loading.charts = true;
@@ -34,6 +35,7 @@ angular.module('dataplayApp')
 					if data? and data.charts? and data.charts.length > 0
 						for key, chart of data.charts
 							continue unless $scope.relatedChart.isPlotAllowed chart.type
+							continue unless key < 4
 
 							key = parseInt(key)
 
@@ -70,10 +72,8 @@ angular.module('dataplayApp')
 								if not chartObj.error
 									chartObj.info =
 										key: key
-										# id: "correlated-#{$scope.params.id}-#{chart.key + $scope.offset.correlated}-#{chart.type}"
-										# url: "charts/correlated/#{$scope.params.id}/#{chart.correlationid}/#{chart.type}/#{chart.table1.xLabel}/#{chart.table1.yLabel}"
-										id: "corr"
-										url: "corr"
+										id: "correlated-#{chart.correlationid}"
+										url: "charts/correlated/#{chart['source_title']}/#{chart.correlationid}/#{chart.type}/#{chart['source_X']}/#{chart['source_Y']}"
 										title: [chart.table1.title, chart.table2.title]
 									chartObj.info.url += "/#{chart.table1.zLabel}" if chart.type is 'bubble'
 
@@ -101,6 +101,7 @@ angular.module('dataplayApp')
 									chartObj.setMargin 25, 25, 25, 25
 									chartObj.setLegend false
 									chartObj.setTooltips false
+									chartObj.setPreview true
 
 									$scope.chartsRelated.push chartObj
 

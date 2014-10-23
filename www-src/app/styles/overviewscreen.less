@@ -49,8 +49,8 @@
 			text-align: center;
 		}
 
-		.dc-chart.line {
-			g.axis.x, g.axis.y {
+		.dc-chart {
+			.axis {
 				display: none;
 			}
 		}
@@ -69,4 +69,19 @@
 	max-width: 150px;
 	margin-left: -75px;
 	margin-top: -100px;
+}
+
+@media all and (max-width: 992px) {
+	.overviewscreen {
+		padding: 0;
+
+		.section {
+			padding: 0 15px;
+
+			.sect-graph {
+				height: initial;
+				padding: 0;
+			}
+		}
+	}
 }

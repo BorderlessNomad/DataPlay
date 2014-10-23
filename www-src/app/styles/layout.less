@@ -24,12 +24,13 @@ nvd3 svg {
 /* End over-riding nv.d3.css */
 
 .navbar-brand {
-	background-image: url('../images/logo-white.png');
+	background-image: url('../images/logo-long.png');
 	background-size: contain;
 	background-repeat: no-repeat;
 	background-position: center center;
 	text-indent: -9999px;
-	width: 130px;
+	width: 200px;
+	margin-right: 15px;
 }
 
 .nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
@@ -51,6 +52,12 @@ nvd3 svg {
 
 	.text-muted {
 		// color: #ffffff;
+	}
+}
+
+@media all and (max-width: 992px) {
+	.footer {
+		position: initial;
 	}
 }
 

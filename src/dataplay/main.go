@@ -451,6 +451,7 @@ func AdminApiSessionHandler(res http.ResponseWriter, req *http.Request) {
 
 func UserApiSessionHandler(res http.ResponseWriter, req *http.Request) {
 	noAuthPaths := map[string]bool{
+		"/api/ping":           true,
 		"/api/login":          true,
 		"/api/register":       true,
 		"/api/user/check":     true,

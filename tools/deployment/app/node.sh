@@ -5,7 +5,7 @@
 set -ex
 
 if [ "$(id -u)" != "0" ]; then
-	echo "Error: This script must be run as root" 1>&2
+	echo >&2 "Error: This script must be run as user 'root'";
 	exit 1
 fi
 
@@ -45,6 +45,7 @@ setuphost () {
 	HOSTNAME=$(hostname)
 	HOSTLOCAL="127.0.1.1"
 	echo "$HOSTLOCAL $HOSTNAME" >> /etc/hosts
+	echo "173.194.40.164 code.google.com" >> /etc/hosts # Remove this once code.google.com is Fixed
 }
 
 install_go () {
@@ -90,7 +91,7 @@ run_node () {
 	SOURCE="$URL/$USER/$REPO"
 
 	START="start.sh"
-	LOG="ouput.log"
+	LOG="output.log"
 
 	QUEUE_USERNAME="playgen"
 	QUEUE_PASSWORD="aDam3ntiUm"

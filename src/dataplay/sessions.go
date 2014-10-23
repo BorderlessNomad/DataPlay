@@ -144,12 +144,15 @@ func GetRedisConnection() (c *redis.Client, err error) {
 		redisPort = os.Getenv("DP_REDIS_PORT")
 	}
 
+	Logger.Println("Connecting to Redis on Host %s, Port %s...", redisHost, redisPort)
 	c, err = redis.DialTimeout("tcp", redisHost+":"+redisPort, time.Duration(10)*time.Second)
 
 	if err != nil {
 		Logger.Println("Could not connect to the redis server.")
 		return nil, err
 	}
+
+	Logger.Println("Connected!")
 
 	return c, nil
 }
