@@ -15,17 +15,18 @@ import (
 	"github.com/codegangsta/martini-contrib/binding"
 	"github.com/jinzhu/gorm"
 	"github.com/martini-contrib/cors"
+	"gopkg.in/elazarl/goproxy.v1"
 	"log"
 	"net/http"
 	"os"
 	"playgen/database"
-	"strconv"
 	"strings"
 	"time"
 )
 
 var (
-	mode = flag.Int("mode", 1, "1=Node (default), 2=Master, 3=Standalone")
+	mode         = flag.Int("mode", 1, "1=Node (default), 2=Master, 3=Standalone")
+	loadbalancer = flag.String("loadbalancer", "localhost:4000", "e.g. 109.231.121.100:4000")
 )
 
 var Logger *log.Logger = log.New(os.Stdout, "[API] ", log.Lshortfile)
@@ -151,84 +152,33 @@ func initMasterMode() {
 
 	m := initAPI()
 
-	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/chart/:tablename/:tablenum/:type/:x/:y", "GetChartQ")
-	})
-	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y/:z", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/chart/:tablename/:tablenum/:type/:x/:y/:z", "GetChartQ")
-	})
-	m.Get("/api/chartcorrelated/:cid", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/chartcorrelated/:cid", "GetChartCorrelatedQ")
-	})
-	m.Get("/api/correlated/:tablename/:search", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/correlated/:tablename/:search", "GetCorrelatedChartsQ")
-	})
-	m.Get("/api/correlated/:tablename/:search/:offset/:count", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/correlated/:tablename/:search/:offset/:count", "GetCorrelatedChartsQ")
-	})
-	m.Get("/api/discovered/:tablename/:correlated", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/discovered/:tablename/:correlated", "GetDiscoveredChartsQ")
-	})
-	m.Get("/api/discovered/:tablename/:correlated/:offset/:count", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/discovered/:tablename/:correlated/:offset/:count", "GetDiscoveredChartsQ")
-	})
-	m.Get("/api/getdata/:id", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/getdata/:id", "DumpTableQ")
-	})
-	m.Get("/api/getdata/:id/:offset/:count", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/getdata/:id/:offset/:count", "DumpTableQ")
-	})
-	m.Get("/api/getdata/:id/:x/:startx/:endx", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/getdata/:id/:x/:startx/:endx", "DumpTableRangeQ")
-	})
-	m.Get("/api/getdatagrouped/:id/:x/:y", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/getdatagrouped/:id/:x/:y", "DumpTableGroupedQ")
-	})
-	m.Get("/api/getdatapred/:id/:x/:y", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/getdatapred/:id/:x/:y", "DumpTablePredictionQ")
-	})
-	m.Get("/api/getreduceddata/:id", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/getreduceddata/:id", "DumpReducedTableQ")
-	})
-	m.Get("/api/getreduceddata/:id/:percent", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/getreduceddata/:id/:percent", "DumpReducedTableQ")
-	})
-	m.Get("/api/getreduceddata/:id/:percent/:min", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/getreduceddata/:id/:percent/:min", "DumpReducedTableQ")
-	})
-	m.Get("/api/getreduceddata/:id/:percent/:min/:x/:y", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/getreduceddata/:id/:percent/:min/:x/:y", "DumpReducedTableQ")
-	})
-	m.Get("/api/news/search/:terms", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/news/search/:terms", "SearchForNewsQ")
-	})
-	m.Get("/api/observations/:did", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/observations/:did", "GetObservationsQ")
-	})
-	m.Get("/api/political/:type", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/political/:type", "GetPoliticalActivityQ")
-	})
-	m.Get("/api/related/:tablename", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/related/:tablename", "GetRelatedChartsQ")
-	})
-	m.Get("/api/related/:tablename/:offset/:count", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/related/:tablename/:offset/:count", "GetRelatedChartsQ")
-	})
-	m.Get("/api/search/:keyword", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/search/:keyword", "SearchForDataQ")
-	})
-	m.Get("/api/search/:keyword/:offset", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/search/:keyword/:offset", "SearchForDataQ")
-	})
-	m.Get("/api/search/:keyword/:offset/:count", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/search/:keyword/:offset/:count", "SearchForDataQ")
-	})
-	m.Get("/api/user/activitystream", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/user/activitystream", "GetActivityStreamQ")
-	})
-	m.Get("/api/visited", func(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-		return sendToQueue(res, req, params, "/api/visited", "GetLastVisitedQ")
-	})
+	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y", GetChartHttp)
+	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y/:z", GetChartHttp)
+	m.Get("/api/chartcorrelated/:cid", GetChartCorrelatedHttp)
+	m.Get("/api/correlated/:tablename/:search", GetCorrelatedChartsHttp)
+	m.Get("/api/correlated/:tablename/:search/:offset/:count", GetCorrelatedChartsHttp)
+	m.Get("/api/discovered/:tablename/:correlated", GetDiscoveredChartsHttp)
+	m.Get("/api/discovered/:tablename/:correlated/:offset/:count", GetDiscoveredChartsHttp)
+	m.Get("/api/getdata/:id", DumpTableHttp)
+	m.Get("/api/getdata/:id/:offset/:count", DumpTableHttp)
+	m.Get("/api/getdata/:id/:x/:startx/:endx", DumpTableRangeHttp)
+	m.Get("/api/getdatagrouped/:id/:x/:y", DumpTableGroupedHttp)
+	m.Get("/api/getdatapred/:id/:x/:y", DumpTablePredictionHttp)
+	m.Get("/api/getreduceddata/:id", DumpReducedTableHttp)
+	m.Get("/api/getreduceddata/:id/:percent", DumpReducedTableHttp)
+	m.Get("/api/getreduceddata/:id/:percent/:min", DumpReducedTableHttp)
+	m.Get("/api/getreduceddata/:id/:percent/:min/:x/:y", DumpReducedTableHttp)
+	m.Get("/api/news/search/:terms", SearchForNewsHttp)
+	m.Get("/api/observations/:did", GetObservationsHttp)
+	m.Get("/api/political/:type", GetPoliticalActivityHttp)
+	m.Get("/api/related/:tablename", GetRelatedChartsHttp)
+	m.Get("/api/related/:tablename/:offset/:count", GetRelatedChartsHttp)
+	m.Get("/api/relatedstrings/:guid", GetRelatedDatasetByStrings)
+	m.Get("/api/search/:keyword", SearchForDataHttp)
+	m.Get("/api/search/:keyword/:offset", SearchForDataHttp)
+	m.Get("/api/search/:keyword/:offset/:count", SearchForDataHttp)
+	m.Get("/api/user/activitystream", GetActivityStreamHttp)
+	m.Get("/api/visited", GetLastVisitedHttp)
 
 	m.Use(JsonApiHandler)
 
@@ -249,29 +199,74 @@ func initNodeMode() {
 		fmt.Sprintf("[database] Unable to connect to the Database: %s\n", e)
 	}
 
+	/* Database connection will be closed only when Server closes */
 	defer DB.Close()
 
-	myfuncs = make(funcs)
-	myfuncs.registerCallback("GetLastVisitedQ", GetLastVisitedQ)
-	myfuncs.registerCallback("SearchForDataQ", SearchForDataQ)
-	myfuncs.registerCallback("DumpTableQ", DumpTableQ)
-	myfuncs.registerCallback("DumpTableRangeQ", DumpTableRangeQ)
-	myfuncs.registerCallback("DumpTableGroupedQ", DumpTableGroupedQ)
-	myfuncs.registerCallback("DumpTablePredictionQ", DumpTablePredictionQ)
-	myfuncs.registerCallback("DumpReducedTableQ", DumpReducedTableQ)
-	myfuncs.registerCallback("GetChartQ", GetChartQ)
-	myfuncs.registerCallback("GetChartCorrelatedQ", GetChartCorrelatedQ)
-	myfuncs.registerCallback("GetRelatedChartsQ", GetRelatedChartsQ)
-	myfuncs.registerCallback("GetCorrelatedChartsQ", GetCorrelatedChartsQ)
-	myfuncs.registerCallback("GetDiscoveredChartsQ", GetDiscoveredChartsQ)
-	myfuncs.registerCallback("GetObservationsQ", GetObservationsQ)
-	myfuncs.registerCallback("GetPoliticalActivityQ", GetPoliticalActivityQ)
-	myfuncs.registerCallback("GetActivityStreamQ", GetActivityStreamQ)
-	myfuncs.registerCallback("SearchForNewsQ", SearchForNewsQ)
+	port := "4000"
+	if os.Getenv("DP_MONITORING_PORT") != "" {
+		port = os.Getenv("DP_MONITORING_PORT")
+	}
 
-	/* Start request consumer in Listen mode */
-	consumer := QueueConsumer{}
-	consumer.Consume()
+	m := martini.Classic()
+
+	m.Use(cors.Allow(&cors.Options{
+		AllowAllOrigins: true,
+		// AllowOrigins:     []string{"http://localhost:9000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowCredentials: true,
+		AllowHeaders: []string{
+			"Origin",
+			"Accept",
+			"Content-Type",
+			"Authorization",
+			"Accept-Encoding",
+			"Content-Length",
+			"Host",
+			"Referer",
+			"User-Agent",
+			"X-CSRF-Token",
+			"X-API-SESSION",
+		},
+	}))
+
+	m.Get("/", func(res http.ResponseWriter, req *http.Request) string { return "hello" })
+	m.Get("/api/ping", func(res http.ResponseWriter, req *http.Request) string { return "pong" })
+
+	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y", GetChartHttp)
+	m.Get("/api/chart/:tablename/:tablenum/:type/:x/:y/:z", GetChartHttp)
+	m.Get("/api/chartcorrelated/:cid", GetChartCorrelatedHttp)
+	m.Get("/api/correlated/:tablename/:search", GetCorrelatedChartsHttp)
+	m.Get("/api/correlated/:tablename/:search/:offset/:count", GetCorrelatedChartsHttp)
+	m.Get("/api/discovered/:tablename/:correlated", GetDiscoveredChartsHttp)
+	m.Get("/api/discovered/:tablename/:correlated/:offset/:count", GetDiscoveredChartsHttp)
+	m.Get("/api/getdata/:id", DumpTableHttp)
+	m.Get("/api/getdata/:id/:offset/:count", DumpTableHttp)
+	m.Get("/api/getdata/:id/:x/:startx/:endx", DumpTableRangeHttp)
+	m.Get("/api/getdatagrouped/:id/:x/:y", DumpTableGroupedHttp)
+	m.Get("/api/getdatapred/:id/:x/:y", DumpTablePredictionHttp)
+	m.Get("/api/getreduceddata/:id", DumpReducedTableHttp)
+	m.Get("/api/getreduceddata/:id/:percent", DumpReducedTableHttp)
+	m.Get("/api/getreduceddata/:id/:percent/:min", DumpReducedTableHttp)
+	m.Get("/api/getreduceddata/:id/:percent/:min/:x/:y", DumpReducedTableHttp)
+	m.Get("/api/news/search/:terms", SearchForNewsHttp)
+	m.Get("/api/observations/:did", GetObservationsHttp)
+	m.Get("/api/political/:type", GetPoliticalActivityHttp)
+	m.Get("/api/related/:tablename", GetRelatedChartsHttp)
+	m.Get("/api/related/:tablename/:offset/:count", GetRelatedChartsHttp)
+	m.Get("/api/relatedstrings/:guid", GetRelatedDatasetByStrings)
+	m.Get("/api/search/:keyword", SearchForDataHttp)
+	m.Get("/api/search/:keyword/:offset", SearchForDataHttp)
+	m.Get("/api/search/:keyword/:offset/:count", SearchForDataHttp)
+	m.Get("/api/user/activitystream", GetActivityStreamHttp)
+	m.Get("/api/visited", GetLastVisitedHttp)
+
+	m.Use(JsonApiHandler)
+
+	m.Use(ApiSessionHandler)
+
+	// m.Run()
+
+	Logger.Fatal(http.ListenAndServe(":"+port, m))
 }
 
 func initAPI() *martini.ClassicMartini { // initialise martini and add in common methods
@@ -371,42 +366,6 @@ func initAPI() *martini.ClassicMartini { // initialise martini and add in common
 	})
 
 	return m
-}
-
-var responseChannel chan string
-
-/**
- * @details Send requet to Queue for remote execution in parallel mode.
- * Request & responses are async however output will be sent to ResponseWriter
- * as soon as it is received via singleton channel.
- */
-func sendToQueue(res http.ResponseWriter, req *http.Request, params martini.Params, request string, method string) string {
-	responseChannel = make(chan string, 1)
-
-	q := Queue{}
-	go q.Response()
-
-	session := req.Header.Get("X-API-SESSION")
-	if len(session) <= 0 {
-		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return ""
-	}
-
-	uid, err := GetUserID(session)
-	if err != nil {
-		http.Error(res, err.Message, err.Code)
-		return ""
-	}
-
-	params["user"] = strconv.Itoa(uid)
-	params["session"] = session
-	message := q.Encode(method, params)
-
-	fmt.Println("Sending request to Queue", request, params, message)
-
-	go q.send(message)
-
-	return <-responseChannel
 }
 
 /**

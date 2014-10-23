@@ -1,0 +1,14 @@
+{
+	"gamification": [
+		{
+			"endpoint": "123.456.789.1:80",
+			"timestamp": 1414059752372
+		}
+	],
+	"compute": [
+		{
+			"endpoint": "123.456.789.1:3000",
+			"timestamp": 1414059782474
+		}
+	]
+}

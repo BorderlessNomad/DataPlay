@@ -28,9 +28,9 @@ var (
 	lifetime = flag.Duration("lifetime", 0*time.Second, "lifetime of process before shutdown (0s=infinite, 60s=1minute, 60m=1hour ..)")
 )
 
-func init() {
-	flag.Parse()
-}
+// func init() {
+// 	flag.Parse()
+// }
 
 type Queue struct {
 	QueueProducer

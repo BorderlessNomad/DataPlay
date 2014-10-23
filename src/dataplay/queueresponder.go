@@ -173,7 +173,7 @@ func (resp *QueueResponder) handle(deliveries <-chan amqp.Delivery, done chan er
 
 		fmt.Println("Responder::", string(d.Body))
 
-		responseChannel <- string(d.Body)
+		// responseChannel <- string(d.Body)
 
 		d.Ack(false)
 
