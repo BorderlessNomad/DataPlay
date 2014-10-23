@@ -31,6 +31,8 @@ type PatternInfo struct {
 	SecondarySource string      `json:"source2, omitempty"`
 	Strength        string      `json:"statstrength, omitempty"`
 	Observations    int         `json:"numobs"`
+	UserCredited    bool        `json:"userhascredited"`
+	UserDiscredited bool        `json:"userhasdiscredited"`
 	ChartData       interface{} `json:"chartdata"`
 }
 
@@ -155,6 +157,24 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	pattern.PrimarySource = SanitizeString(index.Title)
 	pattern.Observations = count
 
+	// See if user has credited or discredited this chart
+	cred := Credit{}
+	err8 := DB.Where("discovered_id = ?", discovered.DiscoveredId).Where("uid = ?", uid).Find(&cred).Error
+	if err8 == nil {
+		if cred.Credflag == true {
+			pattern.UserCredited = true
+			pattern.UserDiscredited = false
+		} else {
+			pattern.UserDiscredited = true
+			pattern.UserCredited = false
+		}
+	} else if err8 == gorm.RecordNotFound {
+		pattern.UserCredited = false
+		pattern.UserDiscredited = false
+	} else if err8 != nil {
+		return pattern, &appError{err8, "user credited failed", http.StatusInternalServerError}
+	}
+
 	return pattern, nil
 }
 
@@ -241,6 +261,24 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	pattern.SecondarySource = cd.Table2.Title
 	pattern.Strength = CalcStrength(correlation.Abscoef)
 	pattern.Observations = count
+
+	// See if user has credited or discredited this chart
+	cred := Credit{}
+	err8 := DB.Where("discovered_id = ?", discovered.DiscoveredId).Where("uid = ?", uid).Find(&cred).Error
+	if err8 == nil {
+		if cred.Credflag == true {
+			pattern.UserCredited = true
+			pattern.UserDiscredited = false
+		} else {
+			pattern.UserDiscredited = true
+			pattern.UserCredited = false
+		}
+	} else if err8 == gorm.RecordNotFound {
+		pattern.UserCredited = false
+		pattern.UserDiscredited = false
+	} else if err8 != nil {
+		return pattern, &appError{err8, "user credited failed", http.StatusInternalServerError}
+	}
 
 	return pattern, nil
 }
