@@ -67,7 +67,7 @@ setup_haproxy_api () {
 	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/loadbalancer/api/proxy.json && \
 	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/loadbalancer/api/haproxy.cfg.template
 
-	npm install -d
+	npm install
 
 	coffee -cb app.coffee > app.js
 
@@ -100,7 +100,7 @@ run_monitoring () {
 	URL="https://github.com"
 	USER="playgenhub"
 	REPO="DataPlay-Monitoring"
-	BRANCH="noqueue"
+	BRANCH="master"
 	SOURCE="$URL/$USER/$REPO"
 	DEST="/home/ubuntu/www"
 	APP="dataplay-monitoring"

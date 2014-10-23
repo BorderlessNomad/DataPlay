@@ -11,17 +11,22 @@ fi
 
 # LOADBALANCER="109.231.121.47"
 LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
-LOADBALANCER_PORT="1937"
-HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
-PORT="80"
+LOADBALANCER_API_PORT="1937"
+
+APP_HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
+APP_PORT="3000"
+APP_TYPE="gamification"
 
 timestamp () {
 	date +"%F %T,%3N"
 }
 
 inform_loadbalancer () {
-	PAYLOAD="$HOST:$PORT"
-	curl -i -X DELETE http://$LOADBALANCER_HOST:$LOADBALANCER_PORT/$PAYLOAD
+	retries=0
+	until curl -X DELETE http://$LOADBALANCER_HOST:$LOADBALANCER_API_PORT/$APP_TYPE/$APP_HOST:$APP_PORT; do
+		echo "[$(timestamp)] Load Balancer is not running, retry... [$(( retries++ ))]"
+		sleep 5
+	done
 }
 
 echo "[$(timestamp)] ---- 1. Inform Load Balancer (Remove) ----"

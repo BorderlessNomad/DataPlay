@@ -19,11 +19,6 @@ APP_PORT="3000"
 APP_TYPE="gamification"
 APP_MODE="3"
 
-# LOADBALANCER_HOST="109.231.121.26"
-LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
-LOADBALANCER_REQUEST_PORT="3000"
-LOADBALANCER_API_PORT="1937"
-
 # DATABASE_HOST="109.231.121.13"
 DATABASE_HOST=$(ss-get --timeout 360 postgres.hostname)
 DATABASE_PORT="5432"
@@ -35,6 +30,11 @@ REDIS_PORT="6379"
 # CASSANDRA_HOST="109.231.121.13"
 CASSANDRA_HOST=$(ss-get --timeout 360 cassandra.hostname)
 CASSANDRA_PORT="9042"
+
+# LOADBALANCER_HOST="109.231.121.26"
+LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
+LOADBALANCER_REQUEST_PORT="3000"
+LOADBALANCER_API_PORT="1937"
 
 timestamp () {
 	date +"%F %T,%3N"
@@ -111,7 +111,7 @@ run_gamification_server () {
 	cd $APP
 	chmod u+x $START
 	echo "Starting $APP_TYPE in Mode=$APP_MODE"
-	nohup sh $START --mode=$APP_MODE --loadbalancer=$LOADBALANCER_HOST:$LOADBALANCER_REQUEST_PORT > $LOG 2>&1&
+	nohup sh $START --mode=$APP_MODE > $LOG 2>&1&
 	echo "Done! $ sudo tail -f $DEST/$APP/$LOG for more details"
 }
 
