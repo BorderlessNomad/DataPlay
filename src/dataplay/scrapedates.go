@@ -19,6 +19,8 @@ type CT struct {
 	table string
 }
 
+var err error
+
 func DateScrapeA() []CT {
 	var ct = []CT{}
 
