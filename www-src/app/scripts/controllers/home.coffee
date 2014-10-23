@@ -25,6 +25,7 @@ angular.module('dataplayApp')
 		$scope.chartsRelated = []
 
 		$scope.relatedChart = new RelatedCharts $scope.chartsRelated
+		$scope.relatedChart.setPreview true
 
 		$scope.init = ->
 			$scope.loading.charts = true;
@@ -34,6 +35,7 @@ angular.module('dataplayApp')
 					if data? and data.charts? and data.charts.length > 0
 						for key, chart of data.charts
 							continue unless $scope.relatedChart.isPlotAllowed chart.type
+							continue unless key < 4
 
 							key = parseInt(key)
 
@@ -99,6 +101,7 @@ angular.module('dataplayApp')
 									chartObj.setMargin 25, 25, 25, 25
 									chartObj.setLegend false
 									chartObj.setTooltips false
+									chartObj.setPreview true
 
 									$scope.chartsRelated.push chartObj
 

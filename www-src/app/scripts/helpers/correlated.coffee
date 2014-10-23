@@ -6,6 +6,11 @@ settings =
 		bottom: 25
 		right: 55
 		left: 55
+	marginPreview:
+		top: 0
+		bottom: 0
+		right: 0
+		left: 0
 	xTicks: 8
 
 typeDictionary =
@@ -109,6 +114,7 @@ class CorrelatedChart
 	constructor: (type, data = []) ->
 		if type? then @generate type, data
 
+	preview: false
 	type: ''
 	options: {}
 	data: []
@@ -131,6 +137,19 @@ class CorrelatedChart
 			Object.keys(items).forEach (key) =>
 				if items[key]
 					@options.chart[key].tickFormat = tickFormatFunc items[key]
+
+	setPreview: (bool = false) =>
+		@preview = bool
+		if bool?
+			margin = settings.marginPreview
+		else
+			margin = settings.margin
+
+		if @options?.chart?.margin?
+			if top? then @options.chart.margin.top = margin.top
+			if bottom? then @options.chart.margin.bottom = margin.bottom
+			if left? then @options.chart.margin.left = margin.left
+			if right? then @options.chart.margin.right = margin.right
 
 	setSize: (width, height) =>
 		if @options?.chart?

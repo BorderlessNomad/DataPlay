@@ -4,6 +4,7 @@ class RelatedCharts
 	constructor: (chartsRelated) ->
 		@chartsRelated = chartsRelated
 
+	preview: false
 	allowed: ['line', 'bar', 'row', 'column', 'pie', 'bubble']
 	count: 3
 	loading:
@@ -24,6 +25,11 @@ class RelatedCharts
 		right: 10
 		bottom: 30
 		left: 70
+	marginPreview:
+		top: 25
+		right: 25
+		bottom: 25
+		left: 25
 
 	monthNames: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -36,6 +42,9 @@ class RelatedCharts
 		)
 
 		if data?[0]? then data[0] else null
+
+	setPreview: (bool = false) =>
+		@preview = bool
 
 	isPlotAllowed: (type) ->
 		if type in @allowed then true else false
@@ -102,7 +111,12 @@ class RelatedCharts
 
 		chart.colorAccessor (d, i) -> parseInt(d.y) % data.ordinals.length
 
-		chart.xAxis().ticks @xTicks
+		if @preview
+			chart.xAxis().ticks(0).tickFormat (v) -> ""
+			chart.yAxis().ticks(0).tickFormat (v) -> ""
+			chart.margins @marginPreview
+		else
+			chart.xAxis().ticks @xTicks
 
 		chart.xAxisLabel false, 0
 		chart.yAxisLabel false, 0
