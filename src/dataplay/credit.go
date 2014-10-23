@@ -32,7 +32,8 @@ func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
 	discovered := Discovered{}
 	credit := Credit{}
 
-	if strings.ContainsAny(rcid, "/") { // if a relation id
+	if strings.ContainsAny(rcid, "_") { // if a relation id
+		rcid = strings.Replace(rcid, "_", "/", -1)
 		err := DB.Where("relation_id = ?", rcid).Find(&discovered).Error
 		if err != nil && err != gorm.RecordNotFound {
 			return "", &appError{err, ", database query failed (relation_id)", http.StatusInternalServerError}
