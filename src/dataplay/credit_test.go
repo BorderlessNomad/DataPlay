@@ -22,10 +22,10 @@ package main
 // 	res := httptest.NewRecorder()
 // 	Convey("Should credit chart", t, func() {
 // 		params := map[string]string{}
-// 		params["rcid"] = "114789"
+// 		params["rcid"] = "116144"
 // 		params["credflag"] = "false"
 // 		result := CreditChartHttp(res, req, params)
-// 		So(result, ShouldNotBeNil)
+// 		So(result, ShouldEqual, "")
 // 	})
 // }
 

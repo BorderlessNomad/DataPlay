@@ -10,11 +10,6 @@ import (
 	"time"
 )
 
-type CreditRequest struct {
-	Cid string `json:"cid"`
-	Rid string `json:"rid"`
-}
-
 // given a small fraction of ratings there is a strong (95%) chance that the "real", final positive rating will be this value
 // eg: gives expected (not necessarily current as there may have only been a few votes so far) value of positive ratings / total ratings
 func RankCredits(credit int, discredit int) float64 {
@@ -43,9 +38,9 @@ func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
 			return "", &appError{err, ", database query failed (relation_id)", http.StatusInternalServerError}
 		}
 	} else { // if a correlation id of type int
-		cid, _ := strconv.Atoi(rcid)
-		if err != nil {
-			return "", &appError{err, ", could not convert id to int", http.StatusInternalServerError}
+		cid, e := strconv.Atoi(rcid)
+		if e != nil {
+			return "", &appError{e, ", could not convert id to int", http.StatusInternalServerError}
 		}
 
 		err := DB.Where("correlation_id = ?", cid).Find(&discovered).Error
@@ -136,7 +131,7 @@ func CreditObservation(oid int, uid int, credflag bool) *appError {
 }
 
 //////////////////////////////////////////////
-func CreditChartHttp(res http.ResponseWriter, req *http.Request, params martini.Params, credit CreditRequest) string {
+func CreditChartHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
@@ -144,6 +139,7 @@ func CreditChartHttp(res http.ResponseWriter, req *http.Request, params martini.
 	}
 
 	credflag := false
+	rcid := ""
 
 	if params["credflag"] == "" { // if no credflag then skip credit and just return discovered id
 		http.Error(res, "Missing credflag", http.StatusBadRequest)
@@ -152,14 +148,11 @@ func CreditChartHttp(res http.ResponseWriter, req *http.Request, params martini.
 		credflag, _ = strconv.ParseBool(params["credflag"])
 	}
 
-	var rcid string
-	if credit.Cid == "" && credit.Rid == "" {
+	if params["rcid"] == "" {
 		http.Error(res, "No Relation/Correlation ID provided.", http.StatusBadRequest)
 		return ""
-	} else if credit.Cid == "" {
-		rcid = credit.Rid
 	} else {
-		rcid = credit.Cid
+		rcid = params["rcid"]
 	}
 
 	uid, err1 := GetUserID(session)
@@ -178,7 +171,7 @@ func CreditChartHttp(res http.ResponseWriter, req *http.Request, params martini.
 		}
 
 		http.Error(res, err2.Message+msg, http.StatusBadRequest)
-		return ""
+		return msg
 	}
 
 	if credflag {
