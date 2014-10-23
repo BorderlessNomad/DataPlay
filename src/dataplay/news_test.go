@@ -1,10 +1,12 @@
 package main
 
 // import (
+// 	"fmt"
 // 	. "github.com/smartystreets/goconvey/convey"
 // 	"net/http"
 // 	"net/http/httptest"
 // 	"testing"
+// 	"time"
 // )
 
 // func TestSearchForNewsHttp(t *testing.T) {
@@ -16,7 +18,10 @@ package main
 // 	}
 
 // 	Convey("Should return news", t, func() {
+// 		a := time.Now()
 // 		result := SearchForNewsHttp(res, req, params)
-// 		So(result, ShouldEqual, "")
+// 		b := time.Now()
+// 		fmt.Println("ROBOCOP MAIN", b.Sub(a).Seconds())
+// 		So(result, ShouldNotBeNil)
 // 	})
 // }
