@@ -19,6 +19,7 @@ angular.module('dataplayApp')
 		$scope.chartsRelated = []
 
 		$scope.relatedChart = new RelatedCharts $scope.chartsRelated
+		$scope.relatedChart.setPreview true
 
 		$scope.init = (reset = false) ->
 			# Initiate search if we have /search/:query
