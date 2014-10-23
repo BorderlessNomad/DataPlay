@@ -30,18 +30,18 @@ func DataTransfer() {
 	defer session2.Close()
 
 	var ToDate = time.Date(2014, 11, 1, 0, 0, 0, 0, time.UTC)
-	var FromDate = ToDate.AddDate(0, -1, 0)
+	var FromDate = ToDate.AddDate(0, -6, 0) //+1 to LOOP's i value
 
 	fmt.Println("START")
 
-	for i := 0; i < 59; i++ {
+	for i := 5; i < 59; i++ {
 		fmt.Println("RESPONSE LOOP ", i, " start ", time.Now())
 		var id []byte
 		var pic_index int
 		var date time.Time
 		var description, url, title, name, pic_url, related_url string
 
-		iter1 := session1.Query(`SELECT id, date, description, url, title FROM response WHERE date >= ? AND date < ? LIMIT 10000 ALLOW FILTERING`, FromDate, ToDate).Iter()
+		iter1 := session1.Query(`SELECT id, date, description, url, title FROM response WHERE date >= ? AND date < ? LIMIT 5000 ALLOW FILTERING`, FromDate, ToDate).Iter()
 
 		for iter1.Scan(&id, &date, &description, &url, &title) {
 			session2.Query(`INSERT INTO response2 (date, dummy, description, url, title) VALUES (?, ?, ?, ?, ?)`, date, 1, description, url, title).Exec()
@@ -82,7 +82,7 @@ func DataTransfer() {
 
 		fmt.Println("SUCCESS LOOP image, related, response ", i, " at ", time.Now())
 
-		iter4 := session1.Query(`SELECT date, name, url FROM keyword WHERE date >= ? AND date < ? LIMIT 70000 ALLOW FILTERING`, FromDate, ToDate).Iter()
+		iter4 := session1.Query(`SELECT date, name, url FROM keyword WHERE date >= ? AND date < ? LIMIT 65000 ALLOW FILTERING`, FromDate, ToDate).Iter()
 
 		for iter4.Scan(&date, &name, &url) {
 			session2.Query(`INSERT INTO keyword2 (date, dummy, name, url) VALUES (?, ?, ?, ?)`, date, 1, name, url).Exec()
@@ -97,7 +97,7 @@ func DataTransfer() {
 
 		fmt.Println("SUCCESS LOOP keyword", i, " at ", time.Now())
 
-		iter5 := session1.Query(`SELECT date, name, url FROM entity WHERE date >= ? AND date < ? LIMIT 70000 ALLOW FILTERING`, FromDate, ToDate).Iter()
+		iter5 := session1.Query(`SELECT date, name, url FROM entity WHERE date >= ? AND date < ? LIMIT 65000 ALLOW FILTERING`, FromDate, ToDate).Iter()
 
 		for iter5.Scan(&date, &name, &url) {
 			session2.Query(`INSERT INTO entity2 (date, dummy, name, url) VALUES (?, ?, ?, ?)`, date, 1, name, url).Exec()
