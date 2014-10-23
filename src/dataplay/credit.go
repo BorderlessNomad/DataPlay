@@ -69,9 +69,20 @@ func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
 	credit.Created = t
 	credit.ObservationId = 0 // not an observation
 	credit.Credflag = credflag
-	err2 := DB.Save(&credit).Error
-	if err2 != nil {
-		return "", &appError{err2, ", database query failed (Save credit)", http.StatusInternalServerError}
+
+	creditchk := Credit{}
+
+	err2 := DB.Where("discovered_id = ?", credit.DiscoveredId).Where("uid = ?", credit.Uid).Where("observation_id = ?", credit.ObservationId).Find(&creditchk).Error
+	if err2 == gorm.RecordNotFound {
+		err3 := DB.Save(&credit).Error
+		if err3 != nil {
+			return "", &appError{err3, ", database query failed (Save credit)", http.StatusInternalServerError}
+		}
+	} else {
+		err4 := DB.Model(&creditchk).Update("credflag", credflag).Error
+		if err4 != nil {
+			return "", &appError{err4, ", database query failed (Update credit)", http.StatusInternalServerError}
+		}
 	}
 
 	return strconv.Itoa(discovered.DiscoveredId), nil
