@@ -36,7 +36,7 @@
 				</div>
 			</div>
 
-			<div class="jumbotron" ng-show="results.length <= 0 && query.length > 0">
+			<div class="jumbotron" ng-show="!loading.related && results.length <= 0 && query.length > 0">
 				<p class="text-center">Sorry we are unable to find any search results for given request.</p>
 			</div>
 		</div>
