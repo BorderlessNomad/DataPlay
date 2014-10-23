@@ -352,7 +352,6 @@ func initAPI() *martini.ClassicMartini { // initialise martini and add in common
 	m.Put("/api/admin/user/edit", binding.Bind(UserEdit{}), func(res http.ResponseWriter, req *http.Request, userEdit UserEdit) string {
 		return EditUserHttp(res, req, userEdit)
 	})
-	m.Put("/api/chart/:rcid", CreditChartHttp)
 	m.Put("/api/chart/:rcid/:credflag", CreditChartHttp)
 	m.Put("/api/observations", binding.Bind(ObservationComment{}), func(res http.ResponseWriter, req *http.Request, observation ObservationComment) string {
 		return AddObservationHttp(res, req, observation)

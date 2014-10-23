@@ -17,7 +17,7 @@ func DataTransfer() {
 	defer f.Close()
 
 	session1, err1 := GetCassandraConnection("dp")
-	session2, err2 := GetCassandraConnection("dp2")
+	session2, err2 := GetCassandraConnection("dataplay")
 
 	if err1 != nil {
 		fmt.Println("ERROR CASSANDRA 1!")
@@ -30,11 +30,11 @@ func DataTransfer() {
 	defer session2.Close()
 
 	var ToDate = time.Date(2014, 11, 1, 0, 0, 0, 0, time.UTC)
-	var FromDate = ToDate.AddDate(0, -6, 0) //+1 to LOOP's i value
+	var FromDate = ToDate.AddDate(0, -1, 0) //+1 to LOOP's i value
 
 	fmt.Println("START")
 
-	for i := 5; i < 59; i++ {
+	for i := 0; i < 59; i++ {
 		fmt.Println("RESPONSE LOOP ", i, " start ", time.Now())
 		var id []byte
 		var pic_index int
@@ -44,13 +44,13 @@ func DataTransfer() {
 		iter1 := session1.Query(`SELECT id, date, description, url, title FROM response WHERE date >= ? AND date < ? LIMIT 5000 ALLOW FILTERING`, FromDate, ToDate).Iter()
 
 		for iter1.Scan(&id, &date, &description, &url, &title) {
-			session2.Query(`INSERT INTO response2 (date, dummy, description, url, title) VALUES (?, ?, ?, ?, ?)`, date, 1, description, url, title).Exec()
+			session2.Query(`INSERT INTO response (date, dummy, description, url, title) VALUES (?, ?, ?, ?, ?)`, date, 1, description, url, title).Exec()
 
 			iter2 := session1.Query(`SELECT url, pic_index FROM image WHERE id = ? ALLOW FILTERING`, id).Iter()
 
 			for iter2.Scan(&pic_url, &pic_index) {
 				if pic_index == 0 {
-					session2.Query(`INSERT INTO image2 (date, dummy, pic_url, url) VALUES (?, ?, ?, ?)`, date, 1, pic_url, url).Exec()
+					session2.Query(`INSERT INTO image (date, dummy, pic_url, url) VALUES (?, ?, ?, ?)`, date, 1, pic_url, url).Exec()
 				}
 			}
 
@@ -63,7 +63,7 @@ func DataTransfer() {
 			iter3 := session1.Query(`SELECT description, title, url FROM related WHERE id = ? ALLOW FILTERING`, id).Iter()
 
 			for iter3.Scan(&description, &title, &related_url) {
-				session2.Query(`INSERT INTO related2 (date, dummy, description, title, related_url, url) VALUES (?, ?, ?, ?, ?, ?)`, date, 1, description, title, related_url, url).Exec()
+				session2.Query(`INSERT INTO related (date, dummy, description, title, related_url, url) VALUES (?, ?, ?, ?, ?, ?)`, date, 1, description, title, related_url, url).Exec()
 			}
 
 			err = iter3.Close()
@@ -85,7 +85,7 @@ func DataTransfer() {
 		iter4 := session1.Query(`SELECT date, name, url FROM keyword WHERE date >= ? AND date < ? LIMIT 65000 ALLOW FILTERING`, FromDate, ToDate).Iter()
 
 		for iter4.Scan(&date, &name, &url) {
-			session2.Query(`INSERT INTO keyword2 (date, dummy, name, url) VALUES (?, ?, ?, ?)`, date, 1, name, url).Exec()
+			session2.Query(`INSERT INTO keyword (date, dummy, name, url) VALUES (?, ?, ?, ?)`, date, 1, name, url).Exec()
 		}
 
 		err = iter4.Close()
@@ -100,7 +100,7 @@ func DataTransfer() {
 		iter5 := session1.Query(`SELECT date, name, url FROM entity WHERE date >= ? AND date < ? LIMIT 65000 ALLOW FILTERING`, FromDate, ToDate).Iter()
 
 		for iter5.Scan(&date, &name, &url) {
-			session2.Query(`INSERT INTO entity2 (date, dummy, name, url) VALUES (?, ?, ?, ?)`, date, 1, name, url).Exec()
+			session2.Query(`INSERT INTO entity (date, dummy, name, url) VALUES (?, ?, ?, ?)`, date, 1, name, url).Exec()
 		}
 
 		err = iter5.Close()
@@ -118,7 +118,7 @@ func DataTransfer() {
 }
 
 func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
-	cassandraHost := "109.231.121.129"
+	cassandraHost := "109.231.121.96"
 	cassandraPort := 9042
 
 	if os.Getenv("DP_CASSANDRA_HOST") != "" {

@@ -123,13 +123,13 @@ func TermFrequency(terms []TermKey) ([]PoliticalActivity, error) {
 	var today = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC) // override today's date
 	var from = today.AddDate(0, 0, -numdays)
 
-	session, err := GetCassandraConnection("dp2") // create connection to cassandra
+	session, err := GetCassandraConnection("dataplay") // create connection to cassandra
 	if err != nil {
 		return nil, err
 	}
 	defer session.Close()
 
-	iter1 := session.Query(`SELECT date, name FROM keyword2 LIMIT 60000`).Iter()
+	iter1 := session.Query(`SELECT date, name FROM keyword LIMIT 60000`).Iter()
 
 	for iter1.Scan(&date, &name) {
 		for _, term := range terms {
@@ -145,7 +145,7 @@ func TermFrequency(terms []TermKey) ([]PoliticalActivity, error) {
 		return nil, err1
 	}
 
-	iter2 := session.Query(`SELECT date, name FROM entity2 LIMIT 60000`).Iter()
+	iter2 := session.Query(`SELECT date, name FROM entity LIMIT 60000`).Iter()
 
 	for iter2.Scan(&date, &name) {
 		for _, term := range terms {
@@ -271,7 +271,7 @@ func PopularPoliticalActivity() ([3]Popular, error) {
 }
 
 func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
-	cassandraHost := "109.231.121.129"
+	cassandraHost := "109.231.121.96"
 	cassandraPort := 9042
 
 	if os.Getenv("DP_CASSANDRA_HOST") != "" {
