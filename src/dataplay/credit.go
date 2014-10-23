@@ -68,6 +68,7 @@ func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
 	credit.Uid = uid
 	credit.Created = t
 	credit.ObservationId = 0 // not an observation
+	credit.Credflag = credflag
 	err2 := DB.Save(&credit).Error
 	if err2 != nil {
 		return "", &appError{err2, ", database query failed (Save credit)", http.StatusInternalServerError}
