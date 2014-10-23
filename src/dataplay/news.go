@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	// "fmt"
 	"github.com/codegangsta/martini"
 	"github.com/pmylund/sortutil"
 	"net/http"
@@ -65,20 +66,18 @@ func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
 	now := time.Now()
 	var Today = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC) // override today's date
 
-	session, _ := GetCassandraConnection("dp") // create connection to cassandra
+	session, _ := GetCassandraConnection("dataplay") // create connection to cassandra
 	defer session.Close()
 
 	newsArticles := []NewsArticle{}
 	searchTerms := strings.Split(searchstring, "_")
 	earliestDate := Earliest(searchTerms) // links with SQL database
 
-	iter := session.Query(`SELECT id, title, original_url, date, description FROM response WHERE date >= ? AND date < ? ALLOW FILTERING`, earliestDate, Today).Iter()
-
-	var id []byte
 	var date time.Time
-	var originalUrl, title, description string
+	var url, title, description string
 
-	for iter.Scan(&id, &title, &originalUrl, &date, &description) {
+	iter1 := session.Query(`SELECT title, url, date, description FROM response WHERE date >= ? AND date <= ? ALLOW FILTERING`, earliestDate, earliestDate.AddDate(0, 1, 0)).Iter()
+	for iter1.Scan(&title, &url, &date, &description) {
 		termcount := 0.0
 
 		for i, term := range searchTerms {
@@ -88,24 +87,44 @@ func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
 
 		if termcount > 0 {
 			var tmpNA NewsArticle
-			imageUrl := ""
-			picIndex := 1000000
-			iter2 := session.Query(`SELECT url, pic_index FROM image WHERE id = ? ALLOW FILTERING`, id).Iter()
-			for iter2.Scan(&imageUrl, &picIndex) {
-				if picIndex == 0 {
-					tmpNA.ImageUrl = imageUrl
-				}
-			}
 			tmpNA.Date = date
 			tmpNA.Title = title
-			tmpNA.Url = originalUrl
+			tmpNA.Url = url
+			tmpNA.Score = termcount
+			newsArticles = append(newsArticles, tmpNA)
+		}
+	}
+
+	iter2 := session.Query(`SELECT title, url, date, description FROM response WHERE date >= ? AND date <= ? ALLOW FILTERING`, Today.AddDate(0, -1, 0), Today).Iter()
+	for iter2.Scan(&title, &url, &date, &description) {
+		termcount := 0.0
+
+		for i, term := range searchTerms {
+			termcount += float64(TermCheck(term, description+" "+title)) * 1 / float64(i+1)
+			termcount += float64(DateCheck(earliestDate, date)) * 1 / float64(i+1) // add weight if the article is from around the right month or year
+		}
+
+		if termcount > 0 {
+			var tmpNA NewsArticle
+			tmpNA.Date = date
+			tmpNA.Title = title
+			tmpNA.Url = url
 			tmpNA.Score = termcount
 			newsArticles = append(newsArticles, tmpNA)
 		}
 	}
 
 	sortutil.DescByField(newsArticles, "Score")
-	return newsArticles, nil
+	newsSlice := newsArticles[0:8]
+
+	for _, n := range newsSlice {
+		imageUrl := ""
+		iter3 := session.Query(`SELECT pic_url FROM image WHERE url = ? ALLOW FILTERING`, url).Iter()
+		for iter3.Scan(&imageUrl) {
+			n.ImageUrl = imageUrl
+		}
+	}
+	return newsSlice, nil
 }
 
 // return 1 if the term is found in the passage
@@ -170,6 +189,11 @@ func Earliest(terms []string) time.Time {
 		if d.Before(earliest) {
 			earliest = d
 		}
+	}
+
+	origin := time.Date(2010, 1, 1, 0, 0, 0, 0, time.UTC)
+	if earliest.Before(origin) {
+		earliest = origin
 	}
 
 	return earliest

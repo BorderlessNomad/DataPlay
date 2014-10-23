@@ -8,7 +8,7 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'ChartsRelatedCtrl', ['$scope', '$location', '$timeout', '$routeParams', 'Overview', 'PatternMatcher', 'Charts', 'Tracker', ($scope, $location, $timeout, $routeParams, Overview, PatternMatcher, Charts, Tracker) ->
+	.controller 'ChartsRelatedCtrl', ['$scope', '$location', '$timeout', '$routeParams', 'Overview', 'PatternMatcher', 'Charts', ($scope, $location, $timeout, $routeParams, Overview, PatternMatcher, Charts) ->
 		$scope.params = $routeParams
 		$scope.mode = 'related'
 		$scope.width = 570
@@ -44,12 +44,13 @@ angular.module('dataplayApp')
 
 		$scope.info =
 			discoveredId: null
-			credited: null
-			discredited: null
+			credited: false
+			discredited: false
 			patternId: null
 			discoverer: ''
 			discoverDate: ''
 			creditors: []
+			discreditors: []
 			source:
 				prim: ''
 				seco: ''
@@ -78,17 +79,17 @@ angular.module('dataplayApp')
 						$scope.info.discoverer = data.discoveredby or ''
 						$scope.info.discoverDate = if data.discoverydate then Overview.humanDate new Date( data.discoverydate ) else ''
 						$scope.info.creditors = data.creditedby or ''
+						$scope.info.discreditors = data.discreditedby or ''
 						$scope.info.source =
 							prim: data.source1  or ''
 							seco: data.source2  or ''
 						$scope.info.strength = data.statstrength
+						$scope.info.credited = data.userhascredited
+						$scope.info.discredited = data.userhasdiscredited
 
 					console.log "Chart", $scope.chart
 
 					$scope.initObservations()
-
-					# Track a page visit
-					Tracker.visited $scope.params.id, $scope.params.key, $scope.params.type, $scope.params.x, $scope.params.y, $scope.params.z
 				.error (data, status) ->
 					$scope.handleError data, status
 					console.log "Charts::init::Error:", status
@@ -628,10 +629,8 @@ angular.module('dataplayApp')
 			Charts.creditChart "rid", id, valFlag
 				.then ->
 					$scope.showCreditMessage valFlag
-					if valFlag
-						$scope.info.credited = true
-					else
-						$scope.info.discredited = true
+					$scope.info.credited = !! valFlag
+					$scope.info.discredited = ! valFlag
 				, $scope.handleError
 
 		$scope.saveObservation = ->

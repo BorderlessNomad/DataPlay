@@ -26,10 +26,13 @@ type PatternInfo struct {
 	Discoverer      string      `json:"discoveredby"`
 	DiscoveryDate   time.Time   `json:"discoverydate"`
 	Creditors       []string    `json:"creditedby, omitempty"`
+	Discreditors    []string    `json:"discreditedby, omitempty"`
 	PrimarySource   string      `json:"source1"`
 	SecondarySource string      `json:"source2, omitempty"`
 	Strength        string      `json:"statstrength, omitempty"`
 	Observations    int         `json:"numobs"`
+	UserCredited    bool        `json:"userhascredited"`
+	UserDiscredited bool        `json:"userhasdiscredited"`
 	ChartData       interface{} `json:"chartdata"`
 }
 
@@ -108,20 +111,26 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	}
 
 	creditors := make([]string, 0)
+	discreditors := make([]string, 0)
 	creditingUsers := []struct {
 		Credit
 		Username string
 	}{}
-	query := DB.Select("DISTINCT uid, (SELECT priv_users.username FROM priv_users WHERE priv_users.uid = priv_credits.uid) as username")
+
+	query := DB.Select("DISTINCT uid, credflag, (SELECT priv_users.username FROM priv_users WHERE priv_users.uid = priv_credits.uid) as username")
 	query = query.Where("discovered_id = ?", discovered.DiscoveredId)
-	query = query.Where("credflag = ?", true)
+
 	err5 := query.Find(&creditingUsers).Error
 
 	if err5 != nil && err5 != gorm.RecordNotFound {
 		return pattern, &appError{err5, "find creditors failed", http.StatusInternalServerError}
 	} else {
 		for _, vu := range creditingUsers {
-			creditors = append(creditors, vu.Username)
+			if vu.Credflag == true {
+				creditors = append(creditors, vu.Username)
+			} else if vu.Credflag == false {
+				discreditors = append(discreditors, vu.Username)
+			}
 		}
 	}
 
@@ -144,8 +153,27 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	pattern.Discoverer = user.Username
 	pattern.DiscoveryDate = discovered.Created
 	pattern.Creditors = creditors
+	pattern.Discreditors = discreditors
 	pattern.PrimarySource = SanitizeString(index.Title)
 	pattern.Observations = count
+
+	// See if user has credited or discredited this chart
+	cred := Credit{}
+	err8 := DB.Where("discovered_id = ?", discovered.DiscoveredId).Where("uid = ?", uid).Find(&cred).Error
+	if err8 == nil {
+		if cred.Credflag == true {
+			pattern.UserCredited = true
+			pattern.UserDiscredited = false
+		} else {
+			pattern.UserDiscredited = true
+			pattern.UserCredited = false
+		}
+	} else if err8 == gorm.RecordNotFound {
+		pattern.UserCredited = false
+		pattern.UserDiscredited = false
+	} else if err8 != nil {
+		return pattern, &appError{err8, "user credited failed", http.StatusInternalServerError}
+	}
 
 	return pattern, nil
 }
@@ -177,21 +205,25 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	}
 
 	creditors := make([]string, 0)
+	discreditors := make([]string, 0)
 	creditingUsers := []struct {
 		Credit
 		Username string
 	}{}
 
-	query := DB.Select("DISTINCT uid, (SELECT priv_users.username FROM priv_users WHERE priv_users.uid = priv_credits.uid) as username")
+	query := DB.Select("DISTINCT uid, credflag, (SELECT priv_users.username FROM priv_users WHERE priv_users.uid = priv_credits.uid) as username")
 	query = query.Where("discovered_id = ?", discovered.DiscoveredId)
-	query = query.Where("credflag = ?", true)
 	err3 := query.Find(&creditingUsers).Error
 
 	if err3 != nil && err3 != gorm.RecordNotFound {
 		return pattern, &appError{err3, "find creditors failed", http.StatusInternalServerError}
 	} else {
 		for _, vu := range creditingUsers {
-			creditors = append(creditors, vu.Username)
+			if vu.Credflag == true {
+				creditors = append(creditors, vu.Username)
+			} else if vu.Credflag == false {
+				discreditors = append(discreditors, vu.Username)
+			}
 		}
 	}
 
@@ -224,10 +256,29 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	pattern.Discoverer = user.Username
 	pattern.DiscoveryDate = discovered.Created
 	pattern.Creditors = creditors
+	pattern.Discreditors = discreditors
 	pattern.PrimarySource = cd.Table1.Title
 	pattern.SecondarySource = cd.Table2.Title
 	pattern.Strength = CalcStrength(correlation.Abscoef)
 	pattern.Observations = count
+
+	// See if user has credited or discredited this chart
+	cred := Credit{}
+	err8 := DB.Where("discovered_id = ?", discovered.DiscoveredId).Where("uid = ?", uid).Find(&cred).Error
+	if err8 == nil {
+		if cred.Credflag == true {
+			pattern.UserCredited = true
+			pattern.UserDiscredited = false
+		} else {
+			pattern.UserDiscredited = true
+			pattern.UserCredited = false
+		}
+	} else if err8 == gorm.RecordNotFound {
+		pattern.UserCredited = false
+		pattern.UserDiscredited = false
+	} else if err8 != nil {
+		return pattern, &appError{err8, "user credited failed", http.StatusInternalServerError}
+	}
 
 	return pattern, nil
 }
@@ -1188,7 +1239,6 @@ func GetAwaitingCreditHttp(res http.ResponseWriter, req *http.Request) string {
 			c.SourceZ = correlation.Col3
 
 			charts = append(charts, c)
-			fmt.Println("BABBADOOK", correlationData)
 
 		} else {
 			var tableData TableData

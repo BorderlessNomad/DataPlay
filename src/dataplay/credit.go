@@ -10,11 +10,6 @@ import (
 	"time"
 )
 
-type CreditRequest struct {
-	Cid string `json:"cid"`
-	Rid string `json:"rid"`
-}
-
 // given a small fraction of ratings there is a strong (95%) chance that the "real", final positive rating will be this value
 // eg: gives expected (not necessarily current as there may have only been a few votes so far) value of positive ratings / total ratings
 func RankCredits(credit int, discredit int) float64 {
@@ -37,15 +32,16 @@ func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
 	discovered := Discovered{}
 	credit := Credit{}
 
-	if strings.ContainsAny(rcid, "/") { // if a relation id
+	if strings.ContainsAny(rcid, "_") { // if a relation id
+		rcid = strings.Replace(rcid, "_", "/", -1)
 		err := DB.Where("relation_id = ?", rcid).Find(&discovered).Error
 		if err != nil && err != gorm.RecordNotFound {
 			return "", &appError{err, ", database query failed (relation_id)", http.StatusInternalServerError}
 		}
 	} else { // if a correlation id of type int
-		cid, _ := strconv.Atoi(rcid)
-		if err != nil {
-			return "", &appError{err, ", could not convert id to int", http.StatusInternalServerError}
+		cid, e := strconv.Atoi(rcid)
+		if e != nil {
+			return "", &appError{e, ", could not convert id to int", http.StatusInternalServerError}
 		}
 
 		err := DB.Where("correlation_id = ?", cid).Find(&discovered).Error
@@ -72,9 +68,22 @@ func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
 	credit.Uid = uid
 	credit.Created = t
 	credit.ObservationId = 0 // not an observation
-	err2 := DB.Save(&credit).Error
-	if err2 != nil {
-		return "", &appError{err2, ", database query failed (Save credit)", http.StatusInternalServerError}
+	credit.Credflag = credflag
+
+	creditchk := Credit{}
+
+	err2 := DB.Where("discovered_id = ?", credit.DiscoveredId).Where("uid = ?", credit.Uid).Where("observation_id = ?", credit.ObservationId).Find(&creditchk).Error
+	if err2 == gorm.RecordNotFound {
+		err3 := DB.Save(&credit).Error
+		if err3 != nil {
+			return "", &appError{err3, ", database query failed (Save credit)", http.StatusInternalServerError}
+		}
+	} else {
+		credit.CreditId = creditchk.CreditId
+		err4 := DB.Model(&creditchk).Update("credflag", credflag).Error
+		if err4 != nil {
+			return "", &appError{err4, ", database query failed (Update credit)", http.StatusInternalServerError}
+		}
 	}
 
 	return strconv.Itoa(discovered.DiscoveredId), nil
@@ -136,7 +145,7 @@ func CreditObservation(oid int, uid int, credflag bool) *appError {
 }
 
 //////////////////////////////////////////////
-func CreditChartHttp(res http.ResponseWriter, req *http.Request, params martini.Params, credit CreditRequest) string {
+func CreditChartHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
@@ -144,6 +153,7 @@ func CreditChartHttp(res http.ResponseWriter, req *http.Request, params martini.
 	}
 
 	credflag := false
+	rcid := ""
 
 	if params["credflag"] == "" { // if no credflag then skip credit and just return discovered id
 		http.Error(res, "Missing credflag", http.StatusBadRequest)
@@ -152,14 +162,11 @@ func CreditChartHttp(res http.ResponseWriter, req *http.Request, params martini.
 		credflag, _ = strconv.ParseBool(params["credflag"])
 	}
 
-	var rcid string
-	if credit.Cid == "" && credit.Rid == "" {
+	if params["rcid"] == "" {
 		http.Error(res, "No Relation/Correlation ID provided.", http.StatusBadRequest)
 		return ""
-	} else if credit.Cid == "" {
-		rcid = credit.Rid
 	} else {
-		rcid = credit.Cid
+		rcid = params["rcid"]
 	}
 
 	uid, err1 := GetUserID(session)
@@ -178,7 +185,7 @@ func CreditChartHttp(res http.ResponseWriter, req *http.Request, params martini.
 		}
 
 		http.Error(res, err2.Message+msg, http.StatusBadRequest)
-		return ""
+		return msg
 	}
 
 	if credflag {

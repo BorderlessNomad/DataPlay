@@ -9,7 +9,7 @@ import (
 )
 
 func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
-	cassandraHost := "109.231.121.129"
+	cassandraHost := "109.231.121.96"
 	cassandraPort := 9042
 
 	if os.Getenv("DP_CASSANDRA_HOST") != "" {

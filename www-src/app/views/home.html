@@ -22,8 +22,8 @@
 						<div class="col-xs-3" ng-repeat="chart in chartsRelated | limitTo:4" id="{{chart.id}}" ng-show="hasRelatedCharts() > 0">
 							<div class="media-heading">
 								<h5>
-									<a href="/#!/overview/{{chart.url}}" ng-if="!chart.info">{{chart.title}}</a>
-									<a href="/#!/overview/{{chart.info.url}}" ng-if="chart.info">{{chart.info.title[0]}} and {{chart.info.title[1]}}</a>
+									<a href="/#!/{{chart.url}}" ng-if="!chart.info">{{chart.title}}</a>
+									<a href="/#!/{{chart.info.url}}" ng-if="chart.info">{{chart.info.title[0]}} and {{chart.info.title[1]}}</a>
 								</h5>
 							</div>
 						</div>
@@ -37,7 +37,7 @@
 								<span ng-include="'views/charts/related/pie.html'"></span>
 								<span ng-include="'views/charts/related/bubble.html'"></span>
 							</a>
-							<a class="correlated media-body" ng-if="chart.info" href="/#!/{{chart.url}}">
+							<a class="correlated media-body" ng-if="chart.info" href="/#!/{{chart.info.url}}">
 								<span ng-include="'views/charts/correlated/line.html'"></span>
 								<span ng-include="'views/charts/correlated/column.html'"></span>
 								<span ng-include="'views/charts/correlated/scatter.html'"></span>
