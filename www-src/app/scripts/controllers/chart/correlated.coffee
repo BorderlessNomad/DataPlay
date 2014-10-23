@@ -77,10 +77,13 @@ angular.module('dataplayApp')
 						$scope.info.discoverer = data.discoveredby or ''
 						$scope.info.discoverDate = if data.discoverydate then Overview.humanDate new Date( data.discoverydate ) else ''
 						$scope.info.creditors = data.creditedby or ''
+						$scope.info.discreditors = data.discreditedby or ''
 						$scope.info.source =
 							prim: data.source1 or ''
 							seco: data.source2 or ''
 						$scope.info.strength = data.statstrength
+						$scope.info.credited = data.userhascredited
+						$scope.info.discredited = data.userhasdiscredited
 
 					$scope.initObservations()
 					console.log "Chart", $scope.chart
@@ -120,10 +123,8 @@ angular.module('dataplayApp')
 			Charts.creditChart "cid", $scope.params.correlationid, valFlag
 				.then ->
 					$scope.showCreditMessage valFlag
-					if valFlag
-						$scope.info.credited = true
-					else
-						$scope.info.discredited = true
+					$scope.info.credited = !! valFlag
+					$scope.info.discredited = ! valFlag
 				, $scope.handleError
 
 		$scope.saveObservation = ->

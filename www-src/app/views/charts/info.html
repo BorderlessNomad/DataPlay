@@ -22,6 +22,12 @@
 		<span class="csl" ng-repeat="crdtr in info.creditors">{{crdtr}}</span>
 	</div>
 </div>
+<div class="row ci-row" ng-show="info.discreditors.length > 0">
+	<div class="col-sm-6 ci-key">Discredited by</div>
+	<div class="col-sm-6 ci-val">
+		<span class="csl" ng-repeat="dscrdtr in info.discreditors">{{dscrdtr}}</span>
+	</div>
+</div>
 <div class="row ci-row" ng-show="info.source.prim">
 	<div class="col-sm-6 ci-key">Primary datasource</div>
 	<div class="col-sm-6 ci-val">{{info.source.prim}}</div>
