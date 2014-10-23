@@ -140,7 +140,12 @@ class RelatedCharts
 
 		chart.colorAccessor (d, i) -> i + 1
 
-		chart.xAxis().ticks @xTicks
+		if @preview
+			chart.xAxis().ticks(0).tickFormat (v) -> ""
+			chart.yAxis().ticks(0).tickFormat (v) -> ""
+			chart.margins @marginPreview
+		else
+			chart.xAxis().ticks @xTicks
 
 		chart.x @getYScale data
 
@@ -163,7 +168,12 @@ class RelatedCharts
 
 		chart.colorAccessor (d, i) -> i + 1
 
-		chart.xAxis().ticks @xTicks
+		if @preview
+			chart.xAxis().ticks(0).tickFormat (v) -> ""
+			chart.yAxis().ticks(0).tickFormat (v) -> ""
+			chart.margins @marginPreview
+		else
+			chart.xAxis().ticks @xTicks
 
 		chart.x @getXScale data
 
@@ -259,7 +269,12 @@ class RelatedCharts
 			.domain d3.extent data.group.all(), (d) -> Math.abs parseInt d.key.split("|")[2]
 		chart.r rScale
 
-		chart.xAxis().ticks @xTicks
+		if @preview
+			chart.xAxis().ticks(0).tickFormat (v) -> ""
+			chart.yAxis().ticks(0).tickFormat (v) -> ""
+			chart.margins @marginPreview
+		else
+			chart.xAxis().ticks @xTicks
 
 		# chart.label (d) -> x = d.key.split("|")[0]
 
