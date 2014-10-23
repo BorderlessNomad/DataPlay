@@ -15,7 +15,7 @@ HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}
 PORT="1938"
 
 # REDIS_HOST="109.231.121.13"
-REDIS_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
+REDIS_HOST=$(ss-get --timeout 360 redis.hostname)
 REDIS_PORT="6379"
 
 timestamp () {
