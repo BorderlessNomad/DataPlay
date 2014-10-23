@@ -44,12 +44,13 @@ angular.module('dataplayApp')
 
 		$scope.info =
 			discoveredId: null
-			credited: null
-			discredited: null
+			credited: false
+			discredited: false
 			patternId: null
 			discoverer: ''
 			discoverDate: ''
 			creditors: []
+			discreditors: []
 			source:
 				prim: ''
 				seco: ''
