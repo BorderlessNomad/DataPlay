@@ -79,6 +79,7 @@ func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
 			return "", &appError{err3, ", database query failed (Save credit)", http.StatusInternalServerError}
 		}
 	} else {
+		credit.CreditId = creditchk.CreditId
 		err4 := DB.Model(&creditchk).Update("credflag", credflag).Error
 		if err4 != nil {
 			return "", &appError{err4, ", database query failed (Update credit)", http.StatusInternalServerError}
