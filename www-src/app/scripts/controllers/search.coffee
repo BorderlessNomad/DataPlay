@@ -28,8 +28,8 @@ angular.module('dataplayApp')
 				$scope.relatedChart.chartsRelated = $scope.chartsRelated
 				$scope.tweets = []
 
-			$scope.loading.related = true
-			$scope.loading.tweets = true
+			$scope.loading.related = ($scope.query.length > 0)
+			$scope.loading.tweets = ($scope.query.length > 0)
 
 			$scope.search()
 			$scope.getNews()
