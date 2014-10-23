@@ -1,74 +1,46 @@
-
-DESCRIBE  
-
-DROP KEYSPACE dp;
-CREATE KEYSPACE dp WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
-USE dp;
-
-CREATE TABLE author (
-	id   blob, 
-	date timestamp, 
-	name text, 
-	url  text, 
-PRIMARY KEY (id, date)
-);
-
-CREATE TABLE entity (
-	id    blob, 
-	date timestamp, 
-	count int,    
-	name  text, 
-PRIMARY KEY (id, date)
-);
-
-CREATE TABLE image (
-	id      blob, 
-	date	timestamp, 
-	pic_index int, 
-	caption text,  
-	url     text,
-	width   int,     
-	height  int,     
-	entropy float, 
-	size    int,   
-PRIMARY KEY (id, date)  
-);
-
-CREATE TABLE keyword (
-	id    blob, 
-	date	timestamp, 
-	score int,    
-	name  text, 
-PRIMARY KEY (id, date)
-);
-
-CREATE TABLE related (
-	id              blob, 
-	date            timestamp,  
-	description     text,  
-	title           text,  
-	url             text,  
-	thumbnail_width  int,     
-	score           float, 
-	thumbnail_height int,     
-	thumbnail_url   text,
-PRIMARY KEY (id, date)  
-);
+CREATE KEYSPACE dataplay WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+USE dataplay;
 
 CREATE TABLE response (
-	id blob,
-	original_url     text,    
-	url             text,    
-	type            text,    
-	provider_name    text,    
-	provider_url     text,    
-	provider_display text,    
-	favicon_url      text,    
-	title           text,    
-	description     text,    
-	date            timestamp,    
-	published       varint,    
-	lead            text,    
-	content         text,
-PRIMARY KEY (id, date)
-);
+date timestamp,
+dummy int,    
+description text,    
+url text,
+title text,    
+PRIMARY KEY (dummy, date, url)
+) WITH CLUSTERING ORDER BY (date DESC);
+
+
+CREATE TABLE keyword (
+date timestamp,  
+dummy int,  
+name text, 
+url text,
+PRIMARY KEY (dummy, date, url, name)
+) WITH CLUSTERING ORDER BY (date DESC);
+
+CREATE TABLE entity (
+date timestamp,  
+dummy int,
+name text, 
+url text,
+PRIMARY KEY (dummy, date, url, name)
+) WITH CLUSTERING ORDER BY (date DESC);
+
+CREATE TABLE image (
+date timestamp, 
+dummy int,   
+pic_url text,
+url text,   
+PRIMARY KEY (dummy, date, url, pic_url)
+) WITH CLUSTERING ORDER BY (date DESC);
+
+CREATE TABLE related (
+date timestamp,
+dummy int, 
+description text,
+title text,
+related_url text,
+url text,
+PRIMARY KEY (dummy, date, url, related_url)
+) WITH CLUSTERING ORDER BY (date DESC);
