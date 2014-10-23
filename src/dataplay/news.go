@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	// "fmt"
 	"github.com/codegangsta/martini"
 	"github.com/pmylund/sortutil"
 	"net/http"
@@ -16,7 +15,7 @@ type NewsArticle struct {
 	Title    string    `json:"title"`
 	Url      string    `json:"url"`
 	ImageUrl string    `json:"image_url"`
-	Score    float64   `json:"SCORE"`
+	Score    float64   `json:"score"`
 }
 
 func SearchForNewsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
@@ -74,7 +73,7 @@ func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
 	earliestDate := Earliest(searchTerms) // links with SQL database
 
 	var date time.Time
-	var url, title, description string
+	var url, imageUrl, title, description string
 
 	iter1 := session.Query(`SELECT title, url, date, description FROM response WHERE date >= ? AND date <= ? ALLOW FILTERING`, earliestDate, earliestDate.AddDate(0, 1, 0)).Iter()
 	for iter1.Scan(&title, &url, &date, &description) {
@@ -117,11 +116,12 @@ func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
 	sortutil.DescByField(newsArticles, "Score")
 	newsSlice := newsArticles[0:8]
 
-	for _, n := range newsSlice {
-		imageUrl := ""
-		iter3 := session.Query(`SELECT pic_url FROM image WHERE url = ? ALLOW FILTERING`, url).Iter()
-		for iter3.Scan(&imageUrl) {
-			n.ImageUrl = imageUrl
+	for i, _ := range newsSlice {
+		iter3 := session.Query(`SELECT pic_url, url FROM image WHERE date = ? ALLOW FILTERING`, newsSlice[i].Date).Iter()
+		for iter3.Scan(&imageUrl, &url) {
+			if url == newsSlice[i].Url {
+				newsSlice[i].ImageUrl = imageUrl
+			}
 		}
 	}
 	return newsSlice, nil
