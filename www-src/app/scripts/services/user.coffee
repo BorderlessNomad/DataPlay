@@ -62,6 +62,7 @@ angular.module('dataplayApp')
 			$http.get config.api.base_url + "/visited"
 
 		search: (word, offset, count) ->
+			word = word.replace(/\/|\\/g, ' ')
 			path = "/search/#{word}"
 			if offset?
 				path += "/#{offset}"
@@ -75,5 +76,6 @@ angular.module('dataplayApp')
 		getNews: (query) ->
 			if query instanceof Array
 				query = query.join '_'
+			query = query.replace(/\s{1,}|\%20|\/|\\/g, '_')
 			$http.get config.api.base_url + "/news/search/#{query}"
 	]
