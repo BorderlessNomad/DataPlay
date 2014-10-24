@@ -114,7 +114,13 @@ func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
 	}
 
 	sortutil.DescByField(newsArticles, "Score")
-	newsSlice := newsArticles[0:8]
+
+	n := len(newsArticles)
+	if len(newsArticles) > 8 {
+		n = 8
+	}
+
+	newsSlice := newsArticles[0:n]
 
 	for i, _ := range newsSlice {
 		iter3 := session.Query(`SELECT pic_url, url FROM image WHERE date = ? ALLOW FILTERING`, newsSlice[i].Date).Iter()
