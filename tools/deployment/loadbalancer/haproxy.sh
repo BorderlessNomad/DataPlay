@@ -10,15 +10,12 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 GO_VERSION="go1.3.3"
-DEST="/home/ubuntu/www"
-APP="dataplay-monitoring"
-WWW="www-src"
 
 HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
 PORT="1938"
 
 # REDIS_HOST="109.231.121.13"
-REDIS_HOST=$(ss-get --timeout 360 redis_rabbitmq.hostname)
+REDIS_HOST=$(ss-get --timeout 360 redis.hostname)
 REDIS_PORT="6379"
 
 timestamp () {
@@ -49,7 +46,7 @@ install_haproxy () {
 setup_haproxy_api () {
 	URL="https://raw.githubusercontent.com"
 	USER="playgenhub"
-	REPO="DataPlay-Monitoring"
+	REPO="DataPlay"
 	BRANCH="master"
 	SOURCE="$URL/$USER/$REPO/$BRANCH"
 
@@ -67,10 +64,10 @@ setup_haproxy_api () {
 
 	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/loadbalancer/api/app.coffee && \
 	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/loadbalancer/api/package.json && \
-	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/loadbalancer/api/backend.json && \
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/loadbalancer/api/proxy.json && \
 	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/loadbalancer/api/haproxy.cfg.template
 
-	npm install -d
+	npm install
 
 	coffee -cb app.coffee > app.js
 
@@ -105,6 +102,8 @@ run_monitoring () {
 	REPO="DataPlay-Monitoring"
 	BRANCH="master"
 	SOURCE="$URL/$USER/$REPO"
+	DEST="/home/ubuntu/www"
+	APP="dataplay-monitoring"
 
 	START="start.sh"
 	LOG="output.log"

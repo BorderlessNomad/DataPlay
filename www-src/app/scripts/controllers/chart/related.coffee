@@ -223,7 +223,7 @@ angular.module('dataplayApp')
 
 			circ = area.append 'image'
 				.attr 'id', "observationIcon-#{xy}"
-				.attr 'xlink:href', 'images/observation.png'
+				.attr 'xlink:href', $('#observation-image').data('image')
 				.attr 'style', "stroke: none; fill: none; fill-opacity: 0.0; stroke-opacity: 0.0"
 				.attr 'height', '20px'
 				.attr 'width', '20px'

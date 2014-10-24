@@ -44,10 +44,15 @@ defaults
     option  redispatch # try another webhead if retry fails
     maxconn 10000
 
-frontend web
+frontend gamification
     bind *:80
     mode http
     default_backend masters
+
+#frontend compute
+#    bind *:3000
+#    mode http
+#    default_backend nodes
 
 backend masters
     mode http
@@ -56,11 +61,24 @@ backend masters
     option forwardfor # X-Forwarded-For header
     http-request set-header X-Forwarded-Port %[dst_port]
     http-request add-header X-Forwarded-Proto https if { ssl_fc }
-    option httpchk HEAD / HTTP/1.1\r\nHost:localhost
-    cookie SERVERID insert indirect nocache
-    {% for backend in backends %}
-    server {{ backend.id|lower }} {{ backend.endpoint }} cookie {{ backend.id|upper }} check # added on {{ backend.timestamp|date('r') }}
+    option httpchk HEAD /api/ping HTTP/1.1\r\nHost:localhost
+    http-check expect status 200
+    cookie DPSession prefix
+    {% for node in gamification %}
+    server {{ node.id|lower }} {{ node.endpoint }} cookie {{ node.id|upper }} check # added on {{ node.timestamp|date('r') }}
     {% endfor %}
+
+#backend node
+#    mode http
+#    balance roundrobin
+#    option httpclose
+#    option forwardfor # X-Forwarded-For header
+#    http-request set-header X-Forwarded-Port %[dst_port]
+#    http-request add-header X-Forwarded-Proto https if { ssl_fc }
+#    option httpchk HEAD / HTTP/1.1\r\nHost:localhost
+#    {% for node in compute %}
+#    server {{ node.id|lower }} {{ node.endpoint }} check # added on {{ node.timestamp|date('r') }}
+#    {% endfor %}
 
 listen stats *:1936
     stats enable

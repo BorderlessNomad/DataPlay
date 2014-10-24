@@ -31,7 +31,7 @@ timestamp () {
 echo "[$(timestamp)] ---- Started ----"
 
 HOST="172.17.0.78" # Local
-KEYSPACE="dp"
+KEYSPACE="dataplay"
 NODETOOL=$(nodetool -h $HOST snapshot $KEYSPACE)
 TIMESTAMP=${NODETOOL#*: }
 SOURCE="/var/lib/cassandra/data/$KEYSPACE"
