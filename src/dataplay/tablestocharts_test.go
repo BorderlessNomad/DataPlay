@@ -71,9 +71,9 @@ func TestGetCorrelatedChartsHttp(t *testing.T) {
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 	res := httptest.NewRecorder()
 	params := map[string]string{
-		"tablename": "gold",
+		"tablename": "c719ce2471f1a884d9c80cb661b86734adad3bfde3350ad06654d7f5b3e",
 		"offset":    "0",
-		"count":     "1",
+		"count":     "10",
 		"search":    "true",
 	}
 	Convey("Should return correlated chartlist", t, func() {
@@ -81,7 +81,7 @@ func TestGetCorrelatedChartsHttp(t *testing.T) {
 		result := GetCorrelatedChartsHttp(res, req, params)
 		y := time.Now()
 		fmt.Println("CORRELATED_CHARTS_TIME_TAKEN", y.Sub(x).Seconds())
-		So(result, ShouldNotBeNil)
+		So(result, ShouldEqual, "")
 	})
 }
 
