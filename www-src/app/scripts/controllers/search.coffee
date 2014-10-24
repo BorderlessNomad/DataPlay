@@ -27,9 +27,11 @@ angular.module('dataplayApp')
 				$scope.chartsRelated = []
 				$scope.relatedChart.chartsRelated = $scope.chartsRelated
 				$scope.tweets = []
+				$scope.overview = []
 
 			$scope.loading.related = ($scope.query.length > 0)
 			$scope.loading.tweets = ($scope.query.length > 0)
+			$scope.loading.overview = ($scope.query.length > 0)
 
 			$scope.search()
 			$scope.getNews()
@@ -66,20 +68,27 @@ angular.module('dataplayApp')
 					if data? and data instanceof Array
 						$scope.tweets.splice(0)
 						data.forEach (tw) ->
-							tw.comment = tw.comment.replace new RegExp("(#{$scope.query})", 'gi'), '<span class="highlight">$1</span>'
+							$scope.query.split(/\s{1,}|\_{1,}/).forEach (searchWord) ->
+								tw.comment = tw.comment.replace new RegExp("(#{searchWord})", 'gi'), '<span class="highlight">$1</span>'
+
+							tw.comment = tw.comment.replace(/(<\/span>)(\s{1,}|\-{1,})(<span class="highlight">)/gi, '$2')
+
 							$scope.tweets.push tw
 				.error () ->
 					$scope.loading.tweets = false
 
 			return
 		# debounce to stop unneeded requests (e.g. searching 'gol' when typing 'gold')
-		$scope.search = _.debounce $scope.search, 750
+		$scope.search = _.debounce $scope.search, 500
 
 		$scope.getNews = () ->
 			return if $scope.query.length < 3
 
+			$scope.loading.overview = true
+
 			User.getNews $scope.query
 				.success (data) ->
+					$scope.loading.overview = false
 					if data instanceof Array
 						$scope.overview = data.map (item) ->
 							date: Overview.humanDate new Date item.date
@@ -88,8 +97,11 @@ angular.module('dataplayApp')
 							thumbnail: item['image_url']
 
 				.error (status, data) ->
+					$scope.loading.overview = false
 					console.log "Search::getNews::Error:", status
 					return
+		# debounce to stop unneeded requests (e.g. searching 'gol' when typing 'gold')
+		$scope.getNews = _.debounce $scope.getNews, 500
 
 		$scope.showMore = ->
 			# get more results
