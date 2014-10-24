@@ -61,8 +61,8 @@ backend masters
     option forwardfor # X-Forwarded-For header
     http-request set-header X-Forwarded-Port %[dst_port]
     http-request add-header X-Forwarded-Proto https if { ssl_fc }
-    option httpchk HEAD / HTTP/1.1\r\nHost:localhost
-    # cookie SERVERID insert indirect nocache
+    option httpchk HEAD /api/ping HTTP/1.1\r\nHost:localhost
+    http-check expect status 200
     cookie DPSession prefix
     {% for node in gamification %}
     server {{ node.id|lower }} {{ node.endpoint }} cookie {{ node.id|upper }} check # added on {{ node.timestamp|date('r') }}
