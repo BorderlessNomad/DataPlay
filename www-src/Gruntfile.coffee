@@ -293,6 +293,7 @@ module.exports = (grunt) ->
 							"views/**/*.html"
 							"images/**/*.{webp}"
 							"fonts/*"
+							"regions.json"
 						]
 					}
 					{
