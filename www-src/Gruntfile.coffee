@@ -167,6 +167,11 @@ module.exports = (grunt) ->
 					dest: ".tmp/scripts"
 				]
 
+		# uglify:
+		# 	options:
+		# 		mangle: false
+		# 		beautify: true
+
 		# Package all the html partials into a single javascript payload
 		ngtemplates:
 			options:
@@ -215,7 +220,7 @@ module.exports = (grunt) ->
 		# concat, minify and revision files. Creates configurations in memory so
 		# additional tasks can operate on them
 		useminPrepare:
-			html: "<%= yeoman.app %>/index.html"
+			html: "<%= yeoman.app %>/*.html"
 			options:
 				dest: "<%= yeoman.dist %>"
 				flow:
