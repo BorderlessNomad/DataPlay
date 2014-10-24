@@ -47,7 +47,7 @@ setup_haproxy_api () {
 	URL="https://raw.githubusercontent.com"
 	USER="playgenhub"
 	REPO="DataPlay"
-	BRANCH="noqueue"
+	BRANCH="master"
 	SOURCE="$URL/$USER/$REPO/$BRANCH"
 
 	npm cache clean

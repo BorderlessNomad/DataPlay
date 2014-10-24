@@ -85,7 +85,7 @@ run_compute_server () {
 	URL="https://github.com"
 	USER="playgenhub"
 	REPO="DataPlay"
-	BRANCH="noqueue"
+	BRANCH="master"
 	SOURCE="$URL/$USER/$REPO"
 
 	START="start.sh"
