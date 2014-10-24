@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This is setup script for Gamification/Master instance.
+# This is setup script for Master instance.
 
 set -ex
 
@@ -16,7 +16,7 @@ WWW="www-src"
 
 APP_HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
 APP_PORT="3000"
-APP_TYPE="gamification"
+APP_TYPE="master"
 APP_MODE="3"
 
 # DATABASE_HOST="109.231.121.13"
@@ -81,7 +81,7 @@ export_variables () {
 	su - ubuntu -c ". /etc/profile"
 }
 
-run_gamification_server () {
+run_master_server () {
 	URL="https://github.com"
 	USER="playgenhub"
 	REPO="DataPlay"
@@ -124,7 +124,7 @@ inform_loadbalancer () {
 }
 
 update_iptables () {
-	# Accept direct connections to Gamification API
+	# Accept direct connections to API
 	iptables -A INPUT -p tcp --dport 3000 -j ACCEPT # HTTP
 	iptables -A INPUT -p tcp --dport 3443 -j ACCEPT # HTTPS
 
@@ -140,8 +140,8 @@ install_go
 echo "[$(timestamp)] ---- 3. Export Variables ----"
 export_variables
 
-echo "[$(timestamp)] ---- 4. Run Gamification API (Master) Server ----"
-run_gamification_server
+echo "[$(timestamp)] ---- 4. Run API (Master) Server ----"
+run_master_server
 
 echo "[$(timestamp)] ---- 5. Inform Load Balancer (Add) ----"
 inform_loadbalancer

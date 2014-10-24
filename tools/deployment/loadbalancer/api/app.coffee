@@ -23,14 +23,14 @@ compileTemplate = (data) ->
 	for value, key in data.gamification
 		data.gamification[key].id = "gamification#{key+1}"
 
-	for value, key in data.compute
-		data.compute[key].id = "compute#{key+1}"
+	for value, key in data.master
+		data.master[key].id = "master#{key+1}"
 
 	timestamp = Date.now()
 	output = swig.renderFile "haproxy.cfg.template",
 		generatedOn: timestamp
 		gamification: data.gamification
-		compute: data.compute
+		master: data.master
 
 	fs.writeFile "haproxy.cfg", output, (err) ->
 		return err if err

@@ -13,11 +13,14 @@ DEST="/home/ubuntu/www"
 APP="dataplay"
 WWW="www-src"
 
-HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
+APP_HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
+APP_PORT="80"
+APP_TYPE="gamification"
 
 # LOADBALANCER_HOST="109.231.121.26"
 LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
-LOADBALANCER_PORT="1937"
+LOADBALANCER_REQUEST_PORT="80"
+LOADBALANCER_API_PORT="1937"
 
 timestamp () {
 	date +"%F %T,%3N"
@@ -31,7 +34,8 @@ setuphost () {
 
 export_variables () {
 	echo "export DP_LOADBALANCER_HOST=$LOADBALANCER_HOST" >> /etc/profile.d/dataplay.sh
-	echo "export DP_LOADBALANCER_PORT=$LOADBALANCER_PORT" >> /etc/profile.d/dataplay.sh
+	echo "export DP_LOADBALANCER_REQUEST_PORT=$LOADBALANCER_REQUEST_PORT" >> /etc/profile.d/dataplay.sh
+	echo "export DP_LOADBALANCER_API_PORT=$LOADBALANCER_API_PORT" >> /etc/profile.d/dataplay.sh
 
 	. /etc/profile
 
@@ -105,6 +109,14 @@ build_frontend () {
 	grunt build
 }
 
+inform_loadbalancer () {
+	retries=0
+	until curl -H "Content-Type: application/json" -X POST -d "{\"ip\":\"$APP_HOST:$APP_PORT\"}" http://$LOADBALANCER_HOST:$LOADBALANCER_API_PORT/$APP_TYPE; do
+		echo "[$(timestamp)] Load Balancer is not up yet, retry... [$(( retries++ ))]"
+		sleep 5
+	done
+}
+
 echo "[$(timestamp)] ---- 1. Setup Host ----"
 setuphost
 
@@ -127,6 +139,9 @@ init_frontend
 
 # echo "[$(timestamp)] ---- 7. Build Frontend ----"
 # su ubuntu -c "$(typeset -f build_frontend); build_frontend" # Run function as user 'ubuntu'
+
+echo "[$(timestamp)] ---- 6. Inform Load Balancer (Add) ----"
+inform_loadbalancer
 
 echo "[$(timestamp)] ---- Completed ----"
 
