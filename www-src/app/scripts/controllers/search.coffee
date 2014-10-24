@@ -39,7 +39,8 @@ angular.module('dataplayApp')
 			$scope.getNews()
 
 		$scope.changePage = () ->
-			$location.path "/search/#{$scope.query}"
+			query = $scope.query.replace(/\/|\\/g, ' ')
+			$location.path "/search/#{query}"
 
 		$scope.search = (offset = 0, count = 9) ->
 			return if $scope.query.length < 3
