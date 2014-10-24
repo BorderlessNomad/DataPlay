@@ -387,11 +387,19 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 
 // Look for new correlated charts, take the correlations and break them down into charting types, and return them along with their total count
 // To return only existing charts use searchdepth = 0
-func GetCorrelatedCharts(tableName string, searchDepth int, offset int, count int) (CorrelatedCharts, *appError) {
+func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int) (CorrelatedCharts, *appError) {
 	correlation := make([]Correlation, 0)
 	charts := make([]CorrelationData, 0) ///empty slice for adding all possible charts
+	od := OnlineData{}
+	e := DB.Where("guid = ?", guid).Find(&od).Error
+	if e != nil {
+		return CorrelatedCharts{nil, 0}, &appError{nil, "Bad guid", http.StatusInternalServerError}
+	}
+	tableName := od.Tablename
 
-	GenerateCorrelations(tableName, searchDepth)
+	for i := 0; i < 10; i++ {
+		go GenerateCorrelations(tableName, searchDepth)
+	}
 
 	err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Find(&correlation).Error
 	if err != nil && err != gorm.RecordNotFound {

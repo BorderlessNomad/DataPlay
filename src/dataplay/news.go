@@ -62,8 +62,8 @@ func SearchForNewsQ(params map[string]string) string {
 // also searches sql tables to find relevant dates to tie in with table search
 // also checks if dates are entered in the search
 func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
-	now := time.Now()
-	var Today = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC) // override today's date
+	// now := time.Now()
+	// var Today = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC) // override today's date
 
 	session, _ := GetCassandraConnection("dataplay") // create connection to cassandra
 	defer session.Close()
@@ -75,26 +75,26 @@ func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
 	var date time.Time
 	var url, imageUrl, title, description string
 
-	iter1 := session.Query(`SELECT title, url, date, description FROM response WHERE date >= ? AND date <= ? ALLOW FILTERING`, earliestDate, earliestDate.AddDate(0, 1, 0)).Iter()
-	for iter1.Scan(&title, &url, &date, &description) {
-		termcount := 0.0
+	// iter1 := session.Query(`SELECT title, url, date, description FROM response WHERE date >= ? AND date <= ? ALLOW FILTERING`, earliestDate, earliestDate.AddDate(0, 1, 0)).Iter()
+	// for iter1.Scan(&title, &url, &date, &description) {
+	// 	termcount := 0.0
 
-		for i, term := range searchTerms {
-			termcount += float64(TermCheck(term, description+" "+title)) * 1 / float64(i+1)
-			termcount += float64(DateCheck(earliestDate, date)) * 1 / float64(i+1) // add weight if the article is from around the right month or year
-		}
+	// 	for i, term := range searchTerms {
+	// 		termcount += float64(TermCheck(term, description+" "+title)) * 1 / float64(i+1)
+	// 		termcount += float64(DateCheck(earliestDate, date)) * 1 / float64(i+1) // add weight if the article is from around the right month or year
+	// 	}
 
-		if termcount > 0 {
-			var tmpNA NewsArticle
-			tmpNA.Date = date
-			tmpNA.Title = title
-			tmpNA.Url = url
-			tmpNA.Score = termcount
-			newsArticles = append(newsArticles, tmpNA)
-		}
-	}
+	// 	if termcount > 0 {
+	// 		var tmpNA NewsArticle
+	// 		tmpNA.Date = date
+	// 		tmpNA.Title = title
+	// 		tmpNA.Url = url
+	// 		tmpNA.Score = termcount
+	// 		newsArticles = append(newsArticles, tmpNA)
+	// 	}
+	// }
 
-	iter2 := session.Query(`SELECT title, url, date, description FROM response WHERE date >= ? AND date <= ? ALLOW FILTERING`, Today.AddDate(0, -1, 0), Today).Iter()
+	iter2 := session.Query(`SELECT title, url, date, description FROM response LIMIT 6000`).Iter()
 	for iter2.Scan(&title, &url, &date, &description) {
 		termcount := 0.0
 
