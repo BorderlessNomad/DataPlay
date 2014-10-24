@@ -68,7 +68,11 @@ angular.module('dataplayApp')
 					if data? and data instanceof Array
 						$scope.tweets.splice(0)
 						data.forEach (tw) ->
-							tw.comment = tw.comment.replace new RegExp("(#{$scope.query})", 'gi'), '<span class="highlight">$1</span>'
+							$scope.query.split(/\s{1,}|\_{1,}/).forEach (searchWord) ->
+								tw.comment = tw.comment.replace new RegExp("(#{searchWord})", 'gi'), '<span class="highlight">$1</span>'
+
+							tw.comment = tw.comment.replace(/(<\/span>)(\s{1,}|\-{1,})(<span class="highlight">)/gi, '$2')
+
 							$scope.tweets.push tw
 				.error () ->
 					$scope.loading.tweets = false
