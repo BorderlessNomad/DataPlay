@@ -26,11 +26,28 @@ global
 defaults
     log     global
     mode    http
+    balance roundrobin
+
+    option  abortonclose # abort request if client closes output channel while waiting
+    option  httpclose # add "Connection:close" header if it is missing
+    option  forwardfor # insert x-forwarded-for header so that app servers can see both proxy and client IPs
+    option  redispatch # any server can handle any session
+    option  http-server-close # allows keep-alive and pipelining
     option  httplog
     option  dontlognull
-    timeout connect 5000
-    timeout client  50000
-    timeout server  50000
+    timeout connect 5s  # 5000
+    timeout client  60s # 50000
+    timeout server  60s # 50000
+    timeout check   5s  # 5000
+    timeout http-keep-alive 3s # 3000
+
+    retries 3 # number of connection retries for the session
+    maxconn 10000
+
+    http-request set-header X-Forwarded-Port %[dst_port]
+    http-request add-header X-Forwarded-Proto https if { ssl_fc }
+    http-check expect status 200
+
     errorfile 400 /etc/haproxy/errors/400.http
     errorfile 403 /etc/haproxy/errors/403.http
     errorfile 408 /etc/haproxy/errors/408.http
@@ -38,15 +55,9 @@ defaults
     errorfile 502 /etc/haproxy/errors/502.http
     errorfile 503 /etc/haproxy/errors/503.http
     errorfile 504 /etc/haproxy/errors/504.http
-    option  http-server-close # allows keep-alive and pipelining
-    timeout http-keep-alive 3000
-    retries 3 # number of connection retries for the session
-    option  redispatch # try another webhead if retry fails
-    maxconn 10000
 
 frontend web
     bind *:80
-    mode http
 
     # API traffic goes to Master cluster
     acl api path_beg /api
@@ -56,12 +67,6 @@ frontend web
     default_backend gamification
 
 backend gamification
-    mode http
-    balance roundrobin
-    option httpclose
-    option forwardfor # X-Forwarded-For header
-    http-request set-header X-Forwarded-Port %[dst_port]
-    http-request add-header X-Forwarded-Proto https if { ssl_fc }
     option httpchk HEAD / HTTP/1.1\r\nHost:localhost
     cookie DPSession prefix
     {% for node in gamification %}
@@ -69,14 +74,7 @@ backend gamification
     {% endfor %}
 
 backend masters
-    mode http
-    balance roundrobin
-    option httpclose
-    option forwardfor # X-Forwarded-For header
-    http-request set-header X-Forwarded-Port %[dst_port]
-    http-request add-header X-Forwarded-Proto https if { ssl_fc }
     option httpchk HEAD /api/ping HTTP/1.1\r\nHost:localhost
-    http-check expect status 200
     cookie DPSession prefix
     {% for node in master %}
     server {{ node.id|lower }} {{ node.endpoint }} cookie {{ node.id|upper }} check # added on {{ node.timestamp|date('r') }}
