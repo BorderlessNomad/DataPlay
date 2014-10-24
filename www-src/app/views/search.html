@@ -12,7 +12,7 @@
 			</form>
 
 			<div class="list-group search-results">
-				<div class="row" ng-if="!loading.related && results.length > 0">
+				<div class="row" ng-if="results.length > 0">
 					<div class="list-group-item col-sm-4" ng-repeat="chart in chartsRelated" id="{{chart.id}}" ng-show="hasRelatedCharts() > 0">
 						<div class="media-heading">
 							<h5><a href="/#!/overview/{{chart.guid}}">{{chart.title}}</a></h5>
@@ -28,7 +28,7 @@
 				</div>
 
 				<div class="row" ng-if="loading.related">
-					<div class="col-md-12" ng-show="loading.related" ng-include="'views/loader.html'"></div>
+					<div class="col-md-12 loader-tight" ng-show="loading.related" ng-include="'views/loader.html'"></div>
 				</div>
 
 				<div class="jumbotron" ng-if="!loading.related && results.length <= 0 && query.length > 0">
