@@ -128,9 +128,9 @@ func initClassicMode() {
 	m.Post("/api/user/forgot", binding.Bind(UserNameForm{}), func(res http.ResponseWriter, req *http.Request, username UserNameForm) string {
 		return HandleForgotPassword(res, req, username)
 	})
-	m.Post("/api/visited", binding.Bind(VisitedForm{}), func(res http.ResponseWriter, req *http.Request, visited VisitedForm) string {
-		return TrackVisitedHttp(res, req, visited)
-	})
+	// m.Post("/api/visited", binding.Bind(VisitedForm{}), func(res http.ResponseWriter, req *http.Request, visited VisitedForm) string {
+	// 	return TrackVisitedHttp(res, req, visited)
+	// })
 
 	m.Put("/api/admin/user/edit", binding.Bind(UserEdit{}), func(res http.ResponseWriter, req *http.Request, userEdit UserEdit) string {
 		return EditUserHttp(res, req, userEdit)

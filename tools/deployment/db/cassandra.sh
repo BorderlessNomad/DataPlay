@@ -101,9 +101,11 @@ import_data () {
 	BACKUP_DIR="cassandra/$LASTDATE"
 	BACKUP_USER="playgen"
 	BACKUP_PASS="D@taP1aY"
-	BACKUP_SCHEMA_FILE="dp-schema.cql"
-	BACKUP_DATA_FILE="dp-data.tar.gz"
-	KEYSPACE="dp"
+
+	KEYSPACE="dataplay"
+	BACKUP_SCHEMA_FILE="$KEYSPACE-schema.cql"
+	BACKUP_DATA_FILE="$KEYSPACE-data.tar.gz"
+
 	CASSANDRA_DIR="/var/lib/cassandra"
 	DATA_DIR="$CASSANDRA_DIR/data"
 	LOG_DIR="$CASSANDRA_DIR/commitlog"
