@@ -69,7 +69,7 @@ func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
 	defer session.Close()
 
 	newsArticles := []NewsArticle{}
-	searchTerms := strings.Split(searchstring, "%20")
+	searchTerms := strings.Split(searchstring, "_")
 	earliestDate := Earliest(searchTerms) // links with SQL database
 
 	var date time.Time
