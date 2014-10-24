@@ -44,8 +44,6 @@ defaults
     retries 3 # number of connection retries for the session
     maxconn 10000
 
-    http-request set-header X-Forwarded-Port %[dst_port]
-    http-request add-header X-Forwarded-Proto https if { ssl_fc }
     http-check expect status 200
 
     errorfile 400 /etc/haproxy/errors/400.http
@@ -67,6 +65,8 @@ frontend web
     default_backend gamification
 
 backend gamification
+    http-request set-header X-Forwarded-Port %[dst_port]
+    http-request add-header X-Forwarded-Proto https if { ssl_fc }
     option httpchk HEAD / HTTP/1.1\r\nHost:localhost
     cookie DPSession prefix
     {% for node in gamification %}
@@ -74,6 +74,8 @@ backend gamification
     {% endfor %}
 
 backend masters
+    http-request set-header X-Forwarded-Port %[dst_port]
+    http-request add-header X-Forwarded-Proto https if { ssl_fc }
     option httpchk HEAD /api/ping HTTP/1.1\r\nHost:localhost
     cookie DPSession prefix
     {% for node in master %}
