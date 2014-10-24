@@ -71,7 +71,7 @@ func TestGetCorrelatedChartsHttp(t *testing.T) {
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 	res := httptest.NewRecorder()
 	params := map[string]string{
-		"tablename": "c719ce2471f1a884d9c80cb661b86734adad3bfde3350ad06654d7f5b3e",
+		"tablename": "29c5117130aa0fb2127a493a70ba4b62e4e77f03297045075b79eda3fdb",
 		"offset":    "0",
 		"count":     "10",
 		"search":    "true",

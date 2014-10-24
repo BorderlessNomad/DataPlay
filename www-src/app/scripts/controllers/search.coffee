@@ -16,6 +16,8 @@ angular.module('dataplayApp')
 		$scope.rowLimit = 3
 		$scope.overview = []
 
+		$scope.isSearch = !! $scope.query
+
 		$scope.chartsRelated = []
 
 		$scope.relatedChart = new RelatedCharts $scope.chartsRelated
@@ -35,6 +37,9 @@ angular.module('dataplayApp')
 
 			$scope.search()
 			$scope.getNews()
+
+		$scope.changePage = () ->
+			$location.path "/search/#{$scope.query}"
 
 		$scope.search = (offset = 0, count = 9) ->
 			return if $scope.query.length < 3
@@ -78,8 +83,6 @@ angular.module('dataplayApp')
 					$scope.loading.tweets = false
 
 			return
-		# debounce to stop unneeded requests (e.g. searching 'gol' when typing 'gold')
-		$scope.search = _.debounce $scope.search, 500
 
 		$scope.getNews = () ->
 			return if $scope.query.length < 3
@@ -100,8 +103,6 @@ angular.module('dataplayApp')
 					$scope.loading.overview = false
 					console.log "Search::getNews::Error:", status
 					return
-		# debounce to stop unneeded requests (e.g. searching 'gol' when typing 'gold')
-		$scope.getNews = _.debounce $scope.getNews, 500
 
 		$scope.showMore = ->
 			# get more results
