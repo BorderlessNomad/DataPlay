@@ -14,6 +14,12 @@ angular.module('dataplayApp')
 		$scope.error =
 			message: null
 
+		$scope.loading =
+			profile: false
+			creditdiscoveries: false
+			discoveries: false
+			observations: false
+
 		# Personal Details
 		$scope.current =
 			email: ''
@@ -29,38 +35,54 @@ angular.module('dataplayApp')
 
 		$scope.inits =
 			profile: ->
+				$scope.loading.profile = true
 				Profile.getInfo()
 					.success (data) ->
+						$scope.loading.profile = false
 						$scope.current.email = data.email
 						$scope.current.username = data.username
 
 						$scope.saved.email = data.email
 						$scope.saved.username = data.username
-				 .error (data, status) -> $scope.handleError data, status
+					.error (data, status) ->
+						$scope.loading.profile = false
+						$scope.handleError data, status
 
 			creditdiscoveries: ->
+				$scope.loading.creditdiscoveries = true
 				Profile.getCreditDiscoveries()
 					.success (data) ->
+						$scope.loading.creditdiscoveries = false
 						if data instanceof Array
 							$scope.creditDiscoveries = data
 						return
-					.error (data, status) -> $scope.handleError data, status
+					.error (data, status) ->
+						$scope.loading.creditdiscoveries = false
+						$scope.handleError data, status
 
 			discoveries: ->
+				$scope.loading.discoveries = true
 				Profile.getDiscoveries()
 					.success (data) ->
+						$scope.loading.discoveries = false
 						if data instanceof Array
 							$scope.discoveries = data
 						return
-					.error (data, status) -> $scope.handleError data, status
+					.error (data, status) ->
+						$scope.loading.discoveries = false
+						$scope.handleError data, status
 
 			observations: ->
+				$scope.loading.observations = true
 				Profile.getObservations()
 					.success (data) ->
+						$scope.loading.observations = false
 						if data instanceof Array
 							$scope.observations = data
 						return
-					.error (data, status) -> $scope.handleError data, status
+					.error (data, status) ->
+						$scope.loading.observations = false
+						$scope.handleError data, status
 
 		$scope.inits[$scope.currentTab]?()
 
