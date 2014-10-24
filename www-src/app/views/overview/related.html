@@ -1,4 +1,4 @@
-<div class="col-md-4" ng-repeat="chart in chartsRelated" id="{{chart.id}}" ng-show="hasRelatedCharts() > 0">
+<div class="col-md-4" ng-repeat="chart in chartsRelated" id="{{chart.id}}" ng-if="hasRelatedCharts() > 0">
 	<a class="related" href="/#!/{{chart.url}}">
 		<span ng-include="'views/charts/related/line.html'"></span>
 		<span ng-include="'views/charts/related/row.html'"></span>
@@ -12,9 +12,9 @@
 	</div>
 </div>
 
-<div class="col-md-12" ng-show="loading.related" ng-include="'views/loader.html'"></div>
+<div class="col-md-12" ng-if="loading.related" ng-include="'views/loader.html'"></div>
 
-<div class="col-md-12" ng-show="!loading.related && hasRelatedCharts() <= 0">
+<div class="col-md-12" ng-if="!loading.related && hasRelatedCharts() <= 0">
 	<div class="jumbotron">
 		<p class="text-center">Sorry we are unable to generate any Related data for given set.</p>
 	</div>
