@@ -129,8 +129,8 @@ angular.module('dataplayApp')
 					if redraw? and redraw
 						$scope.redrawObservationIcons()
 
-						newObservations = d3.select 'g.stack-list > .observations.new'
-						$scope.renderObservationIcons $scope.xScale, $scope.yDomain, $scope.chart, newObservations
+					newObservations = d3.select 'g.stack-list > .observations.new'
+					$scope.renderObservationIcons $scope.xScale, $scope.yDomain, $scope.chart, newObservations
 				, $scope.handleError
 			return
 
