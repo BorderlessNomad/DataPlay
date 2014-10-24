@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -369,18 +370,13 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 		last = totalCharts
 	}
 
-	// @TODO: For future can see if these charts have been discovered yet or not
-	// for i, v := range charts {
-	// 	originid := tablename + "/" + strconv.Itoa(i) + "/" + v.ChartType + "/" + v.LabelX + "/" + v.LabelY
-	// 	discovered := Discovered{}
-	// 	err := DB.Where("relation_id = ?", originid).Find(&discovered).Error
-	// 	if err == gorm.RecordNotFound {
-	// 		v.Discovered = false
-	// 	} else {
-	// 		v.Discovered = true
-	// 	}
-	// }
-
+	for i := range charts {
+		j := rand.Intn(i + 1)
+		charts[i], charts[j] = charts[j], charts[i]
+	}
+	if count > 50 {
+		last = offset + 50
+	}
 	charts = charts[offset:last] // return marshalled slice
 	return RelatedCharts{charts, totalCharts}, nil
 }
@@ -436,6 +432,15 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int) (C
 		} else {
 			c.Discovered = true
 		}
+	}
+
+	for i := range charts {
+		j := rand.Intn(i + 1)
+		charts[i], charts[j] = charts[j], charts[i]
+	}
+
+	if count > 50 {
+		last = offset + 50
 	}
 
 	charts = charts[offset:last] // return marshalled slice
