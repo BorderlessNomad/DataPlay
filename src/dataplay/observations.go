@@ -350,7 +350,7 @@ func GetRecentObservationsHttp(res http.ResponseWriter, req *http.Request) strin
 	r, err2 := json.Marshal(communityObservations)
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
+		return ""
 	}
 
 	if r == nil {
@@ -392,21 +392,21 @@ func CreditObservation(oid int, uid int, credflag bool) (Observations, *appError
 
 	err := DB.Where("observation_id = ?", oid).Find(&observation).Error
 	if err != nil && err != gorm.RecordNotFound {
-		return obs, &appError{err, " Database query failed - credit observation (get)", http.StatusInternalServerError}
+		return obs, &appError{err, "Database query failed - credit observation (get)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
-		return obs, &appError{err, ", no such observation found!", http.StatusNotFound}
+		return obs, &appError{err, "No such observation found!", http.StatusNotFound}
 	}
 
 	if observation.Uid == uid {
-		return obs, nil
+		return obs, &appError{err, "You can't Credit/Discredit your own observation.", http.StatusBadRequest}
 	}
 
 	cred := Credit{}
-	err2 := DB.Where("observation_id= ?", observation.ObservationId).Where("uid= ?", uid).Find(&cred).Error
+	err2 := DB.Where("observation_id = ?", observation.ObservationId).Where("uid = ?", uid).Where("credflag = ?", credflag).Find(&cred).Error
 	if err2 != nil && err2 != gorm.RecordNotFound {
-		return obs, &appError{err2, ", observation query failed.", http.StatusInternalServerError}
-	} else if cred.CreditId != 0 {
-		return obs, nil
+		return obs, &appError{err2, "Observation query failed.", http.StatusInternalServerError}
+	} else if err2 != gorm.RecordNotFound {
+		return obs, &appError{err2, "You can Credit/Discredit observation only once.", http.StatusBadRequest}
 	}
 
 	if credflag {
@@ -414,15 +414,15 @@ func CreditObservation(oid int, uid int, credflag bool) (Observations, *appError
 		Reputation(observation.Uid, obsCredit) // add points for observation credit
 		AddActivity(uid, "co", t, 0, observation.ObservationId)
 	} else {
-		observation.Credited++
-		Reputation(observation.Uid, obsDiscredit) // remove points for observation incredit
+		observation.Discredited++
+		Reputation(observation.Uid, obsDiscredit) // add points for observation discredit
 		AddActivity(uid, "do", t, 0, observation.ObservationId)
 	}
 
 	observation.Rating = RankCredits(observation.Credited, observation.Discredited)
 	err = DB.Save(&observation).Error
 	if err != nil {
-		return obs, &appError{err, ", database query failed - Unable to save an observation.", http.StatusInternalServerError}
+		return obs, &appError{err, "Database query failed - Unable to save an observation.", http.StatusInternalServerError}
 	}
 
 	credit.DiscoveredId = 0 // not a chart
@@ -433,7 +433,7 @@ func CreditObservation(oid int, uid int, credflag bool) (Observations, *appError
 
 	err1 := DB.Save(&credit).Error
 	if err1 != nil {
-		return obs, &appError{err1, ", database query failed - credit observation (Save credit)", http.StatusInternalServerError}
+		return obs, &appError{err1, "Database query failed - credit observation (Save credit)", http.StatusInternalServerError}
 	}
 
 	obs.Comment = observation.Comment
@@ -492,7 +492,7 @@ func CreditObservationHttp(res http.ResponseWriter, req *http.Request, params ma
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
-		return "Missing session parameter"
+		return ""
 	}
 
 	oid, err := strconv.Atoi(params["oid"])
@@ -503,13 +503,13 @@ func CreditObservationHttp(res http.ResponseWriter, req *http.Request, params ma
 	uid, err1 := GetUserID(session)
 	if err1 != nil {
 		http.Error(res, err1.Message, err1.Code)
-		return "Could not credit user"
+		return ""
 	}
 
 	credflag, err2 := strconv.ParseBool(params["credflag"])
 	if err2 != nil {
 		http.Error(res, "bad credit flag", http.StatusBadRequest)
-		return "bad credit flag"
+		return ""
 	}
 
 	result, err3 := CreditObservation(oid, uid, credflag)
@@ -526,7 +526,7 @@ func CreditObservationHttp(res http.ResponseWriter, req *http.Request, params ma
 	r, err4 := json.Marshal(result)
 	if err4 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return "Unable to parse JSON"
+		return ""
 	}
 
 	return string(r)
