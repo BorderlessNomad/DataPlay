@@ -59,7 +59,6 @@ angular.module('dataplayApp')
 			return
 
 		$scope.processLogin = (data) ->
-			Auth.set config.userId, data.uid
 			Auth.set config.userName, data.user
 			Auth.set config.userType, data.usertype
 			Auth.set config.sessionName, data.session
@@ -104,7 +103,6 @@ angular.module('dataplayApp')
 
 			if token isnt false
 				User.logOut(token).success((data) ->
-					Auth.remove config.userId
 					Auth.remove config.userName
 					Auth.remove config.userType
 					Auth.remove config.sessionName

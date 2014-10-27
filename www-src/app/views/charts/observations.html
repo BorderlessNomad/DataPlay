@@ -5,15 +5,14 @@
 		<div class="row">
 			<span class="text-muted"><small>{{obsv.date}}</small></span>
 			<span class="flag">
-				<button class="btn btn-default btn-xs" title="Flag this comment as inappropriate" ng-if="!obsv.flagged" ng-click="flagObservation(obsv)"><i class="fa fa-flag"></i> Flag</button>
+				<button class="btn btn-default btn-xs" title="Flag this comment as inappropriate" ng-if="obsv.user.username != username && !obsv.flagged" ng-click="flagObservation(obsv)"><i class="fa fa-flag"></i> Flag</button>
 				<button class="btn btn-default btn-xs disabled" title="This comment has been flagged as inappropriate" ng-if="obsv.flagged" ><i class="fa fa-flag"></i> Flagged</button>
 			</span>
 		</div>
 		<div class="row">
 			<span class="left pull-left">
 				<img class="media-object" ng-src="{{obsv.user.avatar}}">
-
-				<div class="votes">
+				<div class="votes" ng-if="obsv.user.username != username">
 					<i class="glyphicon glyphicon-arrow-up" ng-click="creditObservation(obsv, true)"></i>
 					<span>{{obsv.creditCount}}</span>
 					<i class="glyphicon glyphicon-arrow-down" ng-click="creditObservation(obsv, false)"></i>
