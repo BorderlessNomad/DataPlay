@@ -374,6 +374,7 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 		j := rand.Intn(i + 1)
 		charts[i], charts[j] = charts[j], charts[i]
 	}
+
 	if count > 50 {
 		last = offset + 50
 	}
@@ -1264,6 +1265,11 @@ func GetAwaitingCreditHttp(res http.ResponseWriter, req *http.Request) string {
 			tableData.RelationId = d.RelationId
 			charts = append(charts, tableData)
 		}
+	}
+
+	for i := range charts {
+		j := rand.Intn(i + 1)
+		charts[i], charts[j] = charts[j], charts[i]
 	}
 
 	resp := map[string]interface{}{
