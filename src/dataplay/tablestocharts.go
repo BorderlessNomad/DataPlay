@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
+	"math"
 	"math/rand"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -45,6 +47,85 @@ type CorrelatedCharts struct {
 type DiscoveredCharts struct {
 	Charts []interface{} `json:"charts"`
 	Count  int           `json:"count"`
+}
+
+// given a small fraction of ratings there is a strong (95%) chance that the "real", final positive rating will be this value
+// eg: gives expected (not necessarily current as there may have only been a few votes so far) value of positive ratings / total ratings
+func RankCredits(credit int, discredit int) float64 {
+	pos := float64(credit)
+	tot := float64(credit + discredit)
+
+	if tot == 0 {
+		return 0
+	}
+
+	z := 1.96
+	phat := pos / tot
+	result := (phat + z*z/(2*tot) - z*math.Sqrt((phat*(1-phat)+z*z/(4*tot))/tot)) / (1 + z*z/tot)
+	return result
+}
+
+// increment user discovered total for chart and rerank, return discovered id
+func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
+	t := time.Now()
+	discovered := Discovered{}
+	credit := Credit{}
+
+	if strings.ContainsAny(rcid, "_") { // if a relation id
+		rcid = strings.Replace(rcid, "_", "/", -1)
+		err := DB.Where("relation_id = ?", rcid).Find(&discovered).Error
+		if err != nil && err != gorm.RecordNotFound {
+			return "", &appError{err, ", database query failed (relation_id)", http.StatusInternalServerError}
+		}
+	} else { // if a correlation id of type int
+		cid, e := strconv.Atoi(rcid)
+		if e != nil {
+			return "", &appError{e, ", could not convert id to int", http.StatusInternalServerError}
+		}
+
+		err := DB.Where("correlation_id = ?", cid).Find(&discovered).Error
+		if err != nil && err != gorm.RecordNotFound {
+			return "", &appError{err, ", database query failed (correlation_id)", http.StatusInternalServerError}
+		}
+	}
+
+	if credflag {
+		discovered.Credited++
+		Reputation(discovered.Uid, discCredit) // add points for discovery credit
+		AddActivity(uid, "cc", t, discovered.DiscoveredId, 0)
+	} else {
+		discovered.Discredited++
+		Reputation(discovered.Uid, discDiscredit) // remove points for discovery discredit
+		AddActivity(uid, "dc", t, discovered.DiscoveredId, 0)
+	}
+	discovered.Rating = RankCredits(discovered.Credited, discovered.Discredited)
+	err1 := DB.Save(&discovered).Error
+	if err1 != nil {
+		return "", &appError{err1, ", database query failed - credit chart (Save discovered)", http.StatusInternalServerError}
+	}
+	credit.DiscoveredId = discovered.DiscoveredId
+	credit.Uid = uid
+	credit.Created = t
+	credit.ObservationId = 0 // not an observation
+	credit.Credflag = credflag
+
+	creditchk := Credit{}
+
+	err2 := DB.Where("discovered_id = ?", credit.DiscoveredId).Where("uid = ?", credit.Uid).Where("observation_id = ?", credit.ObservationId).Find(&creditchk).Error
+	if err2 == gorm.RecordNotFound {
+		err3 := DB.Save(&credit).Error
+		if err3 != nil {
+			return "", &appError{err3, ", database query failed (Save credit)", http.StatusInternalServerError}
+		}
+	} else {
+		credit.CreditId = creditchk.CreditId
+		err4 := DB.Model(&creditchk).Update("credflag", credflag).Error
+		if err4 != nil {
+			return "", &appError{err4, ", database query failed (Update credit)", http.StatusInternalServerError}
+		}
+	}
+
+	return strconv.Itoa(discovered.DiscoveredId), nil
 }
 
 // Get all data for single selected chart
@@ -787,6 +868,51 @@ func CalcStrength(x float64) string {
 //////////////////////////////////////////////////////////////////////////
 //////////// HTTP AND QUEUE FUNCTIONS TO CALL ABOVE METHODS///////////////
 //////////////////////////////////////////////////////////////////////////
+func CreditChartHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter", http.StatusBadRequest)
+		return ""
+	}
+
+	credflag := false
+	rcid := ""
+
+	if params["credflag"] == "" { // if no credflag then skip credit and just return discovered id
+		http.Error(res, "Missing credflag", http.StatusBadRequest)
+		return ""
+	} else {
+		credflag, _ = strconv.ParseBool(params["credflag"])
+	}
+
+	if params["rcid"] == "" {
+		http.Error(res, "No Relation/Correlation ID provided.", http.StatusBadRequest)
+		return ""
+	} else {
+		rcid = params["rcid"]
+	}
+
+	uid, err1 := GetUserID(session)
+	if err1 != nil {
+		http.Error(res, err1.Message, err1.Code)
+		return ""
+	}
+
+	result, err2 := CreditChart(rcid, uid, credflag)
+	if err2 != nil {
+		msg := ""
+		if credflag {
+			msg = "Could not credit chart" + err2.Message
+		} else {
+			msg = "Could not discredit chart" + err2.Message
+		}
+
+		http.Error(res, err2.Message+msg, http.StatusBadRequest)
+		return msg
+	}
+
+	return result
+}
 
 func GetChartHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 	session := req.Header.Get("X-API-SESSION")
