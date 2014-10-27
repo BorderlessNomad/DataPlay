@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
+	"math/rand"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -358,6 +359,12 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 				}
 			}
 		}
+	}
+
+	// Randomise order
+	for i := range Response.Results {
+		j := rand.Intn(i + 1)
+		Response.Results[i], Response.Results[j] = Response.Results[j], Response.Results[i]
 	}
 
 	return Response, nil
