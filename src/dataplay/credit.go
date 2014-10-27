@@ -53,11 +53,11 @@ func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
 	if credflag {
 		discovered.Credited++
 		Reputation(discovered.Uid, discCredit) // add points for discovery credit
-		AddActivity(uid, "vc", t, discovered.DiscoveredId, 0)
+		AddActivity(uid, "cc", t, discovered.DiscoveredId, 0)
 	} else {
 		discovered.Discredited++
 		Reputation(discovered.Uid, discDiscredit) // remove points for discovery discredit
-		AddActivity(uid, "ic", t, discovered.DiscoveredId, 0)
+		AddActivity(uid, "dc", t, discovered.DiscoveredId, 0)
 	}
 	discovered.Rating = RankCredits(discovered.Credited, discovered.Discredited)
 	err1 := DB.Save(&discovered).Error
@@ -103,7 +103,8 @@ func CreditObservation(oid int, uid int, credflag bool) *appError {
 	}
 
 	if observation.Uid == uid {
-		return &appError{err, ", you cannot credit your own comment", http.StatusNotFound}
+		return nil
+		// return &appError{err, ", you cannot credit your own comment", http.StatusNotFound}
 	}
 
 	cred := Credit{}
@@ -111,17 +112,18 @@ func CreditObservation(oid int, uid int, credflag bool) *appError {
 	if err2 != nil && err2 != gorm.RecordNotFound {
 		return &appError{err2, ", observation query failed.", http.StatusInternalServerError}
 	} else if cred.CreditId != 0 {
-		return &appError{err2, ", user has already credited this observation.", http.StatusInternalServerError}
+		return nil
+		// return &appError{err2, ", user has already credited this observation.", http.StatusInternalServerError}
 	}
 
 	if credflag {
 		observation.Credited++
 		Reputation(observation.Uid, obsCredit) // add points for observation credit
-		AddActivity(uid, "vo", t, 0, observation.ObservationId)
+		AddActivity(uid, "co", t, 0, observation.ObservationId)
 	} else {
 		observation.Credited++
 		Reputation(observation.Uid, obsDiscredit) // remove points for observation incredit
-		AddActivity(uid, "io", t, 0, observation.ObservationId)
+		AddActivity(uid, "do", t, 0, observation.ObservationId)
 	}
 
 	observation.Rating = RankCredits(observation.Credited, observation.Discredited)

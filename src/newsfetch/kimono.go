@@ -39,6 +39,20 @@ func DailyKimono() error {
 
 	t := time.Now()
 
+	// sd := fmt.Sprintf("%02d", t.AddDate(0, 0, -3).Day())
+	// sm := fmt.Sprintf("%02d", t.AddDate(0, 0, -3).Month())
+	// sy := fmt.Sprintf("%4d", t.AddDate(0, 0, -3).Year())
+	// ed := fmt.Sprintf("%02d", t.AddDate(0, 0, -2).Day())
+	// em := fmt.Sprintf("%02d", t.AddDate(0, 0, -2).Month())
+	// ey := fmt.Sprintf("%4d", t.AddDate(0, 0, -2).Year())
+
+	// sd := fmt.Sprintf("%02d", t.AddDate(0, 0, -2).Day())
+	// sm := fmt.Sprintf("%02d", t.AddDate(0, 0, -2).Month())
+	// sy := fmt.Sprintf("%4d", t.AddDate(0, 0, -2).Year())
+	// ed := fmt.Sprintf("%02d", t.AddDate(0, 0, -1).Day())
+	// em := fmt.Sprintf("%02d", t.AddDate(0, 0, -1).Month())
+	// ey := fmt.Sprintf("%4d", t.AddDate(0, 0, -1).Year())
+
 	sd := fmt.Sprintf("%02d", t.AddDate(0, 0, -1).Day())
 	sm := fmt.Sprintf("%02d", t.AddDate(0, 0, -1).Month())
 	sy := fmt.Sprintf("%4d", t.AddDate(0, 0, -1).Year())

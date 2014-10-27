@@ -22,6 +22,6 @@ func TestSearchForNewsHttp(t *testing.T) {
 		result := SearchForNewsHttp(res, req, params)
 		b := time.Now()
 		fmt.Println("ROBOCOP MAIN", b.Sub(a).Seconds())
-		So(result, ShouldNotBeNil)
+		So(result, ShouldEqual, "")
 	})
 }

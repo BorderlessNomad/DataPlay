@@ -27,12 +27,12 @@ func NewClient(key string) *Client {
 
 func (c *Client) Extract(urls []string, options Options, startpos int) (error, int) {
 
-	for i := startpos; i < len(urls); i += 20 {
+	for i := startpos; i < len(urls); i += 10 {
 		fmt.Printf("Extracting %d out of %d URLS\n", i, len(urls))
 		fmt.Sprintf("Extracting")
 		to := len(urls)
-		if to > i+20 {
-			to = i + 20
+		if to > i+10 {
+			to = i + 10
 		}
 		res, err := c.extract(urls[i:to], options, i)
 
@@ -179,65 +179,6 @@ func Hash(str string) []byte {
 }
 
 // write json string to cassandra
-
-// func writeToCass(resp string) {
-// 	session, _ := GetCassandraConnection("dp")
-// 	defer session.Close()
-
-// 	var r Response
-// 	err := json.Unmarshal([]byte(resp), &r)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-
-// 	if err := session.Query(`INSERT INTO response (id, original_url, url, type, provider_name, provider_url,
-// 		provider_display, favicon_url, title, description, date, published, lead, content)
-// 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-// 		r.Id, r.OriginalUrl, r.Url, r.Type, r.ProviderName, r.ProviderUrl,
-// 		r.ProviderDisplay, r.FaviconUrl, r.Title, r.Description, r.Date, r.Published, r.Lead, r.Content).Exec(); err != nil {
-// 		fmt.Println("HELP1!", err)
-// 	}
-
-// 	for _, a := range r.Authors {
-// 		if err := session.Query(`INSERT INTO author (id, date, name, url)
-// 			VALUES (?, ?, ?, ?)`,
-// 			a.Id, r.Date, a.Name, a.Url).Exec(); err != nil {
-// 			fmt.Println("HELP2!", err)
-// 		}
-// 	}
-
-// 	for _, k := range r.Keywords {
-// 		if err := session.Query(`INSERT INTO keyword (id, url, date, score, name)
-// 			VALUES (?, ?, ?, ?, ?)`,
-// 			k.Id, r.Url, r.Date, k.Score, k.Name).Exec(); err != nil {
-// 			fmt.Println("HELP3!", err)
-// 		}
-// 	}
-
-// 	for _, e := range r.Entities {
-// 		if err := session.Query(`INSERT INTO entity (id, url, date, count, name)
-// 			VALUES (?, ?, ?, ?, ?)`,
-// 			e.Id, r.Url, r.Date, e.Count, e.Name).Exec(); err != nil {
-// 			fmt.Println("HELP4!", err)
-// 		}
-// 	}
-
-// 	for index, i := range r.Images {
-// 		if err := session.Query(`INSERT INTO image (pic_index, id, date, caption, url, width, height, entropy, size)
-// 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-// 			index, i.Id, r.Date, i.Caption, i.Url, i.Width, i.Height, i.Entropy, i.Size).Exec(); err != nil {
-// 			fmt.Println("HELP5!", err)
-// 		}
-// 	}
-
-// 	for _, ra := range r.RelatedArticles {
-// 		if err := session.Query(`INSERT INTO related (id, date, description, title, url, thumbnail_width, score, thumbnail_height, thumbnail_url)
-// 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-// 			ra.Id, r.Date, ra.Description, ra.Title, ra.Url, ra.ThumbnailWidth, ra.Score, ra.ThumbnailHeight, ra.ThumbnailUrl).Exec(); err != nil {
-// 			fmt.Println("HELP6!", err)
-// 		}
-// 	}
-// }
 
 func writeToCass(resp string) {
 	session, _ := GetCassandraConnection("dataplay")
