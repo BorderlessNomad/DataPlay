@@ -118,7 +118,7 @@ func AddObservation(did int, uid int, comment string, x string, y string) (Obser
 	}
 
 	activity := Activity{}
-	err4 := DB.Where("uid = ?", observation.Uid).Where("uid = ?", observation.ObservationId).Find(&activity).Error
+	err4 := DB.Where("uid = ?", observation.Uid).Where("observation_id = ?", observation.ObservationId).Find(&activity).Error
 
 	if err4 != nil && err4 != gorm.RecordNotFound {
 		return obs, &appError{err4, "Database query failed - get activity - no such activity", http.StatusInternalServerError}
@@ -187,7 +187,7 @@ func GetObservations(did int) ([]Observations, *appError) {
 		}
 
 		activity := Activity{}
-		err3 := DB.Where("uid = ?", o.Uid).Where("uid = ?", o.ObservationId).Find(&activity).Error
+		err3 := DB.Where("uid = ?", o.Uid).Where("observation_id = ?", o.ObservationId).Find(&activity).Error
 		if err3 != nil && err3 != gorm.RecordNotFound {
 			return nil, &appError{err3, "Database query failed - get activity - no such activity", http.StatusInternalServerError}
 		} else if err3 == gorm.RecordNotFound {
