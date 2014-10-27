@@ -18,7 +18,7 @@ APP_PORT="3000"
 APP_TYPE="master"
 APP_MODE="3"
 
-# . /etc/profile
+. /etc/profile
 
 # LOADBALANCER_HOST="109.231.121.26"
 LOADBALANCER_HOST="$DP_LOADBALANCER_HOST"

@@ -9,7 +9,7 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
-# LOADBALANCER="109.231.121.47"
+# LOADBALANCER_HOST="109.231.121.47"
 LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
 LOADBALANCER_API_PORT="1937"
 
