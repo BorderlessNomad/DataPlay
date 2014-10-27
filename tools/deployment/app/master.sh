@@ -12,7 +12,6 @@ fi
 GO_VERSION="go1.3.3"
 DEST="/home/ubuntu/www"
 APP="dataplay"
-WWW="www-src"
 
 APP_HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
 APP_PORT="3000"
@@ -131,6 +130,19 @@ update_iptables () {
 	iptables-save
 }
 
+fetch_service () {
+	URL="https://raw.githubusercontent.com"
+	USER="playgenhub"
+	REPO="DataPlay"
+	BRANCH="master"
+	SOURCE="$URL/$USER/$REPO/$BRANCH"
+	SERVICE="master.service.sh"
+
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/app/$SERVICE -O $DEST/$SERVICE
+
+	chmod +x $DEST/$SERVICE
+}
+
 echo "[$(timestamp)] ---- 1. Setup Host ----"
 setuphost
 
@@ -148,6 +160,9 @@ inform_loadbalancer
 
 echo "[$(timestamp)] ---- 6. Update IPTables rules ----"
 update_iptables
+
+echo "[$(timestamp)] ---- 7. Fetch Service ----"
+fetch_service
 
 echo "[$(timestamp)] ---- Completed ----"
 

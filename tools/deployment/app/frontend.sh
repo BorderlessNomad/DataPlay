@@ -21,8 +21,8 @@ APP_TYPE="gamification"
 LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
 LOADBALANCER_REQUEST_PORT="80"
 LOADBALANCER_API_PORT="1937"
-LOADBALANCER_DOMAIN="dataplay.playgen.com"
-# LOADBALANCER_DOMAIN="$LOADBALANCER_HOST:LOADBALANCER_REQUEST_PORT"
+DOMAIN="dataplay.playgen.com"
+# DOMAIN="$LOADBALANCER_HOST:LOADBALANCER_REQUEST_PORT"
 
 timestamp () {
 	date +"%F %T,%3N"
@@ -38,7 +38,7 @@ export_variables () {
 	echo "export DP_LOADBALANCER_HOST=$LOADBALANCER_HOST" >> /etc/profile.d/dataplay.sh
 	echo "export DP_LOADBALANCER_REQUEST_PORT=$LOADBALANCER_REQUEST_PORT" >> /etc/profile.d/dataplay.sh
 	echo "export DP_LOADBALANCER_API_PORT=$LOADBALANCER_API_PORT" >> /etc/profile.d/dataplay.sh
-	echo "export DP_LOADBALANCER_DOMAIN=$LOADBALANCER_DOMAIN" >> /etc/profile.d/dataplay.sh
+	echo "export DP_DOMAIN=$DOMAIN" >> /etc/profile.d/dataplay.sh
 
 	. /etc/profile
 
@@ -93,11 +93,11 @@ download_app () {
 }
 
 init_frontend () {
-	sed -i "s/localhost:3000/$LOADBALANCER_DOMAIN/g" $DEST/$APP/$WWW/dist/scripts/*.js
+	sed -i "s/localhost:3000/$DOMAIN/g" $DEST/$APP/$WWW/dist/scripts/*.js
 }
 
 configure_frontend () {
-	sed -i "s/localhost:3000/$LOADBALANCER_DOMAIN/g" $DEST/$APP/$WWW/app/scripts/app.coffee
+	sed -i "s/localhost:3000/$DOMAIN/g" $DEST/$APP/$WWW/app/scripts/app.coffee
 
 	command -v grunt >/dev/null 2>&1 || { echo >&2 "Error: Command 'grunt' not found!"; exit 1; }
 
@@ -118,6 +118,19 @@ inform_loadbalancer () {
 		echo "[$(timestamp)] Load Balancer is not up yet, retry... [$(( retries++ ))]"
 		sleep 5
 	done
+}
+
+fetch_service () {
+	URL="https://raw.githubusercontent.com"
+	USER="playgenhub"
+	REPO="DataPlay"
+	BRANCH="master"
+	SOURCE="$URL/$USER/$REPO/$BRANCH"
+	SERVICE="frontend.service.sh"
+
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/app/$SERVICE -O $DEST/$SERVICE
+
+	chmod +x $DEST/$SERVICE
 }
 
 echo "[$(timestamp)] ---- 1. Setup Host ----"
@@ -145,6 +158,9 @@ init_frontend
 
 echo "[$(timestamp)] ---- 6. Inform Load Balancer (Add) ----"
 inform_loadbalancer
+
+echo "[$(timestamp)] ---- 7. Fetch Service ----"
+fetch_service
 
 echo "[$(timestamp)] ---- Completed ----"
 
