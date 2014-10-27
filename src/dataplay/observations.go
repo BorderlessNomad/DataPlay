@@ -46,7 +46,7 @@ type CommunityObservation struct {
 }
 
 // add observation to chart
-func AddObservation(did int, uid int, comment string, x string, y string) (string, *appError) {
+func AddObservation(did int, uid int, comment string, x string, y string) (Observation, *appError) {
 	observation := Observation{}
 	observation.Comment = comment
 	observation.DiscoveredId = did
@@ -59,27 +59,27 @@ func AddObservation(did int, uid int, comment string, x string, y string) (strin
 	discovered := Discovered{}
 	err := DB.Where("discovered_id = ?", did).First(&discovered).Error
 	if err != nil {
-		return "Database query failed (find discovered)", &appError{err, "Database query failed (find discovered)", http.StatusInternalServerError}
+		return observation, &appError{err, "Database query failed (find discovered)", http.StatusInternalServerError}
 	}
 
 	Reputation(discovered.Uid, discObs) // add points to rep of user who discovered chart when their discovery receives an observation
 
 	err1 := AddActivity(uid, "c", observation.Created, did, 0) // add to activities
 	if err1 != nil {
-		return "", err1
+		return observation, err1
 	}
 
 	err2 := DB.Save(&observation).Error
 	if err2 != nil {
-		return "Database query failed (Save observation)", &appError{err2, "Database query failed (Save observation)", http.StatusInternalServerError}
+		return observation, &appError{err2, "Database query failed (Save observation)", http.StatusInternalServerError}
 	}
 
 	err3 := DB.Where("discovered_id= ?", did).Where("x =?", x).Where("y =?", y).First(&observation).Error
 	if err3 != nil {
-		return "Database query failed - add observation (find observation)", &appError{err3, "Database query failed - add observation (find observation)", http.StatusInternalServerError}
+		return observation, &appError{err3, "Database query failed - add observation (find observation)", http.StatusInternalServerError}
 	}
 
-	return strconv.Itoa(observation.ObservationId), nil
+	return observation, nil
 }
 
 // get all observations for a particular chart
@@ -167,7 +167,13 @@ func AddObservationHttp(res http.ResponseWriter, req *http.Request, observation 
 		return ""
 	}
 
-	return result
+	r, err3 := json.Marshal(result)
+	if err3 != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return ""
+	}
+
+	return string(r)
 }
 
 func GetObservationsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
