@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This is setup script for Master OnVmRemove.
+# This is setup script for Gamification OnVmRemove.
 
 set -ex
 
@@ -14,8 +14,8 @@ LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
 LOADBALANCER_API_PORT="1937"
 
 APP_HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
-APP_PORT="3000"
-APP_TYPE="master"
+APP_PORT="80"
+APP_TYPE="gamification"
 
 timestamp () {
 	date +"%F %T,%3N"
