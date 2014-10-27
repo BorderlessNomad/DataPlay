@@ -118,7 +118,7 @@ func AddObservation(did int, uid int, comment string, x string, y string) (Obser
 	}
 
 	activity := Activity{}
-	err4 := DB.Where("uid = ?", observation.Uid).Where("observation_id = ?", observation.ObservationId).Find(&activity).Error
+	err4 := DB.Where("uid = ?", uid).Where("observation_id = ?", observation.ObservationId).Find(&activity).Error
 
 	if err4 != nil && err4 != gorm.RecordNotFound {
 		return obs, &appError{err4, "Database query failed - get activity - no such activity", http.StatusInternalServerError}
@@ -375,4 +375,153 @@ func FlagObservationHttp(res http.ResponseWriter, req *http.Request, params mart
 	}
 
 	return "success"
+}
+
+// increment user discovered total for observation and rerank
+func CreditObservation(oid int, uid int, credflag bool) (Observations, *appError) {
+	t := time.Now()
+	observation := Observation{}
+	obs := Observations{}
+	credit := Credit{}
+
+	err := DB.Where("observation_id = ?", oid).Find(&observation).Error
+	if err != nil && err != gorm.RecordNotFound {
+		return obs, &appError{err, " Database query failed - credit observation (get)", http.StatusInternalServerError}
+	} else if err == gorm.RecordNotFound {
+		return obs, &appError{err, ", no such observation found!", http.StatusNotFound}
+	}
+
+	if observation.Uid == uid {
+		return obs, nil
+	}
+
+	cred := Credit{}
+	err2 := DB.Where("observation_id= ?", observation.ObservationId).Where("uid= ?", uid).Find(&cred).Error
+	if err2 != nil && err2 != gorm.RecordNotFound {
+		return obs, &appError{err2, ", observation query failed.", http.StatusInternalServerError}
+	} else if cred.CreditId != 0 {
+		return obs, nil
+	}
+
+	if credflag {
+		observation.Credited++
+		Reputation(observation.Uid, obsCredit) // add points for observation credit
+		AddActivity(uid, "co", t, 0, observation.ObservationId)
+	} else {
+		observation.Credited++
+		Reputation(observation.Uid, obsDiscredit) // remove points for observation incredit
+		AddActivity(uid, "do", t, 0, observation.ObservationId)
+	}
+
+	observation.Rating = RankCredits(observation.Credited, observation.Discredited)
+	err = DB.Save(&observation).Error
+	if err != nil {
+		return obs, &appError{err, ", database query failed - Unable to save an observation.", http.StatusInternalServerError}
+	}
+
+	credit.DiscoveredId = 0 // not a chart
+	credit.Uid = uid
+	credit.Created = time.Now()
+	credit.ObservationId = oid
+	credit.Credflag = credflag
+
+	err1 := DB.Save(&credit).Error
+	if err1 != nil {
+		return obs, &appError{err1, ", database query failed - credit observation (Save credit)", http.StatusInternalServerError}
+	}
+
+	obs.Comment = observation.Comment
+	obs.X = observation.X
+	obs.Y = observation.Y
+	obs.Credited = observation.Credited
+	obs.Discredited = observation.Discredited
+	obs.Created = observation.Created
+	obs.ObservationId = observation.ObservationId
+	obs.Flagged = observation.Flagged
+
+	user := User{}
+	err5 := DB.Where("uid= ?", observation.Uid).Find(&user).Error
+	if err5 != nil {
+		return obs, &appError{err5, "Database query failed - get observation - no such user", http.StatusInternalServerError}
+	}
+
+	obs.User.Username = user.Username
+	obs.User.Avatar = user.Avatar
+	obs.User.Reputation = user.Reputation
+	obs.User.Email = GetMD5Hash(user.Email)
+
+	discovered := Discovered{}
+	err7 := DB.Where("discovered_id = ?", observation.DiscoveredId).Find(&discovered).Error
+	if err7 != nil {
+		return obs, &appError{err7, "Failed to get discovered id", http.StatusInternalServerError}
+	}
+
+	if discovered.Uid == observation.Uid {
+		obs.User.Discoverer = true
+	} else {
+		obs.User.Discoverer = false
+	}
+
+	activity := Activity{}
+	err4 := DB.Where("uid = ?", uid).Where("observation_id = ?", observation.ObservationId).Find(&activity).Error
+
+	if err4 != nil && err4 != gorm.RecordNotFound {
+		return obs, &appError{err4, "Database query failed - get activity - no such activity", http.StatusInternalServerError}
+	} else if err4 == gorm.RecordNotFound {
+		obs.Action = OBSERVATION_ACTION_NONE
+	} else {
+		if activity.Type == OBSERVATION_TYPE_CREDITED {
+			obs.Action = OBSERVATION_ACTION_CREDITED
+		} else if activity.Type == OBSERVATION_TYPE_DISCREDITED {
+			obs.Action = OBSERVATION_ACTION_DISCREDITED
+		} else {
+			obs.Action = OBSERVATION_ACTION_NONE
+		}
+	}
+
+	return obs, nil
+}
+
+func CreditObservationHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
+	session := req.Header.Get("X-API-SESSION")
+	if len(session) <= 0 {
+		http.Error(res, "Missing session parameter", http.StatusBadRequest)
+		return "Missing session parameter"
+	}
+
+	oid, err := strconv.Atoi(params["oid"])
+	if err != nil || oid < 0 {
+		oid = 0
+	}
+
+	uid, err1 := GetUserID(session)
+	if err1 != nil {
+		http.Error(res, err1.Message, err1.Code)
+		return "Could not credit user"
+	}
+
+	credflag, err2 := strconv.ParseBool(params["credflag"])
+	if err2 != nil {
+		http.Error(res, "bad credit flag", http.StatusBadRequest)
+		return "bad credit flag"
+	}
+
+	result, err3 := CreditObservation(oid, uid, credflag)
+	if err3 != nil {
+		msg := ""
+		if credflag {
+			msg = "Could not credit observation" + err3.Message
+		} else {
+			msg = "Could not discredit observation" + err3.Message
+		}
+		return msg
+	}
+
+	r, err4 := json.Marshal(result)
+	if err4 != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return "Unable to parse JSON"
+	}
+
+	return string(r)
 }
