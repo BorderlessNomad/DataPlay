@@ -9,16 +9,27 @@ import (
 	"time"
 )
 
+const OBSERVATION_ACTION_NONE = ""
+const OBSERVATION_ACTION_CREDITED = "credited"
+const OBSERVATION_ACTION_DISCREDITED = "discredited"
+
+/**
+ * @TODO Make activity table to consts - Glyn
+ */
+const OBSERVATION_TYPE_CREDITED = "Credited Observation"
+const OBSERVATION_TYPE_DISCREDITED = "Discredited Observation"
+
 type Observations struct {
 	ObservationId int       `json:"observation_id"`
 	Comment       string    `json:"comment, omitempty"`
 	X             string    `json:"x"`
 	Y             string    `json:"y"`
-	User          UserData  `json:"user"`
 	Created       time.Time `json:"created, omitempty"`
 	Credited      int       `json:"credits, omitempty"`
 	Discredited   int       `json:"discredits, omitempty"`
 	Flagged       bool      `json:"flagged, omitempty"`
+	User          UserData  `json:"user"`
+	Action        string    `json:"action, omitempty"`
 }
 
 type UserData struct {
@@ -46,7 +57,8 @@ type CommunityObservation struct {
 }
 
 // add observation to chart
-func AddObservation(did int, uid int, comment string, x string, y string) (Observation, *appError) {
+func AddObservation(did int, uid int, comment string, x string, y string) (Observations, *appError) {
+	obs := Observations{}
 	observation := Observation{}
 	observation.Comment = comment
 	observation.DiscoveredId = did
@@ -57,29 +69,72 @@ func AddObservation(did int, uid int, comment string, x string, y string) (Obser
 	observation.Flagged = false
 
 	discovered := Discovered{}
-	err := DB.Where("discovered_id = ?", did).First(&discovered).Error
+	err := DB.Where("discovered_id = ?", did).Find(&discovered).Error
 	if err != nil {
-		return observation, &appError{err, "Database query failed (find discovered)", http.StatusInternalServerError}
+		return obs, &appError{err, "Database query failed (find discovered)", http.StatusInternalServerError}
 	}
 
 	Reputation(discovered.Uid, discObs) // add points to rep of user who discovered chart when their discovery receives an observation
 
 	err1 := AddActivity(uid, "c", observation.Created, did, 0) // add to activities
 	if err1 != nil {
-		return observation, err1
+		return obs, err1
 	}
 
 	err2 := DB.Save(&observation).Error
 	if err2 != nil {
-		return observation, &appError{err2, "Database query failed (Save observation)", http.StatusInternalServerError}
+		return obs, &appError{err2, "Database query failed (Save observation)", http.StatusInternalServerError}
 	}
 
 	err3 := DB.Where("discovered_id= ?", did).Where("x =?", x).Where("y =?", y).First(&observation).Error
 	if err3 != nil {
-		return observation, &appError{err3, "Database query failed - add observation (find observation)", http.StatusInternalServerError}
+		return obs, &appError{err3, "Database query failed - add observation (find observation)", http.StatusInternalServerError}
 	}
 
-	return observation, nil
+	obs.Comment = observation.Comment
+	obs.X = observation.X
+	obs.Y = observation.Y
+	obs.Credited = observation.Credited
+	obs.Discredited = observation.Discredited
+	obs.Created = observation.Created
+	obs.ObservationId = observation.ObservationId
+	obs.Flagged = observation.Flagged
+
+	user := User{}
+	err5 := DB.Where("uid= ?", observation.Uid).Find(&user).Error
+	if err5 != nil {
+		return obs, &appError{err2, "Database query failed - get observation - no such user", http.StatusInternalServerError}
+	}
+
+	obs.User.Username = user.Username
+	obs.User.Avatar = user.Avatar
+	obs.User.Reputation = user.Reputation
+	obs.User.Email = GetMD5Hash(user.Email)
+
+	if discovered.Uid == observation.Uid {
+		obs.User.Discoverer = true
+	} else {
+		obs.User.Discoverer = false
+	}
+
+	activity := Activity{}
+	err4 := DB.Where("uid = ?", observation.Uid).Where("uid = ?", observation.ObservationId).Find(&activity).Error
+
+	if err4 != nil && err4 != gorm.RecordNotFound {
+		return obs, &appError{err4, "Database query failed - get activity - no such activity", http.StatusInternalServerError}
+	} else if err3 == gorm.RecordNotFound {
+		obs.Action = OBSERVATION_ACTION_NONE
+	} else {
+		if activity.Type == OBSERVATION_TYPE_CREDITED {
+			obs.Action = OBSERVATION_ACTION_CREDITED
+		} else if activity.Type == OBSERVATION_TYPE_DISCREDITED {
+			obs.Action = OBSERVATION_ACTION_DISCREDITED
+		} else {
+			obs.Action = OBSERVATION_ACTION_NONE
+		}
+	}
+
+	return obs, nil
 }
 
 // get all observations for a particular chart
@@ -129,6 +184,22 @@ func GetObservations(did int) ([]Observations, *appError) {
 			tmpOD.User.Discoverer = true
 		} else {
 			tmpOD.User.Discoverer = false
+		}
+
+		activity := Activity{}
+		err3 := DB.Where("uid = ?", o.Uid).Where("uid = ?", o.ObservationId).Find(&activity).Error
+		if err3 != nil && err3 != gorm.RecordNotFound {
+			return nil, &appError{err3, "Database query failed - get activity - no such activity", http.StatusInternalServerError}
+		} else if err3 == gorm.RecordNotFound {
+			tmpOD.Action = OBSERVATION_ACTION_NONE
+		} else {
+			if activity.Type == OBSERVATION_TYPE_CREDITED {
+				tmpOD.Action = OBSERVATION_ACTION_CREDITED
+			} else if activity.Type == OBSERVATION_TYPE_DISCREDITED {
+				tmpOD.Action = OBSERVATION_ACTION_DISCREDITED
+			} else {
+				tmpOD.Action = OBSERVATION_ACTION_NONE
+			}
 		}
 
 		obsData = append(obsData, tmpOD)
