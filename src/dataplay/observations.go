@@ -118,7 +118,7 @@ func AddObservation(did int, uid int, comment string, x string, y string) (Obser
 	}
 
 	activity := Activity{}
-	err4 := DB.Where("uid = ?", observation.Uid).Where("observation_id = ?", observation.ObservationId).Find(&activity).Error
+	err4 := DB.Where("uid = ?", uid).Where("observation_id = ?", observation.ObservationId).Find(&activity).Error
 
 	if err4 != nil && err4 != gorm.RecordNotFound {
 		return obs, &appError{err4, "Database query failed - get activity - no such activity", http.StatusInternalServerError}
@@ -138,10 +138,10 @@ func AddObservation(did int, uid int, comment string, x string, y string) (Obser
 }
 
 // get all observations for a particular chart
-func GetObservations(did int) ([]Observations, *appError) {
+func GetObservations(did int, uid int) ([]Observations, *appError) {
 	observation := make([]Observation, 0)
 	obsData := make([]Observations, 0)
-	discovered := make([]Discovered, 0)
+	discovered := Discovered{}
 
 	err := DB.Where("discovered_id = ?", did).Find(&discovered).Error
 	if err != nil && err != gorm.RecordNotFound {
@@ -169,25 +169,25 @@ func GetObservations(did int) ([]Observations, *appError) {
 		tmpOD.ObservationId = o.ObservationId
 		tmpOD.Flagged = o.Flagged
 
-		user := make([]User, 0)
-		err2 := DB.Where("uid= ?", o.Uid).Find(&user).Error
+		user := User{}
+		err2 := DB.Where("uid = ?", o.Uid).Find(&user).Error
 		if err2 != nil {
 			return nil, &appError{err2, "Database query failed - get observation - no such user", http.StatusInternalServerError}
 		}
 
-		tmpOD.User.Username = user[0].Username
-		tmpOD.User.Avatar = user[0].Avatar
-		tmpOD.User.Reputation = user[0].Reputation
-		tmpOD.User.Email = GetMD5Hash(user[0].Email)
+		tmpOD.User.Username = user.Username
+		tmpOD.User.Avatar = user.Avatar
+		tmpOD.User.Reputation = user.Reputation
+		tmpOD.User.Email = GetMD5Hash(user.Email)
 
-		if discovered[0].Uid == observation[0].Uid { // if commenter discovered the chart
+		if discovered.Uid == observation[0].Uid { // if commenter discovered the chart
 			tmpOD.User.Discoverer = true
 		} else {
 			tmpOD.User.Discoverer = false
 		}
 
 		activity := Activity{}
-		err3 := DB.Where("uid = ?", o.Uid).Where("observation_id = ?", o.ObservationId).Find(&activity).Error
+		err3 := DB.Where("uid = ?", uid).Where("observation_id = ?", o.ObservationId).Find(&activity).Error
 		if err3 != nil && err3 != gorm.RecordNotFound {
 			return nil, &appError{err3, "Database query failed - get activity - no such activity", http.StatusInternalServerError}
 		} else if err3 == gorm.RecordNotFound {
@@ -254,25 +254,31 @@ func GetObservationsHttp(res http.ResponseWriter, req *http.Request, params mart
 		return ""
 	}
 
+	uid, err := GetUserID(session)
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
+		return ""
+	}
+
 	if params["did"] == "" {
 		http.Error(res, "No discovered id.", http.StatusBadRequest)
 		return ""
 	}
 
-	did, err := strconv.Atoi(params["did"])
-	if err != nil {
+	did, err1 := strconv.Atoi(params["did"])
+	if err1 != nil {
 		http.Error(res, "bad discovered id", http.StatusBadRequest)
 		return ""
 	}
 
-	obs, err1 := GetObservations(did)
-	if err1 != nil {
-		http.Error(res, err1.Message, http.StatusBadRequest)
-		return err1.Message
+	obs, err2 := GetObservations(did, uid)
+	if err2 != nil {
+		http.Error(res, err2.Message, http.StatusBadRequest)
+		return ""
 	}
 
-	r, err2 := json.Marshal(obs)
-	if err2 != nil {
+	r, err3 := json.Marshal(obs)
+	if err3 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
 		return ""
 	}
@@ -287,7 +293,7 @@ func GetObservationsQ(params map[string]string) string {
 		return "Observations could not be retrieved"
 	}
 
-	result, err1 := GetObservations(did)
+	result, err1 := GetObservations(did, 11)
 	if err1 != nil {
 		return "Observations could not be retrieved"
 	}
