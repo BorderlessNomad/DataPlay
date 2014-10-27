@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"math"
@@ -90,30 +91,28 @@ func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
 }
 
 // increment user discovered total for observation and rerank
-func CreditObservation(oid int, uid int, credflag bool) *appError {
+func CreditObservation(oid int, uid int, credflag bool) (Observation, *appError) {
 	t := time.Now()
 	observation := Observation{}
 	credit := Credit{}
 
 	err := DB.Where("observation_id = ?", oid).Find(&observation).Error
 	if err != nil && err != gorm.RecordNotFound {
-		return &appError{err, " Database query failed - credit observation (get)", http.StatusInternalServerError}
+		return observation, &appError{err, " Database query failed - credit observation (get)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
-		return &appError{err, ", no such observation found!", http.StatusNotFound}
+		return observation, &appError{err, ", no such observation found!", http.StatusNotFound}
 	}
 
 	if observation.Uid == uid {
-		return nil
-		// return &appError{err, ", you cannot credit your own comment", http.StatusNotFound}
+		return observation, nil
 	}
 
 	cred := Credit{}
 	err2 := DB.Where("observation_id= ?", observation.ObservationId).Where("uid= ?", uid).Find(&cred).Error
 	if err2 != nil && err2 != gorm.RecordNotFound {
-		return &appError{err2, ", observation query failed.", http.StatusInternalServerError}
+		return observation, &appError{err2, ", observation query failed.", http.StatusInternalServerError}
 	} else if cred.CreditId != 0 {
-		return nil
-		// return &appError{err2, ", user has already credited this observation.", http.StatusInternalServerError}
+		return observation, nil
 	}
 
 	if credflag {
@@ -129,7 +128,7 @@ func CreditObservation(oid int, uid int, credflag bool) *appError {
 	observation.Rating = RankCredits(observation.Credited, observation.Discredited)
 	err = DB.Save(&observation).Error
 	if err != nil {
-		return &appError{err, ", database query failed - Unable to save an observation.", http.StatusInternalServerError}
+		return observation, &appError{err, ", database query failed - Unable to save an observation.", http.StatusInternalServerError}
 	}
 
 	credit.DiscoveredId = 0 // not a chart
@@ -140,10 +139,10 @@ func CreditObservation(oid int, uid int, credflag bool) *appError {
 
 	err = DB.Save(&credit).Error
 	if err != nil {
-		return &appError{err, ", database query failed - credit observation (Save credit)", http.StatusInternalServerError}
+		return observation, &appError{err, ", database query failed - credit observation (Save credit)", http.StatusInternalServerError}
 	}
 
-	return nil
+	return observation, nil
 }
 
 //////////////////////////////////////////////
@@ -190,11 +189,7 @@ func CreditChartHttp(res http.ResponseWriter, req *http.Request, params martini.
 		return msg
 	}
 
-	if credflag {
-		return result
-	} else {
-		return result
-	}
+	return result
 }
 
 func CreditObservationHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
@@ -221,7 +216,7 @@ func CreditObservationHttp(res http.ResponseWriter, req *http.Request, params ma
 		return "bad credit flag"
 	}
 
-	err3 := CreditObservation(oid, uid, credflag)
+	result, err3 := CreditObservation(oid, uid, credflag)
 	if err3 != nil {
 		msg := ""
 		if credflag {
@@ -232,9 +227,11 @@ func CreditObservationHttp(res http.ResponseWriter, req *http.Request, params ma
 		return msg
 	}
 
-	if credflag {
-		return "Observation credited"
-	} else {
-		return "Observation discredited"
+	r, err4 := json.Marshal(result)
+	if err4 != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return "Unable to parse JSON"
 	}
+
+	return string(r)
 }
