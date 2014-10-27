@@ -1,51 +1,51 @@
 package main
 
-import (
-	// . "github.com/smartystreets/goconvey/convey"
-	// "net/http"
-	// "net/http/httptest"
-	// "strings"
-	"testing"
-	// "time"
-	// "encoding/json"
-	// "fmt"
-)
+// import (
+// . "github.com/smartystreets/goconvey/convey"
+// "net/http"
+// "net/http/httptest"
+// "strings"
+// "testing"
+// "time"
+// "encoding/json"
+// "fmt"
+// )
 
-func TestSearchForData(t *testing.T) {
-	// request, _ := http.NewRequest("GET", "/", nil)
-	// request.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
-	// response := httptest.NewRecorder()
-	// params := map[string]string{
-	// 	"keyword": "",
-	// }
-	// result := SearchForDataHttp(response, request, params)
+// func TestSearchForData(t *testing.T) {
+// request, _ := http.NewRequest("GET", "/", nil)
+// request.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+// response := httptest.NewRecorder()
+// params := map[string]string{
+// 	"keyword": "",
+// }
+// result := SearchForDataHttp(response, request, params)
 
-	// Convey("When no search parameter is provided", t, func() {
-	// 	So(response.Code, ShouldEqual, http.StatusBadRequest)
-	// })
-	// Convey("When search parameter is 'nhs'", t, func() {
-	// 	params["keyword"] = "nhs"
-	// 	result = SearchForDataHttp(response, request, params)
-	// 	So(result, ShouldEqual, "")
-	// })
-	// Convey("When search parameter is 'hs'", t, func() {
-	// 	params["keyword"] = "hs"
-	// 	result = SearchForDataHttp(response, request, params)
-	// 	So(result, ShouldEqual, "")
-	// })
-	// Convey("When search parameter is 'n h s'", t, func() {
-	// 	params["keyword"] = "n h s"
-	// 	result = SearchForDataHttp(response, request, params)
-	// 	So(result, ShouldEqual, "")
-	// })
-	// Convey("When search parameter is 'nhs'", t, func() {
-	// 	params["keyword"] = "nhs"
-	// 	result, _ := SearchForData(0, "nhs", nil)
-	// 	r, _ := json.Marshal(result)
+// Convey("When no search parameter is provided", t, func() {
+// 	So(response.Code, ShouldEqual, http.StatusBadRequest)
+// })
+// Convey("When search parameter is 'nhs'", t, func() {
+// 	params["keyword"] = "nhs"
+// 	result = SearchForDataHttp(response, request, params)
+// 	So(result, ShouldEqual, "")
+// })
+// Convey("When search parameter is 'hs'", t, func() {
+// 	params["keyword"] = "hs"
+// 	result = SearchForDataHttp(response, request, params)
+// 	So(result, ShouldEqual, "")
+// })
+// Convey("When search parameter is 'n h s'", t, func() {
+// 	params["keyword"] = "n h s"
+// 	result = SearchForDataHttp(response, request, params)
+// 	So(result, ShouldEqual, "")
+// })
+// Convey("When search parameter is 'nhs'", t, func() {
+// 	params["keyword"] = "nhs"
+// 	result, _ := SearchForData(0, "nhs", nil)
+// 	r, _ := json.Marshal(result)
 
-	// 	So(result, ShouldEqual, "")
-	// })
-}
+// 	So(result, ShouldEqual, "")
+// })
+// }
 
 // 	//////////////////Q TESTS///////////////////
 

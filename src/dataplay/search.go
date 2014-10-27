@@ -91,9 +91,7 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 
 	AddSearchTerm(keyword) // add to search term count
 
-	var total int = 0
-	var offset int = 0
-	var count int = 9
+	offset, count := 0, 9
 
 	if params["offset"] != "" {
 		var oE error
@@ -113,253 +111,21 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 
 	indices := []Index{}
 
-	term := keyword + "%" // e.g. "nhs" => "nhs%" (What about "%nhs"?)
+	term := "%" + keyword + "%"
 
 	Logger.Println("Searching with Suffix Wildcard", term)
 
-	var err error
-	err = DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Count(&total).Error
+	query := DB.Where("LOWER(title) LIKE LOWER(?)", term)
+	query = DB.Where("LOWER(notes) LIKE LOWER(?)", term)
+	query = DB.Where("LOWER(name) LIKE LOWER(?)", term)
+	query = query.Order("random()")
+
+	err := query.Limit(count).Offset(offset).Find(&indices).Error
 	if err != nil && err != gorm.RecordNotFound {
-		return response, &appError{err, "Database query failed (SUFFIX)", http.StatusServiceUnavailable}
+		return response, &appError{err, "Database query failed", http.StatusServiceUnavailable}
 	}
 
-	Response := ProcessSearchResults(term, indices, total, err)
-	if len(Response.Results) == 0 {
-		term := "%" + keyword + "%" // e.g. "nhs" => "%nhs%"
-
-		Logger.Println("Searching with Prefix + Suffix Wildcard", term)
-
-		err = DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Count(&total).Error
-		if err != nil && err != gorm.RecordNotFound {
-			return response, &appError{err, "Database query failed (PREFIX + SUFFIX)", http.StatusServiceUnavailable}
-		}
-
-		Response = ProcessSearchResults(term, indices, total, err)
-		if len(Response.Results) == 0 {
-			term := "%" + strings.Replace(keyword, " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
-
-			Logger.Println("Searching with Prefix + Suffix + Trim Wildcard", term)
-
-			err = DB.Where("LOWER(title) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Count(&total).Error
-			if err != nil && err != gorm.RecordNotFound {
-				return response, &appError{err, "Database query failed (PREFIX + SUFFIX + TRIM)", http.StatusServiceUnavailable}
-			}
-
-			Response = ProcessSearchResults(term, indices, total, err)
-			if len(Response.Results) == 0 && (len(keyword) >= 3 && len(keyword) < 20) {
-				term := "%" + keyword + "%" // e.g. "nhs" => "%nhs%"
-
-				Logger.Println("Searching with Prefix + Suffix Wildcard in String Table", term)
-
-				indicesAll := []Index{}
-				query := DB.Table("priv_stringsearch, priv_onlinedata, index")
-				query = query.Select("DISTINCT ON (priv_onlinedata.guid) priv_onlinedata.guid, index.title")
-				query = query.Where("(LOWER(value) LIKE LOWER(?) OR LOWER(x) LIKE LOWER(?))", term, term)
-				query = query.Where("priv_stringsearch.tablename = priv_onlinedata.tablename")
-				query = query.Where("priv_onlinedata.guid = index.guid")
-				query = query.Where("(owner = ? OR owner = ?)", 0, uid)
-				query = query.Order("priv_onlinedata.guid")
-				query = query.Order("priv_stringsearch.count DESC")
-				err = query.Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Find(&indicesAll).Error
-
-				total = len(indicesAll)
-
-				if err != nil && err != gorm.RecordNotFound {
-					return response, &appError{err, "Database query failed (PREFIX + SUFFIX + STRING)", http.StatusInternalServerError}
-				}
-
-				Response = ProcessSearchResults(term, indices, total, err)
-				if len(Response.Results) == 0 && (len(keyword) >= 3 && len(keyword) < 20) {
-					term := "%" + strings.Replace(keyword, " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
-
-					Logger.Println("Searching with Prefix + Suffix + Trim Wildcard in String Table", term)
-
-					indicesAll := []Index{}
-					query := DB.Table("priv_stringsearch, priv_onlinedata, index")
-					query = query.Select("DISTINCT ON (priv_onlinedata.guid) priv_onlinedata.guid, index.title")
-					query = query.Where("(LOWER(value) LIKE LOWER(?) OR LOWER(x) LIKE LOWER(?))", term, term)
-					query = query.Where("priv_stringsearch.tablename = priv_onlinedata.tablename")
-					query = query.Where("priv_onlinedata.guid = index.guid")
-					query = query.Where("(owner = ? OR owner = ?)", 0, uid)
-					query = query.Order("priv_onlinedata.guid")
-					query = query.Order("priv_stringsearch.count DESC")
-					err = query.Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Find(&indicesAll).Error
-
-					total = len(indicesAll)
-
-					if err != nil && err != gorm.RecordNotFound {
-						return response, &appError{err, "Database query failed (PREFIX + SUFFIX + STRING)", http.StatusInternalServerError}
-					}
-
-					Response = ProcessSearchResults(term, indices, total, err)
-				}
-			}
-		}
-	}
-
-	if len(Response.Results) == 0 {
-
-		err = DB.Where("LOWER(notes) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Count(&total).Error
-		if err != nil && err != gorm.RecordNotFound {
-			return response, &appError{err, "Database query failed (SUFFIX)", http.StatusServiceUnavailable}
-		}
-
-		Response = ProcessSearchResults(term, indices, total, err)
-		if len(Response.Results) == 0 {
-			term := "%" + keyword + "%" // e.g. "nhs" => "%nhs%"
-
-			Logger.Println("Searching with Prefix + Suffix Wildcard", term)
-
-			err = DB.Where("LOWER(notes) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Count(&total).Error
-			if err != nil && err != gorm.RecordNotFound {
-				return response, &appError{err, "Database query failed (PREFIX + SUFFIX)", http.StatusServiceUnavailable}
-			}
-
-			Response = ProcessSearchResults(term, indices, total, err)
-			if len(Response.Results) == 0 {
-				term := "%" + strings.Replace(keyword, " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
-
-				Logger.Println("Searching with Prefix + Suffix + Trim Wildcard", term)
-
-				err = DB.Where("LOWER(notes) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Count(&total).Error
-				if err != nil && err != gorm.RecordNotFound {
-					return response, &appError{err, "Database query failed (PREFIX + SUFFIX + TRIM)", http.StatusServiceUnavailable}
-				}
-
-				Response = ProcessSearchResults(term, indices, total, err)
-				if len(Response.Results) == 0 && (len(keyword) >= 3 && len(keyword) < 20) {
-					term := "%" + keyword + "%" // e.g. "nhs" => "%nhs%"
-
-					Logger.Println("Searching with Prefix + Suffix Wildcard in String Table", term)
-
-					indicesAll := []Index{}
-					query := DB.Table("priv_stringsearch, priv_onlinedata, index")
-					query = query.Select("DISTINCT ON (priv_onlinedata.guid) priv_onlinedata.guid, index.notes")
-					query = query.Where("(LOWER(value) LIKE LOWER(?) OR LOWER(x) LIKE LOWER(?))", term, term)
-					query = query.Where("priv_stringsearch.tablename = priv_onlinedata.tablename")
-					query = query.Where("priv_onlinedata.guid = index.guid")
-					query = query.Where("(owner = ? OR owner = ?)", 0, uid)
-					query = query.Order("priv_onlinedata.guid")
-					query = query.Order("priv_stringsearch.count DESC")
-					err = query.Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Find(&indicesAll).Error
-
-					total = len(indicesAll)
-
-					if err != nil && err != gorm.RecordNotFound {
-						return response, &appError{err, "Database query failed (PREFIX + SUFFIX + STRING)", http.StatusInternalServerError}
-					}
-
-					Response = ProcessSearchResults(term, indices, total, err)
-					if len(Response.Results) == 0 && (len(keyword) >= 3 && len(keyword) < 20) {
-						term := "%" + strings.Replace(keyword, " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
-
-						Logger.Println("Searching with Prefix + Suffix + Trim Wildcard in String Table", term)
-
-						indicesAll := []Index{}
-						query := DB.Table("priv_stringsearch, priv_onlinedata, index")
-						query = query.Select("DISTINCT ON (priv_onlinedata.guid) priv_onlinedata.guid, index.notes")
-						query = query.Where("(LOWER(value) LIKE LOWER(?) OR LOWER(x) LIKE LOWER(?))", term, term)
-						query = query.Where("priv_stringsearch.tablename = priv_onlinedata.tablename")
-						query = query.Where("priv_onlinedata.guid = index.guid")
-						query = query.Where("(owner = ? OR owner = ?)", 0, uid)
-						query = query.Order("priv_onlinedata.guid")
-						query = query.Order("priv_stringsearch.count DESC")
-						err = query.Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Find(&indicesAll).Error
-
-						total = len(indicesAll)
-
-						if err != nil && err != gorm.RecordNotFound {
-							return response, &appError{err, "Database query failed (PREFIX + SUFFIX + STRING)", http.StatusInternalServerError}
-						}
-
-						Response = ProcessSearchResults(term, indices, total, err)
-					}
-				}
-			}
-		}
-	}
-
-	if len(Response.Results) == 0 {
-
-		err = DB.Where("LOWER(name) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Count(&total).Error
-		if err != nil && err != gorm.RecordNotFound {
-			return response, &appError{err, "Database query failed (SUFFIX)", http.StatusServiceUnavailable}
-		}
-
-		Response = ProcessSearchResults(term, indices, total, err)
-		if len(Response.Results) == 0 {
-			term := "%" + keyword + "%" // e.g. "nhs" => "%nhs%"
-
-			Logger.Println("Searching with Prefix + Suffix Wildcard", term)
-
-			err = DB.Where("LOWER(name) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Count(&total).Error
-			if err != nil && err != gorm.RecordNotFound {
-				return response, &appError{err, "Database query failed (PREFIX + SUFFIX)", http.StatusServiceUnavailable}
-			}
-
-			Response = ProcessSearchResults(term, indices, total, err)
-			if len(Response.Results) == 0 {
-				term := "%" + strings.Replace(keyword, " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
-
-				Logger.Println("Searching with Prefix + Suffix + Trim Wildcard", term)
-
-				err = DB.Where("LOWER(name) LIKE LOWER(?)", term).Where("(owner = 0 OR owner = ?)", uid).Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Count(&total).Error
-				if err != nil && err != gorm.RecordNotFound {
-					return response, &appError{err, "Database query failed (PREFIX + SUFFIX + TRIM)", http.StatusServiceUnavailable}
-				}
-
-				Response = ProcessSearchResults(term, indices, total, err)
-				if len(Response.Results) == 0 && (len(keyword) >= 3 && len(keyword) < 20) {
-					term := "%" + keyword + "%" // e.g. "nhs" => "%nhs%"
-
-					Logger.Println("Searching with Prefix + Suffix Wildcard in String Table", term)
-
-					indicesAll := []Index{}
-					query := DB.Table("priv_stringsearch, priv_onlinedata, index")
-					query = query.Select("DISTINCT ON (priv_onlinedata.guid) priv_onlinedata.guid, index.name")
-					query = query.Where("(LOWER(value) LIKE LOWER(?) OR LOWER(x) LIKE LOWER(?))", term, term)
-					query = query.Where("priv_stringsearch.tablename = priv_onlinedata.tablename")
-					query = query.Where("priv_onlinedata.guid = index.guid")
-					query = query.Where("(owner = ? OR owner = ?)", 0, uid)
-					query = query.Order("priv_onlinedata.guid")
-					query = query.Order("priv_stringsearch.count DESC")
-					err = query.Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Find(&indicesAll).Error
-
-					total = len(indicesAll)
-
-					if err != nil && err != gorm.RecordNotFound {
-						return response, &appError{err, "Database query failed (PREFIX + SUFFIX + STRING)", http.StatusInternalServerError}
-					}
-
-					Response = ProcessSearchResults(term, indices, total, err)
-					if len(Response.Results) == 0 && (len(keyword) >= 3 && len(keyword) < 20) {
-						term := "%" + strings.Replace(keyword, " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
-
-						Logger.Println("Searching with Prefix + Suffix + Trim Wildcard in String Table", term)
-
-						indicesAll := []Index{}
-						query := DB.Table("priv_stringsearch, priv_onlinedata, index")
-						query = query.Select("DISTINCT ON (priv_onlinedata.guid) priv_onlinedata.guid, index.name")
-						query = query.Where("(LOWER(value) LIKE LOWER(?) OR LOWER(x) LIKE LOWER(?))", term, term)
-						query = query.Where("priv_stringsearch.tablename = priv_onlinedata.tablename")
-						query = query.Where("priv_onlinedata.guid = index.guid")
-						query = query.Where("(owner = ? OR owner = ?)", 0, uid)
-						query = query.Order("priv_onlinedata.guid")
-						query = query.Order("priv_stringsearch.count DESC")
-						err = query.Limit(count).Offset(offset).Find(&indices).Limit(-1).Offset(-1).Find(&indicesAll).Error
-
-						total = len(indicesAll)
-
-						if err != nil && err != gorm.RecordNotFound {
-							return response, &appError{err, "Database query failed (PREFIX + SUFFIX + STRING)", http.StatusInternalServerError}
-						}
-
-						Response = ProcessSearchResults(term, indices, total, err)
-					}
-				}
-			}
-		}
-	}
+	Response := ProcessSearchResults(term, indices)
 
 	// Randomise order
 	for i := range Response.Results {
@@ -370,11 +136,7 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 	return Response, nil
 }
 
-func ProcessSearchResults(term string, rows []Index, total int, e error) SearchResponse {
-	if e != nil && e != gorm.RecordNotFound {
-		check(e)
-	}
-
+func ProcessSearchResults(term string, rows []Index) SearchResponse {
 	Results := make([]SearchResult, 0)
 
 	for _, row := range rows {
@@ -393,7 +155,7 @@ func ProcessSearchResults(term string, rows []Index, total int, e error) SearchR
 	Response := SearchResponse{
 		Keyword: term,
 		Results: Results,
-		Total:   total,
+		Total:   len(rows),
 	}
 
 	return Response

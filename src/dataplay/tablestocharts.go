@@ -375,8 +375,8 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 		charts[i], charts[j] = charts[j], charts[i]
 	}
 
-	if count > 50 {
-		last = offset + 50
+	if count > 30 {
+		last = offset + 30
 	}
 	charts = charts[offset:last] // return marshalled slice
 	return RelatedCharts{charts, totalCharts}, nil
@@ -394,15 +394,20 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int) (C
 	}
 	tableName := od.Tablename
 
-	for i := 0; i < 10; i++ {
+	timesup := time.Now().Add(time.Duration(4) * time.Second)
+	for i := 0; i < 30; i++ {
 		go GenerateCorrelations(tableName, searchDepth)
 	}
 
-	err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Find(&correlation).Error
-	if err != nil && err != gorm.RecordNotFound {
-		return CorrelatedCharts{nil, 0}, &appError{nil, "Database query failed (TBL1)", http.StatusInternalServerError}
-	} else if err == gorm.RecordNotFound {
-		return CorrelatedCharts{nil, 0}, &appError{nil, "No correlated chart found", http.StatusNotFound}
+	x := true
+	for x {
+		err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Limit(40).Find(&correlation).Error
+		if err != nil && err != gorm.RecordNotFound {
+			return CorrelatedCharts{nil, 0}, &appError{nil, "Database query failed (TBL1)", http.StatusInternalServerError}
+		}
+		if len(correlation) > 10 || time.Now().After(timesup) {
+			x = false
+		}
 	}
 
 	for _, c := range correlation {
@@ -440,8 +445,8 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int) (C
 		charts[i], charts[j] = charts[j], charts[i]
 	}
 
-	if count > 50 {
-		last = offset + 50
+	if count > 30 {
+		last = offset + 30
 	}
 
 	charts = charts[offset:last] // return marshalled slice
@@ -1211,7 +1216,7 @@ func GetAwaitingCreditHttp(res http.ResponseWriter, req *http.Request) string {
 	query := DB.Select("json, priv_discovered.correlation_id, priv_discovered.relation_id, priv_discovered.discovered_id")
 	query = query.Joins("LEFT JOIN priv_credits ON priv_discovered.discovered_id = priv_credits.discovered_id")
 	query = query.Where("priv_credits.uid != ?", uid) //@todo check this in practice
-	query = query.Order("random()")
+	// query = query.Order("random()")
 	err1 := query.Find(&discovered).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {
 		http.Error(res, "Failed to find discovered charts", http.StatusBadRequest)

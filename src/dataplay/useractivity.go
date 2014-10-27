@@ -48,13 +48,13 @@ func ActivityCheck(a string) string {
 	switch a {
 	case "c":
 		return "Comment"
-	case "ic":
+	case "dc":
 		return "Discredited Chart"
-	case "vc":
+	case "cc":
 		return "Credited Chart"
-	case "io":
+	case "do":
 		return "Discredited Observation"
-	case "vo":
+	case "co":
 		return "Credited Observation"
 	default:
 		return "Unknown"
