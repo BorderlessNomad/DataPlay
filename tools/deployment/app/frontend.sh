@@ -21,6 +21,8 @@ APP_TYPE="gamification"
 LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
 LOADBALANCER_REQUEST_PORT="80"
 LOADBALANCER_API_PORT="1937"
+LOADBALANCER_DOMAIN="dataplay.playgen.com"
+# LOADBALANCER_DOMAIN="$LOADBALANCER_HOST:LOADBALANCER_REQUEST_PORT"
 
 timestamp () {
 	date +"%F %T,%3N"
@@ -36,6 +38,7 @@ export_variables () {
 	echo "export DP_LOADBALANCER_HOST=$LOADBALANCER_HOST" >> /etc/profile.d/dataplay.sh
 	echo "export DP_LOADBALANCER_REQUEST_PORT=$LOADBALANCER_REQUEST_PORT" >> /etc/profile.d/dataplay.sh
 	echo "export DP_LOADBALANCER_API_PORT=$LOADBALANCER_API_PORT" >> /etc/profile.d/dataplay.sh
+	echo "export DP_LOADBALANCER_DOMAIN=$LOADBALANCER_DOMAIN" >> /etc/profile.d/dataplay.sh
 
 	. /etc/profile
 
@@ -90,11 +93,11 @@ download_app () {
 }
 
 init_frontend () {
-	sed -i "s/localhost:3000/$LOADBALANCER_HOST/g" $DEST/$APP/$WWW/dist/scripts/*.js
+	sed -i "s/localhost:3000/$LOADBALANCER_DOMAIN/g" $DEST/$APP/$WWW/dist/scripts/*.js
 }
 
 configure_frontend () {
-	sed -i "s/localhost:3000/$LOADBALANCER_HOST/g" $DEST/$APP/$WWW/app/scripts/app.coffee
+	sed -i "s/localhost:3000/$LOADBALANCER_DOMAIN/g" $DEST/$APP/$WWW/app/scripts/app.coffee
 
 	command -v grunt >/dev/null 2>&1 || { echo >&2 "Error: Command 'grunt' not found!"; exit 1; }
 
