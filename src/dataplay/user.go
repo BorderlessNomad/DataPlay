@@ -137,6 +137,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, login UserForm) str
 	}
 
 	u := map[string]interface{}{
+		"uid":      user.Uid,
 		"user":     user.Username,
 		"session":  session.Value,
 		"usertype": user.Usertype,
@@ -164,6 +165,7 @@ func HandleSocialLogin(res http.ResponseWriter, req *http.Request, login UserSoc
 		}
 
 		u := map[string]interface{}{
+			"uid":      user.Uid,
 			"user":     user.Email,
 			"session":  session.Value,
 			"usertype": user.Usertype,
@@ -214,6 +216,7 @@ func HandleSocialLogin(res http.ResponseWriter, req *http.Request, login UserSoc
 		}
 
 		u := map[string]interface{}{
+			"uid":      user.Uid,
 			"user":     newUser.Email,
 			"session":  session.Value,
 			"usertype": newUser.Usertype,
@@ -456,10 +459,12 @@ func GetUserDetails(res http.ResponseWriter, req *http.Request) string {
 	}
 
 	u := map[string]interface{}{
+		"uid":      uid,
 		"username": user.Username,
 		"email":    user.Email,
 		"usertype": user.Usertype,
 	}
+
 	usr, _ := json.Marshal(u)
 
 	return string(usr)

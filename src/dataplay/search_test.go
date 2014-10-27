@@ -19,6 +19,6 @@ func TestSearchForData(t *testing.T) {
 	}
 	Convey("Should search", t, func() {
 		result, _ := SearchForData(1, "financial", params)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 }
