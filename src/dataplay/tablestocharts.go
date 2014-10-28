@@ -456,8 +456,8 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 		charts[i], charts[j] = charts[j], charts[i]
 	}
 
-	if count > 30 {
-		last = offset + 30
+	if count > 15 {
+		last = offset + 15
 	}
 	charts = charts[offset:last] // return marshalled slice
 	return RelatedCharts{charts, totalCharts}, nil
@@ -475,20 +475,18 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int) (C
 	}
 	tableName := od.Tablename
 
-	timesup := time.Now().Add(time.Duration(4) * time.Second)
 	for i := 0; i < 30; i++ {
 		go GenerateCorrelations(tableName, searchDepth)
 	}
 
-	x := true
-	for x {
-		err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Limit(40).Find(&correlation).Error
-		if err != nil && err != gorm.RecordNotFound {
-			return CorrelatedCharts{nil, 0}, &appError{nil, "Database query failed (TBL1)", http.StatusInternalServerError}
-		}
-		if len(correlation) > 10 || time.Now().After(timesup) {
-			x = false
-		}
+	time.Sleep(5 * time.Second)
+
+	err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Limit(40).Find(&correlation).Error
+	if err != nil && err != gorm.RecordNotFound {
+		return CorrelatedCharts{nil, 0}, &appError{nil, "Database query failed (TBL1)", http.StatusInternalServerError}
+	}
+	if err == gorm.RecordNotFound {
+		DB.Order("random()").Limit(40).Find(&correlation)
 	}
 
 	for _, c := range correlation {

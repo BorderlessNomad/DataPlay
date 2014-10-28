@@ -51,27 +51,27 @@ func TestGetChartCorrelatedHttp(t *testing.T) {
 	})
 }
 
-// func TestGetRelatedChartsHttp(t *testing.T) {
-// 	req, _ := http.NewRequest("GET", "/", nil)
-// 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
-// 	res := httptest.NewRecorder()
-// 	params := map[string]string{
-// 		"tablename": "gdp",
-// 		"offset":    "0",
-// 		"count":     "60",
-// 	}
-// 	Convey("Should return chartlist", t, func() {
-// 		result := GetRelatedChartsHttp(res, req, params)
-// 		So(result, ShouldNotBeNil)
-// 	})
-// }
+func TestGetRelatedChartsHttp(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+	res := httptest.NewRecorder()
+	params := map[string]string{
+		"tablename": "gdp",
+		"offset":    "0",
+		"count":     "10",
+	}
+	Convey("Should return chartlist", t, func() {
+		result := GetRelatedChartsHttp(res, req, params)
+		So(result, ShouldEqual, "")
+	})
+}
 
 func TestGetCorrelatedChartsHttp(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 	res := httptest.NewRecorder()
 	params := map[string]string{
-		"tablename": "29c5117130aa0fb2127a493a70ba4b62e4e77f03297045075b79eda3fdb",
+		"tablename": "life",
 		"offset":    "0",
 		"count":     "10",
 		"search":    "true",
