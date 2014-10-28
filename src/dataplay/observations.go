@@ -293,9 +293,15 @@ func GetRecentObservationsHttp(res http.ResponseWriter, req *http.Request) strin
 		return ""
 	}
 
-	observations := []Observation{}
-	err := DB.Order("created desc").Limit(5).Find(&observations).Error
+	uid, err := GetUserID(session)
 	if err != nil {
+		http.Error(res, err.Message, err.Code)
+		return ""
+	}
+
+	observations := []Observation{}
+	gErr := DB.Order("created desc").Where("uid != ?", uid).Limit(5).Find(&observations).Error
+	if gErr != nil {
 		return "not found"
 	}
 
@@ -313,7 +319,7 @@ func GetRecentObservationsHttp(res http.ResponseWriter, req *http.Request) strin
 		tmpCO.PatternID = o.DiscoveredId
 
 		discovered := Discovered{}
-		err = DB.Where("discovered_id = ?", o.DiscoveredId).Find(&discovered).Error
+		err := DB.Where("discovered_id = ?", o.DiscoveredId).Find(&discovered).Error
 		if err != nil {
 			return "can't find dicovered to generate link"
 		}
