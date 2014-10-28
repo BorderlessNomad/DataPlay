@@ -35,9 +35,6 @@ func TestHandleLogin(t *testing.T) {
 	Convey("On HTTP Request 3", t, func() {
 		handleLoginValidData(t)
 	})
-	// Convey("On HTTP Request 4", t, func() {
-	// 	handleLoginValidDataMD5(t)
-	// })
 }
 
 func handleLoginInvalidData(t *testing.T) {
@@ -68,46 +65,11 @@ func handleLoginValidData(t *testing.T) {
 	})
 }
 
-// func handleLoginValidDataMD5(t *testing.T) {
-// 	request, _ := http.NewRequest("POST", "/", strings.NewReader("username=glyn@dataplay.com&password=123456"))
-// 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
-// 	response := httptest.NewRecorder()
-// 	u := UserForm{}
-// 	u.Username = "glyn@dataplay.com"
-// 	u.Password = "123456"
-// 	//switch stored password to MD5 version before test
-// 	DB.Model(&User{}).Where("email = ?", "glyn@dataplay.com").UpdateColumn("password", "e10adc3949ba59abbe56e057f20f883e")
-
-// 	Convey("When user has old MD5 password", func() {
-// 		HandleLogin(response, request, u)
-// 		So(response.Code, ShouldEqual, http.StatusFound)
-// 	})
-// }
-
 func TestHandleRegister(t *testing.T) {
-	// Convey("On HTTP Request 5", t, func() {
-	// 	handleRegisterValidData(t)
-	// })
 	Convey("On HTTP Request 6", t, func() {
 		handleRegisterExisitingData(t)
 	})
 }
-
-// func handleRegisterValidData(t *testing.T) {
-// 	time := time.Now()
-// 	testuser := fmt.Sprintf("testuser_%d", time.Unix())
-// 	request, _ := http.NewRequest("POST", "/", strings.NewReader("username="+testuser+"@dataplay.com&password=123456"))
-// 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
-// 	response := httptest.NewRecorder()
-// 	u := UserForm{}
-// 	u.Username = testuser
-// 	u.Password = "123456"
-
-// 	Convey("When User does not already exist", func() {
-// 		HandleRegister(response, request, u)
-// 		So(response.Code, ShouldEqual, http.StatusOK)
-// 	})
-// }
 
 func handleRegisterExisitingData(t *testing.T) {
 	request, _ := http.NewRequest("POST", "/", strings.NewReader("username=mayur@dataplay.com&password=whoru007"))

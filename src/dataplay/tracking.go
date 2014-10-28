@@ -144,9 +144,9 @@ func TrackVisitedHttp(res http.ResponseWriter, req *http.Request, visited Visite
 		return ""
 	}
 
-	result, err3 := GetLastVisited(uid)
+	result, err := GetLastVisited(uid)
 	if err != nil {
-		http.Error(res, err3.Message, err3.Code)
+		http.Error(res, err.Message, err.Code)
 		return ""
 	}
 

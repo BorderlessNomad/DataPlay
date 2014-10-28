@@ -74,23 +74,22 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, login UserForm) str
 	}
 
 	user := User{}
-	var err error
 
 	if login.Username != "" {
-		err = DB.Where("username = ?", login.Username).Find(&user).Error
-		if err == gorm.RecordNotFound {
+		gErr := DB.Where("username = ?", login.Username).Find(&user).Error
+		if gErr == gorm.RecordNotFound {
 			http.Error(res, "No such user found!", http.StatusNotFound)
 			return ""
-		} else if err != nil {
+		} else if gErr != nil {
 			http.Error(res, "No such user found!", http.StatusInternalServerError)
 			return ""
 		}
 	} else {
-		err = DB.Where("email = ?", login.Email).Find(&user).Error
-		if err == gorm.RecordNotFound {
+		gErr := DB.Where("email = ?", login.Email).Find(&user).Error
+		if gErr == gorm.RecordNotFound {
 			http.Error(res, "No such user found!", http.StatusNotFound)
 			return ""
-		} else if err != nil {
+		} else if gErr != nil {
 			http.Error(res, "No such user found!", http.StatusInternalServerError)
 			return ""
 		}
@@ -102,10 +101,10 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, login UserForm) str
 	} else {
 		// Just in the case that the user is on a really old MD5 password (useful for admins resetting passwords too) check
 		count := 0
-		err := DB.Model(&user).Where("password = ?", GetMD5Hash(login.Password)).Count(&count).Error
+		gErr := DB.Model(&user).Where("password = ?", GetMD5Hash(login.Password)).Count(&count).Error
 
-		if err != nil && err != gorm.RecordNotFound {
-			check(err)
+		if gErr != nil && gErr != gorm.RecordNotFound {
+			check(gErr)
 			http.Error(res, "Unable to find user with MD5.", http.StatusInternalServerError)
 			return ""
 		}
@@ -115,24 +114,23 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, login UserForm) str
 			return ""
 		}
 
-		// Ooooh, We need to upgrade this password!
-		hashedPassword, e := bcrypt.GenerateFromPassword([]byte(login.Password), bcrypt.DefaultCost)
-		if e != nil {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(login.Password), bcrypt.DefaultCost)
+		if err != nil {
 			http.Error(res, "Unable to upgrade the password.", http.StatusInternalServerError)
 			return ""
 		}
 
-		err = DB.Model(&user).Update("password", string(hashedPassword)).Error
-		if err != nil {
-			check(err)
+		gErr = DB.Model(&user).Update("password", string(hashedPassword)).Error
+		if gErr != nil {
+			check(gErr)
 			http.Error(res, "Unable to update the password.", http.StatusInternalServerError)
 			return ""
 		}
 	}
 
-	session, e := SetSession(user.Uid)
-	if e != nil {
-		http.Error(res, e.Message, e.Code)
+	session, err := SetSession(user.Uid)
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
 		return ""
 	}
 
@@ -142,6 +140,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, login UserForm) str
 		"session":  session.Value,
 		"usertype": user.Usertype,
 	}
+
 	usr, _ := json.Marshal(u)
 
 	return string(usr)
@@ -154,13 +153,12 @@ func HandleSocialLogin(res http.ResponseWriter, req *http.Request, login UserSoc
 	}
 
 	user := User{}
-	var err error
-	err = DB.Where("email = ?", login.Email).Find(&user).Error
+	gErr := DB.Where("email = ?", login.Email).Find(&user).Error
 
-	if err == nil { // if email is found then automatically log user in, no password required for social login
-		session, e := SetSession(user.Uid)
-		if e != nil {
-			http.Error(res, e.Message, e.Code)
+	if gErr == nil { // if email is found then automatically log user in, no password required for social login
+		session, err := SetSession(user.Uid)
+		if err != nil {
+			http.Error(res, err.Message, err.Code)
 			return ""
 		}
 
@@ -170,20 +168,21 @@ func HandleSocialLogin(res http.ResponseWriter, req *http.Request, login UserSoc
 			"session":  session.Value,
 			"usertype": user.Usertype,
 		}
+
 		usr, _ := json.Marshal(u)
 
 		return string(usr)
 
-	} else if err != nil && err == gorm.RecordNotFound { // if user does not exist then create social user
+	} else if gErr != nil && gErr == gorm.RecordNotFound { // if user does not exist then create social user
 		user.Email = login.Email
 		user.Password = GetMD5Hash(user.Email + time.Now().String()) // not important here, just used hashed version of their email plus the time
 		user.Avatar = login.Image
 		user.Username = login.FirstName + login.LastName
 		user.Usertype = 1
 
-		err = DB.Save(&user).Error
-		if err != nil {
-			http.Error(res, err.Error()+" - database query failed - Unable to save user's standard details.", http.StatusInternalServerError)
+		gErr = DB.Save(&user).Error
+		if gErr != nil {
+			http.Error(res, gErr.Error()+" - database query failed - Unable to save user's standard details.", http.StatusInternalServerError)
 			return ""
 		}
 
@@ -194,24 +193,24 @@ func HandleSocialLogin(res http.ResponseWriter, req *http.Request, login UserSoc
 		social.FullName = login.FullName
 		social.NetworkUserId = login.Id
 		newUser := User{}
-		err = DB.Where("email = ?", login.Email).Find(&newUser).Error // find newly created user to get generated uid
+		gErr = DB.Where("email = ?", login.Email).Find(&newUser).Error // find newly created user to get generated uid
 
-		if err != nil {
-			http.Error(res, err.Error()+" - could not recall user after creation", http.StatusInternalServerError)
+		if gErr != nil {
+			http.Error(res, gErr.Error()+" - could not recall user after creation", http.StatusInternalServerError)
 			return ""
 		}
 
 		social.Uid = newUser.Uid
 
-		err = DB.Save(&social).Error
-		if err != nil {
-			http.Error(res, err.Error()+" - database query failed - Unable to save user's social details.", http.StatusInternalServerError)
+		gErr = DB.Save(&social).Error
+		if gErr != nil {
+			http.Error(res, gErr.Error()+" - database query failed - Unable to save user's social details.", http.StatusInternalServerError)
 			return ""
 		}
 
-		session, e := SetSession(social.Uid)
-		if e != nil {
-			http.Error(res, e.Message, e.Code)
+		session, err := SetSession(social.Uid)
+		if err != nil {
+			http.Error(res, err.Message, err.Code)
 			return ""
 		}
 
@@ -221,12 +220,13 @@ func HandleSocialLogin(res http.ResponseWriter, req *http.Request, login UserSoc
 			"session":  session.Value,
 			"usertype": newUser.Usertype,
 		}
+
 		usr, _ := json.Marshal(u)
 
 		return string(usr)
 	}
 
-	http.Error(res, err.Error()+" - problem finding registered user", http.StatusInternalServerError)
+	http.Error(res, gErr.Error()+" - problem finding registered user", http.StatusInternalServerError)
 	return ""
 }
 
@@ -237,9 +237,9 @@ func HandleLogout(res http.ResponseWriter, req *http.Request, params martini.Par
 		return ""
 	}
 
-	_, e := ClearSession(sid)
-	if e != nil {
-		http.Error(res, e.Message, e.Code)
+	_, err := ClearSession(sid)
+	if err != nil {
+		http.Error(res, err.Message, err.Code)
 		return ""
 	}
 
@@ -253,20 +253,20 @@ func HandleRegister(res http.ResponseWriter, req *http.Request, register UserFor
 	}
 
 	user := User{}
-	err := DB.Where("username = ?", register.Username).First(&user).Error
-	if err != gorm.RecordNotFound {
+	gErr := DB.Where("username = ?", register.Username).First(&user).Error
+	if gErr != gorm.RecordNotFound {
 		http.Error(res, "Username already exists.", http.StatusConflict)
 		return ""
 	}
 
-	err = DB.Where("email = ?", register.Email).First(&user).Error
-	if err != gorm.RecordNotFound {
+	gErr = DB.Where("email = ?", register.Email).First(&user).Error
+	if gErr != gorm.RecordNotFound {
 		http.Error(res, "Email already exists.", http.StatusConflict)
 		return ""
 	}
 
-	hashedPassword, err1 := bcrypt.GenerateFromPassword([]byte(register.Password), bcrypt.DefaultCost)
-	if err1 != nil {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(register.Password), bcrypt.DefaultCost)
+	if err != nil {
 		http.Error(res, "Unable to generate password hash.", http.StatusInternalServerError)
 		return ""
 	}
@@ -274,17 +274,17 @@ func HandleRegister(res http.ResponseWriter, req *http.Request, register UserFor
 	user.Email = register.Email
 	user.Username = register.Username
 	user.Password = string(hashedPassword)
-	err2 := DB.Save(&user).Error
-	if err2 != nil {
+	gErr = DB.Save(&user).Error
+	if gErr != nil {
 		http.Error(res, "Unable to create user.", http.StatusInternalServerError)
 		return ""
 	}
 
 	var session *http.Cookie
-	var e *appError
-	session, e = SetSession(user.Uid)
-	if e != nil {
-		http.Error(res, e.Message, e.Code)
+
+	session, sErr := SetSession(user.Uid)
+	if sErr != nil {
+		http.Error(res, sErr.Message, sErr.Code)
 		return ""
 	}
 
@@ -293,6 +293,7 @@ func HandleRegister(res http.ResponseWriter, req *http.Request, register UserFor
 		"session":  session.Value,
 		"usertype": user.Usertype,
 	}
+
 	usr, _ := json.Marshal(u)
 
 	return string(usr)
@@ -305,11 +306,11 @@ func HandleCheckUsername(res http.ResponseWriter, req *http.Request, user UserNa
 	}
 
 	validUser := User{}
-	err := DB.Where("username = ?", user.Username).First(&validUser).Error
-	if err != nil && err != gorm.RecordNotFound {
+	gErr := DB.Where("username = ?", user.Username).First(&validUser).Error
+	if gErr != nil && gErr != gorm.RecordNotFound {
 		http.Error(res, "Unable to find that User.", http.StatusInternalServerError)
 		return ""
-	} else if err == gorm.RecordNotFound {
+	} else if gErr == gorm.RecordNotFound {
 		http.Error(res, "We couldn't find an account associated with "+user.Username, http.StatusNotFound)
 		return ""
 	}
@@ -318,6 +319,7 @@ func HandleCheckUsername(res http.ResponseWriter, req *http.Request, user UserNa
 		"user":   validUser.Username,
 		"exists": true,
 	}
+
 	usr, _ := json.Marshal(u)
 
 	return string(usr)
@@ -330,21 +332,23 @@ func HandleForgotPassword(res http.ResponseWriter, req *http.Request, user UserN
 	}
 
 	validUser := User{}
-	err := DB.Where("username = ?", user.Username).First(&validUser).Error
-	if err != nil && err != gorm.RecordNotFound {
+	gErr := DB.Where("username = ?", user.Username).First(&validUser).Error
+	if gErr != nil && gErr != gorm.RecordNotFound {
 		http.Error(res, "Database query failed (User)", http.StatusInternalServerError)
 		return ""
-	} else if err == gorm.RecordNotFound {
+	} else if gErr == gorm.RecordNotFound {
 		http.Error(res, "We couldn't find an account associated with "+user.Username, http.StatusNotFound)
 		return ""
 	}
 
 	randomString := make([]byte, 64)
-	_, e := rand.Read(randomString)
-	if e != nil {
+	_, err := rand.Read(randomString)
+
+	if err != nil {
 		http.Error(res, "Unable to generate hash.", http.StatusInternalServerError)
 		return ""
 	}
+
 	hashString := sha1.New()
 	hashString.Write(randomString)
 	hash := hex.EncodeToString(hashString.Sum(nil))
@@ -355,8 +359,8 @@ func HandleForgotPassword(res http.ResponseWriter, req *http.Request, user UserN
 		Created: time.Now(),
 	}
 
-	dbError := DB.Save(&token).Error
-	if dbError != nil {
+	gErr = DB.Save(&token).Error
+	if gErr != nil {
 		http.Error(res, "Database query failed (Token)", http.StatusInternalServerError)
 		return ""
 	}
@@ -365,6 +369,7 @@ func HandleForgotPassword(res http.ResponseWriter, req *http.Request, user UserN
 		"user":  validUser.Username,
 		"token": hash,
 	}
+
 	usr, _ := json.Marshal(u)
 
 	return string(usr)
@@ -376,18 +381,18 @@ func ResetPassword(hash, username, password string) *appError {
 	}
 
 	user := User{}
-	err := DB.Where("username = ?", username).First(&user).Error
-	if err != nil && err != gorm.RecordNotFound {
+	gErr := DB.Where("username = ?", username).First(&user).Error
+	if gErr != nil && gErr != gorm.RecordNotFound {
 		return &appError{nil, "Database query failed (User).", http.StatusInternalServerError}
-	} else if err == gorm.RecordNotFound {
+	} else if gErr == gorm.RecordNotFound {
 		return &appError{nil, "Invalid email!", http.StatusNotFound}
 	}
 
 	token := UserTokens{}
-	dbError := DB.Where("uid = ?", user.Uid).Where("hash = ?", hash).Where("used = ?", false).Last(&token).Error
-	if dbError != nil && dbError != gorm.RecordNotFound {
+	gErr = DB.Where("uid = ?", user.Uid).Where("hash = ?", hash).Where("used = ?", false).Last(&token).Error
+	if gErr != nil && gErr != gorm.RecordNotFound {
 		return &appError{nil, "Database query failed (Token).", http.StatusInternalServerError}
-	} else if dbError == gorm.RecordNotFound {
+	} else if gErr == gorm.RecordNotFound {
 		return &appError{nil, "Invalid token!", http.StatusNotFound}
 	}
 
@@ -395,21 +400,21 @@ func ResetPassword(hash, username, password string) *appError {
 		return nil
 	}
 
-	hashedPassword, errH := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if errH != nil {
-		return &appError{errH, "Unable to generate password hash.", http.StatusInternalServerError}
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return &appError{err, "Unable to generate password hash.", http.StatusInternalServerError}
 	}
 
 	user.Password = string(hashedPassword)
-	err = DB.Save(&user).Error
-	if err != nil {
-		return &appError{err, "Database query failed (Password).", http.StatusInternalServerError}
+	gErr = DB.Save(&user).Error
+	if gErr != nil {
+		return &appError{gErr, "Database query failed (Password).", http.StatusInternalServerError}
 	}
 
 	token.Used = true
-	err = DB.Save(&token).Error
-	if err != nil {
-		return &appError{err, "Database query failed (Token).", http.StatusInternalServerError}
+	gErr = DB.Save(&token).Error
+	if gErr != nil {
+		return &appError{gErr, "Database query failed (Token).", http.StatusInternalServerError}
 	}
 
 	return nil
@@ -449,11 +454,11 @@ func GetUserDetails(res http.ResponseWriter, req *http.Request) string {
 	}
 
 	user := User{}
-	err1 := DB.Where("uid = ?", uid).First(&user).Error
-	if err1 != nil && err1 != gorm.RecordNotFound {
+	gErr := DB.Where("uid = ?", uid).First(&user).Error
+	if gErr != nil && gErr != gorm.RecordNotFound {
 		http.Error(res, "Database query failed (User).", http.StatusInternalServerError)
 		return ""
-	} else if err1 == gorm.RecordNotFound {
+	} else if gErr == gorm.RecordNotFound {
 		http.Error(res, "No such user found!", http.StatusNotFound)
 		return ""
 	}
@@ -489,11 +494,11 @@ func UpdateUserDetails(res http.ResponseWriter, req *http.Request, data UserDeta
 	}
 
 	user := User{}
-	err1 := DB.Where("uid = ?", uid).First(&user).Error
-	if err1 != nil && err1 != gorm.RecordNotFound {
+	gErr := DB.Where("uid = ?", uid).First(&user).Error
+	if gErr != nil && gErr != gorm.RecordNotFound {
 		http.Error(res, "Database query failed (Select).", http.StatusInternalServerError)
 		return ""
-	} else if err1 == gorm.RecordNotFound {
+	} else if gErr == gorm.RecordNotFound {
 		http.Error(res, "No such user found!", http.StatusNotFound)
 		return ""
 	}
@@ -506,8 +511,8 @@ func UpdateUserDetails(res http.ResponseWriter, req *http.Request, data UserDeta
 		user.Email = data.Email
 	}
 
-	err2 := DB.Save(&user).Error
-	if err2 != nil {
+	gErr = DB.Save(&user).Error
+	if gErr != nil {
 		http.Error(res, "Database query failed (Update).", http.StatusInternalServerError)
 		return ""
 	}
@@ -516,6 +521,7 @@ func UpdateUserDetails(res http.ResponseWriter, req *http.Request, data UserDeta
 		"username": user.Username,
 		"email":    user.Email,
 	}
+
 	usr, _ := json.Marshal(u)
 
 	return string(usr)
@@ -524,15 +530,15 @@ func UpdateUserDetails(res http.ResponseWriter, req *http.Request, data UserDeta
 func Reputation(uid int, points int) string {
 	usr := User{}
 
-	err := DB.Where("uid = ?", uid).Find(&usr).Error
-	if err != nil {
+	gErr := DB.Where("uid = ?", uid).Find(&usr).Error
+	if gErr != nil {
 		return "failed to find user"
 	}
 
 	r := usr.Reputation + points
 
-	err = DB.Model(usr).Where("uid = ?", uid).Update("reputation", r).Error
-	if err != nil {
+	gErr = DB.Model(usr).Where("uid = ?", uid).Update("reputation", r).Error
+	if gErr != nil {
 		return "failed to update reputation"
 	}
 

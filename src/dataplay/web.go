@@ -18,8 +18,6 @@ func Charts(res http.ResponseWriter, req *http.Request, params martini.Params) {
 		if err != nil {
 			http.Error(res, err.Message, err.Code)
 		}
-
-		// TrackVisited(params["id"], uid) // Make sure the tracking module knows about their visit.
 	}
 
 	RenderTemplate("public/charts.html", nil, res)
@@ -52,8 +50,6 @@ func Overview(res http.ResponseWriter, req *http.Request, params martini.Params)
 		if err != nil {
 			http.Error(res, err.Message, err.Code)
 		}
-
-		// TrackVisited(params["id"], uid)
 	}
 
 	RenderTemplate("public/overview.html", nil, res)

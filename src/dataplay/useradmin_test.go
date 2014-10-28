@@ -37,16 +37,3 @@ func TestGetObservationsTableHttp(t *testing.T) {
 		So(result, ShouldNotBeNil)
 	})
 }
-
-// func TestDeleteObservationHttp(t *testing.T) {
-// 	req, _ := http.NewRequest("GET", "/", nil)
-// 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
-// 	res := httptest.NewRecorder()
-// 	params := map[string]string{
-// 		"id": "754",
-// 	}
-// 	Convey("Should delete obs", t, func() {
-// 		result := DeleteObservationHttp(res, req, params)
-// 		So(result, ShouldEqual, "")
-// 	})
-// }

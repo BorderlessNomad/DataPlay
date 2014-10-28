@@ -529,8 +529,8 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivity {
 	vDisc := []Credit{}
 
-	err = DB.Select("priv_credits.discovered_id, priv_credits.created, priv_credits.uid, priv_credits.credflag").Joins("LEFT JOIN priv_discovered AS d ON priv_credits.discovered_id = d.discovered_id").Where("d.uid = ?", uid).Where("priv_credits.discovered_id > ?", 0).Order("priv_credits.created DESC").Find(&vDisc).Error
-	if err != nil && err != gorm.RecordNotFound {
+	gErr := DB.Select("priv_credits.discovered_id, priv_credits.created, priv_credits.uid, priv_credits.credflag").Joins("LEFT JOIN priv_discovered AS d ON priv_credits.discovered_id = d.discovered_id").Where("d.uid = ?", uid).Where("priv_credits.discovered_id > ?", 0).Order("priv_credits.created DESC").Find(&vDisc).Error
+	if gErr != nil && gErr != gorm.RecordNotFound {
 		return activities
 	}
 
@@ -540,23 +540,23 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		Did     int
 	}{}
 
-	err = DB.Select("o.discovered_id as did, o.comment as comment, priv_credits.created, priv_credits.uid, priv_credits.credflag").Joins("LEFT JOIN priv_observations AS o ON priv_credits.observation_id = o.observation_id").Where("o.uid = ?", uid).Where("priv_credits.observation_id > ?", 0).Order("priv_credits.created DESC").Find(&vObs).Error
-	if err != nil {
+	gErr = DB.Select("o.discovered_id as did, o.comment as comment, priv_credits.created, priv_credits.uid, priv_credits.credflag").Joins("LEFT JOIN priv_observations AS o ON priv_credits.observation_id = o.observation_id").Where("o.uid = ?", uid).Where("priv_credits.observation_id > ?", 0).Order("priv_credits.created DESC").Find(&vObs).Error
+	if gErr != nil {
 		return activities
 	}
 
 	activity := []Activity{}
 
-	err = DB.Select("priv_activity.discovered_id, priv_activity.created, priv_activity.uid").Joins("LEFT JOIN priv_discovered as d ON priv_activity.discovered_id = d.discovered_id").Where("d.uid = ?", uid).Where("priv_activity.type = ?", "Comment").Order("priv_activity.created DESC").Find(&activity).Error
-	if err != nil {
+	gErr = DB.Select("priv_activity.discovered_id, priv_activity.created, priv_activity.uid").Joins("LEFT JOIN priv_discovered as d ON priv_activity.discovered_id = d.discovered_id").Where("d.uid = ?", uid).Where("priv_activity.type = ?", "Comment").Order("priv_activity.created DESC").Find(&activity).Error
+	if gErr != nil {
 		return activities
 	}
 
 	for _, d := range vDisc {
 		tmpA := UserActivity{}
 		user := User{}
-		err = DB.Where("uid = ?", d.Uid).Find(&user).Error
-		if err != nil {
+		gErr = DB.Where("uid = ?", d.Uid).Find(&user).Error
+		if gErr != nil {
 			tmpA.Activity = "Bad discredited observation activity 2"
 		}
 
@@ -573,8 +573,8 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		}
 
 		discovered := Discovered{}
-		err = DB.Where("discovered_id = ?", d.DiscoveredId).Find(&discovered).Error
-		if err != nil {
+		gErr = DB.Where("discovered_id = ?", d.DiscoveredId).Find(&discovered).Error
+		if gErr != nil {
 			return activities
 		}
 
@@ -590,8 +590,8 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 	for _, o := range vObs {
 		tmpA := UserActivity{}
 		user := User{}
-		err = DB.Where("uid = ?", o.Uid).Find(&user).Error
-		if err != nil {
+		gErr = DB.Where("uid = ?", o.Uid).Find(&user).Error
+		if gErr != nil {
 			tmpA.Activity = "Bad discredited observation activity 2"
 		}
 
@@ -608,8 +608,8 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		}
 
 		discovered := Discovered{}
-		err = DB.Where("discovered_id = ?", o.Did).Find(&discovered).Error
-		if err != nil {
+		gErr = DB.Where("discovered_id = ?", o.Did).Find(&discovered).Error
+		if gErr != nil {
 			return activities
 		}
 
@@ -625,8 +625,8 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 	for _, a := range activity {
 		tmpA := UserActivity{}
 		user := User{}
-		err = DB.Where("uid = ?", a.Uid).Find(&user).Error
-		if err != nil {
+		gErr = DB.Where("uid = ?", a.Uid).Find(&user).Error
+		if gErr != nil {
 			tmpA.Activity = "Bad discredited observation activity 2"
 		}
 
@@ -636,8 +636,8 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		tmpA.Time = a.Created
 
 		discovered := Discovered{}
-		err = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
-		if err != nil {
+		gErr = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
+		if gErr != nil {
 			return activities
 		}
 

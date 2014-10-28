@@ -26,16 +26,24 @@ func TestGetChartHttp(t *testing.T) {
 	})
 }
 
-// params["tablename"] = "gdp"
-// params["type"] = "bubble"
-// params["x"] = "date"
-// params["y"] = "gdp"
-// params["z"] = "change"
+func TestRankCredits(t *testing.T) {
+	Convey("Should return ranking", t, func() {
+		result := RankCredits(23, 15)
+		So(result, ShouldEqual, 0.44717586998695963)
+	})
+}
 
-// Convey("Should return xyz chartlist", t, func() {
-// 	result := GetChartHttp(res, req, params)
-// 	So(result, ShouldEqual, "")
-// })
+// func TestCreditChartHttp(t *testing.T) {
+// 	req, _ := http.NewRequest("GET", "/", nil)
+// 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+// 	res := httptest.NewRecorder()
+// 	Convey("Should credit chart", t, func() {
+// 		params := map[string]string{}
+// 		params["rcid"] = "116144"
+// 		params["credflag"] = "false"
+// 		result := CreditChartHttp(res, req, params)
+// 		So(result, ShouldEqual, "")
+// 	})
 // }
 
 func TestGetChartCorrelatedHttp(t *testing.T) {
@@ -62,7 +70,7 @@ func TestGetRelatedChartsHttp(t *testing.T) {
 	}
 	Convey("Should return chartlist", t, func() {
 		result := GetRelatedChartsHttp(res, req, params)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 }
 
@@ -81,7 +89,7 @@ func TestGetCorrelatedChartsHttp(t *testing.T) {
 		result := GetCorrelatedChartsHttp(res, req, params)
 		y := time.Now()
 		fmt.Println("CORRELATED_CHARTS_TIME_TAKEN", y.Sub(x).Seconds())
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 }
 
