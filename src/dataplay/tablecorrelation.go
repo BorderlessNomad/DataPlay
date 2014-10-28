@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const sd = 100
+const sd = 30
 
 type cmeth int
 

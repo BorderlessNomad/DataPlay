@@ -48,13 +48,13 @@ func ActivityCheck(a string) string {
 	switch a {
 	case "c":
 		return "Comment"
-	case "ic":
+	case "dc":
 		return "Discredited Chart"
-	case "vc":
+	case "cc":
 		return "Credited Chart"
-	case "io":
+	case "do":
 		return "Discredited Observation"
-	case "vo":
+	case "co":
 		return "Credited Observation"
 	default:
 		return "Unknown"
@@ -398,35 +398,6 @@ func GetActivityStreamHttp(res http.ResponseWriter, req *http.Request) string {
 	if err2 != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
 		return ""
-	}
-
-	return string(r)
-}
-
-func GetActivityStreamQ(params map[string]string) string {
-	if params["user"] == "" {
-		return "no user id"
-	}
-
-	uid, e := strconv.Atoi(params["user"])
-	if e != nil {
-		return e.Error()
-	}
-
-	var activities []UserActivity
-	t := time.Now()
-	activities = AddHappenedTo(uid, activities, t)
-	activities = AddInstigated(uid, activities, t)
-	sortutil.AscByField(activities, "Created")
-
-	n := 5
-	if len(activities) < n {
-		n = len(activities)
-	}
-
-	r, err := json.Marshal(activities[:n])
-	if err != nil {
-		return err.Error()
 	}
 
 	return string(r)

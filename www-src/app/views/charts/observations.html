@@ -5,20 +5,22 @@
 		<div class="row">
 			<span class="text-muted"><small>{{obsv.date}}</small></span>
 			<span class="flag">
-				<button class="btn btn-default btn-xs" title="Flag this comment as inappropriate" ng-if="!obsv.flagged" ng-click="flagObservation(obsv)"><i class="fa fa-flag"></i> Flag</button>
+				<button class="btn btn-default btn-xs" title="Flag this comment as inappropriate" ng-if="obsv.user.username != username && !obsv.flagged" ng-click="flagObservation(obsv)"><i class="fa fa-flag"></i> Flag</button>
 				<button class="btn btn-default btn-xs disabled" title="This comment has been flagged as inappropriate" ng-if="obsv.flagged" ><i class="fa fa-flag"></i> Flagged</button>
 			</span>
 		</div>
 		<div class="row">
 			<span class="left pull-left">
 				<img class="media-object" ng-src="{{obsv.user.avatar}}">
-
-				<div class="votes">
-					<i class="glyphicon glyphicon-arrow-up" ng-click="creditObservation(obsv, true)"></i>
-					<span>{{obsv.creditCount}}</span>
-					<i class="glyphicon glyphicon-arrow-down" ng-click="creditObservation(obsv, false)"></i>
+				<div class="votes" ng-if="obsv.user.username != username">
+					<i class="glyphicon glyphicon-arrow-up text-warning" ng-if="obsv.action == 'credited'"></i>
+					<i class="glyphicon glyphicon-arrow-up" ng-click="creditObservation(obsv, true)" ng-if="obsv.action == ''"></i>
+					<span>{{getObservationValue(obsv)}}</span>
+					<i class="glyphicon glyphicon-arrow-down text-warning" ng-if="obsv.action == 'discredited'"></i>
+					<i class="glyphicon glyphicon-arrow-down" ng-click="creditObservation(obsv, false)" ng-if="obsv.action == ''"></i>
 				</div>
 			</span>
+
 			<div class="media-body">
 				<h4 class="media-heading">{{obsv.user.username}} <span class="text-warning"><i class="glyphicon glyphicon-star"></i>{{obsv.user.reputation}}</span> <span class="label label-primary" ng-show="obsv.user.discoverer">Discoverer</span>
 				</h4>

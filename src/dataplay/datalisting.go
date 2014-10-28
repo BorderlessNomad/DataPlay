@@ -71,24 +71,6 @@ func DumpTableHttp(res http.ResponseWriter, req *http.Request, params martini.Pa
 	return string(r)
 }
 
-func DumpTableQ(params map[string]string) string {
-	if params["id"] == "" {
-		return ""
-	}
-
-	result, error := DumpTable(params)
-	if error != nil {
-		return ""
-	}
-
-	r, err := json.Marshal(result)
-	if err != nil {
-		return ""
-	}
-
-	return string(r)
-}
-
 // This function will empty a whole table out into JSON
 // Due to what seems to be a golang bug, everything is outputted as a string.
 func DumpTable(params map[string]string) ([]map[string]interface{}, *appError) {
@@ -179,28 +161,6 @@ func DumpTableRangeHttp(res http.ResponseWriter, req *http.Request, params marti
 	return string(r)
 }
 
-func DumpTableRangeQ(params map[string]string) string {
-	if params["id"] == "" {
-		return ""
-	}
-
-	if params["x"] == "" || params["startx"] == "" || params["endx"] == "" {
-		return ""
-	}
-
-	result, error := DumpTableRange(params)
-	if error != nil {
-		return ""
-	}
-
-	r, err := json.Marshal(result)
-	if err != nil {
-		return ""
-	}
-
-	return string(r)
-}
-
 // This function will empty a whole table out into JSON
 // Due to what seems to be a golang bug, everything is outputted as a string.
 func DumpTableRange(params map[string]string) ([]map[string]interface{}, *appError) {
@@ -273,24 +233,6 @@ func DumpTableGroupedHttp(res http.ResponseWriter, req *http.Request, params mar
 	r, err := json.Marshal(result)
 	if err != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return ""
-	}
-
-	return string(r)
-}
-
-func DumpTableGroupedQ(params map[string]string) string {
-	if params["id"] == "" || params["x"] == "" || params["y"] == "" {
-		return ""
-	}
-
-	result, error := DumpTableGrouped(params)
-	if error != nil {
-		return ""
-	}
-
-	r, err := json.Marshal(result)
-	if err != nil {
 		return ""
 	}
 
@@ -393,24 +335,6 @@ func DumpTablePredictionHttp(res http.ResponseWriter, req *http.Request, params 
 	return string(r)
 }
 
-func DumpTablePredictionQ(params map[string]string) string {
-	if params["id"] == "" || params["x"] == "" || params["y"] == "" {
-		return ""
-	}
-
-	result, error := DumpTablePrediction(params)
-	if error != nil {
-		return ""
-	}
-
-	r, err := json.Marshal(result)
-	if err != nil {
-		return ""
-	}
-
-	return string(r)
-}
-
 // This call will get a X,Y and a prediction of a value. that is asked for
 func DumpTablePrediction(params map[string]string) ([]float64, *appError) {
 	tablename, e := GetRealTableName(params["id"])
@@ -499,20 +423,6 @@ func DumpReducedTableHttp(res http.ResponseWriter, req *http.Request, params mar
 	r, err := json.Marshal(result)
 	if err != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return ""
-	}
-
-	return string(r)
-}
-
-func DumpReducedTableQ(params map[string]string) string {
-	result, error := DumpReducedTable(params)
-	if error != nil {
-		return ""
-	}
-
-	r, e := json.Marshal(result)
-	if e != nil {
 		return ""
 	}
 

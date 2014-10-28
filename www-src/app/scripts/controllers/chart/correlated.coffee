@@ -8,7 +8,8 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'ChartsCorrelatedCtrl', ['$scope', '$location', '$timeout', '$routeParams', 'Overview', 'PatternMatcher', 'Charts', ($scope, $location, $timeout, $routeParams, Overview, PatternMatcher, Charts) ->
+	.controller 'ChartsCorrelatedCtrl', ['$scope', '$location', '$timeout', '$routeParams', 'Auth', 'config', 'Overview', 'PatternMatcher', 'Charts', ($scope, $location, $timeout, $routeParams, Auth, config, Overview, PatternMatcher, Charts) ->
+		$scope.username = Auth.get config.userName
 
 		$scope.params = $routeParams
 		$scope.mode = 'correlated'
@@ -108,6 +109,8 @@ angular.module('dataplayApp')
 							xy: xy
 							oid : obsv['observation_id']
 							user: obsv.user
+							credits: obsv.credits
+							discredits: obsv.discredits
 							creditCount: parseInt(obsv.credits - obsv.discredits) || 0
 							message: obsv.comment
 							date: Overview.humanDate new Date(obsv.created)
@@ -115,6 +118,7 @@ angular.module('dataplayApp')
 								x: obsv.x
 								y: obsv.y
 							flagged: !! obsv.flagged
+							action: obsv.action
 
 				, $scope.handleError
 			return
@@ -163,11 +167,15 @@ angular.module('dataplayApp')
 			$('#comment-modal').modal 'hide'
 			return
 
+		$scope.getObservationValue = (obsv) ->
+			obsv.credits - obsv.discredits
+
 		$scope.creditObservation = (item, valFlag) ->
 			if item.oid?
 				Charts.creditObservation item.oid, valFlag
 					.success (res) ->
-						item.creditCount += (valFlag) ? 1 : -1
+						item.credits = res.Credited
+						item.discredits = res.Discredited
 					.error $scope.handleError
 
 		$scope.openAddObservationModal = (x, y) ->

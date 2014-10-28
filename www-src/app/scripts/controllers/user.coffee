@@ -103,9 +103,9 @@ angular.module('dataplayApp')
 
 			if token isnt false
 				User.logOut(token).success((data) ->
-					Auth.remove config.sessionName
 					Auth.remove config.userName
 					Auth.remove config.userType
+					Auth.remove config.sessionName
 
 					$location.path "/"
 					return

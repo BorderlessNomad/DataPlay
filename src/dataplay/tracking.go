@@ -5,7 +5,6 @@ import (
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -36,29 +35,6 @@ func GetLastVisitedHttp(res http.ResponseWriter, req *http.Request, params marti
 	r, e := json.Marshal(result)
 	if e != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return ""
-	}
-
-	return string(r)
-}
-
-func GetLastVisitedQ(params map[string]string) string {
-	if params["user"] == "" {
-		return ""
-	}
-
-	uid, e := strconv.Atoi(params["user"])
-	if e != nil {
-		return ""
-	}
-
-	result, err := GetLastVisited(uid)
-	if err != nil {
-		return ""
-	}
-
-	r, e := json.Marshal(result)
-	if e != nil {
 		return ""
 	}
 
