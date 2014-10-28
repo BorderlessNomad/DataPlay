@@ -354,13 +354,26 @@ func FlagObservationHttp(res http.ResponseWriter, req *http.Request, params mart
 
 	id, _ := strconv.Atoi(params["id"])
 
-	err := DB.Model(Observation{}).Where("observation_id= ?", id).Update("flagged", true).Error
+	observation := Observation{}
+	err := DB.Model(observation).Where("observation_id= ?", id).Update("flagged", true).Error
 	if err != nil {
 		http.Error(res, "Missing session parameter.", http.StatusInternalServerError)
 		return ""
 	}
 
-	return "success"
+	err = DB.Where("observation_id= ?", id).Find(&observation).Error
+	if err != nil {
+		http.Error(res, "Missing session parameter.", http.StatusInternalServerError)
+		return ""
+	}
+
+	r, err1 := json.Marshal(observation)
+	if err1 != nil {
+		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
+		return ""
+	}
+
+	return string(r)
 }
 
 // increment user discovered total for observation and rerank
