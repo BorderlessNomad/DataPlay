@@ -13,6 +13,7 @@ d3.selection::duration = -> @
 angular.module('dataplayApp')
 	.controller 'HomeCtrl', ['$scope', '$location', 'Home', 'Auth', 'Overview', 'PatternMatcher', 'config', ($scope, $location, Home, Auth, Overview, PatternMatcher, config) ->
 		$scope.config = config
+		$scope.Math = window.Math
 
 		$scope.searchquery = ''
 
@@ -122,6 +123,9 @@ angular.module('dataplayApp')
 							pretext: d.activitystring
 							linktext: d.patternid
 							url: d.linkstring
+							action: d.action
+							actor: d.actor
+							points: d.points
 					else
 						$scope.myActivity = []
 				.error ->

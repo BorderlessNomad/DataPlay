@@ -67,10 +67,20 @@
 					<h4 class="text-center">My Activity Stream</h4>
 					<div class="row myActivity" ng-if="myActivity" ng-repeat="item in myActivity">
 						<div class="col-xs-1 text-center">
-							<i class="fa fa-bar-chart text-warning"></i>
+							<a href="/#!/{{item.url}}">
+								<i class="fa fa-bar-chart text-success" ng-if="item.action == 'cc'"></i>
+								<i class="fa fa-bar-chart text-warning" ng-if="item.action == 'dc'"></i>
+								<i class="fa fa-eye text-success" ng-if="item.action == 'co'"></i>
+								<i class="fa fa-eye text-warning" ng-if="item.action == 'do'"></i>
+								<i class="fa fa-comments" ng-if="item.action == 'c'"></i>
+							</a>
 						</div>
 						<div class="col-xs-11">
-							{{item.pretext}}<a href="/#!/{{item.url}}">{{item.linktext}}</a>
+							<span ng-if="item.action == 'cc'">You credited a <a href="/#!/{{item.url}}">pattern</a></span>
+							<span ng-if="item.action == 'dc'">You discredited a <a href="/#!/{{item.url}}">pattern</a></span>
+							<span ng-if="item.action == 'co'">You gained {{item.points}} when {{item.actor}} credited your observation on <a href="/#!/{{item.url}}">pattern</a></span>
+							<span ng-if="item.action == 'do'">You lost {{item.points}} when {{item.actor}} discredited your observation on <a href="/#!/{{item.url}}">pattern</a></span>
+							<span ng-if="item.action == 'c'">You gained {{item.points}} when {{item.actor}} made an observation on your <a href="/#!/{{item.url}}">discovered pattern</a></span>
 						</div>
 					</div>
 
