@@ -625,7 +625,7 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		if o.Credflag == true {
 			tmpA.Activity = "You gained " + strconv.Itoa(obsCredit) + " reputation points when " + user.Username + " credited your observation on pattern "
 			tmpA.Actor = user.Username
-			tmpA.Action = "oc"
+			tmpA.Action = "co"
 			tmpA.Points = obsCredit
 			tmpA.PatternId = o.Did
 			tmpA.Created = t.Sub(o.Created).Seconds()
@@ -633,7 +633,7 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		} else {
 			tmpA.Activity = "You lost " + strconv.Itoa(obsDiscredit) + " reputation points when " + user.Username + " discredited your observation on pattern "
 			tmpA.Actor = user.Username
-			tmpA.Action = "oc"
+			tmpA.Action = "do"
 			tmpA.Points = obsDiscredit
 			tmpA.PatternId = o.Did
 			tmpA.Created = t.Sub(o.Created).Seconds()
