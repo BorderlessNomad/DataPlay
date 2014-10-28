@@ -165,10 +165,8 @@ angular.module('dataplayApp')
 			d3.select("#observationIcon-#{xy}").remove()
 
 			$('#comment-modal').modal 'hide'
-			return
 
-		$scope.getObservationValue = (obsv) ->
-			obsv.credits - obsv.discredits
+			return
 
 		$scope.creditObservation = (item, valFlag) ->
 			if item.oid?
@@ -176,6 +174,9 @@ angular.module('dataplayApp')
 					.success (res) ->
 						item.credits = res.Credited
 						item.discredits = res.Discredited
+						item.creditCount = parseInt(res.credits - res.discredits) || 0
+						item.action = res.action
+						item.flagged = !! res.flagged
 					.error $scope.handleError
 
 		$scope.openAddObservationModal = (x, y) ->
@@ -187,15 +188,8 @@ angular.module('dataplayApp')
 
 			return
 
-		$scope.addObservation = (x, y, space, comment) ->
-			$scope.observations.push
-				x: x
-				y: y
-				space: space
-				comment: if comment? and comment.length > 0 then comment else ""
-				timestamp: Date.now()
-
-			$scope.$apply()
+		$scope.addObservation = (x, y, comment) ->
+			$scope.initObservations(true)
 
 		$scope.resetObservations = ->
 			$scope.observations = []
