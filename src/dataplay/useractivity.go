@@ -42,6 +42,9 @@ type UserActivity struct {
 	PatternId int       `json:"patternid"`
 	Created   float64   `json:"-"`
 	Time      time.Time `json:"time"`
+	Actor     string    `json:"actor"`
+	Action    string    `json:"action"`
+	Points    int       `json:"points"`
 }
 
 func ActivityCheck(a string) string {
@@ -417,6 +420,9 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 		if a.Type == "Comment" {
 			tmpA.Activity = "You commented on pattern "
 			tmpA.PatternId = a.DiscoveredId
+			tmpA.Actor = ""
+			tmpA.Action = "c"
+			tmpA.Points = 0
 
 			discovered := Discovered{}
 			err = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
@@ -445,6 +451,9 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			}
 
 			tmpA.Activity = "You agreed with " + user.Username + "'s observation on pattern "
+			tmpA.Actor = user.Username
+			tmpA.Action = "co"
+			tmpA.Points = 0
 
 			tmpA.PatternId = obs.DiscoveredId
 			discovered := Discovered{}
@@ -472,6 +481,9 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			}
 
 			tmpA.Activity = "You disagreed with " + user.Username + "'s observation on pattern "
+			tmpA.Actor = user.Username
+			tmpA.Action = "do"
+			tmpA.Points = 0
 			tmpA.PatternId = obs.DiscoveredId
 			discovered := Discovered{}
 			err = DB.Where("discovered_id = ?", obs.DiscoveredId).Find(&discovered).Error
@@ -486,6 +498,9 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			}
 		} else if a.Type == "Credited Chart" {
 			tmpA.Activity = "You credited pattern "
+			tmpA.Actor = ""
+			tmpA.Action = "cc"
+			tmpA.Points = 0
 			tmpA.PatternId = a.DiscoveredId
 
 			discovered := Discovered{}
@@ -501,6 +516,9 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			}
 		} else if a.Type == "Discredited Chart" {
 			tmpA.Activity = "You discredited pattern "
+			tmpA.Actor = ""
+			tmpA.Action = "dc"
+			tmpA.Points = 0
 			tmpA.PatternId = a.DiscoveredId
 			discovered := Discovered{}
 			err = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
@@ -515,6 +533,9 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			}
 		} else {
 			tmpA.Activity = "No activity"
+			tmpA.Actor = ""
+			tmpA.Action = ""
+			tmpA.Points = 0
 			tmpA.PatternId = 0
 		}
 
@@ -561,12 +582,18 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		}
 
 		if d.Credflag == true {
-			tmpA.Activity = "You gained " + strconv.Itoa(discCredit) + " reputation when " + user.Username + " credited your pattern "
+			tmpA.Activity = "You gained " + strconv.Itoa(discCredit) + " reputation points when " + user.Username + " credited your pattern "
+			tmpA.Actor = user.Username
+			tmpA.Action = "cc"
+			tmpA.Points = discCredit
 			tmpA.PatternId = d.DiscoveredId
 			tmpA.Created = t.Sub(d.Created).Seconds()
 			tmpA.Time = d.Created
 		} else {
-			tmpA.Activity = "You lost " + strconv.Itoa(discDiscredit) + " reputation when " + user.Username + " discredited your pattern "
+			tmpA.Activity = "You lost " + strconv.Itoa(discDiscredit) + " reputation pints  when " + user.Username + " discredited your pattern "
+			tmpA.Actor = user.Username
+			tmpA.Action = "dc"
+			tmpA.Points = discDiscredit
 			tmpA.PatternId = d.DiscoveredId
 			tmpA.Created = t.Sub(d.Created).Seconds()
 			tmpA.Time = d.Created
@@ -596,12 +623,18 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		}
 
 		if o.Credflag == true {
-			tmpA.Activity = "You gained " + strconv.Itoa(obsCredit) + " reputation when " + user.Username + " credited your observation on pattern "
+			tmpA.Activity = "You gained " + strconv.Itoa(obsCredit) + " reputation points when " + user.Username + " credited your observation on pattern "
+			tmpA.Actor = user.Username
+			tmpA.Action = "oc"
+			tmpA.Points = obsCredit
 			tmpA.PatternId = o.Did
 			tmpA.Created = t.Sub(o.Created).Seconds()
 			tmpA.Time = o.Created
 		} else {
-			tmpA.Activity = "You lost " + strconv.Itoa(obsDiscredit) + " reputation when " + user.Username + " discredited your observation on pattern "
+			tmpA.Activity = "You lost " + strconv.Itoa(obsDiscredit) + " reputation points when " + user.Username + " discredited your observation on pattern "
+			tmpA.Actor = user.Username
+			tmpA.Action = "oc"
+			tmpA.Points = obsDiscredit
 			tmpA.PatternId = o.Did
 			tmpA.Created = t.Sub(o.Created).Seconds()
 			tmpA.Time = o.Created
@@ -630,7 +663,10 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 			tmpA.Activity = "Bad discredited observation activity 2"
 		}
 
-		tmpA.Activity = "You gained " + strconv.Itoa(discObs) + " reputation when " + user.Username + " commented on your pattern "
+		tmpA.Activity = "You gained " + strconv.Itoa(discObs) + " reputation points when " + user.Username + " commented on your pattern "
+		tmpA.Actor = user.Username
+		tmpA.Action = "c"
+		tmpA.Points = discObs
 		tmpA.PatternId = a.DiscoveredId
 		tmpA.Created = t.Sub(a.Created).Seconds()
 		tmpA.Time = a.Created
