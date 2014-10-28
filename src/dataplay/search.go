@@ -113,11 +113,9 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 
 	term := "%" + keyword + "%"
 
-	Logger.Println("Searching with Suffix Wildcard", term)
-
 	query := DB.Where("LOWER(title) LIKE LOWER(?)", term)
-	query = DB.Where("LOWER(notes) LIKE LOWER(?)", term)
-	query = DB.Where("LOWER(name) LIKE LOWER(?)", term)
+	query = query.Or("LOWER(notes) LIKE LOWER(?)", term)
+	query = query.Or("LOWER(name) LIKE LOWER(?)", term)
 	query = query.Order("random()")
 
 	err := query.Limit(count).Offset(offset).Find(&indices).Error
