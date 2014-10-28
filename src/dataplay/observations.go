@@ -180,7 +180,7 @@ func GetObservations(did int, uid int) ([]Observations, *appError) {
 		tmpOD.User.Reputation = user.Reputation
 		tmpOD.User.Email = GetMD5Hash(user.Email)
 
-		if discovered.Uid == observation[0].Uid { // if commenter discovered the chart
+		if discovered.Uid == o.Uid { // if commenter discovered the chart
 			tmpOD.User.Discoverer = true
 		} else {
 			tmpOD.User.Discoverer = false

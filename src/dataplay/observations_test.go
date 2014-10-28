@@ -7,6 +7,24 @@ import (
 	"testing"
 )
 
+// func TestCreditObservationHttp(t *testing.T) {
+// 	req, _ := http.NewRequest("GET", "/", nil)
+// 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
+// 	res := httptest.NewRecorder()
+// 	params := map[string]string{}
+// 	params["oid"] = "702"
+// 	params["credflag"] = "true"
+// 	Convey("Should credit observation", t, func() {
+// 		result := CreditObservationHttp(res, req, params)
+// 		So(result, ShouldNotBeNil)
+// 	})
+// 	Convey("Should discredit observation", t, func() {
+// 		params["credflag"] = "false"
+// 		result := CreditObservationHttp(res, req, params)
+// 		So(result, ShouldEqual, "Observation discredited")
+// 	})
+// }
+
 // func TestAddObservationHttp(t *testing.T) {
 // 	req, _ := http.NewRequest("POST", "/", nil)
 // 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
@@ -20,7 +38,6 @@ import (
 // 		result := AddObservationHttp(res, req, obs)
 // 		So(result, ShouldEqual, "")
 // 	})
-// }
 // }
 
 func TestGetObservationsHttp(t *testing.T) {

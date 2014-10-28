@@ -63,8 +63,8 @@ func GetUserTableHttp(res http.ResponseWriter, req *http.Request, params martini
 
 	order := params["order"] + " asc"
 
-	e := DB.Model(User{}).Select("uid, email, email, avatar, username, reputation, usertype, enabled").Order(order).Scan(&userReturn).Error
-	if e != nil {
+	gErr := DB.Model(User{}).Select("uid, email, email, avatar, username, reputation, usertype, enabled").Order(order).Scan(&userReturn).Error
+	if gErr != nil {
 		http.Error(res, "Unable to get users", http.StatusInternalServerError)
 		return ""
 	}
@@ -86,8 +86,8 @@ func GetUserTableHttp(res http.ResponseWriter, req *http.Request, params martini
 
 	userReturnAndCount := UserReturnAndCount{userReturn, uCount}
 
-	r, err := json.Marshal(userReturnAndCount)
-	if err != nil {
+	r, jErr := json.Marshal(userReturnAndCount)
+	if jErr != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
 		return ""
 	}
@@ -109,9 +109,9 @@ func EditUserHttp(res http.ResponseWriter, req *http.Request, userEdit UserEdit)
 
 	user := User{}
 
-	err := DB.Model(User{}).Where("uid = ?", userEdit.Uid).Find(&user).Error
+	gErr := DB.Model(User{}).Where("uid = ?", userEdit.Uid).Find(&user).Error
 
-	if err != nil {
+	if gErr != nil {
 		http.Error(res, "failed to get user's reputation", http.StatusBadRequest)
 		return ""
 	}
@@ -138,24 +138,23 @@ func EditUserHttp(res http.ResponseWriter, req *http.Request, userEdit UserEdit)
 
 	if userEdit.Password != "" { // generate whatever password has been passed
 
-		hashedPassword, err1 := bcrypt.GenerateFromPassword([]byte(userEdit.Password), bcrypt.DefaultCost)
-		if err1 != nil {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userEdit.Password), bcrypt.DefaultCost)
+		if err != nil {
 			http.Error(res, "Unable to generate password hash.", http.StatusInternalServerError)
 			return ""
 		}
 		user.Password = string(hashedPassword)
-		err = DB.Save(&user).Error // update or add record
-		if err != nil {
+		gErr = DB.Save(&user).Error // update or add record
+		if gErr != nil {
 			http.Error(res, "failed to update user", http.StatusBadRequest)
 			return ""
 		}
 	} else { // do not update password field
-		err = DB.Save(&user).Error
-		if err != nil {
+		gErr = DB.Save(&user).Error
+		if gErr != nil {
 			http.Error(res, "failed to update user", http.StatusBadRequest)
 			return ""
 		}
-
 	}
 
 	return "success"
@@ -178,15 +177,15 @@ func GetObservationsTableHttp(res http.ResponseWriter, req *http.Request, params
 	order := params["order"] + " asc"
 
 	if params["flagged"] == "true" {
-		e := DB.Model(ob).Select(selectStr).Joins(joinStr).Order(order).Where("flagged = ?", true).Scan(&observationReturn).Error
-		if e != nil {
+		gErr := DB.Model(ob).Select(selectStr).Joins(joinStr).Order(order).Where("flagged = ?", true).Scan(&observationReturn).Error
+		if gErr != nil {
 			http.Error(res, "Unable to get observations", http.StatusInternalServerError)
 			return ""
 		}
 		DB.Model(Observation{}).Where("flagged = ?", true).Count(&uCount)
 	} else {
-		e := DB.Model(ob).Select(selectStr).Joins(joinStr).Order(order).Scan(&observationReturn).Error
-		if e != nil {
+		gErr := DB.Model(ob).Select(selectStr).Joins(joinStr).Order(order).Scan(&observationReturn).Error
+		if gErr != nil {
 			http.Error(res, "Unable to get observations", http.StatusInternalServerError)
 			return ""
 		}
@@ -203,8 +202,8 @@ func GetObservationsTableHttp(res http.ResponseWriter, req *http.Request, params
 
 	obsReturnAndCount := ObsReturnAndCount{observationReturn, uCount}
 
-	r, err := json.Marshal(obsReturnAndCount)
-	if err != nil {
+	r, jErr := json.Marshal(obsReturnAndCount)
+	if jErr != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
 		return ""
 	}
@@ -227,17 +226,17 @@ func DeleteObservationHttp(res http.ResponseWriter, req *http.Request, params ma
 	oid, _ := strconv.Atoi(params["id"])
 	observation := Observation{}
 
-	e := DB.Where("observation_id = ?", oid).Find(&observation).Error
+	gErr := DB.Where("observation_id = ?", oid).Find(&observation).Error
 
-	if e != nil {
+	if gErr != nil {
 		http.Error(res, "Unable to find observation", http.StatusInternalServerError)
 		return ""
 	}
 
 	uid := observation.Uid
 
-	e = DB.Where("observation_id = ?", oid).Delete(&observation).Error
-	if e != nil {
+	gErr = DB.Where("observation_id = ?", oid).Delete(&observation).Error
+	if gErr != nil {
 		http.Error(res, "Unable to delete observation", http.StatusInternalServerError)
 	}
 

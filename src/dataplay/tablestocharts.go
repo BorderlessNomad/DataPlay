@@ -383,7 +383,7 @@ func Discover(id string, uid int, json []byte, correlated bool) (Discovered, *ap
 	discovered.Discredited = 0
 	discovered.Credited = 0
 
-	err = DB.Save(&discovered).Error
+	err := DB.Save(&discovered).Error
 	if err != nil {
 		return discovered, &appError{err, "could not save discovery", http.StatusInternalServerError}
 	}
@@ -864,7 +864,7 @@ func CalcStrength(x float64) string {
 }
 
 //////////////////////////////////////////////////////////////////////////
-//////////// HTTP AND QUEUE FUNCTIONS TO CALL ABOVE METHODS///////////////
+//////////// HTTP FUNCTIONS TO CALL ABOVE METHODS///////////////
 //////////////////////////////////////////////////////////////////////////
 func CreditChartHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 	session := req.Header.Get("X-API-SESSION")
@@ -1087,7 +1087,7 @@ func GetCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, params 
 	}
 
 	if params["search"] == "true" { ///default searchdepth when blank
-		search = sd
+		search = 50
 	} else { // do not search when false so can return just what exist in table
 		search = 0
 	}
@@ -1257,7 +1257,7 @@ func GetTopRatedChartsHttp(res http.ResponseWriter, req *http.Request) string {
 
 	discovered := []Discovered{}
 	charts := make([]interface{}, 0)
-	err = DB.Order("rating DESC").Limit(6).Find(&discovered).Error
+	err := DB.Order("rating DESC").Limit(6).Find(&discovered).Error
 	if err != nil {
 		http.Error(res, "Failed to find discovered charts", http.StatusBadRequest)
 		return ""

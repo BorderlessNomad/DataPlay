@@ -8,8 +8,6 @@ import (
 	"time"
 )
 
-const sd = 30
-
 type cmeth int
 
 const ( //go version of enum
