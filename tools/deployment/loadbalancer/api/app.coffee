@@ -22,9 +22,11 @@ puts = (error, stdout, stderr) -> sys.puts stdout
 compileTemplate = (data) ->
 	for value, key in data.gamification
 		data.gamification[key].id = "gamification#{key+1}"
+	console.log "[Compile] - Gamification", data.gamification
 
 	for value, key in data.master
 		data.master[key].id = "master#{key+1}"
+	console.log "[Compile] - Master", data.master
 
 	timestamp = Date.now()
 	output = swig.renderFile "haproxy.cfg.template",
@@ -77,6 +79,8 @@ router.route("/:type").post (req, res) ->
 		console.log req.body
 		return res.status(400).json error: "No IP to add." unless req.body?.ip?.length > 0
 
+		console.log "[API] - POST -", req.params.type, req.body.ip
+
 		for value, key in file.data[req.params.type]
 			return res.status(409).json error: "IP already exists!" if value.endpoint is req.body.ip
 
@@ -109,6 +113,8 @@ router.route("/:type/:ip").delete (req, res) ->
 			if value.endpoint is req.params.ip
 				index = key
 				break
+
+		console.log "[API] - DELETE -", req.params.type, req.params.ip
 
 		return res.status(404).json error: "No such IP found!" unless index?
 

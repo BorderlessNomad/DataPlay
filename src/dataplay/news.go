@@ -40,24 +40,6 @@ func SearchForNewsHttp(res http.ResponseWriter, req *http.Request, params martin
 	return string(r)
 }
 
-func SearchForNewsQ(params map[string]string) string {
-	if params["user"] == "" {
-		return ""
-	}
-
-	result, err := SearchForNews(params["terms"])
-	if err != nil {
-		return ""
-	}
-
-	r, e := json.Marshal(result)
-	if e != nil {
-		return ""
-	}
-
-	return string(r)
-}
-
 // search Cassandra for news articles relating to the search terms
 // also searches sql tables to find relevant dates to tie in with table search
 // also checks if dates are entered in the search

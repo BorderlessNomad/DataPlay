@@ -21,14 +21,6 @@ import (
 // 		So(result, ShouldEqual, "")
 // 	})
 // }
-
-// func TestGetObservationsQ(t *testing.T) {
-// 	Convey("Should get observations", t, func() {
-// 		params := map[string]string{}
-// 		params["did"] = "0"
-// 		result := GetObservationsQ(params)
-// 		So(result, ShouldEqual, "Observations could not be retrieved")
-// 	})
 // }
 
 func TestGetObservationsHttp(t *testing.T) {

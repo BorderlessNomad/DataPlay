@@ -46,31 +46,6 @@ package main
 // 	So(result, ShouldEqual, "")
 // })
 // }
-
-// 	//////////////////Q TESTS///////////////////
-
-// 	Convey("When no search parameter is provided", t, func() {
-// 		params["user"] = ""
-// 		result = SearchForDataQ(params)
-// 		So(result, ShouldBeBlank)
-// 	})
-// 	Convey("When bad user parameter is provided", t, func() {
-// 		params["user"] = "q23x467bdf82123ff2344"
-// 		result = SearchForDataQ(params)
-// 		So(result, ShouldBeBlank)
-// 	})
-// 	Convey("When bad data parameter is provided", t, func() {
-// 		params["user"] = "-98"
-// 		params["keyword"] = "derpaderp"
-// 		result = SearchForDataQ(params)
-// 		So(result, ShouldEqual, "[]")
-// 	})
-// 	Convey("When search parameter is 'nhs'", t, func() {
-// 		params["user"] = "1"
-// 		params["keyword"] = "nhs"
-// 		result = SearchForDataQ(params)
-// 		So(result, ShouldNotBeBlank)
-// 	})
 // }
 
 // func TestGetEntry(t *testing.T) {
@@ -148,28 +123,6 @@ package main
 // 		DumpTableHttp(response, request, params)
 // 		So(response.Code, ShouldNotBeNil)
 // 	})
-
-// 	//////////////////////Q TESTS////////////////////////
-// 	result := ""
-// 	Convey("When no ID parameter is provided", t, func() {
-// 		params["id"] = ""
-// 		DumpTableQ(params)
-// 		So(result, ShouldEqual, "")
-// 	})
-// 	Convey("When bad paramaters provided", t, func() {
-// 		params["id"] = "qwerty1"
-// 		params["offset"] = "-3000"
-// 		params["count"] = "10.5"
-// 		DumpTableQ(params)
-// 		So(result, ShouldEqual, "")
-// 	})
-// 	Convey("When correct parameters are provided", t, func() {
-// 		params["id"] = "gdp"
-// 		params["offset"] = "5"
-// 		params["count"] = "10"
-// 		DumpTableQ(params)
-// 		So(result, ShouldNotBeNil)
-// 	})
 // }
 
 // func TestDumpTableRange(t *testing.T) {
@@ -203,35 +156,6 @@ package main
 // 		DumpTableRangeHttp(response, request, params)
 // 		So(response.Code, ShouldEqual, http.StatusBadRequest)
 // 	})
-
-// 	//////////////////////Q TESTS////////////////////////
-
-// 	result := ""
-// 	Convey("When no id parameter is provided", t, func() {
-// 		params["id"] = ""
-// 		result = DumpTableRangeQ(params)
-// 		So(result, ShouldEqual, "")
-// 	})
-// 	Convey("When empty parameters are provided", t, func() {
-// 		params["id"] = "gdp"
-// 		params["x"] = ""
-// 		result = DumpTableRangeQ(params)
-// 		So(result, ShouldEqual, "")
-// 	})
-// 	Convey("When bad parameters are provided", t, func() {
-// 		params["x"] = "year"
-// 		params["startx"] = "-400"
-// 		params["endx"] = "700000000.23"
-// 		result = DumpTableRangeQ(params)
-// 		So(result, ShouldEqual, "")
-// 	})
-// 	// Convey("When good parameters are provided", t, func() {
-// 	// 	params["x"] = "year"
-// 	// 	params["startx"] = "1970"
-// 	// 	params["endx"] = "2000"
-// 	// 	result = DumpTableRangeQ(params)
-// 	// 	So(result, ShouldNotBeNil)
-// 	// })
 // }
 
 // func TestDumpTableGrouped(t *testing.T) {
@@ -266,31 +190,6 @@ package main
 // 		params["x"] = "change"
 // 		params["y"] = "gdpindex"
 // 		DumpTableGroupedHttp(response, request, params)
-// 	})
-
-// 	////////////////////Q TESTS/////////////////
-
-// 	result := ""
-// 	Convey("When no ID, x or y parameters are provided", t, func() {
-// 		params["id"] = ""
-// 		params["x"] = ""
-// 		params["y"] = ""
-// 		result = DumpTableGroupedQ(params)
-// 		So(result, ShouldEqual, "")
-// 	})
-// 	Convey("When invalid parameters is provided", t, func() {
-// 		params["id"] = "derp"
-// 		params["x"] = "change"
-// 		params["y"] = "qwerty1"
-// 		result = DumpTableGroupedQ(params)
-// 		So(result, ShouldEqual, "")
-// 	})
-// 	Convey("When valid parameters are provided", t, func() {
-// 		params["id"] = "gdp"
-// 		params["x"] = "change"
-// 		params["y"] = "gdpindex"
-// 		result = DumpTableGroupedQ(params)
-// 		So(result, ShouldNotBeNil)
 // 	})
 // }
 
@@ -331,33 +230,6 @@ package main
 // 		params["x"] = "change"
 // 		params["y"] = "gdpindex"
 // 		DumpTablePredictionHttp(response, request, params)
-// 	})
-
-// 	////////////////////Q TESTS/////////////////
-
-// 	result := ""
-
-// 	Convey("When no ID, x or y parameters are provided", t, func() {
-// 		params["id"] = ""
-// 		params["x"] = ""
-// 		params["y"] = ""
-// 		result = DumpTablePredictionQ(params)
-// 		So(result, ShouldEqual, "")
-// 	})
-
-// 	Convey("When invalid parameters are provided", t, func() {
-// 		params["id"] = "derp"
-// 		params["x"] = "qwerty1"
-// 		params["y"] = "derp"
-// 		result = DumpTablePredictionQ(params)
-// 		So(result, ShouldEqual, "")
-// 	})
-// 	Convey("When valid parameters are provided", t, func() {
-// 		params["id"] = "gdp"
-// 		params["x"] = "change"
-// 		params["y"] = "gdpindex"
-// 		result = DumpTablePredictionQ(params)
-// 		So(result, ShouldNotBeEmpty)
 // 	})
 // }
 
@@ -422,28 +294,6 @@ package main
 // 		params["percent"] = "10"
 // 		params["min"] = "1"
 // 		DumpReducedTableHttp(response, request, params)
-// 	})
-
-// 	//////////////////Q TESTS//////////////////
-
-// 	result := ""
-// 	Convey("When invalid parameters are passed", t, func() {
-// 		params["id"] = ""
-// 		params["x"] = "derp"
-// 		params["y"] = "derp"
-// 		params["percent"] = "-10"
-// 		params["min"] = "1"
-// 		result = DumpReducedTableQ(params)
-// 		So(result, ShouldEqual, "")
-// 	})
-// 	Convey("When valid table and parameters are provided", t, func() {
-// 		params["id"] = "gdp"
-// 		params["x"] = "change"
-// 		params["y"] = "gdpindex"
-// 		params["percent"] = "10"
-// 		params["min"] = "1"
-// 		result = DumpReducedTableQ(params)
-// 		So(result, ShouldNotBeEmpty)
 // 	})
 // }
 

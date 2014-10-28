@@ -18,7 +18,7 @@ APP_HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print
 APP_PORT="80"
 APP_TYPE="gamification"
 
-# . /etc/profile
+. /etc/profile
 
 # LOADBALANCER_HOST="109.231.121.26"
 LOADBALANCER_HOST="$DP_LOADBALANCER_HOST"

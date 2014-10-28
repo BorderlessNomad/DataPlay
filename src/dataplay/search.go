@@ -52,29 +52,6 @@ func SearchForDataHttp(res http.ResponseWriter, req *http.Request, params martin
 	return string(r)
 }
 
-func SearchForDataQ(params map[string]string) string {
-	if params["user"] == "" {
-		return ""
-	}
-
-	uid, e := strconv.Atoi(params["user"])
-	if e != nil {
-		return ""
-	}
-
-	result, err := SearchForData(uid, params["keyword"], params)
-	if err != nil {
-		return ""
-	}
-
-	r, e := json.Marshal(result)
-	if e != nil {
-		return ""
-	}
-
-	return string(r)
-}
-
 /**
  * @brief Search a given keyword in database
  * @details This method searches for a matching title with following conditions,
@@ -111,14 +88,21 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 
 	indices := []Index{}
 
-	term := "%" + keyword + "%"
+	// keyword := strings.Trim(keyword, " ")      // Remove first and last spaces (if any)
+	// r, _ := regexp.Compile("/[^A-Za-z]+/")     // RegEx compile
+	// keyword = r.ReplaceAllString(keyword, "%") // Replace all non-alphabets with %
+	// term := "%" + keyword + "%"                // e.g. "nh s" => "%nh%s%"
+
+	keyword = strings.Trim(keyword, " ")
+	term := "%" + strings.Replace(keyword, " ", "%", -1) + "%" // e.g. "gold" => "%gold%", nh s" => "%nh%s%", "  cri m e " => "%cri%m%e%"
+
+	Logger.Println("Searching for term: '%s'", term)
 
 	query := DB.Where("LOWER(title) LIKE LOWER(?)", term)
 	query = query.Or("LOWER(notes) LIKE LOWER(?)", term)
 	query = query.Or("LOWER(name) LIKE LOWER(?)", term)
-	query = query.Order("random()")
 
-	err := query.Limit(count).Offset(offset).Find(&indices).Error
+	err := query.Order("random()").Limit(count).Offset(offset).Find(&indices).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return response, &appError{err, "Database query failed", http.StatusServiceUnavailable}
 	}
