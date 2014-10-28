@@ -125,7 +125,10 @@ angular.module('dataplayApp')
 							url: d.linkstring
 							action: d.action
 							actor: d.actor
-							points: d.points
+							points:
+								value: d.points
+								text: if Math.abs(d.points) is 1 then "point" else "points"
+								class: if d.points < 0 then "danger" else "success"
 					else
 						$scope.myActivity = []
 				.error ->
