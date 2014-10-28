@@ -22,11 +22,11 @@ puts = (error, stdout, stderr) -> sys.puts stdout
 compileTemplate = (data) ->
 	for value, key in data.gamification
 		data.gamification[key].id = "gamification#{key+1}"
-	console.log "[Compile] - Gamification", data.gamification
 
 	for value, key in data.master
 		data.master[key].id = "master#{key+1}"
-	console.log "[Compile] - Master", data.master
+
+	console.log "[Compile] - Prepare -", data
 
 	timestamp = Date.now()
 	output = swig.renderFile "haproxy.cfg.template",
@@ -37,16 +37,17 @@ compileTemplate = (data) ->
 	fs.writeFile "haproxy.cfg", output, (err) ->
 		return err if err
 
-		console.log "Successfully generated haproxy.cfg on #{new Date(timestamp)}"
+		console.log "[Compile] - Generated -", "haproxy.cfg on #{new Date(timestamp)}"
 
-		console.log "Copy /etc/haproxy/haproxy.cfg to /etc/haproxy/haproxy.cfg.#{timestamp}"
 		exec "cp -rf /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.#{timestamp}", puts
+		console.log "[Copy] - Backup -", "/etc/haproxy/haproxy.cfg => /etc/haproxy/haproxy.cfg.#{timestamp}"
 
-		console.log "Replace old config file [Use some force if needed]"
 		exec "cp -rf haproxy.cfg /etc/haproxy/haproxy.cfg", puts
+		console.log "[Copy] - Replace -", "haproxy.cfg => /etc/haproxy/haproxy.cfg"
 
-		console.log "Reload HAProxy"
+		console.log "[Service] - Reload -", "Start"
 		exec "service haproxy reload", puts
+		console.log "[Service] - Reload -", "Success"
 
 router = express.Router()
 
@@ -55,6 +56,7 @@ router.route("/").get (req, res) ->
 		return res.status(500).json error: "Error while reading file." if err
 
 		# compileTemplate file.data
+		console.log "[API] - GET -", req.headers['x-forwarded-for'] || req.connection.remoteAddress, "-", req.params.type, req.body.ip
 
 		res.json file.data
 
@@ -65,6 +67,7 @@ router.route("/:type").get (req, res) ->
 		return res.status(400).json error: "No Type to remove." unless req.params?.type?.length > 0
 
 		# compileTemplate file.data
+		console.log "[API] - GET -", req.headers['x-forwarded-for'] || req.connection.remoteAddress, "-", req.params.type, req.body.ip
 
 		if file.data[req.params.type]? then res.json file.data[req.params.type] else res.status(400).json error: "Invalid Type specified."
 
@@ -76,10 +79,9 @@ router.route("/:type").post (req, res) ->
 
 		return res.status(400).json error: "Invalid Type specified." unless file.data[req.params.type]?
 
-		console.log req.body
 		return res.status(400).json error: "No IP to add." unless req.body?.ip?.length > 0
 
-		console.log "[API] - POST -", req.params.type, req.body.ip
+		console.log "[API] - POST -", req.headers['x-forwarded-for'] || req.connection.remoteAddress, "-", req.params.type, req.body.ip
 
 		for value, key in file.data[req.params.type]
 			return res.status(409).json error: "IP already exists!" if value.endpoint is req.body.ip
@@ -114,7 +116,7 @@ router.route("/:type/:ip").delete (req, res) ->
 				index = key
 				break
 
-		console.log "[API] - DELETE -", req.params.type, req.params.ip
+		console.log "[API] - DELETE -", req.headers['x-forwarded-for'] || req.connection.remoteAddress, "-", req.params.type, req.params.ip
 
 		return res.status(404).json error: "No such IP found!" unless index?
 
