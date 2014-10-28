@@ -94,13 +94,14 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 	// term := "%" + keyword + "%"                // e.g. "nh s" => "%nh%s%"
 
 	keyword = strings.Trim(keyword, " ")
-	term := "%" + strings.Replace(keyword, " ", "%", -1) + "%" // e.g. "nh s" => "%nh%s%"
+	term := "%" + strings.Replace(keyword, " ", "%", -1) + "%" // e.g. "gold" => "%gold%", nh s" => "%nh%s%", "  cri m e " => "%cri%m%e%"
 
-	Logger.Println("Searching with Suffix Wildcard", term)
+	Logger.Println("Searching for term: '%s'", term)
 
 	query := DB.Where("LOWER(title) LIKE LOWER(?)", term)
 	query = query.Or("LOWER(notes) LIKE LOWER(?)", term)
 	query = query.Or("LOWER(name) LIKE LOWER(?)", term)
+
 	err := query.Order("random()").Limit(count).Offset(offset).Find(&indices).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return response, &appError{err, "Database query failed", http.StatusServiceUnavailable}
