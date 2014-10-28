@@ -7,6 +7,9 @@
  # # HomeCtrl
  # Controller of the dataplayApp
 ###
+d3.selection::duration = -> @
+# d3.selection::transition = -> @
+
 angular.module('dataplayApp')
 	.controller 'HomeCtrl', ['$scope', '$location', 'Home', 'Auth', 'Overview', 'PatternMatcher', 'config', ($scope, $location, Home, Auth, Overview, PatternMatcher, config) ->
 		$scope.config = config
