@@ -9,7 +9,8 @@
 		"express": "^4.9",
 		"body-parser": "^1.9",
 		"errorhandler": "^1.2",
-		"json-file-plus": "^2.0"
+		"json-file-plus": "^2.0",
+		"console-stamp": "latest"
 	},
 	"devDependencies": {
 		"coffee-script": "^1.7"

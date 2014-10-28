@@ -9,6 +9,8 @@ sys = require "sys"
 exec = require("child_process").exec
 proxy = path.join process.cwd(), 'proxy.json'
 
+require("console-stamp") console, "[yyyy-mm-dd HH:MM:ss.l o]"
+
 app = express()
 
 app.use bodyParser.urlencoded(extended: true)
@@ -35,6 +37,7 @@ compileTemplate = (data) ->
 		master: data.master
 
 	fs.writeFile "haproxy.cfg", output, (err) ->
+		console.log "[API] - GET - Error", err if err
 		return err if err
 
 		console.log "[Compile] - Generated -", "haproxy.cfg on #{new Date(timestamp)}"
@@ -53,6 +56,7 @@ router = express.Router()
 
 router.route("/").get (req, res) ->
 	jsonFile proxy, (err, file) ->
+		console.log "[API] - GET - Error", err if err
 		return res.status(500).json error: "Error while reading file." if err
 
 		# compileTemplate file.data
@@ -62,6 +66,7 @@ router.route("/").get (req, res) ->
 
 router.route("/:type").get (req, res) ->
 	jsonFile proxy, (err, file) ->
+		console.log "[API] - GET - Error", err if err
 		return res.status(500).json error: "Error while reading file." if err
 
 		return res.status(400).json error: "No Type to remove." unless req.params?.type?.length > 0
@@ -73,6 +78,7 @@ router.route("/:type").get (req, res) ->
 
 router.route("/:type").post (req, res) ->
 	jsonFile proxy, (err, file) ->
+		console.log "[API] - POST - Error", err if err
 		return res.status(500).json error: "Error while reading file." if err
 
 		return res.status(400).json error: "No Type to specified." unless req.params?.type?.length > 0
@@ -93,16 +99,18 @@ router.route("/:type").post (req, res) ->
 			timestamp: timestamp
 
 		file.save().then (->
-			console.log "[#{new Date(timestamp)}] added new endpoint:", req.body.ip
+			console.log "[API] - POST - Success", req.params.type, req.body.ip
 
 			compileTemplate file.data
 
 			res.json file.data[req.params.type]
 		), (err) ->
+			console.log "[API] - POST - Error", err
 			return res.status(500).json error: "Error while saving file."
 
 router.route("/:type/:ip").delete (req, res) ->
 	jsonFile proxy, (err, file) ->
+		console.log "[API] - DELETE - Error", err if err
 		return res.status(500).json error: "Error while reading file." if err
 
 		return res.status(400).json error: "No Type to specified." unless req.params?.type?.length > 0
@@ -125,12 +133,13 @@ router.route("/:type/:ip").delete (req, res) ->
 		file.data[req.params.type].splice index, 1
 
 		file.save().then (->
-			console.log "[#{new Date(timestamp)}] removed endpoint:", req.params.ip
+			console.log "[API] - DELETE - Success", req.params.type, req.params.ip
 
 			compileTemplate file.data
 
 			res.json file.data[req.params.type]
 		), (err) ->
+			console.log "[API] - DELETE - Error", err
 			return res.status(500).json error: "Error while saving file"
 
 app.use '/', router
@@ -139,4 +148,4 @@ server = app.listen port, ->
 	host = server.address().address
 	port = server.address().port
 
-	console.log "Express server listening on http://%s:%d in '%s' mode", host, port, app.settings.env
+	console.log "[API] - INIT - [", app.settings.env, "]", "http://", host, ":", port
