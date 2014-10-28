@@ -2,7 +2,7 @@
 
 echo 'BUILDING GOGRAM'
 oldgo=$GOPATH
-if [[ "$OSTYPE" == "msys" ]]; then
+if [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "msys" ]]; then
 	GOPATH=$oldgo";"$(pwd -W)
 else
 	GOPATH=$oldgo:$(pwd)

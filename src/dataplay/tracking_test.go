@@ -36,21 +36,6 @@ func TestGetLastVisited(t *testing.T) {
 
 }
 
-func TestGetLastVisitedQ(t *testing.T) {
-	m := make(map[string]string)
-
-	Convey("Should return empty when no user", t, func() {
-		result := GetLastVisitedQ(m)
-		So(result, ShouldBeEmpty)
-	})
-
-	Convey("Should not return empty when there is a user", t, func() {
-		m["user"] = "11"
-		result := GetLastVisitedQ(m)
-		So(result, ShouldNotBeEmpty)
-	})
-}
-
 func TestTrackVisitedHttp(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")

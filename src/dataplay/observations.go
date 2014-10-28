@@ -286,26 +286,6 @@ func GetObservationsHttp(res http.ResponseWriter, req *http.Request, params mart
 	return string(r)
 }
 
-func GetObservationsQ(params map[string]string) string {
-	did, err := strconv.Atoi(params["did"])
-
-	if err != nil || did < 0 {
-		return "Observations could not be retrieved"
-	}
-
-	result, err1 := GetObservations(did, 11)
-	if err1 != nil {
-		return "Observations could not be retrieved"
-	}
-
-	r, err2 := json.Marshal(result)
-	if err2 != nil {
-		return "json error"
-	}
-
-	return string(r)
-}
-
 func GetRecentObservationsHttp(res http.ResponseWriter, req *http.Request) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {

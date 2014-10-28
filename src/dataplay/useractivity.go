@@ -403,35 +403,6 @@ func GetActivityStreamHttp(res http.ResponseWriter, req *http.Request) string {
 	return string(r)
 }
 
-func GetActivityStreamQ(params map[string]string) string {
-	if params["user"] == "" {
-		return "no user id"
-	}
-
-	uid, e := strconv.Atoi(params["user"])
-	if e != nil {
-		return e.Error()
-	}
-
-	var activities []UserActivity
-	t := time.Now()
-	activities = AddHappenedTo(uid, activities, t)
-	activities = AddInstigated(uid, activities, t)
-	sortutil.AscByField(activities, "Created")
-
-	n := 5
-	if len(activities) < n {
-		n = len(activities)
-	}
-
-	r, err := json.Marshal(activities[:n])
-	if err != nil {
-		return err.Error()
-	}
-
-	return string(r)
-}
-
 func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivity {
 	activity := []Activity{}
 

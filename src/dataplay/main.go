@@ -44,10 +44,10 @@ func DBSetup() error {
  *   init Martini API
  */
 func main() {
-	initClassicMode()
+	initApiServer()
 }
 
-func initClassicMode() {
+func initApiServer() {
 	fmt.Println("[init] starting in Classic mode")
 
 	e := DBSetup()
@@ -62,7 +62,15 @@ func initClassicMode() {
 
 	m.Use(cors.Allow(&cors.Options{
 		AllowAllOrigins: true,
-		// AllowOrigins:     []string{"http://localhost:9000"},
+		// AllowOrigins: []string{
+		// 	"http://localhost:9000",
+		// 	"http://localhost:3000",
+		// 	"http://*.playgen.com",
+		// 	"http://*.playgen.org",
+		// 	"https://*.playgen.com",
+		// 	"https://*.playgen.org",
+		// 	"http://<loadbalancer>",
+		// },
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowCredentials: true,
 		AllowHeaders: []string{
