@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+
 	e := DailyKimono() // generate the day's news urls
 
 	if e == nil {
@@ -42,7 +43,8 @@ func main() {
 				file.Close()
 				break
 			}
-			fmt.Println("RE-STARTING...")
+
+			fmt.Println("RE-STARTING...", e.Error())
 		}
 
 	} else {

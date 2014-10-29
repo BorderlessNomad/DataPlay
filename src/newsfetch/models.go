@@ -41,24 +41,14 @@ type Response struct {
 	ProviderName    string    `json:"provider_name"`
 	ProviderDisplay string    `json:"provider_display"`
 	FaviconUrl      string    `json:"favicon_url"`
-	FaviconColors   []string  `json:"favicon_colors"`
 	Language        string    `json:"language"`
 	Published       int64     `json:"published"`
-	Offset          int64     `json:"offset"`
+	Offset          string    `json:"offset"`
 	Lead            string    `json:"lead"`
-	Content         string    `json:"content"`
-	Authors         []Author  `json:"authors"`
 	Keywords        []Keyword `json:"keywords"`
 	Entities        []Entity  `json:"entities"`
-	RelatedArticles []Related `json:"related"`
+	Related         []Related `json:"related"`
 	Images          []Image   `json:"images"`
-	Media           string    `json:"media"`
-	CacheAge        int       `json:"cache_age"`
-}
-
-type Author struct {
-	Name string `json:"name"`
-	Url  string `json:"url"`
 }
 
 type Entity struct {
@@ -67,7 +57,6 @@ type Entity struct {
 }
 
 type Image struct {
-	Caption string  `json:"caption"`
 	Url     string  `json:"url"`
 	Height  int     `json:"height"`
 	Width   int     `json:"width"`
@@ -87,11 +76,10 @@ type Keyword struct {
 }
 
 type Related struct {
-	Url             string  `json:"url"`
-	Title           string  `json:"title"`
-	Description     string  `json:"description"`
-	ThumbnailWidth  int     `json:"thumbnail_width"`
-	Score           float32 `json:"score"`
-	ThumbnailHeight int     `json:"thumbnail_height"`
-	ThumbnailUrl    string  `json:"thumbnail_url"`
+	Url             string `json:"url"`
+	Title           string `json:"title"`
+	Description     string `json:"description"`
+	ThumbnailWidth  int    `json:"thumbnail_width"`
+	ThumbnailHeight int    `json:"thumbnail_height"`
+	ThumbnailUrl    string `json:"thumbnail_url"`
 }
