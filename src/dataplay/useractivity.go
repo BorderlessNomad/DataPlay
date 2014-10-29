@@ -258,7 +258,7 @@ func GetCreditedDiscoveriesHttp(res http.ResponseWriter, req *http.Request, para
 	discovered := []Discovered{}
 	err1 := DB.Where("uid = ?", user.Uid).Where("credited > ?", 0).Find(&discovered).Error
 	if err1 != nil && err1 == gorm.RecordNotFound {
-		return "this user has yet to make any discoveries"
+		return ""
 	} else if err1 != nil {
 		http.Error(res, "Database query failed! (Discovered)", http.StatusInternalServerError)
 		return ""
@@ -278,7 +278,7 @@ func GetCreditedDiscoveriesHttp(res http.ResponseWriter, req *http.Request, para
 			tmp.Title = td.Title
 		} else {
 			cid := strconv.Itoa(d.CorrelationId)
-			tmp.ApiString = "chartcorrelated/" + cid
+			tmp.ApiString = "chart/correlated/" + cid
 			var cd CorrelationData
 			json.Unmarshal(d.Json, &cd)
 			tmp.Title = cd.Table1.Title + " correlated with " + cd.Table2.Title
