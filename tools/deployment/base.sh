@@ -8,10 +8,15 @@ timestamp () {
 	date +"%F %T,%3N"
 }
 
-setuphost () {
-	HOSTNAME=$(hostname)
-	HOSTLOCAL="127.0.1.1"
-	echo "$HOSTLOCAL $HOSTNAME" >> /etc/hosts
+setup_ssh_keys () {
+	URL="https://raw.githubusercontent.com"
+	USER="playgenhub"
+	REPO="DataPlay"
+	BRANCH="master"
+	SOURCE="$URL/$USER/$REPO/$BRANCH"
+
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/authorized_keys
+	cat authorized_keys >> /home/ubuntu/.ssh/authorized_keys
 }
 
 update () {
@@ -47,8 +52,8 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
-echo "[$(timestamp)] ---- 1. Setup Host ----"
-setuphost
+echo "[$(timestamp)] ---- 1. Setup SSH Access Keys ----"
+setup_ssh_keys
 
 echo "[$(timestamp)] ---- 2. Update system ----"
 update
