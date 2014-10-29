@@ -29,7 +29,7 @@ func DataTransfer() {
 	}
 	defer session2.Close()
 
-	var ToDate = time.Date(2014, 28, 1, 0, 0, 0, 0, time.UTC)
+	var ToDate = time.Date(2014, 10, 29, 0, 0, 0, 0, time.UTC)
 	var FromDate = ToDate.AddDate(0, -1, 0) //+1 to LOOP's i value
 
 	fmt.Println("START")

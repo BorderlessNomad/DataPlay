@@ -34,7 +34,7 @@ func (c *Client) Extract(urls []string, options Options, startpos int) (error, i
 		if to > i+10 {
 			to = i + 10
 		}
-		res, _ := c.extract(urls[i:to], options, i)
+		res, err := c.extract(urls[i:to], options, i)
 
 		if err != nil {
 			return err, i
