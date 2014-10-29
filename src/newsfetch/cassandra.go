@@ -21,12 +21,12 @@ func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
 	}
 
 	cluster := gocql.NewCluster(cassandraHost)
-	cluster.Timeout = 1 * time.Minute
+	cluster.Timeout = 2 * time.Minute
 	cluster.Port = cassandraPort
 	cluster.Keyspace = keyspace
 	cluster.Consistency = gocql.Quorum
 	cluster.Compressor = gocql.SnappyCompressor{}
-	cluster.RetryPolicy = &gocql.SimpleRetryPolicy{NumRetries: 5}
+	cluster.RetryPolicy = &gocql.SimpleRetryPolicy{NumRetries: 10}
 	session, err := cluster.CreateSession()
 
 	if err != nil {

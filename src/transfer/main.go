@@ -29,19 +29,19 @@ func DataTransfer() {
 	}
 	defer session2.Close()
 
-	var ToDate = time.Date(2014, 11, 1, 0, 0, 0, 0, time.UTC)
+	var ToDate = time.Date(2014, 9, 29, 0, 0, 0, 0, time.UTC)
 	var FromDate = ToDate.AddDate(0, -1, 0) //+1 to LOOP's i value
 
 	fmt.Println("START")
 
-	for i := 0; i < 59; i++ {
+	for i := 0; i < 58; i++ {
 		fmt.Println("RESPONSE LOOP ", i, " start ", time.Now())
 		var id []byte
 		var pic_index int
 		var date time.Time
 		var description, url, title, name, pic_url, related_url string
 
-		iter1 := session1.Query(`SELECT id, date, description, url, title FROM response WHERE date >= ? AND date < ? LIMIT 5000 ALLOW FILTERING`, FromDate, ToDate).Iter()
+		iter1 := session1.Query(`SELECT id, date, description, url, title FROM response WHERE date >= ? AND date < ? ALLOW FILTERING`, FromDate, ToDate).Iter()
 
 		for iter1.Scan(&id, &date, &description, &url, &title) {
 			session2.Query(`INSERT INTO response (date, dummy, description, url, title) VALUES (?, ?, ?, ?, ?)`, date, 1, description, url, title).Exec()
@@ -113,7 +113,7 @@ func DataTransfer() {
 
 		ToDate = ToDate.AddDate(0, -1, 0)
 		FromDate = FromDate.AddDate(0, -1, 0)
-		fmt.Println("TOTAL LOOP ", i, " COMPLETE ", 58-i, " MORE TO GO ", time.Now())
+		fmt.Println("TOTAL LOOP ", i, " COMPLETE ", 57-i, " MORE TO GO ", time.Now())
 	}
 }
 
