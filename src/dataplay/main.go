@@ -106,18 +106,25 @@ func initApiServer() {
 	m.Get("/api/getimportstatus/:id", CheckImportStatus)
 	m.Get("/api/home/data", GetHomePageDataHttp)
 	m.Get("/api/identifydata/:id", IdentifyTable)
-	m.Get("/api/profile/credited", GetCreditedDiscoveriesHttp)
-	m.Get("/api/profile/discoveries", GetDiscoveriesHttp)
-	m.Get("/api/profile/observations", GetProfileObservationsHttp)
+
 	m.Get("/api/recentobservations", GetRecentObservationsHttp)
 	m.Get("/api/stringmatch/:word", FindStringMatches)
 	m.Get("/api/stringmatch/:word/:x", FindStringMatches)
 	m.Get("/api/tweets/:searchterms", GetTweetsHttp)
+
 	m.Get("/api/user", GetUserDetails)
 	m.Get("/api/user/discoveries", GetAmountDiscoveriesHttp)
 	m.Get("/api/user/experts", GetDataExpertsHttp)
 	m.Get("/api/user/reputation", GetReputationHttp)
 	m.Get("/api/user/reset/:token/:username", HandleResetPasswordCheck)
+
+	m.Get("/api/profile/credited", GetCreditedDiscoveriesHttp)
+	m.Get("/api/profile/:username/credited", GetCreditedDiscoveriesHttp)
+	m.Get("/api/profile/discoveries", GetDiscoveriesHttp)
+	m.Get("/api/profile/:username/discoveries", GetDiscoveriesHttp)
+	m.Get("/api/profile/observations", GetProfileObservationsHttp)
+	m.Get("/api/profile/:username/observations", GetProfileObservationsHttp)
+	m.Get("/api/profile/:username", GetUserDetails)
 
 	m.Post("/api/login", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
 		return HandleLogin(res, req, login)

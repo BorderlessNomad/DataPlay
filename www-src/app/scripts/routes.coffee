@@ -112,6 +112,18 @@ angular.module('dataplayApp')
 				controller: 'ProfileCtrl'
 				title: ['Profile']
 				login: true
+			.when '/profile',
+				redirectTo: '/user'
+			.when '/profile/:user',
+				templateUrl: 'views/user/profile.html'
+				controller: 'ProfileCtrl'
+				title: ['Profile']
+				login: true
+			.when '/profile/:user/:tab',
+				templateUrl: 'views/user/profile.html'
+				controller: 'ProfileCtrl'
+				title: ['Profile']
+				login: true
 			.when '/admin',
 				templateUrl: 'views/admin/dashboard.html'
 				controller: 'AdminUsersCtrl'

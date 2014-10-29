@@ -163,10 +163,11 @@ func HandleSocialLogin(res http.ResponseWriter, req *http.Request, login UserSoc
 		}
 
 		u := map[string]interface{}{
-			"uid":      user.Uid,
-			"user":     user.Email,
-			"session":  session.Value,
-			"usertype": user.Usertype,
+			"uid":        user.Uid,
+			"user":       user.Email,
+			"email_hash": GetMD5Hash(user.Email),
+			"session":    session.Value,
+			"usertype":   user.Usertype,
 		}
 
 		usr, _ := json.Marshal(u)
@@ -178,7 +179,7 @@ func HandleSocialLogin(res http.ResponseWriter, req *http.Request, login UserSoc
 		user.Password = GetMD5Hash(user.Email + time.Now().String()) // not important here, just used hashed version of their email plus the time
 		user.Avatar = login.Image
 		user.Username = login.FirstName + login.LastName
-		user.Usertype = 1
+		user.Usertype = UserTypeNormal
 
 		gErr = DB.Save(&user).Error
 		if gErr != nil {
@@ -215,10 +216,11 @@ func HandleSocialLogin(res http.ResponseWriter, req *http.Request, login UserSoc
 		}
 
 		u := map[string]interface{}{
-			"uid":      user.Uid,
-			"user":     newUser.Email,
-			"session":  session.Value,
-			"usertype": newUser.Usertype,
+			"uid":        user.Uid,
+			"user":       newUser.Email,
+			"email_hash": GetMD5Hash(newUser.Email),
+			"session":    session.Value,
+			"usertype":   newUser.Usertype,
 		}
 
 		usr, _ := json.Marshal(u)
@@ -289,9 +291,10 @@ func HandleRegister(res http.ResponseWriter, req *http.Request, register UserFor
 	}
 
 	u := map[string]interface{}{
-		"user":     user.Username,
-		"session":  session.Value,
-		"usertype": user.Usertype,
+		"user":       user.Username,
+		"email_hash": GetMD5Hash(user.Email),
+		"session":    session.Value,
+		"usertype":   user.Usertype,
 	}
 
 	usr, _ := json.Marshal(u)
@@ -366,8 +369,9 @@ func HandleForgotPassword(res http.ResponseWriter, req *http.Request, user UserN
 	}
 
 	u := map[string]interface{}{
-		"user":  validUser.Username,
-		"token": hash,
+		"user":       validUser.Username,
+		"email_hash": GetMD5Hash(validUser.Email),
+		"token":      hash,
 	}
 
 	usr, _ := json.Marshal(u)
@@ -440,39 +444,79 @@ func HandleResetPassword(res http.ResponseWriter, req *http.Request, params mart
 	return "OK"
 }
 
-func GetUserDetails(res http.ResponseWriter, req *http.Request) string {
+func GetUserDetails(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter.", http.StatusBadRequest)
 		return ""
 	}
 
-	uid, err := GetUserID(session)
-	if err != nil {
-		http.Error(res, err.Message, err.Code)
-		return ""
-	}
-
 	user := User{}
-	gErr := DB.Where("uid = ?", uid).First(&user).Error
-	if gErr != nil && gErr != gorm.RecordNotFound {
-		http.Error(res, "Database query failed (User).", http.StatusInternalServerError)
-		return ""
-	} else if gErr == gorm.RecordNotFound {
-		http.Error(res, "No such user found!", http.StatusNotFound)
-		return ""
+	err := &appError{}
+	if params["username"] != "" {
+		user, err = GetUserDetailsByUsername(params["username"])
+		if err != nil {
+			http.Error(res, err.Message, err.Code)
+		}
+	} else {
+		uid, err := GetUserID(session)
+		if err != nil {
+			http.Error(res, err.Message, err.Code)
+			return ""
+		}
+
+		user, err = GetUserDetailsById(uid)
+		if err != nil {
+			http.Error(res, err.Message, err.Code)
+		}
 	}
 
 	u := map[string]interface{}{
-		"uid":      uid,
-		"username": user.Username,
-		"email":    user.Email,
-		"usertype": user.Usertype,
+		"uid":        user.Uid,
+		"username":   user.Username,
+		"email":      user.Email,
+		"email_hash": GetMD5Hash(user.Email),
+		"avatar":     user.Avatar,
+		"usertype":   user.Usertype,
 	}
 
 	usr, _ := json.Marshal(u)
 
 	return string(usr)
+}
+
+func GetUserDetailsById(userid int) (User, *appError) {
+	user := User{}
+
+	if userid == 0 {
+		return user, &appError{nil, "No username found!", http.StatusBadRequest}
+	}
+
+	gErr := DB.Where("uid = ?", userid).First(&user).Error
+	if gErr != nil && gErr != gorm.RecordNotFound {
+		return user, &appError{gErr, "Database query failed (User).", http.StatusInternalServerError}
+	} else if gErr == gorm.RecordNotFound {
+		return user, &appError{gErr, "No such user found!", http.StatusNotFound}
+	}
+
+	return user, nil
+}
+
+func GetUserDetailsByUsername(username string) (User, *appError) {
+	user := User{}
+
+	if username == "" {
+		return user, &appError{nil, "No username found!", http.StatusBadRequest}
+	}
+
+	gErr := DB.Where("username = ?", username).First(&user).Error
+	if gErr != nil && gErr != gorm.RecordNotFound {
+		return user, &appError{gErr, "Database query failed (User).", http.StatusInternalServerError}
+	} else if gErr == gorm.RecordNotFound {
+		return user, &appError{gErr, "No such user found!", http.StatusNotFound}
+	}
+
+	return user, nil
 }
 
 func UpdateUserDetails(res http.ResponseWriter, req *http.Request, data UserDetailsForm) string {
@@ -518,8 +562,9 @@ func UpdateUserDetails(res http.ResponseWriter, req *http.Request, data UserDeta
 	}
 
 	u := map[string]interface{}{
-		"username": user.Username,
-		"email":    user.Email,
+		"username":   user.Username,
+		"email":      user.Email,
+		"email_hash": GetMD5Hash(user.Email),
 	}
 
 	usr, _ := json.Marshal(u)

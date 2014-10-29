@@ -98,7 +98,7 @@
 					<div class="row" ng-repeat="item in sect.top5">
 						<p class="item" ng-show="item.amount > 0">
 							<span class="label label-primary label-purple">{{item.amount}}</span>&nbsp;&nbsp;
-							<a href="/#!/{{sect.url}}/{{item.term}}">{{item.term}}</a>
+							<a href="/{{sect.url}}/{{item.term}}">{{item.term}}</a>
 						</p>
 					</div>
 					<div class="nothing" ng-hide="sect.top5.length > 0"><p class="text-center text-muted">Nothing to show</p></div>

@@ -24,9 +24,9 @@
 				<div class="row" ng-if="results.length > 0">
 					<div class="list-group-item col-sm-4" ng-repeat="chart in chartsRelated" id="{{chart.id}}" ng-show="hasRelatedCharts() > 0">
 						<div class="media-heading">
-							<h5><a href="/#!/overview/{{chart.guid}}">{{chart.title}}</a></h5>
+							<h5><a href="/overview/{{chart.guid}}">{{chart.title}}</a></h5>
 						</div>
-						<a class="related media-body" href="/#!/overview/{{chart.guid}}">
+						<a class="related media-body" href="/overview/{{chart.guid}}">
 							<span ng-include="'views/charts/related/line.html'"></span>
 							<span ng-include="'views/charts/related/row.html'"></span>
 							<span ng-include="'views/charts/related/column.html'"></span>

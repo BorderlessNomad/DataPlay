@@ -11,6 +11,7 @@ angular.module('dataplayApp')
 	.controller 'ProfileCtrl', ['$scope', '$location', '$routeParams', 'Profile', 'Auth', 'config', ($scope, $location, $routeParams, Profile, Auth, config) ->
 		$scope.params = $routeParams
 		$scope.currentTab = if $scope.params?.tab?.length > 0 then $scope.params.tab else 'profile'
+		$scope.currentTab = if $scope.currentTab is 'profile' and $scope.params?.user? then 'creditdiscoveries' else $scope.currentTab
 		$scope.error =
 			message: null
 
@@ -24,6 +25,7 @@ angular.module('dataplayApp')
 		$scope.current =
 			email: ''
 			username: ''
+			avatar: ''
 		$scope.saved =
 			email: ''
 			username: ''
@@ -33,58 +35,74 @@ angular.module('dataplayApp')
 		$scope.discoveries = []
 		$scope.observations = []
 
-		$scope.inits =
-			profile: ->
-				$scope.loading.profile = true
-				Profile.getInfo()
-					.success (data) ->
-						$scope.loading.profile = false
-						$scope.current.email = data.email
-						$scope.current.username = data.username
+		$scope.profile = (user = '') ->
+			$scope.loading.profile = true
 
+			Profile.getInfo(user)
+				.success (data) ->
+					$scope.loading.profile = false
+					$scope.current.email = data.email
+					$scope.current.username = data.username
+					$scope.current.avatar = data.avatar or "http://www.gravatar.com/avatar/#{data.email_hash}?d=identicon"
+
+					if not user? or not user.length
 						$scope.saved.email = data.email
 						$scope.saved.username = data.username
-					.error (data, status) ->
-						$scope.loading.profile = false
-						$scope.handleError data, status
 
-			creditdiscoveries: ->
-				$scope.loading.creditdiscoveries = true
-				Profile.getCreditDiscoveries()
-					.success (data) ->
-						$scope.loading.creditdiscoveries = false
-						if data instanceof Array
-							$scope.creditDiscoveries = data
-						return
-					.error (data, status) ->
-						$scope.loading.creditdiscoveries = false
-						$scope.handleError data, status
+					return
+				.error (data, status) ->
+					$scope.loading.profile = false
+					$scope.handleError data, status
 
-			discoveries: ->
-				$scope.loading.discoveries = true
-				Profile.getDiscoveries()
-					.success (data) ->
-						$scope.loading.discoveries = false
-						if data instanceof Array
-							$scope.discoveries = data
-						return
-					.error (data, status) ->
-						$scope.loading.discoveries = false
-						$scope.handleError data, status
+		$scope.creditdiscoveries = (user = '') ->
+			$scope.loading.creditdiscoveries = true
 
-			observations: ->
-				$scope.loading.observations = true
-				Profile.getObservations()
-					.success (data) ->
-						$scope.loading.observations = false
-						if data instanceof Array
-							$scope.observations = data
-						return
-					.error (data, status) ->
-						$scope.loading.observations = false
-						$scope.handleError data, status
+			$scope.profile user
 
-		$scope.inits[$scope.currentTab]?()
+			Profile.getCreditDiscoveries(user)
+				.success (data) ->
+					$scope.loading.creditdiscoveries = false
+					if data instanceof Array
+						$scope.creditDiscoveries = data
+
+					return
+				.error (data, status) ->
+					$scope.loading.creditdiscoveries = false
+					$scope.handleError data, status
+
+		$scope.discoveries = (user = '') ->
+			$scope.loading.discoveries = true
+
+			$scope.profile user
+
+			Profile.getDiscoveries(user)
+				.success (data) ->
+					$scope.loading.discoveries = false
+					if data instanceof Array
+						$scope.discoveries = data
+
+					return
+				.error (data, status) ->
+					$scope.loading.discoveries = false
+					$scope.handleError data, status
+
+		$scope.observations = (user = '') ->
+			$scope.loading.observations = true
+
+			$scope.profile user
+
+			Profile.getObservations(user)
+				.success (data) ->
+					$scope.loading.observations = false
+					if data instanceof Array
+						$scope.observations = data
+
+					return
+				.error (data, status) ->
+					$scope.loading.observations = false
+					$scope.handleError data, status
+
+		$scope[$scope.currentTab]?($scope.params.user ? null)
 
 		$scope.changeTab = (tab) ->
 			$location.path "/user/#{tab}"

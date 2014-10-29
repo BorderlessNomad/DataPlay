@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"github.com/pmylund/sortutil"
 	"net/http"
@@ -81,21 +82,35 @@ func AddActivity(uid int, atype string, ts time.Time, disid int, obsid int) *app
 	return nil
 }
 
-func GetProfileObservationsHttp(res http.ResponseWriter, req *http.Request) string {
+func GetProfileObservationsHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
 		return ""
 	}
 
-	uid, err := GetUserID(session)
-	if err != nil {
-		http.Error(res, err.Message, err.Code)
-		return ""
+	user := User{}
+	err := &appError{}
+	if params["username"] != "" {
+		user, err = GetUserDetailsByUsername(params["username"])
+		if err != nil {
+			http.Error(res, err.Message, err.Code)
+		}
+	} else {
+		uid, err := GetUserID(session)
+		if err != nil {
+			http.Error(res, err.Message, err.Code)
+			return ""
+		}
+
+		user, err = GetUserDetailsById(uid)
+		if err != nil {
+			http.Error(res, err.Message, err.Code)
+		}
 	}
 
 	observation := []Observation{}
-	err1 := DB.Where("uid = ?", uid).Find(&observation).Error
+	err1 := DB.Where("uid = ?", user.Uid).Find(&observation).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {
 		http.Error(res, "Database query failed", http.StatusInternalServerError)
 		return ""
@@ -144,21 +159,35 @@ func GetProfileObservationsHttp(res http.ResponseWriter, req *http.Request) stri
 	return string(r)
 }
 
-func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request) string {
+func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
 		return ""
 	}
 
-	uid, err := GetUserID(session)
-	if err != nil {
-		http.Error(res, err.Message, err.Code)
-		return ""
+	user := User{}
+	err := &appError{}
+	if params["username"] != "" {
+		user, err = GetUserDetailsByUsername(params["username"])
+		if err != nil {
+			http.Error(res, err.Message, err.Code)
+		}
+	} else {
+		uid, err := GetUserID(session)
+		if err != nil {
+			http.Error(res, err.Message, err.Code)
+			return ""
+		}
+
+		user, err = GetUserDetailsById(uid)
+		if err != nil {
+			http.Error(res, err.Message, err.Code)
+		}
 	}
 
 	var discovered []Discovered
-	err1 := DB.Where("uid = ?", uid).Find(&discovered).Error
+	err1 := DB.Where("uid = ?", user.Uid).Find(&discovered).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {
 		http.Error(res, "Database query failed! (Discovered)", http.StatusInternalServerError)
 		return ""
@@ -199,21 +228,35 @@ func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request) string {
 	return string(r)
 }
 
-func GetCreditedDiscoveriesHttp(res http.ResponseWriter, req *http.Request) string {
+func GetCreditedDiscoveriesHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
 	session := req.Header.Get("X-API-SESSION")
 	if len(session) <= 0 {
 		http.Error(res, "Missing session parameter", http.StatusBadRequest)
 		return ""
 	}
 
-	uid, err := GetUserID(session)
-	if err != nil {
-		http.Error(res, err.Message, err.Code)
-		return ""
+	user := User{}
+	err := &appError{}
+	if params["username"] != "" {
+		user, err = GetUserDetailsByUsername(params["username"])
+		if err != nil {
+			http.Error(res, err.Message, err.Code)
+		}
+	} else {
+		uid, err := GetUserID(session)
+		if err != nil {
+			http.Error(res, err.Message, err.Code)
+			return ""
+		}
+
+		user, err = GetUserDetailsById(uid)
+		if err != nil {
+			http.Error(res, err.Message, err.Code)
+		}
 	}
 
 	discovered := []Discovered{}
-	err1 := DB.Where("uid = ?", uid).Where("credited > ?", 0).Find(&discovered).Error
+	err1 := DB.Where("uid = ?", user.Uid).Where("credited > ?", 0).Find(&discovered).Error
 	if err1 != nil && err1 == gorm.RecordNotFound {
 		return "this user has yet to make any discoveries"
 	} else if err1 != nil {

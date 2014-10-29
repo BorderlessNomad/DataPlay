@@ -1,18 +1,27 @@
-<h3 class="text-center">Your Profile</h3>
-<form name="profileForm" class="form-profile" role="form" novalidate>
+<div class="row">
+	<div class="col-md-12 text-center">
+		<h4>{{current.username}}</h4>
+		<img class="avatar" ng-src="{{current.avatar}}" />
+		<h4>{{current.email}}</h4>
+	</div>
+</div>
 
+<form name="profileForm" class="form-profile" role="form" novalidate>
 	<ul class="nav nav-tabs" role="tablist">
-		<li ng-class="{true: 'active', false: ''}[currentTab == 'profile']">
-			<a data-toggle="tab" ng-click="changeTab('profile')" >Personal Details</a>
+		<li ng-class="{true: 'active', false: ''}[currentTab == 'profile']" ng-if="!params.user">
+			<a data-toggle="tab" href="/user/profile">Personal Details</a>
 		</li>
 		<li ng-class="{true: 'active', false: ''}[currentTab == 'creditdiscoveries']">
-			<a data-toggle="tab" ng-click="changeTab('creditdiscoveries')" >Credited Discoveries</a>
+			<a data-toggle="tab" href="/user/creditdiscoveries" ng-if="!params.user">Credited Discoveries</a>
+			<a data-toggle="tab" href="/profile/{{params.user}}/creditdiscoveries" ng-if="params.user">Credited Discoveries</a>
 		</li>
 		<li ng-class="{true: 'active', false: ''}[currentTab == 'discoveries']">
-			<a data-toggle="tab" ng-click="changeTab('discoveries')" >Discoveries</a>
+			<a data-toggle="tab" href="/user/discoveries" ng-if="!params.user">Discoveries</a>
+			<a data-toggle="tab" href="/profile/{{params.user}}/discoveries" ng-if="params.user">Discoveries</a>
 		</li>
 		<li ng-class="{true: 'active', false: ''}[currentTab == 'observations']">
-			<a data-toggle="tab" ng-click="changeTab('observations')" >Observations</a>
+			<a data-toggle="tab" href="/user/observations" ng-if="!params.user">Observations</a>
+			<a data-toggle="tab" href="/profile/{{params.user}}/observations" ng-if="params.user">Observations</a>
 		</li>
 	</ul>
 
@@ -26,7 +35,7 @@
 	</div>
 
 	<div class="tab-content">
-		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'profile']" id="profile">
+		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'profile']" ng-if="!params.user" id="profile">
 			<div class="row">
 				<div class="col-md-6 col-md-offset-3">
 					<div ng-show="!hasError() && saved.success" class="alert alert-dismissable alert-success">
@@ -53,6 +62,7 @@
 				</div>
 			</div>
 		</div>
+
 		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'creditdiscoveries']" id="creditdiscoveries">
 			<div class="row">
 				<div class="col-md-6 col-md-offset-3">
@@ -60,7 +70,7 @@
 					<div ng-repeat="disc in creditDiscoveries">
 						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
 						<p class="profile-li">
-							<a href="/#!/{{disc.apistring}}">{{disc.title}}</a>
+							<a href="/{{disc.apistring}}">{{disc.title}}</a>
 						</p>
 					</div>
 					<div ng-if="!loading.creditDiscoveries && creditDiscoveries.length < 1">Nothing to show</div>
@@ -68,6 +78,7 @@
 				</div>
 			</div>
 		</div>
+
 		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'discoveries']" id="discoveries">
 			<div class="row">
 				<div class="col-md-6 col-md-offset-3">
@@ -75,7 +86,7 @@
 					<div ng-repeat="disc in discoveries">
 						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
 						<p class="profile-li">
-							<a href="/#!/{{disc.apistring}}">{{disc.title}}</a>
+							<a href="/{{disc.apistring}}">{{disc.title}}</a>
 						</p>
 					</div>
 					<div ng-if="!loading.discoveries && discoveries.length < 1">Nothing to show</div>
@@ -83,6 +94,7 @@
 				</div>
 			</div>
 		</div>
+
 		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'observations']" id="observations">
 			<div class="row">
 				<div class="col-md-6 col-md-offset-3">
@@ -90,7 +102,7 @@
 					<div ng-repeat="obsv in observations">
 						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
 						<p class="profile-li">
-							<a href="/#!/{{obsv.apistring}}">{{obsv.charttitle}}</a><br/>
+							<a href="/{{obsv.apistring}}">{{obsv.charttitle}}</a><br/>
 							<span class="text-muted">{{obsv.comment}}</span>
 						</p>
 					</div>
@@ -100,12 +112,11 @@
 			</div>
 		</div>
 	</div>
-
 </form>
 
 <div ng-show="forgotPassword.sent">
 	<h3>Please check your email</h3>
 	We've sent you an email that will allow you to reset your password quickly and easily.
 
-	<a href="/#!/user/resetpassword/{{user.login.token}}">Link</a>
+	<a href="/user/resetpassword/{{user.login.token}}">Link</a>
 </div>

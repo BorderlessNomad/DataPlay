@@ -6,28 +6,28 @@
 			<span class="icon-bar"></span>
 			<span class="icon-bar"></span>
 		</button>
-		<a class="navbar-brand" href="/#!/home" ng-if="Auth.isAuthenticated()">DataPlay</a>
-		<a class="navbar-brand" href="/#!/" ng-if="!Auth.isAuthenticated()">DataPlay</a>
+		<a class="navbar-brand" href="/home" ng-if="Auth.isAuthenticated()">DataPlay</a>
+		<a class="navbar-brand" href="/" ng-if="!Auth.isAuthenticated()">DataPlay</a>
 	</div>
 
 	<div class="navbar-collapse collapse" ng-if="Auth.isAuthenticated()">
 		<ul class="nav navbar-nav">
-			<li ng-class="{active: isActive('/search')}"><a href="/#!/search">Search</a></li>
-			<li ng-class="{active: isActive('/overview')}"><a href="/#!/overview">Overview</a></li>
+			<li ng-class="{active: isActive('/search')}"><a href="/search">Search</a></li>
+			<li ng-class="{active: isActive('/overview')}"><a href="/overview">Overview</a></li>
 		</ul>
 		<ul class="nav navbar-nav navbar-right">
-			<li ng-class="{active: isActive('/admin')}" ng-if="Auth.isAdmin()"><a href="/#!/admin">Admin</a></li>
-			<li ng-class="{active: isActive('/user')}"><a href="/#!/user/profile">My Profile</a></li>
-			<li><a href="/#!/user/logout" ng-controller="UserCtrl" ng-click="logout()">Logout</a></li>
+			<li ng-class="{active: isActive('/admin')}" ng-if="Auth.isAdmin()"><a href="/admin">Admin</a></li>
+			<li ng-class="{active: isActive('/user')}"><a href="/user/profile">My Profile</a></li>
+			<li><a href="/user/logout" ng-controller="UserCtrl" ng-click="logout()">Logout</a></li>
 		</ul>
 	</div>
 
 	<div class="navbar-collapse collapse" ng-if="!Auth.isAuthenticated()">
 		<ul class="nav navbar-nav">
-			<li ng-class="{active: isActive('/about')}"><a href="/#!/about">About</a></li>
+			<li ng-class="{active: isActive('/about')}"><a href="/about">About</a></li>
 		</ul>
 		<ul class="nav navbar-nav navbar-right">
-			<li ng-class="{active: isActive('/user/login')}"><a href="/#!/user/login">Login&nbsp;/&nbsp;Register</a></li>
+			<li ng-class="{active: isActive('/user/login')}"><a href="/user/login">Login&nbsp;/&nbsp;Register</a></li>
 		</ul>
 	</div>
 </div>

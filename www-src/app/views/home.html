@@ -51,7 +51,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="col-xs-12 loader-tight" ng-if="loading.charts" ng-include="'../views/loader.html'">
+				<div class="col-xs-12 loader-tight" ng-if="loading.charts" ng-include="'views/loader.html'">
 				</div>
 				<div class="col-xs-12" ng-if="!loading.charts && chartsRelated.length === 0">
 					<p class="text-center text-muted">There are no charts currently awaiting approval.</p>
@@ -78,9 +78,9 @@
 						<div class="col-xs-11">
 							<span ng-if="item.action == 'cc'">You credited a <a href="{{item.url}}">pattern</a></span>
 							<span ng-if="item.action == 'dc'">You discredited a <a href="{{item.url}}">pattern</a></span>
-							<span ng-if="item.action == 'co'">You gained <span class="label label-{{item.points.class}}">{{item.points.value}}</span> {{item.points.text}} when <a href="#">{{item.actor}}</a> credited your observation</span>
-							<span ng-if="item.action == 'do'">You lost <span class="label label-{{item.points.class}}">{{item.points.value}}</span> {{item.points.text}} when {{item.actor}} discredited your observation</span>
-							<span ng-if="item.action == 'c'">You gained <span class="label label-{{item.points.class}}">{{item.points.value}}</span> {{item.points.text}} when {{item.actor}} made an observation on your discovery</span>
+							<span ng-if="item.action == 'co'">You gained <span class="label label-{{item.points.class}}">{{item.points.value}}</span> {{item.points.text}} when <a href="/profile/{{item.actor}}">{{item.actor}}</a> credited your observation</span>
+							<span ng-if="item.action == 'do'">You lost <span class="label label-{{item.points.class}}">{{item.points.value}}</span> {{item.points.text}} when <a href="/profile/{{item.actor}}">{{item.actor}}</a> discredited your observation</span>
+							<span ng-if="item.action == 'c'">You gained <span class="label label-{{item.points.class}}">{{item.points.value}}</span> {{item.points.text}} when <a href="/profile/{{item.actor}}">{{item.actor}}</a> made an observation on your discovery</span>
 						</div>
 					</div>
 
@@ -95,7 +95,7 @@
 						<div class="col-xs-2 text-center"><img class="avatar" ng-src="{{item.user.avatar}}" /></div>
 						<div class="col-xs-10">
 							<p><a href="{{item.url}}">{{item.text|truncate:25}}</a></p>
-							<p class="italic">posted by {{item.user.name}}</p>
+							<p class="italic">posted by <a href="/profile/{{item.user.name}}">{{item.user.name}}</a></p>
 						</div>
 					</div>
 
@@ -112,7 +112,7 @@
 							<span class="bold" ng-if="!item.rankclass">#{{item.rank}}</span>
 						</div>
 						<div class="col-xs-2 text-center"><img class="avatar" ng-src="{{item.avatar}}" /></div>
-						<div class="col-xs-6 text-center"><small>{{item.name}}</small></div>
+						<div class="col-xs-6 text-center"><a href="/profile/{{item.name}}">{{item.name}}</a></div>
 						<div class="col-xs-3 gold" title="Reputation Points">
 							<i class="glyphicon glyphicon-star"></i>
 							<span>{{item.score}}</span>
