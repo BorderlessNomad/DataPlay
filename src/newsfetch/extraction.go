@@ -56,7 +56,6 @@ func (c *Client) Extract(urls []string, options Options, startpos int) (error, i
 
 // extract will call extract 10 urls at max.
 func (c *Client) extract(urls []string, options Options, place int) ([]string, error) {
-
 	addr := Host + "/1/extract?"
 	for i, u := range urls {
 		urls[i] = url.QueryEscape(u)
@@ -102,32 +101,9 @@ func (c *Client) extract(urls []string, options Options, place int) ([]string, e
 	responses := make([]string, len(response))
 
 	for i, r := range response {
-
 		var tmpResp Response
 		tmp, _ := json.Marshal(r)
 		json.Unmarshal(tmp, &tmpResp)
-		h := Hash(tmpResp.Url)
-		tmpResp.Id = h
-
-		for i, _ := range tmpResp.Authors {
-			tmpResp.Authors[i].Id = h
-		}
-		for i, _ := range tmpResp.Keywords {
-			tmpResp.Keywords[i].Id = h
-		}
-		for i, _ := range tmpResp.Entities {
-			tmpResp.Entities[i].Id = h
-		}
-		for i, _ := range tmpResp.RelatedArticles {
-			tmpResp.RelatedArticles[i].Id = h
-		}
-		for i, _ := range tmpResp.Images {
-			tmpResp.Images[i].Id = h
-		}
-		var p int64
-		p = tmpResp.Published
-		date := publishedDate(p, place+i)
-		tmpResp.Date = date
 		result, _ := json.Marshal(tmpResp)
 		responses[i] = string(result)
 	}
@@ -147,27 +123,6 @@ func addBool(v *url.Values, name string, value bool) {
 	if value {
 		v.Add(name, "true")
 	}
-}
-
-// takes published date in raw format and returns UTC date format.
-// If there is no published date, function will return the probable month and year of the article based on the array position of the url (approx 4358 urls per month starting from 2010-01-01)
-func publishedDate(date int64, place int) time.Time {
-	var i int64
-	var x int
-	var t time.Time
-	published := date
-	i = 0
-
-	if published == 0 {
-		x = place / 4358                                // get likely month number
-		t = time.Date(2010, 1, 1, 0, 0, 0, 0, time.UTC) // starting from 2010-01-01
-		t = t.AddDate(0, x, 0)                          // add number of months to base date
-
-	} else {
-		published = date / 1000
-		t = time.Unix(published, i)
-	}
-	return t
 }
 
 // return md5 hash of string
@@ -190,16 +145,18 @@ func writeToCass(resp string) {
 		panic(err)
 	}
 
+	date := time.Unix(r.Published/1000, 0)
+
 	if err := session.Query(`INSERT INTO response (date, dummy, description, url, title)
 		VALUES (?, ?, ?, ?, ?)`,
-		r.Date, 1, r.Description, r.Url, r.Title).Exec(); err != nil {
+		date, 1, r.Description, r.Url, r.Title).Exec(); err != nil {
 		fmt.Println("HELP1!", err)
 	}
 
 	for _, k := range r.Keywords {
 		if err := session.Query(`INSERT INTO keyword (date, dummy, name, url)
 			VALUES (?, ?, ?, ?)`,
-			r.Date, 1, k.Name, r.Url).Exec(); err != nil {
+			date, 1, k.Name, r.Url).Exec(); err != nil {
 			fmt.Println("HELP3!", err)
 		}
 	}
@@ -207,21 +164,23 @@ func writeToCass(resp string) {
 	for _, e := range r.Entities {
 		if err := session.Query(`INSERT INTO entity (date, dummy, name, url)
 			VALUES (?, ?, ?, ?)`,
-			r.Date, 1, e.Name, r.Url).Exec(); err != nil {
+			date, 1, e.Name, r.Url).Exec(); err != nil {
 			fmt.Println("HELP4!", err)
 		}
 	}
 
-	if err := session.Query(`INSERT INTO image (date, dummy, pic_url, url)
-		VALUES (?, ?, ?, ?)`,
-		r.Date, 1, r.Images[0].Url, r.Url).Exec(); err != nil {
-		fmt.Println("HELP5!", err)
+	if len(r.Images) > 0 { // check if there are any images
+		if err := session.Query(`INSERT INTO image (date, dummy, pic_url, url)
+			VALUES (?, ?, ?, ?)`,
+			date, 1, r.Images[0].Url, r.Url).Exec(); err != nil {
+			fmt.Println("HELP5!", err)
+		}
 	}
 
-	for _, ra := range r.RelatedArticles {
+	for _, ra := range r.Related {
 		if err := session.Query(`INSERT INTO related (date, dummy, description, title, related_url, url)
 			VALUES (?, ?, ?, ?, ?, ?)`,
-			r.Date, 1, ra.Description, ra.Title, ra.Url, r.Url).Exec(); err != nil {
+			date, 1, ra.Description, ra.Title, ra.Url, r.Url).Exec(); err != nil {
 			fmt.Println("HELP6!", err)
 		}
 	}
