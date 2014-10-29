@@ -1,7 +1,5 @@
 package main
 
-import "time"
-
 const (
 	TypeHTML  = "html"
 	TypeText  = "text"
@@ -32,105 +30,68 @@ type Options struct {
 	Secure       bool
 }
 
-type Author struct {
-	Id   []byte    `json:"id"`
-	Date time.Time `json:"date"`
-	Name string    `json:"name"`
-	Url  string    `json:"url"`
-}
-
-type Entity struct {
-	Id    []byte    `json:"id"`
-	Url   string    `json:"url"`
-	Date  time.Time `json:"date"`
-	Count int       `json:"count"`
-	Name  string    `json:"name"`
-}
-
-type Image struct {
-	Id       []byte    `json:"id"`
-	Date     time.Time `json:"date"`
-	PicIndex int       `json:"pic_index"`
-	Caption  string    `json:"caption"`
-	Url      string    `json:"url"`
-	Width    int       `json:"width"`
-	Height   int       `json:"height"`
-	Entropy  float32   `json:"entropy"`
-	Size     int       `json:"size"`
-}
-
-type Keyword struct {
-	Id    []byte    `json:"id"`
-	Url   string    `json:"url"`
-	Date  time.Time `json:"date"`
-	Score int       `json:"score"`
-	Name  string    `json:"name"`
-}
-
-type Related struct {
-	Id              []byte    `json:"id"`
-	Date            time.Time `json:"date"`
-	Description     string    `json:"description"`
-	Title           string    `json:"title"`
-	Url             string    `json:"url"`
-	ThumbnailWidth  int       `json:"thumbnail_width"`
-	Score           float32   `json:"score"`
-	ThumbnailHeight int       `json:"thumbnail_height"`
-	ThumbnailUrl    string    `json:"thumbnail_url"`
-}
-
 type Response struct {
-	Id              []byte    `json:"id"`
 	OriginalUrl     string    `json:"original_url"`
 	Url             string    `json:"url"`
 	Type            string    `json:"type"`
-	ProviderName    string    `json:"provider_name"`
-	ProviderUrl     string    `json:"provider_url"`
-	ProviderDisplay string    `json:"provider_display"`
-	FaviconUrl      string    `json:"favicon_url"`
 	Title           string    `json:"title"`
 	Description     string    `json:"description"`
-	Date            time.Time `json:"date"`
-	Authors         []Author  `json:"authors"`
-	Published       int64     `json:"published,omitempty"`
+	Safe            bool      `json:"safe"`
+	ProviderUrl     string    `json:"provider_url"`
+	ProviderName    string    `json:"provider_name"`
+	ProviderDisplay string    `json:"provider_display"`
+	FaviconUrl      string    `json:"favicon_url"`
+	FaviconColors   []string  `json:"favicon_colors"`
+	Language        string    `json:"language"`
+	Published       int64     `json:"published"`
+	Offset          int64     `json:"offset"`
 	Lead            string    `json:"lead"`
 	Content         string    `json:"content"`
+	Authors         []Author  `json:"authors"`
 	Keywords        []Keyword `json:"keywords"`
 	Entities        []Entity  `json:"entities"`
-	RelatedArticles []Related `json:"related,omitempty"`
+	RelatedArticles []Related `json:"related"`
 	Images          []Image   `json:"images"`
+	Media           string    `json:"media"`
+	CacheAge        int       `json:"cache_age"`
 }
 
-type Entity2 struct {
-	Date time.Time `json:"date"`
-	Name string    `json:"name"`
-	Url  string    `json:"url"`
+type Author struct {
+	Name string `json:"name"`
+	Url  string `json:"url"`
 }
 
-type Keyword2 struct {
-	Date time.Time `json:"date"`
-	Name string    `json:"name"`
-	Url  string    `json:"url"`
+type Entity struct {
+	Name  string `json:"name"`
+	Count int    `json:"count"`
 }
 
-type Image2 struct {
-	Date     time.Time `json:"date"`
-	PicIndex int       `json:"pic_index"`
-	PicUrl   string    `json:"pic_url"`
-	Url      string    `json:"url"`
+type Image struct {
+	Caption string  `json:"caption"`
+	Url     string  `json:"url"`
+	Height  int     `json:"height"`
+	Width   int     `json:"width"`
+	Colors  []Color `json:"colors"`
+	Entropy float32 `json:"entropy"`
+	Size    int     `json:"size"`
 }
 
-type Related2 struct {
-	Date        time.Time `json:"date"`
-	Description string    `json:"description"`
-	Title       string    `json:"title"`
-	RelatedUrl  string    `json:"related_url"`
-	Url         string    `json:"url"`
+type Color struct {
+	Color  []int   `json:"color"`
+	Weight float64 `json:"weight"`
 }
 
-type Response2 struct {
-	Date        time.Time `json:"date"`
-	Description string    `json:"description"`
-	Url         string    `json:"url"`
-	Title       string    `json:"title"`
+type Keyword struct {
+	Name  string `json:"name"`
+	Score int    `json:"score"`
+}
+
+type Related struct {
+	Url             string  `json:"url"`
+	Title           string  `json:"title"`
+	Description     string  `json:"description"`
+	ThumbnailWidth  int     `json:"thumbnail_width"`
+	Score           float32 `json:"score"`
+	ThumbnailHeight int     `json:"thumbnail_height"`
+	ThumbnailUrl    string  `json:"thumbnail_url"`
 }

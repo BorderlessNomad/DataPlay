@@ -11,7 +11,6 @@ func main() {
 	e := DailyKimono() // generate the day's news urls
 
 	if e == nil {
-
 		fmt.Println("STARTING...")
 		file, _ := os.Open("dailyurls.txt")
 		defer file.Close()
@@ -31,7 +30,7 @@ func main() {
 			urls = append(urls, record[0])
 		}
 
-		c := NewClient(EmKey4)
+		c := NewClient(EmKey5)
 		options := Options{}
 
 		pos := 0
@@ -49,5 +48,4 @@ func main() {
 	} else {
 		fmt.Println(e.Error())
 	}
-
 }
