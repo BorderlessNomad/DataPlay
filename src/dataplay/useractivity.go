@@ -1,10 +1,7 @@
-//@TODO: GLYN REFACTOR ALL THIS!!!!
-
 package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"github.com/pmylund/sortutil"
@@ -459,7 +456,6 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 
 	err := DB.Where("uid = ?", uid).Order("created DESC").Find(&activity).Error
 	if err != nil {
-		fmt.Println("MASTERCHEESE1")
 		return activities
 	}
 
@@ -476,33 +472,11 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			discovered := Discovered{}
 			err = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
 			if err != nil {
-				fmt.Println("MASTERCHEESE2")
 				return activities
 			}
 
-			if discovered.CorrelationId == 0 {
-				tmpA.Link = "chart/" + "related/" + discovered.RelationId
-				guid := strings.Split(discovered.RelationId, "/")
-				tmpA.Title = guid[0] + " " + guid[2] + " chart showing " + guid[3] + " vs " + guid[4]
-			} else {
-				tmpA.Link = "chart/" + "correlated/" + strconv.Itoa(discovered.CorrelationId)
-				correlation := Correlation{}
+			tmpA.Title, tmpA.Link = TitleAndLink(discovered.RelationId, discovered.CorrelationId, discovered.Json)
 
-				gErr := DB.Where("correlation_id = ?", discovered.CorrelationId).Find(&correlation).Error
-				if gErr != nil {
-					fmt.Println("MASTERCHEESE3")
-					return activities
-				}
-
-				cd := CorrelationData{}
-				jErr := json.Unmarshal(discovered.Json, &cd)
-				if jErr != nil {
-					fmt.Println("MASTERCHEESE4")
-					return activities
-				}
-
-				tmpA.Title = cd.Table1.Title + " " + cd.Table1.LabelX + " vs " + cd.Table1.LabelY + " correlated with " + cd.Table2.Title + " " + cd.Table2.LabelX + " vs " + cd.Table2.LabelY + " " + cd.ChartType + " chart"
-			}
 		} else if a.Type == "Credited Observation" {
 			obs := Observation{}
 			err = DB.Where("observation_id = ?", a.ObservationId).Find(&obs).Error
@@ -527,33 +501,11 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			discovered := Discovered{}
 			err = DB.Where("discovered_id = ?", obs.DiscoveredId).Find(&discovered).Error
 			if err != nil {
-				fmt.Println("MASTERCHEESE5")
 				return activities
 			}
 
-			if discovered.CorrelationId == 0 {
-				tmpA.Link = "chart/" + "related/" + discovered.RelationId
-				guid := strings.Split(discovered.RelationId, "/")
-				tmpA.Title = guid[0] + " " + guid[2] + " chart showing " + guid[3] + " vs " + guid[4]
-			} else {
-				tmpA.Link = "chart/" + "correlated/" + strconv.Itoa(discovered.CorrelationId)
-				correlation := Correlation{}
+			tmpA.Title, tmpA.Link = TitleAndLink(discovered.RelationId, discovered.CorrelationId, discovered.Json)
 
-				gErr := DB.Where("correlation_id = ?", discovered.CorrelationId).Find(&correlation).Error
-				if gErr != nil {
-					fmt.Println("MASTERCHEESE6")
-					return activities
-				}
-
-				cd := CorrelationData{}
-				jErr := json.Unmarshal(discovered.Json, &cd)
-				if jErr != nil {
-					fmt.Println("MASTERCHEESE7")
-					return activities
-				}
-
-				tmpA.Title = cd.Table1.Title + " " + cd.Table1.LabelX + " vs " + cd.Table1.LabelY + " correlated with " + cd.Table2.Title + " " + cd.Table2.LabelX + " vs " + cd.Table2.LabelY + " " + cd.ChartType + " chart"
-			}
 		} else if a.Type == "Discredited Observation" {
 			obs := Observation{}
 			err := DB.Where("observation_id = ?", a.ObservationId).Find(&obs).Error
@@ -575,33 +527,11 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			discovered := Discovered{}
 			err = DB.Where("discovered_id = ?", obs.DiscoveredId).Find(&discovered).Error
 			if err != nil {
-				fmt.Println("MASTERCHEESE8")
 				return activities
 			}
 
-			if discovered.CorrelationId == 0 {
-				tmpA.Link = "chart/" + "related/" + discovered.RelationId
-				guid := strings.Split(discovered.RelationId, "/")
-				tmpA.Title = guid[0] + " " + guid[2] + " chart showing " + guid[3] + " vs " + guid[4]
-			} else {
-				tmpA.Link = "chart/" + "correlated/" + strconv.Itoa(discovered.CorrelationId)
-				correlation := Correlation{}
+			tmpA.Title, tmpA.Link = TitleAndLink(discovered.RelationId, discovered.CorrelationId, discovered.Json)
 
-				gErr := DB.Where("correlation_id = ?", discovered.CorrelationId).Find(&correlation).Error
-				if gErr != nil {
-					fmt.Println("MASTERCHEESE9")
-					return activities
-				}
-
-				cd := CorrelationData{}
-				jErr := json.Unmarshal(discovered.Json, &cd)
-				if jErr != nil {
-					fmt.Println("MASTERCHEESE10")
-					return activities
-				}
-
-				tmpA.Title = cd.Table1.Title + " " + cd.Table1.LabelX + " vs " + cd.Table1.LabelY + " correlated with " + cd.Table2.Title + " " + cd.Table2.LabelX + " vs " + cd.Table2.LabelY + " " + cd.ChartType + " chart"
-			}
 		} else if a.Type == "Credited Chart" {
 			tmpA.Activity = "You credited pattern "
 			tmpA.Actor = ""
@@ -612,33 +542,11 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			discovered := Discovered{}
 			err = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
 			if err != nil {
-				fmt.Println("MASTERCHEESE11")
 				return activities
 			}
 
-			if discovered.CorrelationId == 0 {
-				tmpA.Link = "chart/" + "related/" + discovered.RelationId
-				guid := strings.Split(discovered.RelationId, "/")
-				tmpA.Title = guid[0] + " " + guid[2] + " chart showing " + guid[3] + " vs " + guid[4]
-			} else {
-				tmpA.Link = "chart/" + "correlated/" + strconv.Itoa(discovered.CorrelationId)
-				correlation := Correlation{}
+			tmpA.Title, tmpA.Link = TitleAndLink(discovered.RelationId, discovered.CorrelationId, discovered.Json)
 
-				gErr := DB.Where("correlation_id = ?", discovered.CorrelationId).Find(&correlation).Error
-				if gErr != nil {
-					fmt.Println("MASTERCHEESE12")
-					return activities
-				}
-
-				cd := CorrelationData{}
-				jErr := json.Unmarshal(discovered.Json, &cd)
-				if jErr != nil {
-					fmt.Println("MASTERCHEESE13")
-					return activities
-				}
-
-				tmpA.Title = cd.Table1.Title + " " + cd.Table1.LabelX + " vs " + cd.Table1.LabelY + " correlated with " + cd.Table2.Title + " " + cd.Table2.LabelX + " vs " + cd.Table2.LabelY + " " + cd.ChartType + " chart"
-			}
 		} else if a.Type == "Discredited Chart" {
 			tmpA.Activity = "You discredited pattern "
 			tmpA.Actor = ""
@@ -648,33 +556,11 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 			discovered := Discovered{}
 			err = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
 			if err != nil {
-				fmt.Println("MASTERCHEESE14")
 				return activities
 			}
 
-			if discovered.CorrelationId == 0 {
-				tmpA.Link = "chart/" + "related/" + discovered.RelationId
-				guid := strings.Split(discovered.RelationId, "/")
-				tmpA.Title = guid[0] + " " + guid[2] + " chart showing " + guid[3] + " vs " + guid[4]
-			} else {
-				tmpA.Link = "chart/" + "correlated/" + strconv.Itoa(discovered.CorrelationId)
-				correlation := Correlation{}
+			tmpA.Title, tmpA.Link = TitleAndLink(discovered.RelationId, discovered.CorrelationId, discovered.Json)
 
-				gErr := DB.Where("correlation_id = ?", discovered.CorrelationId).Find(&correlation).Error
-				if gErr != nil {
-					fmt.Println("MASTERCHEESE15")
-					return activities
-				}
-
-				cd := CorrelationData{}
-				jErr := json.Unmarshal(discovered.Json, &cd)
-				if jErr != nil {
-					fmt.Println("MASTERCHEESE16")
-					return activities
-				}
-
-				tmpA.Title = cd.Table1.Title + " " + cd.Table1.LabelX + " vs " + cd.Table1.LabelY + " correlated with " + cd.Table2.Title + " " + cd.Table2.LabelX + " vs " + cd.Table2.LabelY + " " + cd.ChartType + " chart"
-			}
 		} else {
 			tmpA.Activity = "No activity"
 			tmpA.Actor = ""
@@ -688,7 +574,6 @@ func AddInstigated(uid int, activities []UserActivity, t time.Time) []UserActivi
 		activities = append(activities, tmpA)
 	}
 
-	fmt.Println("MASTERCHEESE17")
 	return activities
 }
 
@@ -697,7 +582,6 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 
 	gErr := DB.Select("priv_credits.discovered_id, priv_credits.created, priv_credits.uid, priv_credits.credflag").Joins("LEFT JOIN priv_discovered AS d ON priv_credits.discovered_id = d.discovered_id").Where("d.uid = ?", uid).Where("priv_credits.discovered_id > ?", 0).Order("priv_credits.created DESC").Find(&vDisc).Error
 	if gErr != nil && gErr != gorm.RecordNotFound {
-		fmt.Println("MASTERCHEESE18")
 		return activities
 	}
 
@@ -709,7 +593,6 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 
 	gErr = DB.Select("o.discovered_id as did, o.comment as comment, priv_credits.created, priv_credits.uid, priv_credits.credflag").Joins("LEFT JOIN priv_observations AS o ON priv_credits.observation_id = o.observation_id").Where("o.uid = ?", uid).Where("priv_credits.observation_id > ?", 0).Order("priv_credits.created DESC").Find(&vObs).Error
 	if gErr != nil {
-		fmt.Println("MASTERCHEESE19")
 		return activities
 	}
 
@@ -717,7 +600,6 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 
 	gErr = DB.Select("priv_activity.discovered_id, priv_activity.created, priv_activity.uid").Joins("LEFT JOIN priv_discovered as d ON priv_activity.discovered_id = d.discovered_id").Where("d.uid = ?", uid).Where("priv_activity.type = ?", "Comment").Order("priv_activity.created DESC").Find(&activity).Error
 	if gErr != nil {
-		fmt.Println("MASTERCHEESE20")
 		return activities
 	}
 
@@ -738,7 +620,7 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 			tmpA.Created = t.Sub(d.Created).Seconds()
 			tmpA.Time = d.Created
 		} else {
-			tmpA.Activity = "You lost " + strconv.Itoa(discDiscredit) + " reputation pints  when " + user.Username + " discredited your pattern "
+			tmpA.Activity = "You lost " + strconv.Itoa(discDiscredit) + " reputation points  when " + user.Username + " discredited your pattern "
 			tmpA.Actor = user.Username
 			tmpA.Action = "dc"
 			tmpA.Points = discDiscredit
@@ -750,34 +632,10 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		discovered := Discovered{}
 		gErr = DB.Where("discovered_id = ?", d.DiscoveredId).Find(&discovered).Error
 		if gErr != nil {
-			fmt.Println("MASTERCHEESE21")
 			return activities
 		}
 
-		if discovered.CorrelationId == 0 {
-			tmpA.Link = "chart/" + "related/" + discovered.RelationId
-			guid := strings.Split(discovered.RelationId, "/")
-			tmpA.Title = guid[0] + " " + guid[2] + " chart showing " + guid[3] + " vs " + guid[4]
-		} else {
-			tmpA.Link = "chart/" + "correlated/" + strconv.Itoa(discovered.CorrelationId)
-			correlation := Correlation{}
-
-			gErr = DB.Where("correlation_id = ?", discovered.CorrelationId).Find(&correlation).Error
-			if gErr != nil {
-				fmt.Println("MASTERCHEESE22")
-				return activities
-			}
-
-			cd := CorrelationData{}
-			jErr := json.Unmarshal(discovered.Json, &cd)
-			if jErr != nil {
-				fmt.Println("MASTERCHEESE23")
-				return activities
-			}
-
-			tmpA.Title = cd.Table1.Title + " " + cd.Table1.LabelX + " vs " + cd.Table1.LabelY + " correlated with " + cd.Table2.Title + " " + cd.Table2.LabelX + " vs " + cd.Table2.LabelY + " " + cd.ChartType + " chart"
-		}
-
+		tmpA.Title, tmpA.Link = TitleAndLink(discovered.RelationId, discovered.CorrelationId, discovered.Json)
 		activities = append(activities, tmpA)
 	}
 
@@ -810,34 +668,10 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		discovered := Discovered{}
 		gErr = DB.Where("discovered_id = ?", o.Did).Find(&discovered).Error
 		if gErr != nil {
-			fmt.Println("MASTERCHEESE24")
 			return activities
 		}
 
-		if discovered.CorrelationId == 0 {
-			tmpA.Link = "chart/" + "related/" + discovered.RelationId
-			guid := strings.Split(discovered.RelationId, "/")
-			tmpA.Title = guid[0] + " " + guid[2] + " chart showing " + guid[3] + " vs " + guid[4]
-		} else {
-			tmpA.Link = "chart/" + "correlated/" + strconv.Itoa(discovered.CorrelationId)
-			correlation := Correlation{}
-
-			gErr = DB.Where("correlation_id = ?", discovered.CorrelationId).Find(&correlation).Error
-			if gErr != nil {
-				fmt.Println("MASTERCHEESE25")
-				return activities
-			}
-
-			cd := CorrelationData{}
-			jErr := json.Unmarshal(discovered.Json, &cd)
-			if jErr != nil {
-				fmt.Println("MASTERCHEESE26")
-				return activities
-			}
-
-			tmpA.Title = cd.Table1.Title + " " + cd.Table1.LabelX + " vs " + cd.Table1.LabelY + " correlated with " + cd.Table2.Title + " " + cd.Table2.LabelX + " vs " + cd.Table2.LabelY + " " + cd.ChartType + " chart"
-		}
-
+		tmpA.Title, tmpA.Link = TitleAndLink(discovered.RelationId, discovered.CorrelationId, discovered.Json)
 		activities = append(activities, tmpA)
 	}
 
@@ -860,38 +694,40 @@ func AddHappenedTo(uid int, activities []UserActivity, t time.Time) []UserActivi
 		discovered := Discovered{}
 		gErr = DB.Where("discovered_id = ?", a.DiscoveredId).Find(&discovered).Error
 		if gErr != nil {
-			fmt.Println("MASTERCHEESE27")
 			return activities
 		}
 
-		if discovered.CorrelationId == 0 {
-			tmpA.Link = "chart/" + "related/" + discovered.RelationId
-			guid := strings.Split(discovered.RelationId, "/")
-			tmpA.Title = guid[0] + " " + guid[2] + " chart showing " + guid[3] + " vs " + guid[4]
-		} else {
-			tmpA.Link = "chart/" + "correlated/" + strconv.Itoa(discovered.CorrelationId)
-			correlation := Correlation{}
-
-			gErr = DB.Where("correlation_id = ?", discovered.CorrelationId).Find(&correlation).Error
-			if gErr != nil {
-				fmt.Println("MASTERCHEESE28")
-				return activities
-			}
-
-			cd := CorrelationData{}
-			jErr := json.Unmarshal(discovered.Json, &cd)
-			if jErr != nil {
-				fmt.Println("MASTERCHEESE29")
-				return activities
-			}
-
-			tmpA.Title = cd.Table1.Title + " " + cd.Table1.LabelX + " vs " + cd.Table1.LabelY + " correlated with " + cd.Table2.Title + " " + cd.Table2.LabelX + " vs " + cd.Table2.LabelY + " " + cd.ChartType + " chart"
-
-		}
-
+		tmpA.Title, tmpA.Link = TitleAndLink(discovered.RelationId, discovered.CorrelationId, discovered.Json)
 		activities = append(activities, tmpA)
 	}
 
-	fmt.Println("MASTERCHEESE30")
 	return activities
+}
+
+func TitleAndLink(rid string, cid int, j []byte) (string, string) {
+	link, title := "", ""
+
+	if cid == 0 {
+		link = "chart/" + "related/" + rid
+		guid := strings.Split(rid, "/")
+		title = guid[0] + " " + guid[2] + " chart showing " + guid[3] + " vs " + guid[4]
+	} else {
+		link = "chart/" + "correlated/" + strconv.Itoa(cid)
+		correlation := Correlation{}
+
+		gErr := DB.Where("correlation_id = ?", cid).Find(&correlation).Error
+		if gErr != nil {
+			return "", ""
+		}
+
+		cd := CorrelationData{}
+		jErr := json.Unmarshal(j, &cd)
+		if jErr != nil {
+			return "", ""
+		}
+
+		title = cd.Table1.Title + " " + cd.Table1.LabelX + " vs " + cd.Table1.LabelY + " correlated with " + cd.Table2.Title + " " + cd.Table2.LabelX + " vs " + cd.Table2.LabelY + " " + cd.ChartType + " chart"
+	}
+
+	return title, link
 }
