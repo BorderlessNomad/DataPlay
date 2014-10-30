@@ -67,10 +67,7 @@ angular.module('dataplayApp')
 										valuePattern: PatternMatcher.getPattern chart.values[0]['y']
 										keyPattern: PatternMatcher.getKeyPattern chart.values[0]['y']
 
-								$scope.chartsRelated.push chart if PatternMatcher.includePattern(
-									chart.patterns[chart.xLabel].valuePattern,
-									chart.patterns[chart.xLabel].keyPattern
-								)
+								$scope.chartsRelated.push chart
 
 							else if chart.correlationid?
 								chartObj = new CorrelatedChart chart.type

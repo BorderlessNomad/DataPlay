@@ -37,13 +37,17 @@ angular.module('dataplayApp')
 				.success (data) ->
 					$scope.loading.charts = false;
 					if data? and data.charts? and data.charts.length > 0
+						counter = 0
 						for key, chart of data.charts
+							break if counter is 4
+
 							continue unless $scope.relatedChart.isPlotAllowed chart.type
-							continue unless key < 4
 
 							key = parseInt(key)
 
 							if chart.relationid?
+								counter++
+
 								guid = chart.relationid.split("/")[0]
 
 								chart.key = key
@@ -65,15 +69,14 @@ angular.module('dataplayApp')
 										valuePattern: PatternMatcher.getPattern chart.values[0]['y']
 										keyPattern: PatternMatcher.getKeyPattern chart.values[0]['y']
 
-								$scope.chartsRelated.push chart if PatternMatcher.includePattern(
-									chart.patterns[chart.xLabel].valuePattern,
-									chart.patterns[chart.xLabel].keyPattern
-								)
+								$scope.chartsRelated.push chart
 
 							else if chart.correlationid?
 								chartObj = new CorrelatedChart chart.type
 
 								if not chartObj.error
+									counter++
+
 									chartObj.info =
 										key: key
 										id: "correlated-#{chart.correlationid}"
