@@ -128,6 +128,7 @@ angular.module('dataplayApp')
 							url: d.linkstring
 							action: d.action
 							actor: d.actor
+							title: d.title
 							points:
 								value: d.points
 								text: if Math.abs(d.points) is 1 then "point" else "points"
