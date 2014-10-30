@@ -134,13 +134,13 @@ func GetProfileObservationsHttp(res http.ResponseWriter, req *http.Request, para
 		}
 
 		if discTmp.CorrelationId == 0 {
-			tmp.ApiString = "chart/related/" + discTmp.RelationId
+			tmp.ApiString = "chart/" + discTmp.RelationId
 			var td TableData
 			json.Unmarshal(discTmp.Json, &td)
 			tmp.Title = td.Title
 		} else {
 			cid := strconv.Itoa(discTmp.CorrelationId)
-			tmp.ApiString = "chart/correlated/" + cid
+			tmp.ApiString = "chartcorrelated/" + cid
 			var cd CorrelationData
 			json.Unmarshal(discTmp.Json, &cd)
 			tmp.Title = cd.Table1.Title + " correlated with " + cd.Table2.Title
@@ -203,13 +203,13 @@ func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request, params marti
 		tmp.DiscoveryDate = d.Created
 
 		if d.CorrelationId == 0 {
-			tmp.ApiString = "chart/related/" + d.RelationId
+			tmp.ApiString = "chart/" + d.RelationId
 			var td TableData
 			json.Unmarshal(d.Json, &td)
 			tmp.Title = td.Title
 		} else {
 			cid := strconv.Itoa(d.CorrelationId)
-			tmp.ApiString = "chart/correlated/" + cid
+			tmp.ApiString = "chartcorrelated/" + cid
 			var cd CorrelationData
 			json.Unmarshal(d.Json, &cd)
 			tmp.Title = cd.Table1.Title + " correlated with " + cd.Table2.Title
@@ -280,7 +280,7 @@ func GetCreditedDiscoveriesHttp(res http.ResponseWriter, req *http.Request, para
 			tmp.Title = td.Title
 		} else {
 			cid := strconv.Itoa(d.CorrelationId)
-			tmp.ApiString = "chart/correlated/" + cid
+			tmp.ApiString = "chartcorrelated/" + cid
 			var cd CorrelationData
 			json.Unmarshal(d.Json, &cd)
 			tmp.Title = cd.Table1.Title + " correlated with " + cd.Table2.Title
@@ -708,11 +708,11 @@ func TitleAndLink(rid string, cid int, j []byte) (string, string) {
 	link, title := "", ""
 
 	if cid == 0 {
-		link = "chart/" + "related/" + rid
+		link = "chart/" + rid
 		guid := strings.Split(rid, "/")
 		title = guid[0] + " " + guid[2] + " chart showing " + guid[3] + " vs " + guid[4]
 	} else {
-		link = "chart/" + "correlated/" + strconv.Itoa(cid)
+		link = "chartcorrelated/" + strconv.Itoa(cid)
 		correlation := Correlation{}
 
 		gErr := DB.Where("correlation_id = ?", cid).Find(&correlation).Error
