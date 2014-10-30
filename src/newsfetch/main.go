@@ -31,7 +31,7 @@ func main() {
 			urls = append(urls, record[0])
 		}
 
-		c := NewClient(EmKey5)
+		c := NewClient(EmKey4)
 		options := Options{}
 
 		pos := 0

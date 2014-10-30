@@ -17,8 +17,16 @@ func TestSearchForData(t *testing.T) {
 		"offset": "0",
 		"count":  "5",
 	}
-	Convey("Should search", t, func() {
-		result, _ := SearchForData(1, "gold", params)
-		So(result, ShouldNotBeNil)
+	Convey("Should search financial", t, func() {
+		result, _ := SearchForData(1, "financial", params)
+		So(result, ShouldEqual, "")
+	})
+	Convey("Should search trust", t, func() {
+		result, _ := SearchForData(1, "trust", params)
+		So(result, ShouldEqual, "")
+	})
+	Convey("Should search ambulance", t, func() {
+		result, _ := SearchForData(1, "ambulance", params)
+		So(result, ShouldEqual, "")
 	})
 }
