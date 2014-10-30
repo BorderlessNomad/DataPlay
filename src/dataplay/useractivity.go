@@ -139,10 +139,15 @@ func GetProfileObservationsHttp(res http.ResponseWriter, req *http.Request, para
 			json.Unmarshal(discTmp.Json, &td)
 			tmp.Title = td.Title
 		} else {
+			correlation := Correlation{}
+			gErr := DB.Where("correlation_id = ?", discTmp.CorrelationId).Find(&correlation).Error
+			if gErr != nil {
+				return ""
+			}
 			var cd CorrelationData
 			json.Unmarshal(discTmp.Json, &cd)
 			tmp.Title = cd.Table1.Title + " correlated with " + cd.Table2.Title
-			tmp.ApiString = "charts/correlated/" + cd.Table1.Title + "/" + strconv.Itoa(discTmp.CorrelationId) + "/" + cd.Table1.ChartType + "/" + cd.Table1.LabelX + "/" + cd.Table1.LabelY
+			tmp.ApiString = "charts/correlated/" + correlation.Tbl1 + "/" + strconv.Itoa(discTmp.CorrelationId) + "/" + cd.Table1.ChartType + "/" + cd.Table1.LabelX + "/" + cd.Table1.LabelY
 			if cd.Table3.Title != "" {
 				tmp.Title += " correlated with " + cd.Table3.Title
 				tmp.ApiString += "/" + cd.Table1.LabelZ
@@ -208,10 +213,15 @@ func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request, params marti
 			json.Unmarshal(d.Json, &td)
 			tmp.Title = td.Title
 		} else {
+			correlation := Correlation{}
+			gErr := DB.Where("correlation_id = ?", d.CorrelationId).Find(&correlation).Error
+			if gErr != nil {
+				return ""
+			}
 			var cd CorrelationData
 			json.Unmarshal(d.Json, &cd)
 			tmp.Title = cd.Table1.Title + " correlated with " + cd.Table2.Title
-			tmp.ApiString = "charts/correlated/" + cd.Table1.Title + "/" + strconv.Itoa(d.CorrelationId) + "/" + cd.Table1.ChartType + "/" + cd.Table1.LabelX + "/" + cd.Table1.LabelY
+			tmp.ApiString = "charts/correlated/" + correlation.Tbl1 + "/" + strconv.Itoa(d.CorrelationId) + "/" + cd.Table1.ChartType + "/" + cd.Table1.LabelX + "/" + cd.Table1.LabelY
 			if cd.Table3.Title != "" {
 				tmp.Title += " correlated with " + cd.Table3.Title
 				tmp.ApiString += "/" + cd.Table1.LabelZ
@@ -279,10 +289,15 @@ func GetCreditedDiscoveriesHttp(res http.ResponseWriter, req *http.Request, para
 			json.Unmarshal(d.Json, &td)
 			tmp.Title = td.Title
 		} else {
+			correlation := Correlation{}
+			gErr := DB.Where("correlation_id = ?", d.CorrelationId).Find(&correlation).Error
+			if gErr != nil {
+				return ""
+			}
 			var cd CorrelationData
 			json.Unmarshal(d.Json, &cd)
 			tmp.Title = cd.Table1.Title + " correlated with " + cd.Table2.Title
-			tmp.ApiString = "charts/correlated/" + cd.Table1.Title + "/" + strconv.Itoa(d.CorrelationId) + "/" + cd.Table1.ChartType + "/" + cd.Table1.LabelX + "/" + cd.Table1.LabelY
+			tmp.ApiString = "charts/correlated/" + correlation.Tbl1 + "/" + strconv.Itoa(d.CorrelationId) + "/" + cd.Table1.ChartType + "/" + cd.Table1.LabelX + "/" + cd.Table1.LabelY
 			if cd.Table3.Title != "" {
 				tmp.Title += " correlated with " + cd.Table3.Title
 				tmp.ApiString += "/" + cd.Table1.LabelZ
@@ -724,7 +739,7 @@ func TitleAndLink(rid string, cid int, j []byte) (string, string) {
 			return "", ""
 		}
 
-		link = "charts/correlated/" + cd.Table1.Title + "/" + strconv.Itoa(cid) + "/" + cd.Table1.ChartType + "/" + cd.Table1.LabelX + "/" + cd.Table1.LabelY
+		link = "charts/correlated/" + correlation.Tbl1 + "/" + strconv.Itoa(cid) + "/" + cd.Table1.ChartType + "/" + cd.Table1.LabelX + "/" + cd.Table1.LabelY
 		title = cd.Table1.Title + " " + cd.Table1.LabelX + " vs " + cd.Table1.LabelY + " correlated with " + cd.Table2.Title + " " + cd.Table2.LabelX + " vs " + cd.Table2.LabelY + " " + cd.ChartType + " chart"
 
 		if cd.Table3.Title != "" {
