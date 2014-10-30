@@ -19,14 +19,14 @@ func TestSearchForData(t *testing.T) {
 	}
 	Convey("Should search financial", t, func() {
 		result, _ := SearchForData(1, "financial", params)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 	Convey("Should search trust", t, func() {
 		result, _ := SearchForData(1, "trust", params)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 	Convey("Should search ambulance", t, func() {
 		result, _ := SearchForData(1, "ambulance", params)
-		So(result, ShouldEqual, "")
+		So(result, ShouldNotBeNil)
 	})
 }

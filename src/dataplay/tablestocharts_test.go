@@ -64,13 +64,13 @@ func TestGetRelatedChartsHttp(t *testing.T) {
 	req.Header.Set("X-API-SESSION", "00TK6wuwwj1DmVDtn8mmveDMVYKxAJKLVdghTynDXBd62wDqGUGlAmEykcnaaO66")
 	res := httptest.NewRecorder()
 	params := map[string]string{
-		"tablename": "gdp",
+		"tablename": "life",
 		"offset":    "0",
 		"count":     "10",
 	}
 	Convey("Should return chartlist", t, func() {
 		result := GetRelatedChartsHttp(res, req, params)
-		So(result, ShouldNotBeNil)
+		So(result, ShouldEqual, "?")
 	})
 }
 
