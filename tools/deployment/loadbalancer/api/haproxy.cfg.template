@@ -35,11 +35,11 @@ defaults
     option  http-server-close # allows keep-alive and pipelining
     option  httplog
     option  dontlognull
-    timeout connect 5s  # 5000
-    timeout client  60s # 50000
-    timeout server  60s # 50000
-    timeout check   5s  # 5000
-    timeout http-keep-alive 3s # 3000
+    timeout connect 5s
+    timeout client  600s
+    timeout server  600s
+    timeout check   5s
+    timeout http-keep-alive 300s
 
     retries 3 # number of connection retries for the session
     maxconn 10000
