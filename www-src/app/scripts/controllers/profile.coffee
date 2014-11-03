@@ -39,7 +39,6 @@ angular.module('dataplayApp')
 			if $scope.current.username is loggedInUsername
 				$location.path '/user/profile'
 
-
 		$scope.creditDiscoveries = []
 		$scope.discoveries = []
 		$scope.observations = []
