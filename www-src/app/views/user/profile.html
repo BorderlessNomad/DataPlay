@@ -1,8 +1,14 @@
-<div class="row">
-	<div class="col-md-12 text-center">
-		<h4>{{current.username}}</h4>
-		<img class="avatar" ng-src="{{current.avatar}}" />
-		<h4>{{current.email}}</h4>
+<div class="row" id="profileDetails">
+	<div class="col-xs-12 col-md-6 col-md-offset-3 text-center">
+		<div class="row">
+			<div class="col-xs-5 col-md-6 text-right">
+				<a href="http://en.gravatar.com/" title="Change your avatar at Gravatar.com"><img class="avatar" ng-src="{{current.avatar}}" /></a>
+			</div>
+			<div class="col-xs-7 col-md-6 text-left">
+				<h4>{{current.username}}</h4>
+				<h4>{{current.email}}</h4>
+			</div>
+		</div>
 	</div>
 </div>
 
