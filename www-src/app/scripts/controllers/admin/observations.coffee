@@ -55,6 +55,14 @@ angular.module('dataplayApp')
 								rating: (u.credited || 0) - (u.discredited)
 								flagged: if not u.flagged? then false else u.flagged
 						$scope.pagination.total = data.count
+
+						# if there's no items on this page, but there are items overall, automatically revert to page 1
+						if $scope.pagination.pageNumber isnt 1 &&
+								$scope.pagination.total isnt 0 &&
+								$scope.observations.length is 0
+							$scope.pagination.pageNumber = 1
+							$scope.updateObservations cb
+							return
 					cb()
 				.error ->
 					$scope.loading = false
