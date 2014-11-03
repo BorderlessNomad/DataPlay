@@ -72,7 +72,7 @@
 		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'creditdiscoveries']" id="creditdiscoveries">
 			<div class="row">
 				<div class="col-md-6 col-md-offset-3">
-					<p class="text-center"><span ng-if="isCurrentUser">My </span><span ng-if="!isCurrentUser && current.username">{{current.username}}'s </span>Credited Discoveries</p>
+					<p class="text-center"><span ng-if="isLoggedInUser">My </span><span ng-if="!isLoggedInUser && current.username">{{current.username}}'s </span>Credited Discoveries</p>
 					<div ng-repeat="disc in creditDiscoveries">
 						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
 						<p class="profile-li">
@@ -88,7 +88,7 @@
 		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'discoveries']" id="discoveries">
 			<div class="row">
 				<div class="col-md-6 col-md-offset-3">
-					<p class="text-center"><span ng-if="isCurrentUser">My </span><span ng-if="!isCurrentUser && current.username">{{current.username}}'s </span>Discoveries</p>
+					<p class="text-center"><span ng-if="isLoggedInUser">My </span><span ng-if="!isLoggedInUser && current.username">{{current.username}}'s </span>Discoveries</p>
 					<div ng-repeat="disc in discoveries">
 						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
 						<p class="profile-li">
@@ -104,7 +104,7 @@
 		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'observations']" id="observations">
 			<div class="row">
 				<div class="col-md-6 col-md-offset-3">
-					<p class="text-center"><span ng-if="isCurrentUser">My </span><span ng-if="!isCurrentUser && current.username">{{current.username}}'s </span>Observations</p>
+					<p class="text-center"><span ng-if="isLoggedInUser">My </span><span ng-if="!isLoggedInUser && current.username">{{current.username}}'s </span>Observations</p>
 					<div ng-repeat="obsv in observations">
 						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
 						<p class="profile-li">

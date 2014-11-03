@@ -31,10 +31,14 @@ angular.module('dataplayApp')
 			username: ''
 			success: false
 
-		$scope.isCurrentUser = /^(\/user)/.test $location.url()
+		$scope.isLoggedInUser = /^(\/user)/.test $location.url()
 
-		if not $scope.isCurrentUser
+		if not $scope.isLoggedInUser
 			$scope.current.username = $routeParams.user
+			loggedInUsername = Auth.get config.userName
+			if $scope.current.username is loggedInUsername
+				$location.path '/user/profile'
+
 
 		$scope.creditDiscoveries = []
 		$scope.discoveries = []
