@@ -38,7 +38,7 @@
 			</th>
 			<th></th>
 		</tr>
-		<tr ng-if="observations.length === 0"><td colspan="7" ng-include="'../views/loader.html'"></td></tr>
+		<tr ng-if="loading && observations.length === 0"><td colspan="7" ng-include="'../views/loader.html'"></td></tr>
 		<tr ng-repeat="observation in observations | limitTo: pagination.perPage">
 			<td>{{observation.observationid}}</td>
 			<td>{{humanDate(observation.created)}}</td>

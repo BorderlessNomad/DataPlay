@@ -25,6 +25,7 @@ angular.module('dataplayApp')
 			total: 0
 
 		$scope.observations = []
+		$scope.loading = false
 
 
 		# General controls
@@ -38,10 +39,12 @@ angular.module('dataplayApp')
 
 		$scope.updateObservations = (cb = (() ->)) ->
 			offset = ($scope.pagination.pageNumber - 1) * $scope.pagination.perPage
+			$scope.observations.splice 0
+			$scope.loading = true
 			Admin.getObservations $scope.pagination.orderby, offset, $scope.pagination.perPage, $scope.pagination.flaggedonly
 				.success (data) ->
+					$scope.loading = false
 					if data.count and data.comments?
-						$scope.observations.splice 0
 						data.comments.forEach (u) ->
 							$scope.observations.push
 								observationid: u.observationid || 0
@@ -53,6 +56,8 @@ angular.module('dataplayApp')
 								flagged: if not u.flagged? then false else u.flagged
 						$scope.pagination.total = data.count
 					cb()
+				.error ->
+					$scope.loading = false
 
 		$scope.humanDate = (str) ->
 			days = ['Sun', 'Mon', 'Tues', 'Wed', 'Thu', 'Fri', 'Sat']
