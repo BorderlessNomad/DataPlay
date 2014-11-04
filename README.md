@@ -53,7 +53,7 @@ DataPlay alpha contains a rudimentary selection of datasets drawn from [data.gov
 
 ### Development:
 
-1. Run Backend in Classic mode `./start.sh --mode=3`
+1. Run Backend in Classic mode `./start.sh`
 2. Run Frontend `cd www-src && npm install && grunt serve`
 
 ### Staging:
