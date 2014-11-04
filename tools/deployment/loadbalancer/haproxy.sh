@@ -73,9 +73,13 @@ setup_haproxy_api () {
 
 	forever start -l forever.log -o output.log -e errors.log app.js >/dev/null 2>&1
 
-	# curl -i -H "Accept: application/json" http://109.231.121.47:1937
-	# curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"ip":"109.231.121.61:80"}' http://109.231.121.47:1937
-	# curl -i -H "Accept: application/json" -X DELETE http://109.231.121.47:1937/109.231.121.61:80
+	# Gamification:
+	# curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"ip":"109.231.121.55:80"}' http://109.231.121.84:1937/gamification
+	# curl -i -H "Accept: application/json" -X DELETE http://109.231.121.84:1937/gamification/109.231.121.55:80
+	#
+	# Master:
+	# curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"ip":"109.231.121.94:3000"}' http://109.231.121.84:1937/master
+	# curl -i -H "Accept: application/json" -X DELETE http://109.231.121.84:1937/master/109.231.121.94:3000
 }
 
 install_go () {

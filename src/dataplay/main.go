@@ -195,6 +195,8 @@ func initApiServer() {
 
 	m.Use(ApiSessionHandler)
 
+	m.Use(LogRequest)
+
 	m.Run()
 }
 
