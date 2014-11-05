@@ -636,6 +636,17 @@ angular.module('dataplayApp')
 					$scope.showCreditMessage valFlag
 					$scope.info.credited = !! valFlag
 					$scope.info.discredited = ! valFlag
+
+					username = Auth.get config.userName
+
+					oldList = if valFlag then 'discreditors' else 'creditors'
+					newList = if valFlag then 'creditors' else 'discreditors'
+
+					if $scope.info[oldList].indexOf(username) isnt -1
+						$scope.info[oldList].splice $scope.info[oldList].indexOf(username), 1
+
+					$scope.info[newList].push username
+
 				, $scope.handleError
 
 		$scope.saveObservation = ->
