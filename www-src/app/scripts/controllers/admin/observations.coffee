@@ -66,6 +66,9 @@ angular.module('dataplayApp')
 					cb()
 				.error ->
 					$scope.loading = false
+					if $scope.pagination.pageNumber isnt 1
+						$scope.pagination.pageNumber = 1
+						$scope.updateObservations cb
 
 		$scope.humanDate = (str) ->
 			days = ['Sun', 'Mon', 'Tues', 'Wed', 'Thu', 'Fri', 'Sat']
