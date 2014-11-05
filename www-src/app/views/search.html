@@ -21,8 +21,9 @@
 			</form>
 
 			<div class="list-group search-results">
-				<div class="row" ng-if="results.length > 0">
-					<div class="list-group-item col-sm-4" ng-repeat="chart in chartsRelated" id="{{chart.id}}" ng-show="hasRelatedCharts() > 0">
+				<div class="row">{{results.length > 0}} {{!loading.related}} {{hasRelatedCharts() > 0}}</div>
+				<div class="row" ng-if="results.length > 0 && hasRelatedCharts() > 0">
+					<div class="list-group-item col-sm-4" ng-repeat="chart in chartsRelated" id="{{chart.id}}" ng-if="hasRelatedCharts() > 0">
 						<div class="media-heading">
 							<h5><a href="/overview/{{chart.guid}}">{{chart.title}}</a></h5>
 						</div>
@@ -40,11 +41,11 @@
 					<div class="col-md-12 loader-tight" ng-show="loading.related" ng-include="'views/loader.html'"></div>
 				</div>
 
-				<div class="jumbotron" ng-if="!loading.related && results.length <= 0 && isSearch">
+				<div class="jumbotron" ng-if="!loading.related && results.length <= 0 && hasRelatedCharts() > 0 && isSearch">
 					<p class="text-center">Sorry we are unable to find any search results for given request.</p>
 				</div>
 
-				<div class="row show-more" ng-click="showMore()" ng-if="!loading.related && results.length > 0 && isSearch">
+				<div class="row show-more" ng-click="showMore()" ng-if="!loading.related && results.length > 0 && hasRelatedCharts() > 0 && isSearch">
 					<button class="col-md-6 col-md-offset-3 btn btn-default text-center">Show More</button>
 				</div>
 
