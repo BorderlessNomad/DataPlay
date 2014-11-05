@@ -49,13 +49,6 @@ class RelatedCharts
 	setCustomMargin: (margin = ({top:0,right:0,bottom:0,left:0})) ->
 		@customMargin = margin
 
-	reduceQuantity: (data) ->
-		return data
-		if data.length < 100 then return data
-		rate = Math.floor data.length / 100
-		data.filter (item, key) ->
-			return key is 0 or key is data.length or key % rate is 0
-
 	isPlotAllowed: (type) ->
 		if type in @allowed then true else false
 
