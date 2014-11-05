@@ -134,6 +134,9 @@
 				.csl:not(:last-child):after { // comma seperated list
 					content: ", ";
 				}
+				.csl:nth-last-child(2):after {
+					content: " & "
+				}
 			}
 
 		}

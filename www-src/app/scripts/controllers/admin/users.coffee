@@ -24,6 +24,7 @@ angular.module('dataplayApp')
 			total: 0
 
 		$scope.users = []
+		$scope.loading = false
 
 
 		# General controls
@@ -37,10 +38,12 @@ angular.module('dataplayApp')
 
 		$scope.updateUsers = (cb = (() ->)) ->
 			offset = ($scope.pagination.pageNumber - 1) * $scope.pagination.perPage
+			$scope.users.splice 0
+			$scope.loading = true
 			Admin.getUsers $scope.pagination.orderby, offset, $scope.pagination.perPage
 				.success (data) ->
+					$scope.loading = false
 					if data.count and data.users?
-						$scope.users.splice 0
 						data.users.forEach (u) ->
 							$scope.users.push
 								uid: u.uid || 0
@@ -54,6 +57,8 @@ angular.module('dataplayApp')
 								password: ''
 						$scope.pagination.total = data.count
 					cb()
+				.error ->
+					$scope.loading = false
 
 		$scope.showModal = (type, item) ->
 			if item?

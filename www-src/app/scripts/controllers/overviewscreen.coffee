@@ -239,6 +239,9 @@ angular.module('dataplayApp')
 			return unless slice?
 			slice.style 'opacity', if highlight is false then null else 0.75
 
+		$scope.labelClass = (priority) ->
+			return "label label-primary label-severe-#{priority + 1}"
+
 		$scope.handleError = (type) ->
 			(err, status) ->
 				$scope.mainSections[type].error = switch

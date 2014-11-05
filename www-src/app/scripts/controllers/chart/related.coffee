@@ -729,9 +729,9 @@ angular.module('dataplayApp')
 					when err then err
 					else ''
 
-			if $scope.error.substring(0, 6) is '<html>'
-				$scope.error = do ->
-					curr = $scope.error
+			if $scope.error.message.substring(0, 6) is '<html>'
+				$scope.error.message = do ->
+					curr = $scope.error.message
 					curr = curr.replace(/(\r\n|\n|\r)/gm, '')
 					curr = curr.replace(/.{0,}(\<title\>)/, '')
 					curr = curr.replace(/(\<\/title\>).{0,}/, '')

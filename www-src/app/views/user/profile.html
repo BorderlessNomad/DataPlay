@@ -1,8 +1,14 @@
-<div class="row">
-	<div class="col-md-12 text-center">
-		<h4>{{current.username}}</h4>
-		<img class="avatar" ng-src="{{current.avatar}}" />
-		<h4>{{current.email}}</h4>
+<div class="row" id="profileDetails">
+	<div class="col-xs-12 col-md-6 col-md-offset-3 text-center">
+		<div class="row">
+			<div class="col-xs-5 col-md-6 text-right">
+				<a href="http://en.gravatar.com/" title="Change your avatar at Gravatar.com"><img class="avatar" ng-src="{{current.avatar}}" /></a>
+			</div>
+			<div class="col-xs-7 col-md-6 text-left">
+				<h4>{{current.username}}</h4>
+				<h4>{{current.email}}</h4>
+			</div>
+		</div>
 	</div>
 </div>
 
@@ -66,7 +72,7 @@
 		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'creditdiscoveries']" id="creditdiscoveries">
 			<div class="row">
 				<div class="col-md-6 col-md-offset-3">
-					<p class="text-center">My Credited Discoveries</p>
+					<p class="text-center"><span ng-if="isLoggedInUser">My </span><span ng-if="!isLoggedInUser && current.username">{{current.username}}'s </span>Credited Discoveries</p>
 					<div ng-repeat="disc in creditDiscoveries">
 						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
 						<p class="profile-li">
@@ -82,7 +88,7 @@
 		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'discoveries']" id="discoveries">
 			<div class="row">
 				<div class="col-md-6 col-md-offset-3">
-					<p class="text-center">My Discoveries</p>
+					<p class="text-center"><span ng-if="isLoggedInUser">My </span><span ng-if="!isLoggedInUser && current.username">{{current.username}}'s </span>Discoveries</p>
 					<div ng-repeat="disc in discoveries">
 						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
 						<p class="profile-li">
@@ -98,7 +104,7 @@
 		<div ng-class="{true: 'tab-pane fade active in', false: 'tab-pane fade'}[currentTab == 'observations']" id="observations">
 			<div class="row">
 				<div class="col-md-6 col-md-offset-3">
-					<p class="text-center">My Observations</p>
+					<p class="text-center"><span ng-if="isLoggedInUser">My </span><span ng-if="!isLoggedInUser && current.username">{{current.username}}'s </span>Observations</p>
 					<div ng-repeat="obsv in observations">
 						<div class="circular-icon"><i class="glyphicon glyphicon-flag"></i></div>
 						<p class="profile-li">

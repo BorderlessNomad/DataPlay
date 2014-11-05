@@ -72,6 +72,8 @@ angular.module('dataplayApp')
 
 							chartObj = new CorrelatedChart chart.type
 
+							chartObj.title = "#{chart.table1.title} vs #{chart.table2.title}"
+
 							if not chartObj.error
 								key = parseInt(key)
 								chartObj.info =

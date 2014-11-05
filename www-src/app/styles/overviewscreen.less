@@ -2,6 +2,32 @@
 	background-color: #CAA8D9;
 }
 
+.label[class^='label-severe'], .label[class*=' label-severe'] {
+	cursor: default;
+	display: inline-block;
+	width: 5em;
+
+	&.label-severe-1 {
+		background-color: #bb423c;
+	}
+	&.label-severe-2 {
+		background-color: #c65d41;
+	}
+	&.label-severe-3 {
+		background-color: #d27845;
+	}
+	&.label-severe-4 {
+		background-color: #dd9349;
+	}
+	&.label-severe-5 {
+		background-color: #e8ae4d;
+	}
+
+	&:hover {
+		background-color: #888888;
+	}
+}
+
 .overviewscreen {
 	padding: 30px 0 0 0;
 
