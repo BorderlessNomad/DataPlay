@@ -427,7 +427,7 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 			}
 		}
 
-		if v.Xtype != "varchar" && (v.Ytype != "date" || v.Ytype != "varchar") { // line chart cannot be based on strings or have date on the Y axis
+		if v.Xtype != "varchar" && (v.Ytype != "date" || v.Ytype != "varchar" && !strings.Contains(v.Ytype, "date")) { // line chart cannot be based on strings or have date on the Y axis
 			GenerateChartData("line", guid, v, &charts, index)
 		}
 	}
