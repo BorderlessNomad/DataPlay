@@ -69,6 +69,8 @@ angular.module('dataplayApp')
 										valuePattern: PatternMatcher.getPattern chart.values[0]['y']
 										keyPattern: PatternMatcher.getKeyPattern chart.values[0]['y']
 
+								chart.values = $scope.relatedChart.reduceQuantity chart.values
+
 								$scope.chartsRelated.push chart
 
 							else if chart.correlationid?
@@ -98,7 +100,7 @@ angular.module('dataplayApp')
 											key: chart['table' + i].title
 											type: type
 											yAxis: i
-											values: vals
+											values: $scope.relatedChart.reduceQuantity vals
 										chartObj.options.chart['yDomain' + i] = dataRange
 										chartObj.options.chart['yAxis' + i].tickValues = [0]
 										chartObj.options.chart.xAxis.tickValues = []

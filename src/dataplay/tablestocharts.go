@@ -165,7 +165,7 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	}
 
 	chart := make([]TableData, 0)
-	GenerateChartData(chartType, guid, xyz, &chart, index)
+	GenerateChartData(chartType, guid, xyz, &chart, index, false)
 	if len(chart) == 0 {
 		return pattern, &appError{err, "Not possible to plot this chart", http.StatusInternalServerError}
 	}
@@ -411,31 +411,31 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 	for _, v := range columns { // create single column pie charts
 		xyPie.X = v.Name
 		xyPie.Xtype = v.Sqltype
-		GenerateChartData("pie", guid, xyPie, &charts, index)
+		GenerateChartData("pie", guid, xyPie, &charts, index, true)
 	}
 
 	for _, v := range xyNames { /// create all other types of chart
 		if v.Xtype == "varchar" && v.Ytype == "varchar" { // stacked or scatter charts if string v string values
-			GenerateChartData("stacked column", guid, v, &charts, index)
-			GenerateChartData("scatter", guid, v, &charts, index)
+			GenerateChartData("stacked column", guid, v, &charts, index, true)
+			GenerateChartData("scatter", guid, v, &charts, index, true)
 			// column and row charts for all that are not string v string values and are not date v string or string v date values
 		} else if !(v.Xtype == "varchar" && v.Ytype == "date") || !(v.Xtype == "date" && v.Ytype == "varchar") {
-			GenerateChartData("row", guid, v, &charts, index)
+			GenerateChartData("row", guid, v, &charts, index, true)
 			// no string values for y axis on column charts
 			if v.Ytype != "varchar" && v.Ytype != "date" {
-				GenerateChartData("column", guid, v, &charts, index)
+				GenerateChartData("column", guid, v, &charts, index, true)
 			}
 		}
 
 		if v.Xtype != "varchar" && (v.Ytype != "date" || v.Ytype != "varchar" && !strings.Contains(v.Ytype, "date")) { // line chart cannot be based on strings or have date on the Y axis
-			GenerateChartData("line", guid, v, &charts, index)
+			GenerateChartData("line", guid, v, &charts, index, true)
 		}
 	}
 
 	if len(columns) > 2 { // if there's more than 2 columns grab a 3rd variable for bubble charts
 		xyNames = XYPermutations(columns, true) // set z flag to true to get all possible valid permuations of columns as X, Y & Z
 		for _, v := range xyNames {
-			GenerateChartData("bubble", guid, v, &charts, index)
+			GenerateChartData("bubble", guid, v, &charts, index, true)
 		}
 	}
 
@@ -460,12 +460,13 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 		last = offset + 15
 	}
 	charts = charts[offset:last] // return marshalled slice
+
 	return RelatedCharts{charts, totalCharts}, nil
 }
 
 // Look for new correlated charts, take the correlations and break them down into charting types, and return them along with their total count
 // To return only existing charts use searchdepth = 0
-func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int) (CorrelatedCharts, *appError) {
+func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int, reduce bool) (CorrelatedCharts, *appError) {
 	correlation := make([]Correlation, 0)
 	charts := make([]CorrelationData, 0) ///empty slice for adding all possible charts
 	od := OnlineData{}
@@ -479,7 +480,7 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int) (C
 		go GenerateCorrelations(tableName, searchDepth)
 	}
 
-	time.Sleep(5 * time.Second)
+	// time.Sleep(5 * time.Second)
 
 	err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Limit(40).Find(&correlation).Error
 	if err != nil && err != gorm.RecordNotFound {
@@ -493,6 +494,12 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int) (C
 		var cd CorrelationData
 		json.Unmarshal(c.Json, &cd)
 		cd.CorrelationId = c.CorrelationId
+
+		if reduce {
+			cd.Table1.Values = ReduceXYValues(cd.Table1.Values)
+			cd.Table2.Values = ReduceXYValues(cd.Table2.Values)
+		}
+
 		charts = append(charts, cd)
 	}
 
@@ -600,7 +607,7 @@ func GetDiscoveredCharts(tableName string, correlated bool, offset int, count in
 
 // Get arrays of data for the types of charts requested (titles, descriptions, all the xy values etc)
 // Determines what types of data are valid for any particular type of chart
-func GenerateChartData(chartType string, guid string, names XYVal, charts *[]TableData, ind Index) {
+func GenerateChartData(chartType string, guid string, names XYVal, charts *[]TableData, ind Index, reduce bool) {
 	var tmpTD TableData
 	var tmpXY XYVal
 	tmpTD.ChartType = chartType
@@ -764,6 +771,9 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 			}
 		} else {
 			if ValueCheck(tmpTD) {
+				if reduce {
+					tmpTD.Values = ReduceXYValues(tmpTD.Values)
+				}
 				*charts = append(*charts, tmpTD)
 			}
 		}
@@ -1092,7 +1102,7 @@ func GetCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, params 
 		search = 0
 	}
 
-	result, error := GetCorrelatedCharts(params["tablename"], search, offset, count)
+	result, error := GetCorrelatedCharts(params["tablename"], search, offset, count, true)
 	if error != nil {
 		http.Error(res, error.Message, error.Code)
 		return error.Message
@@ -1219,8 +1229,10 @@ func GetAwaitingCreditHttp(res http.ResponseWriter, req *http.Request) string {
 			c.SourceY = correlation.Col2
 			c.SourceZ = correlation.Col3
 
-			charts = append(charts, c)
+			c.CorrelationData.Table1.Values = ReduceXYValues(c.CorrelationData.Table1.Values)
+			c.CorrelationData.Table2.Values = ReduceXYValues(c.CorrelationData.Table2.Values)
 
+			charts = append(charts, c)
 		} else {
 			var tableData TableData
 			err2 := json.Unmarshal(d.Json, &tableData)
@@ -1228,6 +1240,8 @@ func GetAwaitingCreditHttp(res http.ResponseWriter, req *http.Request) string {
 				http.Error(res, "Failed to unmarshal json for discovered charts", http.StatusBadRequest)
 				return ""
 			}
+
+			tableData.Values = ReduceXYValues(tableData.Values)
 
 			tableData.RelationId = d.RelationId
 			charts = append(charts, tableData)
@@ -1246,6 +1260,22 @@ func GetAwaitingCreditHttp(res http.ResponseWriter, req *http.Request) string {
 	response, _ := json.Marshal(resp)
 
 	return string(response)
+}
+
+func ReduceXYValues(originalValues []XYVal) []XYVal {
+	if len(originalValues) > 100 {
+		values := make([]XYVal, 0)
+		rate := len(originalValues) / 100
+		for k, v := range originalValues {
+			if k == 0 || k == len(originalValues) - 1 || k % rate == 0 {
+				values = append(values, v)
+			}
+		}
+
+		return values
+	}
+
+	return originalValues
 }
 
 func GetTopRatedChartsHttp(res http.ResponseWriter, req *http.Request) string {
@@ -1273,6 +1303,10 @@ func GetTopRatedChartsHttp(res http.ResponseWriter, req *http.Request) string {
 			}
 
 			correlationData.CorrelationId = d.CorrelationId
+
+			correlationData.Table1.Values = ReduceXYValues(correlationData.Table1.Values)
+			correlationData.Table2.Values = ReduceXYValues(correlationData.Table2.Values)
+
 			charts = append(charts, correlationData)
 		} else {
 			var tableData TableData
@@ -1283,6 +1317,9 @@ func GetTopRatedChartsHttp(res http.ResponseWriter, req *http.Request) string {
 			}
 
 			tableData.RelationId = d.RelationId
+
+			tableData.Values = ReduceXYValues(tableData.Values)
+
 			charts = append(charts, tableData)
 		}
 	}
