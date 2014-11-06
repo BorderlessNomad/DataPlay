@@ -117,6 +117,14 @@ angular.module('dataplayApp')
 											term: el.attr 'data-display'
 											value: 0
 
+									Object.keys($scope.mapGen.locationDictionary).forEach (key) ->
+										val = $scope.mapGen.locationDictionary[key]
+										if county.id.replace('r-', '') is val
+											county.value = do ->
+												item =  _.find $scope.mainSections[i].graph, (it) ->
+													return it.id.replace('r-', '') is key
+												item?.value or 0
+
 									d3.select "#pie-tooltip"
 										.style "left", "#{x}px"
 										.style "top", "#{y}px"
