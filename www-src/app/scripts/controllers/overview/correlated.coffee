@@ -106,6 +106,7 @@ angular.module('dataplayApp')
 								chartObj.setMargin 25, 25, 25, 25
 								chartObj.setLegend false
 								chartObj.setTooltips false
+								chartObj.setPreview true
 
 								$scope.chartsCorrelated.push chartObj
 
