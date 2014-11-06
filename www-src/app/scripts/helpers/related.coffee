@@ -46,6 +46,9 @@ class RelatedCharts
 	setPreview: (bool = false) =>
 		@preview = bool
 
+	setCustomMargin: (margin = ({top:0,right:0,bottom:0,left:0})) ->
+		@customMargin = margin
+
 	isPlotAllowed: (type) ->
 		if type in @allowed then true else false
 
@@ -118,6 +121,9 @@ class RelatedCharts
 		else
 			chart.xAxis().ticks @xTicks
 
+		if @customMargin?
+			chart.margins @customMargin
+
 		chart.xAxisLabel false, 0
 		chart.yAxisLabel false, 0
 
@@ -147,6 +153,9 @@ class RelatedCharts
 		else
 			chart.xAxis().ticks @xTicks
 
+		if @customMargin?
+			chart.margins @customMargin
+
 		chart.x @getYScale data
 
 		chart.xUnits @getXUnits data if data.ordinals?.length > 0
@@ -174,6 +183,9 @@ class RelatedCharts
 			chart.margins @marginPreview
 		else
 			chart.xAxis().ticks @xTicks
+
+		if @customMargin?
+			chart.margins @customMargin
 
 		chart.x @getXScale data
 
@@ -275,6 +287,9 @@ class RelatedCharts
 			chart.margins @marginPreview
 		else
 			chart.xAxis().ticks @xTicks
+
+		if @customMargin?
+			chart.margins @customMargin
 
 		# chart.label (d) -> x = d.key.split("|")[0]
 

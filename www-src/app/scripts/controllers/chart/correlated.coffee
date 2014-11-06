@@ -185,6 +185,7 @@ angular.module('dataplayApp')
 			$scope.observation.message = ''
 
 			$('#comment-modal').modal 'show'
+			$('#comment-modal-usercomment').focus()
 
 			return
 

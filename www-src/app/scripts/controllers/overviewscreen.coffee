@@ -81,6 +81,9 @@ angular.module('dataplayApp')
 								lowercaseItems = {}
 								$scope.mainSections[i].graph.forEach (item) ->
 									newKey = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
+									if $scope.mapGen.locationDictionary[newKey]
+										newKey = $scope.mapGen.locationDictionary[newKey]
+
 									lowercaseItems[newKey] = item.value
 
 								$scope.mapGen.maxvalue = maxTotal
@@ -93,6 +96,8 @@ angular.module('dataplayApp')
 
 								$scope.mainSections[i].items.forEach (item) ->
 									newKey = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
+									if $scope.mapGen.locationDictionary[newKey]
+										newKey = $scope.mapGen.locationDictionary[newKey]
 									item.corresponds = "county-#{newKey}"
 									item.color = $scope.mapGen.getColor lowercaseItems[newKey] || 0
 
@@ -111,6 +116,14 @@ angular.module('dataplayApp')
 											id: "r-#{el.attr('id').replace('county-', '')}"
 											term: el.attr 'data-display'
 											value: 0
+
+									Object.keys($scope.mapGen.locationDictionary).forEach (key) ->
+										val = $scope.mapGen.locationDictionary[key]
+										if county.id.replace('r-', '') is val
+											county.value = do ->
+												item =  _.find $scope.mainSections[i].graph, (it) ->
+													return it.id.replace('r-', '') is key
+												item?.value or 0
 
 									d3.select "#pie-tooltip"
 										.style "left", "#{x}px"

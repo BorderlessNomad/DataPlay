@@ -64,6 +64,11 @@
 			span {
 				font-size: 0.6em;
 				margin: 0 5px;
+
+				&.discoverer {
+					float: right;
+					margin: 3px 0;
+				}
 			}
 		}
 
@@ -99,7 +104,7 @@
 					cursor: not-allowed;
 				}
 
-				i.glyphicon:hover {
+				i.glyphicon:hover:not(.text-danger) {
 					color: #18bc9c;
 				}
 			}

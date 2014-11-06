@@ -3,7 +3,6 @@
 }
 
 .label[class^='label-severe'], .label[class*=' label-severe'] {
-	cursor: default;
 	display: inline-block;
 	width: 5em;
 
@@ -21,10 +20,6 @@
 	}
 	&.label-severe-5 {
 		background-color: #e8ae4d;
-	}
-
-	&:hover {
-		background-color: #888888;
 	}
 }
 
@@ -84,8 +79,25 @@
 }
 
 .sidebar {
+	h5 {
+		text-align: center;
+	}
+
 	.item {
 		margin: 0;
+		margin-left: 5px;
+
+		a:hover {
+			text-decoration: none;
+
+			.label[class^='label-severe'], .label[class*=' label-severe'] {
+				background-color: #3498db;
+			}
+
+			.text-info {
+				text-decoration: underline;
+			}
+		}
 	}
 }
 
