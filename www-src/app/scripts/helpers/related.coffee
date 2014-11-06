@@ -116,7 +116,7 @@ class RelatedCharts
 
 		if @preview
 			chart.xAxis().ticks(0).tickFormat (v) -> ""
-			chart.yAxis().ticks(0).tickFormat (v) -> ""
+			chart.yAxis?().ticks?(0).tickFormat (v) -> ""
 			chart.margins @marginPreview
 		else
 			chart.xAxis().ticks @xTicks

@@ -21,18 +21,19 @@
 			</form>
 
 			<div class="list-group search-results">
-				<div class="row" ng-if="results.length > 0 && hasRelatedCharts() > 0">
-					<div class="list-group-item col-sm-4" ng-repeat="chart in chartsRelated" id="{{chart.id}}" ng-if="hasRelatedCharts() > 0">
+				<div class="row">
+					<div class="list-group-item col-sm-4" ng-repeat="chart in chartsRelated" id="{{chart.id}}">
 						<div class="media-heading">
 							<h5><a href="/overview/{{chart.guid}}">{{chart.title}}</a></h5>
 						</div>
-						<a class="related media-body" href="/overview/{{chart.guid}}">
+						<a class="related media-body" href="/overview/{{chart.guid}}" ng-if="!chart.loading">
 							<span ng-include="'views/charts/related/line.html'"></span>
 							<span ng-include="'views/charts/related/row.html'"></span>
 							<span ng-include="'views/charts/related/column.html'"></span>
 							<span ng-include="'views/charts/related/pie.html'"></span>
 							<span ng-include="'views/charts/related/bubble.html'"></span>
 						</a>
+						<div class="loader-tight loader-faded chart-loader" ng-if="chart.loading" ng-include="'views/loader.html'"></div>
 					</div>
 				</div>
 

@@ -58,10 +58,7 @@ angular.module('dataplayApp')
 						r.graph = []
 						r.error = null
 
-						# Random
-						# offset = Overview.getRandomInteger 0, 3
-						$scope.getRelated r.GUID, 0
-
+						$scope.getRelated r
 					return
 				.error (status, data) ->
 					$scope.loading.related = false
@@ -115,18 +112,26 @@ angular.module('dataplayApp')
 		$scope.uncollapse = (item) ->
 			item.show = true
 
-		$scope.getRelated = (guid, offset) ->
-			Overview.related guid, offset, 1
+		$scope.getRelated = (item, offset = 0) ->
+			res =
+				loading: true
+				title: item.Title
+				guid: item.GUID
+
+			$scope.chartsRelated.push res
+
+			item.loading = true
+			Overview.related item.GUID, offset, 1
 				.success (data) ->
 					if data? and data.charts? and data.charts.length > 0
 						for key, chart of data.charts
 							continue unless $scope.relatedChart.isPlotAllowed chart.type
 
 							key = parseInt(key)
-							chart.guid = guid
+							chart.guid = item.GUID
 							chart.key = key
-							chart.id = "related-#{guid}-#{chart.key + $scope.offset.related}-#{chart.type}"
-							chart.url = "charts/related/#{guid}/#{chart.key}/#{chart.type}/#{chart.xLabel}/#{chart.yLabel}"
+							chart.id = "related-#{chart.guid}-#{chart.key + $scope.offset.related}-#{chart.type}"
+							chart.url = "charts/related/#{chart.guid}/#{chart.key}/#{chart.type}/#{chart.xLabel}/#{chart.yLabel}"
 							chart.url += "/#{chart.zLabel}" if chart.type is 'bubble'
 
 							chart.patterns = {}
@@ -143,7 +148,8 @@ angular.module('dataplayApp')
 									valuePattern: PatternMatcher.getPattern chart.values[0]['y']
 									keyPattern: PatternMatcher.getKeyPattern chart.values[0]['y']
 
-							$scope.chartsRelated.push chart
+							res.loading = false
+							_.merge res, chart
 
 					return
 				.error (data, status) ->
