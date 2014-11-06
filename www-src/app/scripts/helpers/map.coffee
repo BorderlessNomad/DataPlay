@@ -68,6 +68,11 @@ class MapGenerator
 		d3.select "##{corr} path"
 			.style 'fill-opacity', null
 
+
+	locationDictionary:
+		'london': 'greaterlondon'
+		'manchester': 'greatermanchester'
+
 	displayNameDictionary:
 		'dumfriesandgalloway':  'Dumfries and Galloway'
 		'eastsussex':           'East Sussex'

@@ -81,6 +81,9 @@ angular.module('dataplayApp')
 								lowercaseItems = {}
 								$scope.mainSections[i].graph.forEach (item) ->
 									newKey = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
+									if $scope.mapGen.locationDictionary[newKey]
+										newKey = $scope.mapGen.locationDictionary[newKey]
+
 									lowercaseItems[newKey] = item.value
 
 								$scope.mapGen.maxvalue = maxTotal
@@ -93,6 +96,8 @@ angular.module('dataplayApp')
 
 								$scope.mainSections[i].items.forEach (item) ->
 									newKey = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
+									if $scope.mapGen.locationDictionary[newKey]
+										newKey = $scope.mapGen.locationDictionary[newKey]
 									item.corresponds = "county-#{newKey}"
 									item.color = $scope.mapGen.getColor lowercaseItems[newKey] || 0
 
