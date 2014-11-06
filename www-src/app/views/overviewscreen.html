@@ -97,8 +97,10 @@
 					<h5>{{sect.category}}</h5>
 					<div class="row" ng-repeat="(key, item) in sect.top5">
 						<p class="item" ng-show="item.amount > 0">
-							<span ng-class="labelClass(key)">{{item.amount}}</span>&nbsp;&nbsp;
-							<a href="/{{sect.url}}/{{item.term}}" class="text-info">{{item.term}}</a>
+							<a href="/{{sect.url}}/{{item.term}}">
+								<span ng-class="labelClass(key)">{{item.amount}}</span>&nbsp;&nbsp;
+								<span class="text-info">{{item.term}}</span>
+							</a>
 						</p>
 					</div>
 					<div class="nothing" ng-hide="sect.top5.length > 0"><p class="text-center text-muted">Nothing to show</p></div>
