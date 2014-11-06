@@ -6,7 +6,7 @@ DataPlay is an open-source data analysis and exploration game developed by [Play
 The aim of DataPlay, besides taking CELAR for a spin, is to provide a collaborative environment in which non-expert users get to "play" with government data. The system presents the user with a range of elements of the data, displayed in a variety of visual forms. People are then encouraged to explore this data together. The system also seeks to identify potential correlations between disparate datasets, in order to help users discover hidden patterns within the data.
 
 ### Architecture
-The back end is written in [Go](http://golang.org/), to provide concurrency for large volume data processing. There is a multiple master/node architecture which relies on [RabbitMQ](http://www.rabbitmq.com/) for its queue processing. The back end also utilises [Martini](https://github.com/go-martini/martini) for web routing, [PostgreSQL](http://www.postgresql.org/) with [GORM](https://github.com/jinzhu/gorm) for dealing with the government data, [Cassandra](http://cassandra.apache.org/) coupled with [gocql](https://github.com/gocql/gocql) for handling the web data and [Redis](http://redis.io/) for storing any volatile data.
+The back end is written in [Go](http://golang.org/), to provide concurrency for large volume data processing. There is a multiple master/frontend architecture which relies on [HAProxy](http://www.haproxy.org/) for its Load-balancing capabilities. The backend also utilises [Martini](https://github.com/go-martini/martini) for parametric API routing, [PostgreSQL](http://www.postgresql.org/) with [GORM](https://github.com/jinzhu/gorm) for dealing with datasets, [Cassandra](http://cassandra.apache.org/) coupled with [gocql](https://github.com/gocql/gocql) for data obtained via scraping of 3rd party news sources. [Redis](http://redis.io/) for storing monitoring and session related data.
 
 The front end is written in [CoffeeScript](http://coffeescript.org/) and [AngularJS](https://angularjs.org/) and makes use of the [d3.js](http://d3js.org/), [dc.js](http://dc-js.github.io/dc.js/) and [NVD3.js](http://nvd3.org/) charting packages.
 
@@ -38,11 +38,11 @@ DataPlay alpha contains a rudimentary selection of datasets drawn from [data.gov
 ### Production:
 
 1. HAProxy Load Balancer [`tools/deployment/loadbalancer/haproxy.sh`](tools/deployment/loadbalancer/haproxy.sh)
-2. Gamification instances [`tools/deployment/app/master.sh`](tools/deployment/app/master.sh)
-3. Computation instances [`tools/deployment/app/node.sh`](tools/deployment/app/node.sh)
+2. Gamification instances [`tools/deployment/app/frontend.sh`](tools/deployment/app/frontend.sh)
+3. Computation/API instances [`tools/deployment/app/master.sh`](tools/deployment/app/master.sh)
 4. PostgreSQL DB instance [`tools/deployment/db/postgresql.sh`](tools/deployment/db/postgresql.sh)
 5. Cassandra DB instance [`tools/deployment/db/cassandra.sh`](tools/deployment/db/cassandra.sh)
-6. Redis & RabbitMQ instance [`tools/deployment/queue/redis_rabbitmq.sh`](tools/deployment/queue/redis_rabbitmq.sh)
+6. Redis instance [`tools/deployment/db/redis.sh`](tools/deployment/queue/redis.sh)
 
 ### Monitoring:
 
