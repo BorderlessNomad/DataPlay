@@ -4,6 +4,11 @@
 
 set -ex
 
+if [ "$(id -u)" != "0" ]; then
+	echo >&2 "Error: This script must be run as user 'root'";
+	exit 1
+fi
+
 timestamp () {
 	date +"%F %T,%3N"
 }
@@ -46,11 +51,6 @@ update_iptables () {
 
 	iptables-save
 }
-
-if [ "$(id -u)" != "0" ]; then
-	echo "Error: This script must be run as root" 1>&2
-	exit 1
-fi
 
 echo "[$(timestamp)] ---- 1. Setup SSH Access Keys ----"
 setup_ssh_keys
