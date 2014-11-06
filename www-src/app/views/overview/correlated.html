@@ -1,5 +1,5 @@
 <div class="col-md-4" ng-repeat="chart in chartsCorrelated" id="{{chart.info.id}}" ng-if="hasCorrelatedCharts() > 0">
-	<a class="correlated no-underline" href="/{{chart.info.url}}">
+	<a class="correlated" href="/{{chart.info.url}}">
 		{{chart.title}}
 		<span ng-include="'views/charts/correlated/line.html'"></span>
 		<span ng-include="'views/charts/correlated/column.html'"></span>
