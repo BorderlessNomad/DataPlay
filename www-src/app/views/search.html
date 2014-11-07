@@ -90,7 +90,7 @@
 			</div>
 
 			<div class="loader-tight loader-faded" ng-if="loading.overview" ng-include="'views/loader.html'"></div>
-			<div class="nothing" ng-if="!loading.overview && overview.length <= 0"><p class="text-center text-muted">Nothing to show</p></div>
+			<div class="nothing" ng-if="!loading.overview && overview.length <= 0 && isSearch"><p class="text-center text-muted">Nothing to show</p></div>
 
 		</div>
 	</div>
