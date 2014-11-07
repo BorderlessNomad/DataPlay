@@ -94,7 +94,7 @@
 
 			<div class="content">
 				<div class="media" ng-repeat="sect in sidebarSections">
-					<h5>{{sect.category}}</h5>
+					<h5 class="list-header">{{sect.category}}</h5>
 					<div class="row" ng-repeat="(key, item) in sect.top5">
 						<p class="item" ng-show="item.amount > 0">
 							<a href="/{{sect.url}}/{{item.term}}">
