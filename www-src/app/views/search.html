@@ -1,4 +1,4 @@
-<div class="row total-results" ng-init="init()">
+<div class="row total-results" ng-init="init(true)">
 	<span ng-class="{true: '', false: 'notvisible'}[totalResults > 0]">{{totalResults}} results found</span>
 </div>
 
@@ -11,11 +11,11 @@
 				</div>
 			</form> -->
 
-			<form ng-submit="search()" novalidate>
+			<form ng-submit="changePage()" novalidate>
 				<div class="input-group">
 					<input class="form-control" type="search" placeholder="Enter your query here (e.g. gold)" ng-model="query" />
 					<span class="input-group-btn">
-						<button class="btn btn-primary" ng-click="changePage()">Search</button>
+						<button type="submit" class="btn btn-primary">Search</button>
 					</span>
 				</div>
 			</form>
