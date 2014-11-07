@@ -57,11 +57,20 @@
 }
 
 .tweets {
-	.twitter-blue { color: #55ACEE; }
+	.twitter-blue {
+		color: #55ACEE;
+
+		&:hover {
+			color: darken(#55ACEE, 15%);
+		}
+	}
 	.highlight { background-color: rgba(243, 156, 18, 0.15); }
 
 	.tweet-header {
 		margin-bottom: 0;
+		.tweet-avatar {
+			height: 1em;
+		}
 		.tweet-author { font-weight: 600; }
 	}
 

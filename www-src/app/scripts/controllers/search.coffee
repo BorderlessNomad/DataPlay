@@ -76,6 +76,8 @@ angular.module('dataplayApp')
 
 							tw.comment = tw.comment.replace(/(<\/span>)(\s{1,}|\-{1,})(<span class="highlight">)/gi, '$2')
 
+							tw.url = "https://twitter.com/#{tw.username}/status/#{tw.id}"
+
 							$scope.tweets.push tw
 				.error () ->
 					$scope.loading.tweets = false
