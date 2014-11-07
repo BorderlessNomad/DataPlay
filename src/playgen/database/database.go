@@ -60,7 +60,7 @@ func (self *Database) Connect() (err error) {
 	self.DB.DB().Ping()
 
 	/* Debug */
-	// self.DB.LogMode(true)
+	self.DB.LogMode(true)
 
 	return
 }
