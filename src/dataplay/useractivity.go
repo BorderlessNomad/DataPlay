@@ -152,10 +152,9 @@ func GetProfileObservationsHttp(res http.ResponseWriter, req *http.Request, para
 			var cd CorrelationData
 			json.Unmarshal(discTmp.Json, &cd)
 			tmp.Title = cd.Table1.Title + " correlated with " + cd.Table2.Title
-			tmp.ApiString = "charts/correlated/" + od.Guid + "/" + strconv.Itoa(discTmp.CorrelationId) + "/" + cd.ChartType + "/" + cd.Table1.LabelX + "/" + cd.Table1.LabelY
+			tmp.ApiString = "charts/correlated/" + strconv.Itoa(discTmp.CorrelationId)
 			if cd.Table3.Title != "" {
 				tmp.Title += " correlated with " + cd.Table3.Title
-				tmp.ApiString += "/" + cd.Table1.LabelZ
 			}
 		}
 
@@ -231,10 +230,9 @@ func GetDiscoveriesHttp(res http.ResponseWriter, req *http.Request, params marti
 			var cd CorrelationData
 			json.Unmarshal(d.Json, &cd)
 			tmp.Title = cd.Table1.Title + " correlated with " + cd.Table2.Title
-			tmp.ApiString = "charts/correlated/" + od.Guid + "/" + strconv.Itoa(d.CorrelationId) + "/" + cd.ChartType + "/" + cd.Table1.LabelX + "/" + cd.Table1.LabelY
+			tmp.ApiString = "charts/correlated/" + strconv.Itoa(d.CorrelationId)
 			if cd.Table3.Title != "" {
 				tmp.Title += " correlated with " + cd.Table3.Title
-				tmp.ApiString += "/" + cd.Table1.LabelZ
 			}
 		}
 
@@ -312,10 +310,9 @@ func GetCreditedDiscoveriesHttp(res http.ResponseWriter, req *http.Request, para
 			var cd CorrelationData
 			json.Unmarshal(d.Json, &cd)
 			tmp.Title = cd.Table1.Title + " correlated with " + cd.Table2.Title
-			tmp.ApiString = "charts/correlated/" + od.Guid + "/" + strconv.Itoa(d.CorrelationId) + "/" + cd.ChartType + "/" + cd.Table1.LabelX + "/" + cd.Table1.LabelY
+			tmp.ApiString = "charts/correlated/" + strconv.Itoa(d.CorrelationId)
 			if cd.Table3.Title != "" {
 				tmp.Title += " correlated with " + cd.Table3.Title
-				tmp.ApiString += "/" + cd.Table1.LabelZ
 			}
 		}
 
@@ -760,12 +757,8 @@ func TitleAndLink(rid string, cid int, j []byte) (string, string) {
 			return "", ""
 		}
 
-		link = "charts/correlated/" + od.Guid + "/" + strconv.Itoa(cid) + "/" + cd.ChartType + "/" + cd.Table1.LabelX + "/" + cd.Table1.LabelY
+		link = "charts/correlated/" + strconv.Itoa(cid)
 		title = cd.Table1.Title + " " + cd.Table1.LabelX + " vs " + cd.Table1.LabelY + " correlated with " + cd.Table2.Title + " " + cd.Table2.LabelX + " vs " + cd.Table2.LabelY + " " + cd.ChartType + " chart"
-
-		if cd.Table3.Title != "" {
-			link += "/" + cd.Table1.LabelZ
-		}
 	}
 
 	return title, link

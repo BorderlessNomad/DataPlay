@@ -326,7 +326,7 @@ func GetRecentObservationsHttp(res http.ResponseWriter, req *http.Request) strin
 		if discovered.CorrelationId == 0 {
 			tmpCO.Link = "charts/related/" + discovered.RelationId
 		} else {
-			tmpCO.Link = "chartcorrelated/" + strconv.Itoa(discovered.CorrelationId)
+			tmpCO.Link = "charts/correlated/" + strconv.Itoa(discovered.CorrelationId)
 		}
 
 		tmpCO.EmailMD5 = GetMD5Hash(user.Email)

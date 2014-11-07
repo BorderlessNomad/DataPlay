@@ -68,12 +68,7 @@ angular.module('dataplayApp')
 				controller: 'ChartsRelatedCtrl'
 				title: ['Chart', 'Related']
 				login: true
-			.when '/charts/correlated/:id/:correlationid/:type/:x/:y',
-				templateUrl: 'views/charts.html'
-				controller: 'ChartsCorrelatedCtrl'
-				title: ['Chart', 'Correlated']
-				login: true
-			.when '/charts/correlated/:id/:correlationid/:type/:x/:y/:z',
+			.when '/charts/correlated/:correlationid',
 				templateUrl: 'views/charts.html'
 				controller: 'ChartsCorrelatedCtrl'
 				title: ['Chart', 'Correlated']

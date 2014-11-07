@@ -80,9 +80,8 @@ angular.module('dataplayApp')
 									chartObj.info =
 										key: key
 										id: "correlated-#{chart.correlationid}"
-										url: "charts/correlated/#{chart['source_title']}/#{chart.correlationid}/#{chart.type}/#{chart['source_X']}/#{chart['source_Y']}"
+										url: "charts/correlated/#{chart.correlationid}"
 										title: [chart.table1.title, chart.table2.title]
-									chartObj.info.url += "/#{chart.table1.zLabel}" if chart.type is 'bubble'
 
 									[1..2].forEach (i) ->
 										vals = chartObj.translateData chart['table' + i].values, chart.type
