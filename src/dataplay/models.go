@@ -98,7 +98,7 @@ type Index struct {
 }
 
 func (i Index) TableName() string {
-	return "index"
+	return "priv_index"
 }
 
 type Observation struct {
