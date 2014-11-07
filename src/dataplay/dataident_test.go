@@ -180,50 +180,6 @@ func TestGetRelatedDatasetByStrings(t *testing.T) {
 	})
 }
 
-func TestSuggestColType(t *testing.T) {
-	request, _ := http.NewRequest("POST", "/", nil)
-	response := httptest.NewRecorder()
-	params := map[string]string{
-		"table": "",
-		"col":   "",
-	}
-
-	result := SuggestColType(response, request, params)
-
-	Convey("When no parameters are provided", t, func() {
-		So(result, ShouldEqual, "")
-	})
-
-	Convey("When wrong table parameter is provided", t, func() {
-		params["table"] = "qwerty1"
-		params["col"] = "qwerty1"
-		result = SuggestColType(response, request, params)
-		So(result, ShouldEqual, "")
-	})
-
-	Convey("When wrong table parameter is provided", t, func() {
-		params["table"] = "gold"
-		params["col"] = "qwerty1"
-		result = SuggestColType(response, request, params)
-		So(result, ShouldEqual, "")
-	})
-
-	Convey("When wrong Col parameter is provided", t, func() {
-		params["table"] = "gold"
-		params["col"] = "qwerty1"
-		result = SuggestColType(response, request, params)
-		So(result, ShouldEqual, "")
-	})
-
-	Convey("When correct ID parameter is provided with col", t, func() {
-		params["table"] = "gold"
-		params["col"] = "price"
-		result = SuggestColType(response, request, params)
-		So(result, ShouldEqual, "true")
-	})
-
-}
-
 func TestConvertIntoStructArrayAndSort(t *testing.T) {
 	unsorted := map[string]int{
 		"b": 2,

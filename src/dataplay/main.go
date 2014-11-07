@@ -99,11 +99,11 @@ func initApiServer() {
 	m.Get("/api/chart/awaitingcredit", GetAwaitingCreditHttp)
 	m.Get("/api/chart/toprated", GetTopRatedChartsHttp)
 	m.Get("/api/chartinfo/:tablename", GetChartInfoHttp)
-	m.Get("/api/classifydata/:table/:col", SuggestColType)
+	// m.Get("/api/classifydata/:table/:col", SuggestColType)
 	m.Get("/api/correlated/:tablename", GetCorrelatedChartsHttp)
 	m.Get("/api/findmatches/:id/:x/:y", AttemptToFindMatches)
 	m.Get("/api/getdefaults/:id", GetDefaults)
-	m.Get("/api/getimportstatus/:id", CheckImportStatus)
+	// m.Get("/api/getimportstatus/:id", CheckImportStatus)
 	m.Get("/api/home/data", GetHomePageDataHttp)
 	m.Get("/api/identifydata/:id", IdentifyTable)
 

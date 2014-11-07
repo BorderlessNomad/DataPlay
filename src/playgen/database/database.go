@@ -26,7 +26,7 @@ func (self *Database) Setup() {
 	flag.StringVar(&self.Host, "DBHost", "10.0.0.2", "Where to connect to the postgresql DB")
 	flag.StringVar(&self.Port, "DBPort", "5432", "Where to connect to the postgresql DB")
 
-	flag.StringVar(&self.Schema, "DBDatabase", "dataplay", "The database name to use while connecting to the postgresql DB")
+	flag.StringVar(&self.Schema, "DBDatabase", "dataplay_new", "The database name to use while connecting to the postgresql DB")
 }
 
 func (self *Database) ParseEnvironment() {
@@ -60,7 +60,7 @@ func (self *Database) Connect() (err error) {
 	self.DB.DB().Ping()
 
 	/* Debug */
-	// self.DB.LogMode(true)
+	self.DB.LogMode(true)
 
 	return
 }

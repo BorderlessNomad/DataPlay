@@ -23,7 +23,7 @@ func RandomValueColumn(cols []ColType) string {
 	columns := make([]string, 0)
 
 	for i, _ := range cols {
-		if (cols[i].Sqltype == "numeric" || cols[i].Sqltype == "float" || cols[i].Sqltype == "integer") && cols[i].Name != "transaction_number" {
+		if (cols[i].Sqltype == "numeric" || cols[i].Sqltype == "float" || cols[i].Sqltype == "integer" || cols[i].Sqltype == "real") && cols[i].Name != "transaction_number" {
 			columns = append(columns, cols[i].Name)
 		}
 	}

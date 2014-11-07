@@ -6,7 +6,6 @@ import (
 	"github.com/jinzhu/gorm"
 	"net/http"
 	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -145,7 +144,7 @@ func GetSQLTableSchema(table string) []ColType {
 
 		if NewCol.Sqltype == "character varying" {
 			NewCol.Sqltype = "varchar"
-		} else if NewCol.Sqltype == "numeric" {
+		} else if NewCol.Sqltype == "numeric" || NewCol.Sqltype == "float" || NewCol.Sqltype == "double" || NewCol.Sqltype == "real" {
 			NewCol.Sqltype = "float"
 		}
 
@@ -163,44 +162,6 @@ func CheckColExists(schema []ColType, column string) bool {
 	}
 
 	return false
-}
-
-func SuggestColType(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	if params["table"] == "" || params["col"] == "" {
-		http.Error(res, "There was no ID request", http.StatusBadRequest)
-		return ""
-	}
-
-	onlineData := OnlineData{}
-	err := DB.Select("tablename").Where("guid = ?", params["table"]).Find(&onlineData).Error
-
-	if err == gorm.RecordNotFound {
-		http.Error(res, "Could not find that Table", http.StatusNotFound)
-		return ""
-	} else if err != nil {
-		check(err)
-		return ""
-	}
-
-	schema := GetSQLTableSchema(onlineData.Tablename)
-
-	if !CheckColExists(schema, params["col"]) {
-		http.Error(res, "You have requested a Columns that does not exist.", http.StatusBadRequest)
-		return ""
-	}
-
-	var data []string
-	err = DB.Table(onlineData.Tablename).Pluck(params["col"], &data).Error
-	check(err)
-
-	for _, val := range data {
-		_, e := strconv.ParseFloat(val, 10)
-		if e != nil {
-			return "false"
-		}
-	}
-
-	return "true"
 }
 
 /**
@@ -354,11 +315,11 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, para
 			tablelist := make([]string, 0)
 
 			var data = []string{}
-			query := DB.Table("priv_onlinedata, priv_stringsearch, index")
+			query := DB.Table("priv_onlinedata, priv_stringsearch, priv_index")
 			query = query.Where("priv_stringsearch.value = ?", dict.Value)
 			query = query.Where("priv_stringsearch.count > ?", 5) //Why?
 			query = query.Where("priv_stringsearch.tablename = priv_onlinedata.tablename")
-			query = query.Where("priv_onlinedata.guid = index.guid")
+			query = query.Where("priv_onlinedata.guid = priv_index.guid")
 			err := query.Pluck("priv_onlinedata.guid", &data).Error
 
 			if err == gorm.RecordNotFound {

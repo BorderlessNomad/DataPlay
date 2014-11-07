@@ -655,6 +655,7 @@ func PrimaryDate() {
 					d.Date = v
 					dv = append(dv, d)
 				}
+
 				primaryDate := MainDate(dv)
 				err := DB.Model(Index{}).Where("guid= ?", name).Update("primary_date", primaryDate).Error
 				check(err)
@@ -723,5 +724,6 @@ func stringInSlice(dateString string, list []mainDateVal) (bool, int) {
 			return true, i
 		}
 	}
+
 	return false, 0
 }
