@@ -14,15 +14,16 @@ import (
 )
 
 type Tweet struct {
-	Text     string    `json:"comment"`
-	Name     string    `json:"name"`
-	User     string    `json:"username"`
-	Created  time.Time `json:"created"`
-	Retweets int       `json:"retweets"`
-	Source   string    `json:"source"`
-	Hashtags []string  `json:"hashtags"`
-	Urls     []string  `json:"urls"`
-	Media    []string  `json:"mediaurls"`
+	Text       string    `json:"comment"`
+	Name       string    `json:"name"`
+	User       string    `json:"username"`
+	UserAvatar string    `json:"useravatar"`
+	Created    time.Time `json:"created"`
+	Retweets   int       `json:"retweets"`
+	Id         string    `json:"id"`
+	Hashtags   []string  `json:"hashtags"`
+	Urls       []string  `json:"urls"`
+	Media      []string  `json:"mediaurls"`
 }
 
 type Sanitized struct {
@@ -58,10 +59,11 @@ func GetTweetsHttp(res http.ResponseWriter, req *http.Request, params martini.Pa
 				tmpTweet.Created, _ = tweet.CreatedAtTime()
 
 				tmpTweet.Retweets = tweet.RetweetCount
-				tmpTweet.Source = tweet.Source
+				tmpTweet.Id = tweet.IdStr
 				tmpTweet.Text = ProfanityCheck(tweet.Text)
 				tmpTweet.Name = tweet.User.Name
 				tmpTweet.User = tweet.User.ScreenName
+				tmpTweet.UserAvatar = tweet.User.ProfileImageURL
 
 				for _, h := range tweet.Entities.Hashtags {
 					tmpTweet.Hashtags = append(tmpTweet.Hashtags, h.Text)
