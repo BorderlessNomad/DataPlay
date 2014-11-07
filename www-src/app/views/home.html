@@ -73,19 +73,19 @@
 							</a>
 						</div>
 						<div class="col-xs-11">
-							<span ng-if="item.action == 'cc' && item.points.value == 0">You credited a <a href="{{item.url}}" ng-attr-title="{{item.title}}">{{item.title|truncate:30}}</a></span>
+							<span ng-if="item.action == 'cc' && item.points.value == 0">You credited <a href="{{item.url}}" ng-attr-title="{{item.title}}">{{item.title|truncate:30}}</a></span>
 							<span ng-if="item.action == 'cc' && item.points.value != 0">You gained <span class="label label-{{item.points.class}}">{{item.points.value}}</span> {{item.points.text}} when <a href="/profile/{{item.actor}}">{{item.actor}}</a> credited your <a href="{{item.url}}">discovery</a></span>
 
-							<span ng-if="item.action == 'dc' && item.points.value == 0">You discredited a <a href="{{item.url}}" ng-attr-title="{{item.title}}">{{item.title|truncate:30}}</a></span>
+							<span ng-if="item.action == 'dc' && item.points.value == 0">You discredited <a href="{{item.url}}" ng-attr-title="{{item.title}}">{{item.title|truncate:30}}</a></span>
 							<span ng-if="item.action == 'dc' && item.points.value != 0">You lost <span class="label label-{{item.points.class}}">{{item.points.value}}</span> {{item.points.text}} when <a href="/profile/{{item.actor}}">{{item.actor}}</a> discredited your <a href="{{item.url}}">discovery</a></span>
 
-							<span ng-if="item.action == 'co' && item.points.value == 0">You credited <a href="/profile/{{item.actor}}">{{item.actor}}</a>'s  observation on <a href="{{item.url}}" ng-attr-title="{{item.title}}">{{item.title|truncate:30}}</a></span>
+							<span ng-if="item.action == 'co' && item.points.value == 0">You credited <a href="/profile/{{item.actor}}">{{item.actor}}</a>'s observation on <a href="{{item.url}}" ng-attr-title="{{item.title}}">{{item.title|truncate:30}}</a></span>
 							<span ng-if="item.action == 'co' && item.points.value != 0">You gained <span class="label label-{{item.points.class}}">{{item.points.value}}</span> {{item.points.text}} when <a href="/profile/{{item.actor}}">{{item.actor}}</a> credited your observation on <a href="{{item.url}}" ng-attr-title="{{item.title}}">{{item.title|truncate:30}}</a></span>
 
 							<span ng-if="item.action == 'do' && item.points.value == 0">You discredited <a href="/profile/{{item.actor}}">{{item.actor}}</a>'s observation on <a href="{{item.url}}" ng-attr-title="{{item.title}}">{{item.title|truncate:30}}</a></span>
 							<span ng-if="item.action == 'do' && item.points.value != 0">You lost <span class="label label-{{item.points.class}}">{{item.points.value}}</span> {{item.points.text}} when <a href="/profile/{{item.actor}}">{{item.actor}}</a> discredited your observation on <a href="{{item.url}}" ng-attr-title="{{item.title}}">{{item.title|truncate:30}}</a></span>
 
-							<span ng-if="item.action == 'c' && item.points.value == 0">You made an observation on a <a href="{{item.url}}" ng-attr-title="{{item.title}}">{{item.title|truncate:30}}</a></span>
+							<span ng-if="item.action == 'c' && item.points.value == 0">You made an observation on <a href="{{item.url}}" ng-attr-title="{{item.title}}">{{item.title|truncate:30}}</a></span>
 							<span ng-if="item.action == 'c' && item.points.value != 0">You gained <span class="label label-{{item.points.class}}">{{item.points.value}}</span> {{item.points.text}} when <a href="/profile/{{item.actor}}">{{item.actor}}</a> made an observation on your <a href="{{item.url}}">discovery</a></span>
 						</div>
 					</div>
