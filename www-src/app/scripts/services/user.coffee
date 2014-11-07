@@ -37,21 +37,21 @@ angular.module('dataplayApp')
 				'last_name': data['last_name'] or ''
 				'image': data['image'] or ''
 
-		check: (username) ->
+		check: (email) ->
 			$http.post config.api.base_url + "/user/check",
-				username: username
+				email: email
 
-		forgotPassword: (username) ->
+		forgotPassword: (email) ->
 			$http.post config.api.base_url + "/user/forgot",
-				username: username
+				email: email
 
-		token: (token, username, password) ->
+		token: (token, email, password) ->
 			if password?
 				$http.put config.api.base_url + "/user/reset/#{token}",
-					username: username
+					email: email
 					password: password
 			else
-				$http.get config.api.base_url + "/user/reset/#{token}/#{username}",
+				$http.get config.api.base_url + "/user/reset/#{token}/#{email}"
 
 		resetPassword: (hash, password) ->
 			$http.post config.api.base_url + "/user/reset",

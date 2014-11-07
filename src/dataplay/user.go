@@ -35,7 +35,7 @@ type UserForm struct {
 }
 
 type UserNameForm struct {
-	Username string `json:"username" binding:"required"`
+	Email string `json:"email" binding:"required"`
 }
 
 type UserSocialForm struct {
@@ -303,23 +303,23 @@ func HandleRegister(res http.ResponseWriter, req *http.Request, register UserFor
 }
 
 func HandleCheckUsername(res http.ResponseWriter, req *http.Request, user UserNameForm) string {
-	if user.Username == "" {
+	if user.Email == "" {
 		http.Error(res, "Invalid or empty username.", http.StatusBadRequest)
 		return ""
 	}
 
 	validUser := User{}
-	gErr := DB.Where("username = ?", user.Username).First(&validUser).Error
+	gErr := DB.Where("email = ?", user.Email).First(&validUser).Error
 	if gErr != nil && gErr != gorm.RecordNotFound {
 		http.Error(res, "Unable to find that User.", http.StatusInternalServerError)
 		return ""
 	} else if gErr == gorm.RecordNotFound {
-		http.Error(res, "We couldn't find an account associated with "+user.Username, http.StatusNotFound)
+		http.Error(res, "We couldn't find an account associated with "+user.Email, http.StatusNotFound)
 		return ""
 	}
 
 	u := map[string]interface{}{
-		"user":   validUser.Username,
+		"user":   validUser.Email,
 		"exists": true,
 	}
 
@@ -329,18 +329,18 @@ func HandleCheckUsername(res http.ResponseWriter, req *http.Request, user UserNa
 }
 
 func HandleForgotPassword(res http.ResponseWriter, req *http.Request, user UserNameForm) string {
-	if user.Username == "" {
+	if user.Email == "" {
 		http.Error(res, "Invalid or empty username.", http.StatusBadRequest)
 		return ""
 	}
 
 	validUser := User{}
-	gErr := DB.Where("username = ?", user.Username).First(&validUser).Error
+	gErr := DB.Where("email = ?", user.Email).First(&validUser).Error
 	if gErr != nil && gErr != gorm.RecordNotFound {
 		http.Error(res, "Database query failed (User)", http.StatusInternalServerError)
 		return ""
 	} else if gErr == gorm.RecordNotFound {
-		http.Error(res, "We couldn't find an account associated with "+user.Username, http.StatusNotFound)
+		http.Error(res, "We couldn't find an account associated with "+user.Email, http.StatusNotFound)
 		return ""
 	}
 
@@ -379,13 +379,13 @@ func HandleForgotPassword(res http.ResponseWriter, req *http.Request, user UserN
 	return string(usr)
 }
 
-func ResetPassword(hash, username, password string) *appError {
-	if username == "" || hash == "" {
-		return &appError{nil, "No username/token found!", http.StatusBadRequest}
+func ResetPassword(hash, email, password string) *appError {
+	if email == "" || hash == "" {
+		return &appError{nil, "No email/token found!", http.StatusBadRequest}
 	}
 
 	user := User{}
-	gErr := DB.Where("username = ?", username).First(&user).Error
+	gErr := DB.Where("email = ?", email).First(&user).Error
 	if gErr != nil && gErr != gorm.RecordNotFound {
 		return &appError{nil, "Database query failed (User).", http.StatusInternalServerError}
 	} else if gErr == gorm.RecordNotFound {
@@ -425,7 +425,7 @@ func ResetPassword(hash, username, password string) *appError {
 }
 
 func HandleResetPasswordCheck(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	err := ResetPassword(params["token"], params["username"], "")
+	err := ResetPassword(params["token"], params["email"], "")
 	if err != nil {
 		http.Error(res, err.Message, err.Code)
 		return ""
@@ -435,7 +435,7 @@ func HandleResetPasswordCheck(res http.ResponseWriter, req *http.Request, params
 }
 
 func HandleResetPassword(res http.ResponseWriter, req *http.Request, params martini.Params, user UserForm) string {
-	err := ResetPassword(params["token"], user.Username, user.Password)
+	err := ResetPassword(params["token"], user.Email, user.Password)
 	if err != nil {
 		http.Error(res, err.Message, err.Code)
 		return ""

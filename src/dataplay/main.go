@@ -116,7 +116,7 @@ func initApiServer() {
 	m.Get("/api/user/discoveries", GetAmountDiscoveriesHttp)
 	m.Get("/api/user/experts", GetDataExpertsHttp)
 	m.Get("/api/user/reputation", GetReputationHttp)
-	m.Get("/api/user/reset/:token/:username", HandleResetPasswordCheck)
+	m.Get("/api/user/reset/:token/:email", HandleResetPasswordCheck)
 
 	m.Get("/api/profile/credited", GetCreditedDiscoveriesHttp)
 	m.Get("/api/profile/:username/credited", GetCreditedDiscoveriesHttp)
