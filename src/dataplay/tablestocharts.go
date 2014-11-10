@@ -32,6 +32,7 @@ type PatternInfo struct {
 	Discreditors    []string    `json:"discreditedby, omitempty"`
 	PrimarySource   string      `json:"source1"`
 	SecondarySource string      `json:"source2, omitempty"`
+	Coefficient     float64     `json:"coefficient, omitempty"`
 	Strength        string      `json:"statstrength, omitempty"`
 	Observations    int         `json:"numobs"`
 	UserCredited    bool        `json:"userhascredited"`
@@ -201,7 +202,6 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 
 	query := DB.Select("DISTINCT uid, credflag, (SELECT priv_users.username FROM priv_users WHERE priv_users.uid = priv_credits.uid) as username")
 	query = query.Where("discovered_id = ?", discovered.DiscoveredId)
-
 	err5 := query.Find(&creditingUsers).Error
 
 	if err5 != nil && err5 != gorm.RecordNotFound {
@@ -341,6 +341,7 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	pattern.Discreditors = discreditors
 	pattern.PrimarySource = cd.Table1.Title
 	pattern.SecondarySource = cd.Table2.Title
+	pattern.Coefficient = correlation.Coef
 	pattern.Strength = CalcStrength(correlation.Abscoef)
 	pattern.Observations = count
 
@@ -469,11 +470,13 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int, reduce bool) (CorrelatedCharts, *appError) {
 	correlation := make([]Correlation, 0)
 	charts := make([]CorrelationData, 0) ///empty slice for adding all possible charts
+
 	od := OnlineData{}
 	e := DB.Where("guid = ?", guid).Find(&od).Error
 	if e != nil {
 		return CorrelatedCharts{nil, 0}, &appError{nil, "Bad guid", http.StatusInternalServerError}
 	}
+
 	tableName := od.Tablename
 
 	for i := 0; i < 30; i++ {
@@ -494,6 +497,7 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int, re
 		var cd CorrelationData
 		json.Unmarshal(c.Json, &cd)
 		cd.CorrelationId = c.CorrelationId
+		cd.Coefficient = c.Coef
 
 		if reduce {
 			cd.Table1.Values = ReduceXYValues(cd.Table1.Values)
@@ -1267,7 +1271,7 @@ func ReduceXYValues(originalValues []XYVal) []XYVal {
 		values := make([]XYVal, 0)
 		rate := len(originalValues) / 100
 		for k, v := range originalValues {
-			if k == 0 || k == len(originalValues) - 1 || k % rate == 0 {
+			if k == 0 || k == len(originalValues)-1 || k%rate == 0 {
 				values = append(values, v)
 			}
 		}

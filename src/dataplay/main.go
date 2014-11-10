@@ -294,7 +294,7 @@ func UserApiSessionHandler(res http.ResponseWriter, req *http.Request) {
 
 func LogRequest(res http.ResponseWriter, req *http.Request, c martini.Context) {
 	// Do not proceed if request is not for "/api"
-	if !strings.HasPrefix(req.URL.Path, "/api") {
+	if !strings.HasPrefix(req.URL.Path, "/api") || strings.HasPrefix(req.URL.Path, "/api/ping") {
 		return
 	}
 
