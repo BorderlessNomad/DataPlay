@@ -26,6 +26,7 @@ type CorrelationData struct {
 	Table1        TableData `json:"table1"`
 	Table2        TableData `json:"table2"`
 	Table3        TableData `json:"table3, omitempty"`
+	Coefficient   float64   `json:"coefficient, omitempty"`
 }
 
 type TableData struct {
@@ -158,28 +159,31 @@ func AttemptCorrelation(tableCols TableCols) *appError {
 				if err != nil {
 					return err
 				}
+
 				tableCols.chart = "column"
 				err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
 				if err != nil {
 					return err
 				}
+
 				tableCols.chart = "line"
 				err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
 				if err != nil {
 					return err
 				}
+
 				tableCols.chart = "scatter"
 				err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
 				if err != nil {
 					return err
 				}
-
 			} else if tableCols.ctype == "Spurious" {
 				tableCols.chart = "line"
 				err := SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
 				if err != nil {
 					return err
 				}
+
 				tableCols.chart = "scatter"
 				err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
 				if err != nil {
@@ -191,22 +195,24 @@ func AttemptCorrelation(tableCols TableCols) *appError {
 				if err != nil {
 					return err
 				}
+
 				tableCols.chart = "column"
 				err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
 				if err != nil {
 					return err
 				}
+
 				tableCols.chart = "line"
 				err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
 				if err != nil {
 					return err
 				}
+
 				tableCols.chart = "scatter"
 				err = SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
 				if err != nil {
 					return err
 				}
-
 			} else {
 				tableCols.chart = "unknown"
 				err := SaveCorrelation(tableCols, c, cf, cd) // save everything to the correlation table
