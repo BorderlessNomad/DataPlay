@@ -85,6 +85,7 @@ angular.module('dataplayApp')
 						$scope.info.strength = data.statstrength
 						$scope.info.approved = data.userhascredited
 						$scope.info.disapproved = data.userhasdiscredited
+						$scope.info.coeff = Math.floor Math.abs data.coefficient * 100
 
 					$scope.initObservations()
 					console.log "Chart", $scope.chart

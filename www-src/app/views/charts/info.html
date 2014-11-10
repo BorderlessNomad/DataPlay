@@ -40,7 +40,11 @@
 	<div class="col-sm-6 ci-key">Statistical strength</div>
 	<div class="col-sm-6 ci-val">{{info.strength}}</div>
 </div>
-<div class="row ci-row">
+<div class="row ci-row" ng-if="info.coeff">
+	<div class="col-sm-6 ci-key">Coefficient</div>
+	<div class="col-sm-6 ci-val">{{info.coeff}}%</div>
+</div>
+<div class="row ci-row" ng-if="userObservations !== null">
 	<div class="col-sm-6 ci-key">Observations</div>
 	<div class="col-sm-6 ci-val">{{userObservations.length}}</div>
 </div>
