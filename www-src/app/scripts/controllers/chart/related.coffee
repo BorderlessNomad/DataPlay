@@ -517,7 +517,7 @@ angular.module('dataplayApp')
 			chart.renderTitle true
 			chart.title (d) ->
 				percent = d.value / data.groupSum * 100
-				"#{d.key}: #{d.value} [#{Math.floor percent}%]"
+				"#{d.key}: #{d.value} [#{percent.toFixed 2}%]"
 
 			chart.legend dc.legend().x(0).y(350)
 

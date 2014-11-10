@@ -34,6 +34,7 @@ type PatternInfo struct {
 	SecondarySource string      `json:"source2, omitempty"`
 	Coefficient     float64     `json:"coefficient, omitempty"`
 	Strength        string      `json:"statstrength, omitempty"`
+	Overview        string      `json:"overview, omitempty"`
 	Observations    int         `json:"numobs"`
 	UserCredited    bool        `json:"userhascredited"`
 	UserDiscredited bool        `json:"userhasdiscredited"`
@@ -263,27 +264,27 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 // use the id relating to the record stored in the generated correlations table to return the json with the specific chart info
 func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	pattern := PatternInfo{}
-	var chart []string
 	var cd CorrelationData
 
-	err := DB.Model(Correlation{}).Where("correlation_id = ?", cid).Pluck("json", &chart).Error
+	correlation := Correlation{}
+	err := DB.Where("correlation_id = ?", cid).Find(&correlation).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return pattern, &appError{err, "Database query failed (ID)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
-		return pattern, &appError{err, "No related chart found", http.StatusNotFound}
+		return pattern, &appError{err, "No correlated chart found", http.StatusNotFound}
 	}
 
 	//if undiscovered add to the discovered table as an initial discovery
 	discovered := Discovered{}
 	err1 := DB.Where("correlation_id = ?", cid).Find(&discovered).Error
 	if err1 == gorm.RecordNotFound {
-		Discover(strconv.Itoa(cid), uid, []byte(chart[0]), true)
+		Discover(strconv.Itoa(cid), uid, correlation.Json, true)
 	}
 
 	user := User{}
 	err2 := DB.Where("uid = ?", discovered.Uid).Find(&user).Error
 	if err2 != nil && err2 != gorm.RecordNotFound {
-		return pattern, &appError{err2, "unable to retrieve user for correlated chart", http.StatusInternalServerError}
+		return pattern, &appError{err2, "Unable to retrieve User for correlated chart.", http.StatusInternalServerError}
 	}
 
 	creditors := make([]string, 0)
@@ -326,12 +327,6 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 		return pattern, &appError{err6, "Json failed", http.StatusInternalServerError}
 	}
 
-	correlation := Correlation{}
-	err7 := DB.Where("correlation_id = ?", cid).Find(&correlation).Error
-	if err7 != nil {
-		return pattern, &appError{err7, "Correlation failed", http.StatusInternalServerError}
-	}
-
 	pattern.ChartData = cd
 	pattern.PatternID = strconv.Itoa(discovered.CorrelationId)
 	pattern.DiscoveredID = discovered.DiscoveredId
@@ -344,6 +339,7 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	pattern.Coefficient = correlation.Coef
 	pattern.Strength = CalcStrength(correlation.Abscoef)
 	pattern.Observations = count
+	pattern.Overview = correlation.Tbl1
 
 	// See if user has credited or discredited this chart
 	cred := Credit{}
@@ -426,7 +422,6 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 			}
 		}
 
-		fmt.Println("line", v.Ytype, v.Y)
 		if v.Ytype != "varchar" && (v.Xtype == "date" || (v.Xtype != "varchar" && IsDateYear(v.X))) { // line chart cannot be based on strings or have date on the Y axis
 			GenerateChartData("line", guid, v, &charts, index, true)
 		}
@@ -435,7 +430,6 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 	if len(columns) > 2 { // if there's more than 2 columns grab a 3rd variable for bubble charts
 		xyNames = XYPermutations(columns, true) // set z flag to true to get all possible valid permuations of columns as X, Y & Z
 		for _, v := range xyNames {
-			fmt.Println("bubble")
 			GenerateChartData("bubble", guid, v, &charts, index, true)
 		}
 	}
@@ -683,8 +677,6 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 		for rows.Next() {
 			pieSlices++
 
-			fmt.Println("pie", names.Xtype)
-
 			if names.Xtype == "float" || names.Xtype == "integer" || names.Xtype == "real" {
 				rows.Scan(columnPointers...)
 				columnNames := FetchTableCols(guid)
@@ -709,13 +701,10 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 					}
 				}
 
-				fmt.Println("pie", "tmpTD", tmpTD)
-
 				*charts = append(*charts, tmpTD)
 			}
 		}
 	} else { // for all other types of chart
-		fmt.Println("other", chartType, names.Y)
 		tmpTD.LabelY = names.Y
 
 		for rows.Next() {

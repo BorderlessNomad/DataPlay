@@ -445,7 +445,7 @@ func DumpReducedTable(params map[string]string) ([]map[string]interface{}, *appE
 	var rows *sql.Rows
 	var e1 error
 	if params["x"] == "" || params["y"] == "" {
-		rows, e1 = DB.Table(tablename).Rows()
+		rows, e1 = DB.Table(fmt.Sprintf("%q", tablename)).Rows()
 	} else {
 		x := params["x"]
 		y := params["y"]
@@ -480,10 +480,10 @@ func DumpReducedTable(params map[string]string) ([]map[string]interface{}, *appE
 
 		if sumY {
 			// If Y is Int/Float we can SUM
-			rows, e1 = DB.Table(tablename).Select("DISTINCT \"" + x + "\", SUM(\"" + y + "\") AS \"" + y + "\"").Group(x).Order(x).Rows()
+			rows, e1 = DB.Table(fmt.Sprintf("%q", tablename)).Select(fmt.Sprintf("DISTINCT %q, SUM(%q) AS %q", x, y, y)).Group(x).Order(x).Rows()
 		} else {
 			// Just count X aginst Y
-			rows, e1 = DB.Table(tablename).Select("DISTINCT \"" + x + "\", COUNT(\"" + x + "\") AS \"" + y + "\"").Group(x).Order(x).Rows()
+			rows, e1 = DB.Table(fmt.Sprintf("%q", tablename)).Select(fmt.Sprintf("DISTINCT %q, COUNT(%q) AS %q", x, y, y)).Group(x).Order(x).Rows()
 		}
 	}
 
@@ -646,7 +646,7 @@ func PrimaryDate() {
 		DB.Exec(d)
 		if dateCol != "" {
 			var dates []time.Time
-			err := DB.Table(table).Pluck(dateCol, &dates).Error
+			err := DB.Table(fmt.Sprintf("%q", table)).Pluck(dateCol, &dates).Error
 			if err == nil {
 				dv := make([]DateVal, 0)
 				var d DateVal

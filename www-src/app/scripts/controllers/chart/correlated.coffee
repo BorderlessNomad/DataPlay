@@ -34,6 +34,7 @@ angular.module('dataplayApp')
 			discoverDate: ''
 			creditors: []
 			discreditors: []
+			overview: null
 			source:
 				prim: ''
 				seco: ''
@@ -85,6 +86,7 @@ angular.module('dataplayApp')
 						$scope.info.strength = data.statstrength
 						$scope.info.credited = data.userhascredited
 						$scope.info.discredited = data.userhasdiscredited
+						$scope.info.overview = data.overview
 
 					$scope.initObservations()
 					console.log "Chart", $scope.chart
