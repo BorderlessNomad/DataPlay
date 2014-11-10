@@ -1,16 +1,10 @@
 <div class="overview" ng-init="info()">
 	<!-- Related -->
-	<div clas="row">
-		<div class="col-md-12"><h4>Relation within <a href="/overview/{{params.id}}">{{info.title}}</a></h4></div>
-	</div>
-	<div class="row related" ng-controller="OverviewRelatedCtrl" ng-init="getRelatedCharts()" ng-include="'views/overview/related.html'"></div>
+	<div class="related" ng-controller="OverviewRelatedCtrl" ng-init="getRelatedCharts()" ng-include="'views/overview/related.html'"></div>
 
 	<hr/>
 
 	<!-- Correlated -->
-	<div clas="row">
-		<div class="col-md-12"><h4>Correlation of <a href="/overview/{{params.id}}">{{info.title}}</a></h4></div>
-	</div>
 	<div class="row correlated" ng-controller="OverviewCorrelatedCtrl" ng-init="getCorrelatedCharts()" ng-include="'views/overview/correlated.html'"></div>
 </div>
 
