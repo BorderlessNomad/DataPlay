@@ -19,10 +19,13 @@ typeDictionary =
 
 tickFormatFunc = (type) ->
 	(d) ->
+		type = type.toLowerCase()
 		if type is 'none'
 			return ''
 		if type is 'date'
 			return d3.time.format("%d-%m-%Y") new Date d
+		if type is 'year'
+			return d3.time.format("%Y") new Date d
 		return d3.format(",f") d
 
 optionsList =
