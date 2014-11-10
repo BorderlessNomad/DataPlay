@@ -127,3 +127,31 @@ nvd3 svg {
 		text-decoration: none !important;
 	}
 }
+
+.chtlabel {
+	position: absolute;
+	text-align: center;
+	font-size: 12px;
+	font-weight: bold;
+	background-color: rgba(255, 255, 255, 0.8);
+
+	&.chtlabel-x {
+		width: 100px;
+		left: calc(~"50% - 50px");
+		bottom: 0;
+	}
+
+	&.chtlabel-y, &.chtlabel-y1 {
+		transform: rotate(-90deg);
+		left: 0;
+		top: 50%;
+	}
+
+	&.chtlabel-y1 { color: #1f77b4; }
+	&.chtlabel-y2 {
+		color: #ff7f0e;
+		transform: rotate(90deg);
+		right: -8px;
+		top: 50%;
+	}
+}

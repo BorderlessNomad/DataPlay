@@ -1,4 +1,8 @@
 <div class="col-sm-6 col-md-4 overviewitem" ng-repeat="chart in chartsCorrelated" id="{{chart.info.id}}" ng-if="hasCorrelatedCharts() > 0">
+	<span class="chtlabel chtlabel-x" ng-if="chart.labels.x">{{chart.labels.x}}</span>
+	<span class="chtlabel chtlabel-y" ng-if="chart.labels.y">{{chart.labels.y}}</span>
+	<span class="chtlabel chtlabel-y1" ng-if="chart.labels.y1">{{chart.labels.y1}}</span>
+	<span class="chtlabel chtlabel-y2" ng-if="chart.labels.y2">{{chart.labels.y2}}</span>
 	<a class="correlated" href="/{{chart.info.url}}">
 		{{chart.title}}
 		<span ng-include="'views/charts/correlated/line.html'"></span>

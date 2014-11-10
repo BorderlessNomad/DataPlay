@@ -154,6 +154,8 @@ angular.module('dataplayApp')
 									valuePattern: PatternMatcher.getPattern chart.values[0]['y']
 									keyPattern: PatternMatcher.getKeyPattern chart.values[0]['y']
 
+							$scope.relatedChart.setLabels chart
+
 							res.loading = false
 							_.merge res, chart
 

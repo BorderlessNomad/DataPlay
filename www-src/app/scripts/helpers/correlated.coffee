@@ -171,6 +171,14 @@ class CorrelatedChart
 		if @options?.chart? and flag? and typeof flag is 'boolean'
 			@options.chart.tooltips = flag
 
+	setLabels: (chart) =>
+		if chart.type isnt 'pie'
+			@labels =
+				x: chart.table1.xLabel
+				y1: chart.table1.yLabel
+				y2: chart.table2.yLabel
+
+
 
 	translateData: (values, type) =>
 		normalise = (d) ->

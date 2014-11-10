@@ -6,6 +6,7 @@
 			<ul class="breadcrumb">
 				<li><a href="/home">Home</a></li>
 				<li ng-if="params.id && info.source.prim"><a href="/overview/{{params.id}}">Overview of {{info.source.prim}}</a></li>
+				<li ng-if="!params.id && false && info.source.prim"><a href="/overview/{{params.id}}">Overview of {{info.source.prim}}</a></li>
 			</ul>
 		</div>
 	</div>
