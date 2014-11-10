@@ -73,6 +73,7 @@ angular.module('dataplayApp')
 							chartObj = new CorrelatedChart chart.type
 
 							chartObj.title = chart.table2.title
+							chartObj.coeff = Math.floor Math.abs chart.coefficient * 100
 
 							if not chartObj.error
 								key = parseInt(key)

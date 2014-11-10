@@ -9,7 +9,7 @@
 		<span class="chtlabel chtlabel-y1" ng-if="chart.labels.y1">{{chart.labels.y1}}</span>
 		<span class="chtlabel chtlabel-y2" ng-if="chart.labels.y2">{{chart.labels.y2}}</span>
 		<a class="correlated" href="/{{chart.info.url}}">
-			{{chart.title}}
+			{{chart.title}} <span class="label label-info">{{chart.coeff}}%</span>
 			<span ng-include="'views/charts/correlated/line.html'"></span>
 			<span ng-include="'views/charts/correlated/column.html'"></span>
 			<span ng-include="'views/charts/correlated/scatter.html'"></span>
