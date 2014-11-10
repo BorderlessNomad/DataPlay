@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/jinzhu/gorm"
 	"math"
 	"math/rand"
 	"net/http"
@@ -74,41 +76,65 @@ type TableCols struct {
 	chart string
 }
 
-// Take in table name and a threshold for the looping and attempt to get correlated tables through a variety of correlation methods
-// Use 3:1:1 for Spurious to Pearson and Visual as Spurious less likely to find correlations
+/**
+ * @details Take in table name and a threshold for the looping and attempt to get correlated tables
+ * through a variety of correlation methods.
+ * Use 3:1:1 for Spurious to Pearson and Visual as Spurious less likely to find correlations
+ *
+ * @param string tablename
+ * @param int searchDepth
+ */
 func GenerateCorrelations(tablename string, searchDepth int) {
 	rand.Seed(time.Now().UTC().UnixNano())
 	cols1 := GetSQLTableSchema(tablename)
 	var tablenames []string
-	DB.Model(OnlineData{}).Order("random()").Pluck("tablename", &tablenames)
+
+	err := DB.Model(OnlineData{}).Order("random()").Pluck("tablename", &tablenames).Error
+	if err != nil && err != gorm.RecordNotFound {
+		fmt.Println("Database Error while generating correlations.", err)
+		return
+	} else if err == gorm.RecordNotFound {
+		fmt.Println("No tables for generating correlations.", err)
+		return
+	}
 
 	tableCols := make([]TableCols, searchDepth)
 
 	for i := 0; i < searchDepth; i++ {
-		goforit := true
+		attemptCorrelation := true
 
 		tableCols[i].tbl1 = tablename
 		tableCols[i].tbl2 = tablenames[rand.Intn(len(tablenames))]
+
 		cols2 := GetSQLTableSchema(tableCols[i].tbl2)
+
 		tableCols[i].dat1 = RandomDateColumn(cols1)
 		tableCols[i].val1 = RandomValueColumn(cols1)
+		fmt.Println("GenerateCorrelations", "Set 1", tableCols[i].dat1, tableCols[i].val1)
+
 		tableCols[i].dat2 = RandomDateColumn(cols2)
 		tableCols[i].val2 = RandomValueColumn(cols2)
-		tableCols[i].ctype = RandomMethod()
+		fmt.Println("GenerateCorrelations", "Set 2", tableCols[i].dat2, tableCols[i].val2)
+
 		if tableCols[i].tbl1 == tableCols[i].tbl2 || tableCols[i].tbl1 == "" || tableCols[i].tbl2 == "" || tableCols[i].val1 == "" || tableCols[i].val2 == "" || tableCols[i].dat1 == "" || tableCols[i].dat2 == "" {
-			goforit = false
+			attemptCorrelation = false
 		}
+
+		tableCols[i].ctype = RandomMethod()
+
 		if tableCols[i].ctype == "Spurious" {
 			tableCols[i].tbl3 = tablenames[rand.Intn(len(tablenames))]
+
 			cols3 := GetSQLTableSchema(tableCols[i].tbl3)
+
 			tableCols[i].dat3 = RandomDateColumn(cols3)
 			tableCols[i].val3 = RandomValueColumn(cols3)
 			if tableCols[i].tbl1 == tableCols[i].tbl3 || tableCols[i].tbl2 == tableCols[i].tbl3 || tableCols[i].tbl3 == "" || tableCols[i].val3 == "" || tableCols[i].dat3 == "" {
-				goforit = false
+				attemptCorrelation = false
 			}
 		}
 
-		if goforit {
+		if attemptCorrelation {
 			go AttemptCorrelation(tableCols[i])
 		}
 	}
