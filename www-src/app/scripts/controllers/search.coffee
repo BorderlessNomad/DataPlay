@@ -41,7 +41,11 @@ angular.module('dataplayApp')
 
 		$scope.changePage = () ->
 			query = $scope.query.replace(/\/|\\/g, ' ')
-			$location.path "/search/#{query}"
+			newPath =  "/search/#{query}"
+			if $location.path() isnt newPath
+				$location.path newPath
+			else
+				$scope.init true
 
 		$scope.search = (offset = 0, count = 9) ->
 			return if $scope.query.length < 3
@@ -58,10 +62,7 @@ angular.module('dataplayApp')
 						r.graph = []
 						r.error = null
 
-						# Random
-						# offset = Overview.getRandomInteger 0, 3
-						$scope.getRelated r.GUID, 0
-
+						$scope.getRelated r
 					return
 				.error (status, data) ->
 					$scope.loading.related = false
@@ -85,6 +86,8 @@ angular.module('dataplayApp')
 								tw.comment = tw.comment.replace new RegExp("(#{searchWord})", 'gi'), '<span class="highlight">$1</span>'
 
 							tw.comment = tw.comment.replace(/(<\/span>)(\s{1,}|\-{1,})(<span class="highlight">)/gi, '$2')
+
+							tw.url = "https://twitter.com/#{tw.username}/status/#{tw.id}"
 
 							$scope.tweets.push tw
 				.error () ->
@@ -122,18 +125,26 @@ angular.module('dataplayApp')
 		$scope.uncollapse = (item) ->
 			item.show = true
 
-		$scope.getRelated = (guid, offset) ->
-			Overview.related guid, offset, 1
+		$scope.getRelated = (item, offset = 0) ->
+			res =
+				loading: true
+				title: item.Title
+				guid: item.GUID
+
+			$scope.chartsRelated.push res
+
+			item.loading = true
+			Overview.related item.GUID, offset, 1
 				.success (data) ->
 					if data? and data.charts? and data.charts.length > 0
 						for key, chart of data.charts
 							continue unless $scope.relatedChart.isPlotAllowed chart.type
 
 							key = parseInt(key)
-							chart.guid = guid
+							chart.guid = item.GUID
 							chart.key = key
-							chart.id = "related-#{guid}-#{chart.key + $scope.offset.related}-#{chart.type}"
-							chart.url = "charts/related/#{guid}/#{chart.key}/#{chart.type}/#{chart.xLabel}/#{chart.yLabel}"
+							chart.id = "related-#{chart.guid}-#{chart.key + $scope.offset.related}-#{chart.type}"
+							chart.url = "charts/related/#{chart.guid}/#{chart.key}/#{chart.type}/#{chart.xLabel}/#{chart.yLabel}"
 							chart.url += "/#{chart.zLabel}" if chart.type is 'bubble'
 
 							chart.patterns = {}
@@ -150,7 +161,10 @@ angular.module('dataplayApp')
 									valuePattern: PatternMatcher.getPattern chart.values[0]['y']
 									keyPattern: PatternMatcher.getKeyPattern chart.values[0]['y']
 
-							$scope.chartsRelated.push chart
+							$scope.relatedChart.setLabels chart
+
+							res.loading = false
+							_.merge res, chart
 
 					return
 				.error (data, status) ->

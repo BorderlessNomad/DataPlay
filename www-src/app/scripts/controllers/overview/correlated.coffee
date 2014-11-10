@@ -79,8 +79,7 @@ angular.module('dataplayApp')
 								chartObj.info =
 									key: key
 									id: "correlated-#{$scope.params.id}-#{chart.key + $scope.offset.correlated}-#{chart.type}"
-									url: "charts/correlated/#{$scope.params.id}/#{chart.correlationid}/#{chart.type}/#{chart.table1.xLabel}/#{chart.table1.yLabel}"
-								chartObj.info.url += "/#{chart.table1.zLabel}" if chart.type is 'bubble'
+									url: "charts/correlated/#{chart.correlationid}"
 
 								[1..2].forEach (i) ->
 									vals = chartObj.translateData chart['table' + i].values, chart.type
@@ -106,6 +105,8 @@ angular.module('dataplayApp')
 								chartObj.setMargin 25, 25, 25, 25
 								chartObj.setLegend false
 								chartObj.setTooltips false
+								chartObj.setPreview true
+								chartObj.setLabels chart
 
 								$scope.chartsCorrelated.push chartObj
 

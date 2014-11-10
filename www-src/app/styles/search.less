@@ -19,6 +19,10 @@
 			display: none;
 		}
 	}
+
+	svg {
+		pointer-events: none;
+	}
 }
 
 .form-search {
@@ -30,9 +34,18 @@
 
 	.list-group-item {
 		border: 0;
+		height: 350px;
 
 		.media-heading {
 			height: 3.5em;
+		}
+	}
+
+	.chart-loader {
+		height: 200px;
+
+		.spinner {
+			margin-top: 50px;
 		}
 	}
 
@@ -48,11 +61,20 @@
 }
 
 .tweets {
-	.twitter-blue { color: #55ACEE; }
+	.twitter-blue {
+		color: #55ACEE;
+
+		&:hover {
+			color: darken(#55ACEE, 15%);
+		}
+	}
 	.highlight { background-color: rgba(243, 156, 18, 0.15); }
 
 	.tweet-header {
 		margin-bottom: 0;
+		.tweet-avatar {
+			height: 1em;
+		}
 		.tweet-author { font-weight: 600; }
 	}
 

@@ -5,7 +5,8 @@
 		<div class="col-xs-12 col-md-9">
 			<ul class="breadcrumb">
 				<li><a href="/home">Home</a></li>
-				<li><a href="/overview/{{params.id}}">{{params.id}}</a></li>
+				<li ng-if="params.id && info.source.prim"><a href="/overview/{{params.id}}">Overview of {{info.source.prim}}</a></li>
+				<li ng-if="!params.id && false && info.source.prim"><a href="/overview/{{params.id}}">Overview of {{info.source.prim}}</a></li>
 			</ul>
 		</div>
 	</div>
@@ -20,9 +21,9 @@
 	</div>
 
 	<div class="row">
-		<div class="col-xs-12 col-md-6 constrict-graphs">
+		<div class="col-xs-12 col-sm-8 col-md-6 constrict-graphs">
 			<div class="action-bar">
-				<a href="/overview/{{params.id}}" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-share-alt glyphicon-flip"></span> Go Back</a>
+				<a href="javascript:history.back()" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-share-alt glyphicon-flip"></span> Go Back</a>
 			</div>
 
 			<div>{{chart.title}}</div>
@@ -42,7 +43,7 @@
 			</div>
 		</div>
 
-		<div class="col-xs-12 col-md-3 info" ng-include="'views/charts/info.html'"></div>
+		<div class="col-xs-12 col-sm-4 col-md-3 info" ng-include="'views/charts/info.html'"></div>
 
 		<div class="col-md-3 hidden-xs hidden-sm">
 			<div class="observations sidebar" ng-include="'views/charts/observations.html'"></div>

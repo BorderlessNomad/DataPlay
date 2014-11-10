@@ -1,5 +1,9 @@
-<div class="col-md-4" ng-repeat="chart in chartsCorrelated" id="{{chart.info.id}}" ng-if="hasCorrelatedCharts() > 0">
-	<a class="correlated no-underline" href="/{{chart.info.url}}">
+<div class="col-sm-6 col-md-4 overviewitem" ng-repeat="chart in chartsCorrelated" id="{{chart.info.id}}" ng-if="hasCorrelatedCharts() > 0">
+	<span class="chtlabel chtlabel-x" ng-if="chart.labels.x">{{chart.labels.x}}</span>
+	<span class="chtlabel chtlabel-y" ng-if="chart.labels.y">{{chart.labels.y}}</span>
+	<span class="chtlabel chtlabel-y1" ng-if="chart.labels.y1">{{chart.labels.y1}}</span>
+	<span class="chtlabel chtlabel-y2" ng-if="chart.labels.y2">{{chart.labels.y2}}</span>
+	<a class="correlated" href="/{{chart.info.url}}">
 		{{chart.title}}
 		<span ng-include="'views/charts/correlated/line.html'"></span>
 		<span ng-include="'views/charts/correlated/column.html'"></span>
@@ -10,14 +14,14 @@
 	</a>
 </div>
 
-<div class="col-md-12" ng-if="loading.correlated" ng-include="'views/loader.html'"></div>
+<div class="col-xs-12" ng-if="loading.correlated" ng-include="'views/loader.html'"></div>
 
-<div class="col-md-12" ng-if="!loading.correlated && hasCorrelatedCharts() <= 0">
+<div class="col-xs-12" ng-if="!loading.correlated && hasCorrelatedCharts() <= 0">
 	<div class="jumbotron">
 		<p class="text-center">Sorry we are unable to generate any Correlated data for given set.</p>
 	</div>
 </div>
 
-<div class="col-md-12">
+<div class="col-xs-12">
 	<a id="getCorrelated" href="#" class="btn btn-default btn-block" ng-click="getCorrelated()" ng-hide="limit.correlated || loading.correlated || hasCorrelatedCharts() <= 0">Show more ({{max.correlated - offset.correlated}}) <span class="caret"></span></a>
 </div>

@@ -67,6 +67,8 @@ angular.module('dataplayApp')
 										valuePattern: PatternMatcher.getPattern chart.values[0]['y']
 										keyPattern: PatternMatcher.getKeyPattern chart.values[0]['y']
 
+								$scope.relatedChart.setLabels chart
+
 								$scope.chartsRelated.push chart
 
 							else if chart.correlationid?
@@ -75,12 +77,9 @@ angular.module('dataplayApp')
 								if not chartObj.error
 									chartObj.info =
 										key: key
-										# id: "correlated-#{$scope.params.id}-#{chart.key + $scope.offset.correlated}-#{chart.type}"
-										# url: "charts/correlated/#{$scope.params.id}/#{chart.correlationid}/#{chart.type}/#{chart.table1.xLabel}/#{chart.table1.yLabel}"
-										id: "corr"
-										url: "corr"
+										id: "correlated-#{$scope.params.id}-#{chart.key + $scope.offset.correlated}-#{chart.type}"
+										url: "charts/correlated/#{chart.correlationid}"
 										title: [chart.table1.title, chart.table2.title]
-									chartObj.info.url += "/#{chart.table1.zLabel}" if chart.type is 'bubble'
 
 									[1..2].forEach (i) ->
 										vals = chartObj.translateData chart['table' + i].values, chart.type
@@ -107,6 +106,7 @@ angular.module('dataplayApp')
 									chartObj.setLegend false
 									chartObj.setTooltips false
 									chartObj.setPreview true
+									chartObj.setLabels chart
 
 									$scope.chartsRelated.push chartObj
 

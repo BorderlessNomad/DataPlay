@@ -37,7 +37,7 @@ angular.module('dataplayApp')
 			$scope.current.username = $routeParams.user
 			loggedInUsername = Auth.get config.userName
 			if $scope.current.username is loggedInUsername
-				$location.path '/user/profile'
+				$location.path('/user/profile').replace()
 
 		$scope.creditDiscoveries = []
 		$scope.discoveries = []

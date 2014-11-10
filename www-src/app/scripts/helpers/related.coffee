@@ -49,6 +49,12 @@ class RelatedCharts
 	setCustomMargin: (margin = ({top:0,right:0,bottom:0,left:0})) ->
 		@customMargin = margin
 
+	setLabels: (chart) ->
+		if chart.type isnt 'pie'
+			chart.labels =
+				x: chart.xLabel
+				y: chart.yLabel
+
 	isPlotAllowed: (type) ->
 		if type in @allowed then true else false
 
@@ -116,7 +122,7 @@ class RelatedCharts
 
 		if @preview
 			chart.xAxis().ticks(0).tickFormat (v) -> ""
-			chart.yAxis().ticks(0).tickFormat (v) -> ""
+			chart.yAxis?().ticks?(0).tickFormat (v) -> ""
 			chart.margins @marginPreview
 		else
 			chart.xAxis().ticks @xTicks
