@@ -17,7 +17,7 @@ angular.module('dataplayApp')
 
 		$scope.searchquery = ''
 
-		$scope.creditPatterns = null
+		$scope.approvePatterns = null
 
 		$scope.myActivity = null
 		$scope.recentObservations = null
@@ -116,9 +116,9 @@ angular.module('dataplayApp')
 
 						console.log $scope.chartsRelated
 					else
-						$scope.creditPatterns = []
+						$scope.approvePatterns = []
 				.error ->
-					$scope.creditPatterns = []
+					$scope.approvePatterns = []
 
 			Home.getActivityStream()
 				.success (data) ->

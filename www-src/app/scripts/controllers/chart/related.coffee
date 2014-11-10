@@ -27,7 +27,7 @@ angular.module('dataplayApp')
 			left: 110
 		$scope.xTicks = 8
 
-		$scope.creditMsg = null
+		$scope.approveMsg = null
 
 		$scope.chartRendered = null
 		$scope.chart =
@@ -46,13 +46,13 @@ angular.module('dataplayApp')
 
 		$scope.info =
 			discoveredId: null
-			credited: false
-			discredited: false
+			approved: false
+			disapproved: false
 			patternId: null
 			discoverer: ''
 			discoverDate: ''
-			creditors: []
-			discreditors: []
+			approvers: []
+			disapprovers: []
 			source:
 				prim: ''
 				seco: ''
@@ -80,14 +80,14 @@ angular.module('dataplayApp')
 						$scope.info.discoveredId = data.discoveredid or ''
 						$scope.info.discoverer = data.discoveredby or ''
 						$scope.info.discoverDate = if data.discoverydate then Overview.humanDate new Date( data.discoverydate ) else ''
-						$scope.info.creditors = data.creditedby or ''
-						$scope.info.discreditors = data.discreditedby or ''
+						$scope.info.approvers = data.creditedby or ''
+						$scope.info.disapprovers = data.discreditedby or ''
 						$scope.info.source =
 							prim: data.source1  or ''
 							seco: data.source2  or ''
 						$scope.info.strength = data.statstrength
-						$scope.info.credited = data.userhascredited
-						$scope.info.discredited = data.userhasdiscredited
+						$scope.info.approved = data.userhascredited
+						$scope.info.disapproved = data.userhasdiscredited
 
 					console.log "Chart", $scope.chart
 
@@ -120,9 +120,9 @@ angular.module('dataplayApp')
 							xy: xy
 							oid : obsv['observation_id']
 							user: obsv.user
-							credits: obsv.credits
-							discredits: obsv.discredits
-							creditCount: parseInt(obsv.credits - obsv.discredits) || 0
+							approvals: obsv.credits
+							disapprovals: obsv.discredits
+							approvalCount: parseInt(obsv.credits - obsv.discredits) || 0
 							message: obsv.comment
 							date: Overview.humanDate new Date(obsv.created)
 							coor:
@@ -627,20 +627,20 @@ angular.module('dataplayApp')
 
 			return
 
-		$scope.creditChart = (valFlag) ->
+		$scope.approveChart = (valFlag) ->
 			id = "#{$scope.params.id}/#{$scope.params.key}/#{$scope.params.type}/#{$scope.params.x}/#{$scope.params.y}"
 			id += "/#{$scope.params.z}" if $scope.params.z?.length > 0
 
 			Charts.creditChart "rid", id, valFlag
 				.then ->
-					$scope.showCreditMessage valFlag
-					$scope.info.credited = !! valFlag
-					$scope.info.discredited = ! valFlag
+					$scope.showApproveMessage valFlag
+					$scope.info.approved = !! valFlag
+					$scope.info.disapproved = ! valFlag
 
 					username = Auth.get config.userName
 
-					oldList = if valFlag then 'discreditors' else 'creditors'
-					newList = if valFlag then 'creditors' else 'discreditors'
+					oldList = if valFlag then 'disapprovers' else 'approvers'
+					newList = if valFlag then 'approvers' else 'disapprovers'
 
 					if $scope.info[oldList].indexOf(username) isnt -1
 						$scope.info[oldList].splice $scope.info[oldList].indexOf(username), 1
@@ -686,13 +686,13 @@ angular.module('dataplayApp')
 
 			return
 
-		$scope.creditObservation = (item, valFlag) ->
+		$scope.approveObservation = (item, valFlag) ->
 			if item.oid?
 				Charts.creditObservation item.oid, valFlag
 					.success (res) ->
-						item.credits = res.Credited
-						item.discredits = res.Discredited
-						item.creditCount = parseInt(res.credits - res.discredits) || 0
+						item.approvals = res.Credited
+						item.disapprovals = res.Discredited
+						item.approvalCount = parseInt(res.credits - res.discredits) || 0
 						item.action = res.action
 						item.flagged = !! res.flagged
 					.error $scope.handleError
@@ -725,10 +725,10 @@ angular.module('dataplayApp')
 
 			$scope.resetObservations()
 
-		$scope.showCreditMessage = (type) ->
-			$scope.creditMsg = type
+		$scope.showApprovalMessage = (type) ->
+			$scope.approveMsg = type
 			$timeout ->
-				$scope.creditMsg = null
+				$scope.approveMsg = null
 			, 3000
 			return
 
