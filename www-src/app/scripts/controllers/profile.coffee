@@ -11,13 +11,13 @@ angular.module('dataplayApp')
 	.controller 'ProfileCtrl', ['$scope', '$location', '$routeParams', 'Profile', 'Auth', 'config', ($scope, $location, $routeParams, Profile, Auth, config) ->
 		$scope.params = $routeParams
 		$scope.currentTab = if $scope.params?.tab?.length > 0 then $scope.params.tab else 'profile'
-		$scope.currentTab = if $scope.currentTab is 'profile' and $scope.params?.user? then 'creditdiscoveries' else $scope.currentTab
+		$scope.currentTab = if $scope.currentTab is 'profile' and $scope.params?.user? then 'approveddiscoveries' else $scope.currentTab
 		$scope.error =
 			message: null
 
 		$scope.loading =
 			profile: false
-			creditdiscoveries: false
+			approveddiscoveries: false
 			discoveries: false
 			observations: false
 
@@ -39,7 +39,7 @@ angular.module('dataplayApp')
 			if $scope.current.username is loggedInUsername
 				$location.path('/user/profile').replace()
 
-		$scope.creditDiscoveries = []
+		$scope.approvedDiscoveries = []
 		$scope.discoveries = []
 		$scope.observations = []
 
@@ -62,20 +62,20 @@ angular.module('dataplayApp')
 					$scope.loading.profile = false
 					$scope.handleError data, status
 
-		$scope.creditdiscoveries = (user = '') ->
-			$scope.loading.creditdiscoveries = true
+		$scope.approveddiscoveries = (user = '') ->
+			$scope.loading.approveddiscoveries = true
 
 			$scope.profile user
 
 			Profile.getCreditDiscoveries(user)
 				.success (data) ->
-					$scope.loading.creditdiscoveries = false
+					$scope.loading.approveddiscoveries = false
 					if data instanceof Array
-						$scope.creditDiscoveries = data
+						$scope.approvedDiscoveries = data
 
 					return
 				.error (data, status) ->
-					$scope.loading.creditdiscoveries = false
+					$scope.loading.approveddiscoveries = false
 					$scope.handleError data, status
 
 		$scope.discoveries = (user = '') ->
