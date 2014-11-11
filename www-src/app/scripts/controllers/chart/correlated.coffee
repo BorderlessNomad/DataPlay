@@ -71,6 +71,7 @@ angular.module('dataplayApp')
 										dataRange[0] + ((dataRange[1] - dataRange[0]) * ((1 / 8) * num))
 
 							$scope.chart.setAxisTypes data.chartdata.table1.xLabel, data.chartdata.table1.yLabel, data.chartdata.table2.yLabel
+							$scope.chart.setLabels data.chartdata
 
 					if data?
 						$scope.info.patternId = data.patternid or ''

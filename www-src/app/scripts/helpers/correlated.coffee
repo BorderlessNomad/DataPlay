@@ -3,9 +3,9 @@
 settings =
 	margin:
 		top: 15
-		bottom: 25
-		right: 55
-		left: 55
+		bottom: 45
+		right: 75
+		left: 75
 	marginPreview:
 		top: 0
 		bottom: 0
@@ -46,12 +46,14 @@ optionsList =
 			yAxis1:
 				orient: 'left'
 				axisLabel: ""
+				axisLabelDistance: 20
 				tickFormat: tickFormatFunc()
 				showMaxMin: false
 				highlightZero: false
 			yAxis2:
 				orient: 'right'
 				axisLabel: ""
+				axisLabelDistance: 60
 				tickFormat: tickFormatFunc()
 				showMaxMin: false
 				highlightZero: false
@@ -74,12 +76,14 @@ optionsList =
 			yAxis1:
 				orient: 'left'
 				axisLabel: ""
+				axisLabelDistance: 20
 				tickFormat: tickFormatFunc()
 				showMaxMin: false
 				highlightZero: false
 			yAxis2:
 				orient: 'right'
 				axisLabel: ""
+				axisLabelDistance: 60
 				tickFormat: tickFormatFunc()
 				showMaxMin: false
 				highlightZero: false
@@ -105,6 +109,7 @@ optionsList =
 				ticks: settings.xTicks
 			yAxis:
 				axisLabel: ""
+				axisLabelDistance: 20
 				showMaxMin: false
 				tickFormat: tickFormatFunc()
 				highlightZero: false
@@ -180,6 +185,18 @@ class CorrelatedChart
 				x: chart.table1.xLabel
 				y1: chart.table1.yLabel
 				y2: chart.table2.yLabel
+
+		if @labels.x and @options.chart.xAxis
+			@options.chart.xAxis.axisLabel = @labels.x
+
+		if @labels.y1
+			if @options.chart.yAxis
+				@options.chart.yAxis.axisLabel = @labels.y1
+			else if @options.chart.yAxis1
+				@options.chart.yAxis1.axisLabel = @labels.y1
+
+		if @labels.y2 and @options.chart.yAxis2
+			@options.chart.yAxis2.axisLabel = @labels.y2
 
 
 

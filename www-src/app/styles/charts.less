@@ -110,7 +110,30 @@
 					cursor: hand;
 				}
 			}
+		}
 
+		.corrChart {
+			.axis {
+				text {
+					font-weight: bold;
+				}
+
+				&.y1, &.y {
+					text {
+						fill: #1F77B4;
+					}
+				}
+
+				&.y2 {
+					text {
+						fill: #FF7F0E;
+					}
+				}
+			}
+
+			.nv-legend {
+				pointer-events: none;
+			}
 		}
 	}
 
