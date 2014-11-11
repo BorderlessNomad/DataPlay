@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ahirmayur/gorm"
 	"github.com/codegangsta/martini"
-	"github.com/jinzhu/gorm"
 	"math"
 	"math/rand"
 	"net/http"
@@ -468,23 +468,24 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int, re
 	od := OnlineData{}
 	e := DB.Where("guid = ?", guid).Find(&od).Error
 	if e != nil {
-		return CorrelatedCharts{nil, 0}, &appError{nil, "Bad guid", http.StatusInternalServerError}
+		return CorrelatedCharts{nil, 0}, &appError{nil, "Invalid or Empty GUID", http.StatusBadRequest}
 	}
 
 	tableName := od.Tablename
 
-	for i := 0; i < 30; i++ {
-		go GenerateCorrelations(tableName, searchDepth)
-	}
+	// for i := 0; i < 30; i++ {
+	// 	go GenerateCorrelations(tableName, searchDepth)
+	// }
+	// // time.Sleep(5 * time.Second) // WHY??????
 
-	// time.Sleep(5 * time.Second)
+	// @todo Mayur Run once and generate all possible correlations
+	go GenerateCorrelations(tableName, searchDepth)
 
-	err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Limit(40).Find(&correlation).Error
+	err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Find(&correlation).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return CorrelatedCharts{nil, 0}, &appError{nil, "Database query failed (TBL1)", http.StatusInternalServerError}
-	}
-	if err == gorm.RecordNotFound {
-		DB.Order("random()").Limit(40).Find(&correlation)
+	} else if err == gorm.RecordNotFound {
+		DB.Order("random()").Find(&correlation)
 	}
 
 	for _, c := range correlation {
@@ -517,10 +518,9 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int, re
 		originid := strconv.Itoa(c.CorrelationId)
 		discovered := Discovered{}
 		err := DB.Where("correlation_id = ?", originid).Find(&discovered).Error
+		c.Discovered = true
 		if err == gorm.RecordNotFound {
 			c.Discovered = false
-		} else {
-			c.Discovered = true
 		}
 	}
 
@@ -534,6 +534,7 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int, re
 	}
 
 	charts = charts[offset:last] // return marshalled slice
+
 	return CorrelatedCharts{charts, totalCharts}, nil
 }
 
@@ -600,6 +601,7 @@ func GetDiscoveredCharts(tableName string, correlated bool, offset int, count in
 	}
 
 	charts = charts[offset:last] // return slice
+
 	return DiscoveredCharts{charts, totalCharts}, nil
 }
 
