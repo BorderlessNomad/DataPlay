@@ -14,19 +14,19 @@ DataPlay alpha contains a rudimentary selection of datasets drawn from [data.gov
 
 ##Screens
 ### Landing Page
-![](http://i.imgur.com/yJyJ4GC.png)
+![](http://i.imgur.com/mGn80SN.png)
 
 ### Home Page
-![](http://i.imgur.com/2vkyTVS.png)
+![](http://i.imgur.com/Ut62v6k.png)
 
 ### Overview Screen
-![](http://i.imgur.com/N4kCiPG.png)
+![](http://i.imgur.com/krYs5fT.png)
 
 ### Search Page
-![](http://i.imgur.com/1ZYsaQb.png)
+![](http://i.imgur.com/3kkjeM7.png)
 
 ### Chart Page
-![](http://i.imgur.com/cEakHPq.png)
+![](http://i.imgur.com/sS58Hli.png)
 
 ## Installation
 
@@ -109,8 +109,6 @@ v0.5.0: 	Go 1.1 with embedded HTML views
 ## Authors
 
 Mayur Ahir [mayur@playgen.com]
-
-Glyn Dimond [glyn@playgen.com]
 
 Jack Cannon [jack@playgen.com]
 
