@@ -4,6 +4,8 @@ package main
 // 	"fmt"
 // )
 
+var TableSchemaStorage = make(map[string][]ColType)
+
 /**
  * @brief Get the SQL Scheme for a Table
  * @details Almost all of the SQLs support 'information_schema' database which stores metadata about
@@ -12,9 +14,6 @@ package main
  * @param string <Table Name>
  * @return <Table Schema>
  */
-
-var TableSchemaStorage = make(map[string][]ColType)
-
 func GetSQLTableSchema(table string) []ColType {
 	tableSchema := []TableSchema{}
 	schema := make([]ColType, 0)

@@ -191,7 +191,7 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	user := User{}
 	err4 := DB.Where("uid = ?", discovered.Uid).Find(&user).Error
 	if err4 != nil && err4 != gorm.RecordNotFound {
-		return pattern, &appError{err4, "unable to retrieve user for related chart", http.StatusInternalServerError}
+		return pattern, &appError{err4, "Unable to retrieve user for related chart", http.StatusInternalServerError}
 	}
 
 	creditors := make([]string, 0)
@@ -206,7 +206,7 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	err5 := query.Find(&creditingUsers).Error
 
 	if err5 != nil && err5 != gorm.RecordNotFound {
-		return pattern, &appError{err5, "find creditors failed", http.StatusInternalServerError}
+		return pattern, &appError{err5, "Unable to Find Crediting user", http.StatusInternalServerError}
 	} else {
 		for _, vu := range creditingUsers {
 			if vu.Credflag == true {
@@ -220,8 +220,8 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	var observation []Observation
 	count := 0
 	err6 := DB.Model(&observation).Where("discovered_id = ?", discovered.DiscoveredId).Count(&count).Error
-	if err6 != nil {
-		return pattern, &appError{err6, "observation count failed", http.StatusInternalServerError}
+	if err6 != nil && err6 != gorm.RecordNotFound {
+		return pattern, &appError{err6, "Observation count failed", http.StatusInternalServerError}
 	}
 
 	var td TableData
@@ -243,19 +243,17 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	// See if user has credited or discredited this chart
 	cred := Credit{}
 	err8 := DB.Where("discovered_id = ?", discovered.DiscoveredId).Where("uid = ?", uid).Find(&cred).Error
-	if err8 == nil {
-		if cred.Credflag == true {
-			pattern.UserCredited = true
-			pattern.UserDiscredited = false
-		} else {
-			pattern.UserDiscredited = true
-			pattern.UserCredited = false
-		}
+	if err8 != nil && err8 != gorm.RecordNotFound {
+		return pattern, &appError{err8, "User credited failed", http.StatusInternalServerError}
 	} else if err8 == gorm.RecordNotFound {
 		pattern.UserCredited = false
 		pattern.UserDiscredited = false
-	} else if err8 != nil {
-		return pattern, &appError{err8, "user credited failed", http.StatusInternalServerError}
+	} else if cred.Credflag == true {
+		pattern.UserCredited = true
+		pattern.UserDiscredited = false
+	} else {
+		pattern.UserCredited = false
+		pattern.UserDiscredited = true
 	}
 
 	return pattern, nil
