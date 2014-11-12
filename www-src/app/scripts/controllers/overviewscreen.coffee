@@ -126,7 +126,7 @@ angular.module('dataplayApp')
 					if data instanceof Array
 						$scope.sidebarSections = data.map (sect) ->
 							sect.url = if sect.id is "top_discoverers" then "user/profile" else "search"
-							sect.top5 = sect.top5.filter (item) ->
+							sect.top = sect.top.filter (item) ->
 								item.amount > 0
 
 							sect

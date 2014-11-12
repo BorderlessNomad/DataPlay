@@ -30,9 +30,9 @@ type PoliticalXY struct {
 }
 
 type Popular struct {
-	Id       string     `json:"id"`
-	Category string     `json:"category"`
-	TA       [5]TermAmt `json:"top5"`
+	Id       string      `json:"id"`
+	Category string      `json:"category"`
+	TA       [10]TermAmt `json:"top"`
 }
 
 type TermAmt struct {
@@ -214,17 +214,14 @@ func RankPA(activities []PoliticalActivity) []PoliticalActivity {
 	return activities[0:15]
 }
 
-func PopularPoliticalActivity() ([3]Popular, error) {
-	var popular [3]Popular
+func PopularPoliticalActivity() ([2]Popular, error) {
+	var popular [2]Popular
 
 	popular[0].Id = "most_popular"
 	popular[0].Category = "Most Popular Keywords"
 
-	popular[1].Id = "top_correlated"
-	popular[1].Category = "Top Correlated Keywords"
-
-	popular[2].Id = "top_discoverers"
-	popular[2].Category = "Top Discoverers"
+	popular[1].Id = "top_discoverers"
+	popular[1].Category = "Top Discoverers"
 
 	results := []struct {
 		Discovered
@@ -232,39 +229,36 @@ func PopularPoliticalActivity() ([3]Popular, error) {
 		Counter  int
 	}{}
 
-	// SELECT term, count from priv_searchterms order by count DESC limit 5
+	// SELECT term, count from priv_searchterms order by count DESC limit 10
 	searchterm := []SearchTerm{}
-	err := DB.Select("term, count").Order("count desc").Limit(5).Find(&searchterm).Error
+	err := DB.Select("term, count").Order("count desc").Limit(10).Find(&searchterm).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return popular, err
 	}
 
-	err = DB.Select("priv_users.username, count(priv_discovered.uid) as counter").Joins("LEFT JOIN priv_users ON priv_discovered.uid = priv_users.uid").Group("priv_users.username, priv_discovered.uid").Order("counter DESC").Limit(5).Find(&results).Error
+	err = DB.Select("priv_users.username, count(priv_discovered.uid) as counter").Joins("LEFT JOIN priv_users ON priv_discovered.uid = priv_users.uid").Group("priv_users.username, priv_discovered.uid").Order("counter DESC").Limit(10).Find(&results).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return popular, err
 	}
 
-	n := 5
-	if len(searchterm) < 5 {
+	n := 10
+	if len(searchterm) < 10 {
 		n = len(searchterm)
 	}
 
 	for i := 0; i < n; i++ {
 		popular[0].TA[i].Term = searchterm[i].Term
 		popular[0].TA[i].Amount = searchterm[i].Count
-
-		popular[1].TA[i].Term = searchterm[i].Term
-		popular[1].TA[i].Amount = searchterm[i].Count
 	}
 
-	n = 5
-	if len(results) < 5 {
+	n = 10
+	if len(results) < 10 {
 		n = len(results)
 	}
 
 	for i := 0; i < n; i++ {
-		popular[2].TA[i].Term = results[i].Username
-		popular[2].TA[i].Amount = results[i].Counter
+		popular[1].TA[i].Term = results[i].Username
+		popular[1].TA[i].Amount = results[i].Counter
 	}
 
 	return popular, nil
