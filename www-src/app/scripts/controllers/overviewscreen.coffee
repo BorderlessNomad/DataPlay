@@ -75,21 +75,21 @@ angular.module('dataplayApp')
 								return
 
 							if $scope.mainSections[i].type is 'map'
-								lowercaseItems = {}
+								dictionary = {}
 								$scope.mainSections[i].graph.forEach (item) ->
-									lowercaseItems[item.term] = item.value
+									dictionary[item.term] = item
 
 								$scope.mapGen.maxvalue = maxTotal
 
 								regData = Object.keys($scope.mapGen.boundaryPaths).map (c) ->
 									name: c
-									value: lowercaseItems[c] || 0
+									value: dictionary[c]?.value || 0
 
 								$scope.mapGen.generate regData
 
 								$scope.mainSections[i].items.forEach (item) ->
-									item.corresponds = "region-#{item.term}"
-									item.color = $scope.mapGen.getColor lowercaseItems[item.term] || 0
+									item.corresponds = "region-#{item.slug}"
+									item.color = $scope.mapGen.getColor dictionary[item.term]?.value || 0
 
 								regions = d3.selectAll '.region'
 
@@ -104,16 +104,9 @@ angular.module('dataplayApp')
 									if not region?
 										region =
 											id: "r-#{el.attr('id').replace('region-', '')}"
+											slug: el.attr('id').replace('region-', '')
 											term: el.attr 'data-display'
 											value: 0
-
-									Object.keys($scope.mapGen.locationDictionary).forEach (key) ->
-										val = $scope.mapGen.locationDictionary[key]
-										if region.id.replace('r-', '') is val
-											region.value = do ->
-												item =  _.find $scope.mainSections[i].graph, (it) ->
-													return it.id.replace('r-', '') is key
-												item?.value or 0
 
 									d3.select "#pie-tooltip"
 										.style "left", "#{x}px"

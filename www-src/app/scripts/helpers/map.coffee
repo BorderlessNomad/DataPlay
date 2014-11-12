@@ -29,11 +29,10 @@ class MapGenerator
 			@appendRegion trans, c
 
 	appendRegion: (container, region) =>
-		console.log region
 		container.append 'g'
 			.attr 'class', 'region'
 			.attr 'id', "region-#{region.slug}"
-			.attr 'data-display', region.slug
+			.attr 'data-display', region.name
 			.append 'path'
 				.attr 'fill', @getColor region
 				.attr 'stroke', '#000000'
