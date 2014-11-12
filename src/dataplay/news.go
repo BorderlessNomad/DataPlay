@@ -126,7 +126,7 @@ func TermCheck(term string, passage string) int {
 		term = term[:len(term)-1]
 	}
 
-	r, _ := regexp.Compile(`(?i)(^|\s)` + term + extras + `($|\s)`)
+	r, _ := regexp.Compile(`(?i)(^|\s|\'|\"|\-)` + term + extras + `($|\s|\.|\,|\:|\;|\'|\"|\-)`)
 	check := r.MatchString(passage)
 	if check {
 		return 1
