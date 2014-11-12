@@ -7,8 +7,8 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/ahirmayur/gorm"
 	"github.com/codegangsta/martini"
-	"github.com/jinzhu/gorm"
 	"net/http"
 	"time"
 )
