@@ -58,8 +58,9 @@
 					<div class="form-group" ng-class="{'has-error': profileForm.username.$invalid && !profileForm.username.$pristine}">
 						<p
 						>Username</p>
-						<input class="form-control" name="username" type="username" ng-required="true" ng-model="current.username" autocomplete="off" />
+						<input class="form-control" name="username" type="username" ng-required="true" ng-model="current.username" autocomplete="off" ng-pattern="/^([A-Za-z0-9]{3,20})$/" />
 						<p data-ng-show="profileForm.username.$error.required && !profileForm.username.$pristine" class="help-block">Required</p>
+						<p data-ng-show="profileForm.username.$error.pattern && !profileForm.username.$pristine" class="help-block">Not a valid username!</p>
 					</div>
 					<div class="form-group text-center">
 						<button class="btn btn-default" value="Revert Changes" title="Revert Changes" ng-click="clearDetails()"><span>Revert Changes</span></button>
