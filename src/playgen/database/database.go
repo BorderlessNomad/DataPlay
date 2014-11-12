@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
-	"github.com/ahirmayur/gorm"
+	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
 	"os"
 	"strconv"

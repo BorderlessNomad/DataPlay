@@ -39,3 +39,4 @@ tools/deployment/loadbalancer/api/app.js
 tools/deployment/loadbalancer/api/haproxy.cfg
 src/newsfetch/config.go
 src/DP/main.go
+*.dmp

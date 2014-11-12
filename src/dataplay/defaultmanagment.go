@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/ahirmayur/gorm"
 	"github.com/codegangsta/martini"
+	"github.com/jinzhu/gorm"
 	"net/http"
 )
 

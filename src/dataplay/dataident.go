@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ahirmayur/gorm"
 	"github.com/codegangsta/martini"
+	"github.com/jinzhu/gorm"
 	"net/http"
 	"sort"
 	"strings"

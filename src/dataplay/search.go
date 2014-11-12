@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/ahirmayur/gorm"
 	"github.com/codegangsta/martini"
+	"github.com/jinzhu/gorm"
 	"math/rand"
 	"net/http"
 	"regexp"
