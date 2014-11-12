@@ -19,15 +19,16 @@
 		margin: 0 3px;
 	}
 
-	.highlight {
-		border-radius: 4px;
-		-webkit-animation-name: highlight;
-		-webkit-animation-duration: 6s;
-		-webkit-animation-timing-function: ease;
-		-webkit-animation-iteration-count: infinite;
-		-webkit-animation-direction: alternate;
-		-webkit-animation-play-state: running;
+	.observation {
+		transition: background-color 1s;
+		background-color: transparent;
+
+		&.highlight {
+			border-radius: 4px;
+			background-color: rgb(255, 236, 158);
+		}
 	}
+
 
 	.title {
 		font-weight: 600;
@@ -122,17 +123,5 @@
 			padding-left: 5px;
 			font-size: 12px;
 		}
-	}
-}
-
-@-webkit-keyframes highlight {
-	0% {
-		background: transparent;
-	}
-	25% {
-		background: rgb(255, 236, 158);
-	}
-	100% {
-		background: transparent;
 	}
 }
