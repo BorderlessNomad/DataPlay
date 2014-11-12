@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/ahirmayur/gorm"
+	"github.com/jinzhu/gorm"
 	"github.com/pmylund/sortutil"
 	"math"
 	"math/rand"

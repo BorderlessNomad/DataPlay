@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/ahirmayur/gorm"
 	"github.com/codegangsta/martini"
 	"github.com/codegangsta/martini-contrib/binding"
+	"github.com/jinzhu/gorm"
 	"github.com/martini-contrib/cors"
 	"log"
 	"net/http"

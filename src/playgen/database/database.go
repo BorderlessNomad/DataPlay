@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
-	"github.com/ahirmayur/gorm"
+	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
 	"os"
+	"strconv"
 )
 
 type Database struct {
@@ -17,6 +18,7 @@ type Database struct {
 	Host   string
 	Port   string
 	Schema string
+	Debug  bool
 }
 
 func (self *Database) Setup() {
@@ -27,6 +29,8 @@ func (self *Database) Setup() {
 	flag.StringVar(&self.Port, "DBPort", "5432", "Where to connect to the postgresql DB")
 
 	flag.StringVar(&self.Schema, "DBDatabase", "dataplay", "The database name to use while connecting to the postgresql DB")
+
+	flag.BoolVar(&self.Debug, "DBDebug", false, "Debug DB Queries")
 }
 
 func (self *Database) ParseEnvironment() {
@@ -43,6 +47,13 @@ func (self *Database) ParseEnvironment() {
 
 	self.Host = databaseHost
 	self.Port = databasePort
+
+	databaseDebug := false
+	if os.Getenv("DP_DATABASE_DEBUG") != "" {
+		databaseDebug, _ = strconv.ParseBool(os.Getenv("DP_DATABASE_DEBUG"))
+	}
+
+	self.Debug = databaseDebug
 }
 
 func (self *Database) Connect() (err error) {
@@ -60,7 +71,7 @@ func (self *Database) Connect() (err error) {
 	self.DB.DB().Ping()
 
 	/* Debug */
-	self.DB.LogMode(true)
+	self.DB.LogMode(self.Debug)
 
 	return
 }

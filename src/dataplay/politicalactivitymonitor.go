@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/ahirmayur/gorm"
 	"github.com/codegangsta/martini"
 	"github.com/gocql/gocql"
+	"github.com/jinzhu/gorm"
 	"net/http"
 	"os"
 	"strconv"
