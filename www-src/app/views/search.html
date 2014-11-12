@@ -45,7 +45,7 @@
 					<div class="col-md-12 loader-tight" ng-show="loading.related" ng-include="'views/loader.html'"></div>
 				</div>
 
-				<div class="jumbotron" ng-if="!loading.related && results.length <= 0 && hasRelatedCharts() > 0 && isSearch">
+				<div class="jumbotron" ng-if="!loading.related && results.length <= 0 && isSearch">
 					<p class="text-center">Sorry we are unable to find any search results for given request.</p>
 				</div>
 
@@ -94,7 +94,7 @@
 			</div>
 
 			<div class="loader-tight loader-faded" ng-if="loading.overview" ng-include="'views/loader.html'"></div>
-			<div class="nothing" ng-if="!loading.overview && overview.length <= 0 && isSearch"><p class="text-center text-muted">Nothing to show</p></div>
+			<div class="nothing" ng-if="!loading.overview && overview.length <= 0 && isSearch"><p class="text-center text-muted">There are no news results for this.</p></div>
 
 		</div>
 	</div>
