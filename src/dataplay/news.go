@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"regexp"
 )
 
 type NewsArticle struct {
@@ -118,7 +119,15 @@ func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
 
 // return 1 if the term is found in the passage
 func TermCheck(term string, passage string) int {
-	check := strings.Contains(strings.ToLower(passage), strings.ToLower(term))
+	extras := `(e)?(()|s|d|ing|ion|tion|age|\'s|\ve|n\'t|en\'t|'d|s\')`
+	endsLoosely, _ := regexp.Compile(`(?i)(e|ed|es)$`)
+
+	for endsLoosely.MatchString(term) {
+		term = term[:len(term)-1]
+	}
+
+	r, _ := regexp.Compile(`(?i)(^|\s)` + term + extras + `($|\s)`)
+	check := r.MatchString(passage)
 	if check {
 		return 1
 	}
