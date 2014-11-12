@@ -43,10 +43,10 @@ angular.module('dataplayApp')
 				title: ['Search']
 				login: true
 				preventReload: true
-			.when '/overview',
+			.when '/activitymonitor',
 				templateUrl: 'views/overviewscreen.html'
 				controller: 'OverviewScreenCtrl'
-				title: ['Overview']
+				title: ['Activity Monitor']
 				login: true
 			.when '/overview/:id',
 				templateUrl: 'views/overview.html'
