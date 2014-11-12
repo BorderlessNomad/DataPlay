@@ -149,6 +149,7 @@ angular.module('dataplayApp')
 	.run ['$rootScope', '$location', 'Auth', ($rootScope, $location, Auth) ->
 		$rootScope.$on "$routeChangeStart", (event, nextRoute, currentRoute) ->
 			if nextRoute? and nextRoute.login and not Auth.isAuthenticated()
+				$location.search 'return', $location.path()
 				$location.path "/user/login"
 				return
 

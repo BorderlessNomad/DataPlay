@@ -63,7 +63,12 @@ angular.module('dataplayApp')
 			Auth.set config.userType, data.usertype
 			Auth.set config.sessionName, data.session
 
-			$location.path "/home"
+			if $location.search().return
+				ret = $location.search().return
+				$location.search 'return', null
+				$location.path ret
+			else
+				$location.path "/home"
 
 			return
 
