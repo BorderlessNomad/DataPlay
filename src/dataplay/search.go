@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"math/rand"
@@ -85,28 +86,41 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 		}
 	}
 
+	// Search index
 	indices := []Index{}
-
-	// keyword := strings.Trim(keyword, " ")      // Remove first and last spaces (if any)
-	// r, _ := regexp.Compile("/[^A-Za-z]+/")     // RegEx compile
-	// keyword = r.ReplaceAllString(keyword, "%") // Replace all non-alphabets with %
-	// term := "%" + keyword + "%"                // e.g. "nh s" => "%nh%s%"
-
 	keyword = strings.Trim(keyword, " ")
+	keyword = strings.ToLower(keyword)
 	term := "%" + strings.Replace(keyword, " ", "%", -1) + "%" // e.g. "gold" => "%gold%", nh s" => "%nh%s%", "  cri m e " => "%cri%m%e%"
 
-	Logger.Println("Searching for term: '%s'", term)
+	fmt.Sprintln("Searching for keyword: %q", term)
 
-	query := DB.Where("LOWER(title) LIKE LOWER(?)", term)
-	query = query.Or("LOWER(notes) LIKE LOWER(?)", term)
-	query = query.Or("LOWER(name) LIKE LOWER(?)", term)
+	query := DB.Where("LOWER(title) LIKE ?", term)
+	query = query.Or("LOWER(notes) LIKE ?", term)
+	query = query.Or("LOWER(name) LIKE ?", term)
 
 	err := query.Order("random()").Limit(count).Offset(offset).Find(&indices).Error
 	if err != nil && err != gorm.RecordNotFound {
-		return response, &appError{err, "Database query failed", http.StatusServiceUnavailable}
+		return response, &appError{err, "Database query failed (Index - random)", http.StatusServiceUnavailable}
 	}
 
-	Response := ProcessSearchResults(term, indices)
+	searchResults := indices
+
+	// Search table columns
+	err1 := DB.Find(&indices).Error
+	if err1 != nil {
+		return response, &appError{err, "Database query failed (Index - all)", http.StatusServiceUnavailable}
+	}
+
+	for _, table := range indices {
+		schema := GetSQLTableSchema(table.Guid)
+		for _, column := range schema {
+			if strings.Contains(strings.ToLower(column.Name), keyword) {
+				searchResults = append(searchResults, table)
+			}
+		}
+	}
+
+	Response := ProcessSearchResults(term, searchResults)
 
 	// Randomise order
 	for i := range Response.Results {
@@ -114,10 +128,22 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 		Response.Results[i], Response.Results[j] = Response.Results[j], Response.Results[i]
 	}
 
+	totalCharts := len(Response.Results)
+	if offset > totalCharts {
+		return SearchResponse{}, nil
+	}
+
+	last := offset + count
+	if last > totalCharts {
+		last = totalCharts
+	}
+
+	Response.Results = Response.Results[offset:last] // return slice
+
 	return Response, nil
 }
 
-func ProcessSearchResults(term string, rows []Index) SearchResponse {
+func ProcessSearchResults(keyword string, rows []Index) SearchResponse {
 	Results := make([]SearchResult, 0)
 
 	for _, row := range rows {
@@ -131,7 +157,7 @@ func ProcessSearchResults(term string, rows []Index) SearchResponse {
 	}
 
 	Response := SearchResponse{
-		Keyword: term,
+		Keyword: keyword,
 		Results: Results,
 		Total:   len(rows),
 	}

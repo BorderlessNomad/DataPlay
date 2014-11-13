@@ -713,6 +713,11 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 
 				for k, v := range columnNames {
 					if !IsDateYear(v.Name) {
+						length := len(tmpTD.Values)
+						if length > 0 && tmpTD.Values[length-1].X == v.Name {
+							return
+						}
+
 						tmpXY.X = v.Name
 						switch value := columns[k].(type) {
 						case int64:
@@ -735,7 +740,9 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 					}
 				}
 
-				*charts = append(*charts, tmpTD)
+				if len(tmpTD.Values) > 1 {
+					*charts = append(*charts, tmpTD)
+				}
 			}
 		}
 	} else { // for all other types of chart
