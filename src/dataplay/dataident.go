@@ -2,11 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/jinzhu/gorm"
 	"net/http"
 	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -112,49 +112,6 @@ func ContainsTableCol(cols []ColType, target string) bool {
 	return false
 }
 
-/**
- * @brief Get the SQL Scheme for a Table
- * @details Almost all of the SQLs support 'information_schema' database which stores metadata about
- * other databases, tables etc.
- *
- * @todo Apply caching to queries which goes to 'information_schema'
- * MySQL has something like innodb_stats_on_metadata=0 which will prevent statistic update upon quering 'information_schema'.
- * Also it won't make 'information_schema' to be stale when changes are made on corresponding metadata.
- *
- * @param string <Table Name>
- * @return <Table Schema>
- */
-func GetSQLTableSchema(table string) []ColType {
-	tableSchema := []TableSchema{}
-	schema := make([]ColType, 0)
-
-	if table == "" {
-		return schema
-	}
-
-	err := DB.Select("column_name, data_type").Where("table_name = ?", table).Find(&tableSchema).Error
-	if err != nil {
-		return schema
-	}
-
-	for _, row := range tableSchema {
-		NewCol := ColType{
-			Name:    row.ColumnName,
-			Sqltype: row.DataType,
-		}
-
-		if NewCol.Sqltype == "character varying" {
-			NewCol.Sqltype = "varchar"
-		} else if NewCol.Sqltype == "numeric" {
-			NewCol.Sqltype = "float"
-		}
-
-		schema = append(schema, NewCol)
-	}
-
-	return schema
-}
-
 func CheckColExists(schema []ColType, column string) bool {
 	for _, val := range schema {
 		if val.Name == column {
@@ -163,44 +120,6 @@ func CheckColExists(schema []ColType, column string) bool {
 	}
 
 	return false
-}
-
-func SuggestColType(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	if params["table"] == "" || params["col"] == "" {
-		http.Error(res, "There was no ID request", http.StatusBadRequest)
-		return ""
-	}
-
-	onlineData := OnlineData{}
-	err := DB.Select("tablename").Where("guid = ?", params["table"]).Find(&onlineData).Error
-
-	if err == gorm.RecordNotFound {
-		http.Error(res, "Could not find that Table", http.StatusNotFound)
-		return ""
-	} else if err != nil {
-		check(err)
-		return ""
-	}
-
-	schema := GetSQLTableSchema(onlineData.Tablename)
-
-	if !CheckColExists(schema, params["col"]) {
-		http.Error(res, "You have requested a Columns that does not exist.", http.StatusBadRequest)
-		return ""
-	}
-
-	var data []string
-	err = DB.Table(onlineData.Tablename).Pluck(params["col"], &data).Error
-	check(err)
-
-	for _, val := range data {
-		_, e := strconv.ParseFloat(val, 10)
-		if e != nil {
-			return "false"
-		}
-	}
-
-	return "true"
 }
 
 /**
@@ -312,7 +231,7 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, para
 
 	for _, job := range jobs {
 		var data []string
-		err := DB.Table(job.TableName).Pluck("\""+job.X+"\"", &data).Error
+		err := DB.Table(fmt.Sprintf("%q", job.TableName)).Pluck(fmt.Sprintf("%q", job.X), &data).Error
 
 		if err != nil {
 			http.Error(res, "Could not read from target table", http.StatusInternalServerError)
@@ -354,11 +273,11 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, para
 			tablelist := make([]string, 0)
 
 			var data = []string{}
-			query := DB.Table("priv_onlinedata, priv_stringsearch, index")
+			query := DB.Table("priv_onlinedata, priv_stringsearch, priv_index")
 			query = query.Where("priv_stringsearch.value = ?", dict.Value)
 			query = query.Where("priv_stringsearch.count > ?", 5) //Why?
 			query = query.Where("priv_stringsearch.tablename = priv_onlinedata.tablename")
-			query = query.Where("priv_onlinedata.guid = index.guid")
+			query = query.Where("priv_onlinedata.guid = priv_index.guid")
 			err := query.Pluck("priv_onlinedata.guid", &data).Error
 
 			if err == gorm.RecordNotFound {

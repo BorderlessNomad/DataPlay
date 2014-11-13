@@ -7,6 +7,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
 	"os"
+	"strconv"
 )
 
 type Database struct {
@@ -17,6 +18,7 @@ type Database struct {
 	Host   string
 	Port   string
 	Schema string
+	Debug  bool
 }
 
 func (self *Database) Setup() {
@@ -26,7 +28,8 @@ func (self *Database) Setup() {
 	flag.StringVar(&self.Host, "DBHost", "10.0.0.2", "Where to connect to the postgresql DB")
 	flag.StringVar(&self.Port, "DBPort", "5432", "Where to connect to the postgresql DB")
 
-	flag.StringVar(&self.Schema, "DBDatabase", "dataplay", "The database name to use while connecting to the postgresql DB")
+	flag.StringVar(&self.Schema, "DBDatabase", "dataplay_new", "The database name to use while connecting to the postgresql DB")
+	flag.BoolVar(&self.Debug, "DBDebug", false, "Debug DB Queries")
 }
 
 func (self *Database) ParseEnvironment() {
@@ -43,6 +46,13 @@ func (self *Database) ParseEnvironment() {
 
 	self.Host = databaseHost
 	self.Port = databasePort
+
+	databaseDebug := false
+	if os.Getenv("DP_DATABASE_DEBUG") != "" {
+		databaseDebug, _ = strconv.ParseBool(os.Getenv("DP_DATABASE_DEBUG"))
+	}
+
+	self.Debug = databaseDebug
 }
 
 func (self *Database) Connect() (err error) {
@@ -55,12 +65,12 @@ func (self *Database) Connect() (err error) {
 	fmt.Println("[Database] Connected!", self.User, "@", self.Host, ":", self.Port, "/", self.Schema)
 
 	self.DB.DB().Exec("SET NAMES UTF8")
-	self.DB.DB().SetMaxIdleConns(0) // <=0 no idle connections are retained.
-	self.DB.DB().SetMaxOpenConns(0) //Unlimited (100)
+	self.DB.DB().SetMaxIdleConns(2048) // < 0 no idle connections are retained.
+	self.DB.DB().SetMaxOpenConns(1024) //Unlimited  = < 0
 	self.DB.DB().Ping()
 
 	/* Debug */
-	self.DB.LogMode(true)
+	self.DB.LogMode(self.Debug)
 
 	return
 }

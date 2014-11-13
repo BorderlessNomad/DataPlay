@@ -34,6 +34,7 @@ angular.module('dataplayApp')
 			discoverDate: ''
 			approvers: []
 			disapprovers: []
+			overview: null
 			source:
 				prim: ''
 				seco: ''
@@ -87,6 +88,7 @@ angular.module('dataplayApp')
 						$scope.info.approved = data.userhascredited
 						$scope.info.disapproved = data.userhasdiscredited
 						$scope.info.coeff = Math.floor Math.abs data.coefficient * 100
+						$scope.info.overview = data.overview
 
 					$scope.initObservations()
 					console.log "Chart", $scope.chart

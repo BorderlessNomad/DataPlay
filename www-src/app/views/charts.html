@@ -5,8 +5,8 @@
 		<div class="col-xs-12 col-md-9">
 			<ul class="breadcrumb">
 				<li><a href="/home">Home</a></li>
-				<li ng-if="params.id && info.source.prim"><a href="/overview/{{params.id}}">Overview of {{info.source.prim}}</a></li>
-				<li ng-if="!params.id && false && info.source.prim"><a href="/overview/{{params.id}}">Overview of {{info.source.prim}}</a></li>
+				<li ng-if="!params.id && info.overview && info.source.prim"> Overview of <a href="/overview/{{info.overview}}">{{info.source.prim}}</a></li>
+				<li ng-if="params.id && info.source.prim"> Overview of <a href="/overview/{{params.id}}">{{info.source.prim}}</a></li>
 			</ul>
 		</div>
 	</div>

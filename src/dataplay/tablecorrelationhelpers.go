@@ -23,7 +23,7 @@ func RandomValueColumn(cols []ColType) string {
 	columns := make([]string, 0)
 
 	for i, _ := range cols {
-		if (cols[i].Sqltype == "numeric" || cols[i].Sqltype == "float" || cols[i].Sqltype == "integer") && cols[i].Name != "transaction_number" {
+		if (cols[i].Sqltype == "numeric" || cols[i].Sqltype == "float" || cols[i].Sqltype == "integer" || cols[i].Sqltype == "real") && cols[i].Name != "transaction_number" {
 			columns = append(columns, cols[i].Name)
 		}
 	}
@@ -48,8 +48,9 @@ func RandomDateColumn(cols []ColType) string {
 	columns := make([]string, 0)
 
 	for _, v := range cols {
-		isDate, _ := regexp.MatchString("date", strings.ToLower(v.Name)) //find a column of date type
-		if isDate {
+		isDateYear, _ := regexp.MatchString("date|year", strings.ToLower(v.Name)) //find a column of date type
+
+		if isDateYear {
 			columns = append(columns, v.Name)
 		}
 	}
@@ -73,14 +74,14 @@ func ExtractDateVal(tablename string, dateCol string, valCol string) ([]DateVal,
 	var dates []time.Time
 	var amounts []float64
 
-	err := DB.Table(tablename).Pluck(dateCol, &dates).Error
+	err := DB.Table(fmt.Sprintf("%q", tablename)).Pluck(fmt.Sprintf("%q", dateCol), &dates).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return nil, &appError{err, "Database query failed (DateCol).", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
 		return nil, &appError{err, "No table for for DateCol.", http.StatusNotFound}
 	}
 
-	err = DB.Table(tablename).Pluck(valCol, &amounts).Error
+	err = DB.Table(fmt.Sprintf("%q", tablename)).Pluck(fmt.Sprintf("%q", valCol), &amounts).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return nil, &appError{err, "Database query failed (ValCol).", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
@@ -239,9 +240,11 @@ func GetValues(vals []DateVal, from time.Time, to time.Time) ([]XYVal, bool) {
 			if v.Date.Equal(from) {
 				fromchk = true
 			}
+
 			if v.Date.Equal(to.AddDate(0, 0, -1)) {
 				tochk = true
 			}
+
 			tmpXY.X = (v.Date.String()[0:10])
 			tmpXY.Y = FloatToString(v.Value)
 			values = append(values, tmpXY)

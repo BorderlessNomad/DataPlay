@@ -142,6 +142,10 @@ type StatsCheck struct {
 	Xend   int
 }
 
+func (sc StatsCheck) TableName() string {
+	return "priv_statcheck"
+}
+
 type Regions struct {
 	Key    string
 	Region string
@@ -174,10 +178,6 @@ type Social struct {
 
 func (so Social) TableName() string {
 	return "priv_social"
-}
-
-func (sc StatsCheck) TableName() string {
-	return "priv_statcheck"
 }
 
 type StringSearch struct {

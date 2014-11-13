@@ -12,10 +12,9 @@ import (
 )
 
 type SearchResult struct {
-	Title        string
-	GUID         string
-	LocationData bool
-	PrimaryDate  string
+	Title       string
+	GUID        string
+	PrimaryDate string
 }
 
 type SearchResponse struct {
@@ -122,13 +121,10 @@ func ProcessSearchResults(term string, rows []Index) SearchResponse {
 	Results := make([]SearchResult, 0)
 
 	for _, row := range rows {
-		Location := HasTableGotLocationData(row.Guid)
-
 		result := SearchResult{
-			Title:        SanitizeString(row.Title),
-			GUID:         SanitizeString(row.Guid),
-			LocationData: Location,
-			PrimaryDate:  row.PrimaryDate,
+			Title:       SanitizeString(row.Title),
+			GUID:        SanitizeString(row.Guid),
+			PrimaryDate: row.PrimaryDate,
 		}
 
 		Results = append(Results, result)

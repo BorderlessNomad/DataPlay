@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/jinzhu/gorm"
 	"math"
 	"math/rand"
 	"net/http"
@@ -74,50 +76,80 @@ type TableCols struct {
 	chart string
 }
 
-// Take in table name and a threshold for the looping and attempt to get correlated tables through a variety of correlation methods
-// Use 3:1:1 for Spurious to Pearson and Visual as Spurious less likely to find correlations
+/**
+ * @details Take in table name and a threshold for the looping and attempt to get correlated tables
+ * through a variety of correlation methods.
+ * Use 3:1:1 for Spurious to Pearson and Visual as Spurious less likely to find correlations
+ *
+ * @param string tablename
+ * @param int searchDepth
+ */
 func GenerateCorrelations(tablename string, searchDepth int) {
 	rand.Seed(time.Now().UTC().UnixNano())
 	cols1 := GetSQLTableSchema(tablename)
 	var tablenames []string
-	DB.Model(OnlineData{}).Order("random()").Pluck("tablename", &tablenames)
+
+	err := DB.Model(OnlineData{}).Order("random()").Pluck("tablename", &tablenames).Error
+	if err != nil && err != gorm.RecordNotFound {
+		fmt.Println("Database Error while generating correlations.", err)
+		return
+	} else if err == gorm.RecordNotFound {
+		fmt.Println("No tables for generating correlations.", err)
+		return
+	}
 
 	tableCols := make([]TableCols, searchDepth)
 
 	for i := 0; i < searchDepth; i++ {
-		goforit := true
+		attemptCorrelation := true
 
 		tableCols[i].tbl1 = tablename
 		tableCols[i].tbl2 = tablenames[rand.Intn(len(tablenames))]
+
 		cols2 := GetSQLTableSchema(tableCols[i].tbl2)
+
 		tableCols[i].dat1 = RandomDateColumn(cols1)
 		tableCols[i].val1 = RandomValueColumn(cols1)
+
 		tableCols[i].dat2 = RandomDateColumn(cols2)
 		tableCols[i].val2 = RandomValueColumn(cols2)
-		tableCols[i].ctype = RandomMethod()
+
 		if tableCols[i].tbl1 == tableCols[i].tbl2 || tableCols[i].tbl1 == "" || tableCols[i].tbl2 == "" || tableCols[i].val1 == "" || tableCols[i].val2 == "" || tableCols[i].dat1 == "" || tableCols[i].dat2 == "" {
-			goforit = false
+			attemptCorrelation = false
 		}
+
+		tableCols[i].ctype = RandomMethod()
+
 		if tableCols[i].ctype == "Spurious" {
 			tableCols[i].tbl3 = tablenames[rand.Intn(len(tablenames))]
+
 			cols3 := GetSQLTableSchema(tableCols[i].tbl3)
+
 			tableCols[i].dat3 = RandomDateColumn(cols3)
 			tableCols[i].val3 = RandomValueColumn(cols3)
 			if tableCols[i].tbl1 == tableCols[i].tbl3 || tableCols[i].tbl2 == tableCols[i].tbl3 || tableCols[i].tbl3 == "" || tableCols[i].val3 == "" || tableCols[i].dat3 == "" {
-				goforit = false
+				attemptCorrelation = false
 			}
 		}
 
-		if goforit {
+		if attemptCorrelation {
 			go AttemptCorrelation(tableCols[i])
 		}
 	}
 }
 
-// Take in table name and a correlation type, then get some random apt columns from it and generate more random tables and columns and check for any  pre-existing correlations on that combination.
-// If a correlation for the generated tables combination doesn't exist, attempt to calculate a new correlation coefficient and if one is generated save the new correlation.
+/**
+ * Take in table name and a correlation type, then get some random apt columns from it and
+ * generate more random tables and columns and check for any  pre-existing correlations on
+ * that combination.
+ *
+ * If a correlation for the generated tables combination doesn't exist, attempt to calculate
+ * a new correlation coefficient and save the new correlation.
+ *
+ * @param TableCols tableCols
+ * @return *appError
+ */
 func AttemptCorrelation(tableCols TableCols) *appError {
-	var jsonData []string
 	c := P
 	if tableCols.ctype == "Pearson" {
 		c = P
@@ -127,25 +159,28 @@ func AttemptCorrelation(tableCols TableCols) *appError {
 		c = V
 	}
 
-	cor := Correlation{}
+	correlation := Correlation{}
+	ctype := ""
+	query := DB.Where("tbl1 = ?", tableCols.tbl1).Where("col1 = ?", tableCols.val1).Where("tbl2 = ?", tableCols.tbl2).Where("col2 = ?", tableCols.val2)
 	if c == P {
-		err := DB.Model(&cor).Where("tbl1 = ?", tableCols.tbl1).Where("col1 = ?", tableCols.val1).Where("tbl2 = ?", tableCols.tbl2).Where("col2 = ?", tableCols.val2).Where("method = ?", "Pearson").Pluck("json", &jsonData).Error
-		if err != nil {
-			return &appError{err, "Database query failed (DateCol).", http.StatusInternalServerError}
-		}
+		ctype = "Pearson"
+		query = query.Where("method = ?", ctype)
 	} else if c == S {
-		err := DB.Model(&cor).Where("tbl1 = ?", tableCols.tbl1).Where("col1 = ?", tableCols.val1).Where("tbl2 = ?", tableCols.tbl2).Where("col2 = ?", tableCols.val2).Where("tbl3 = ?", tableCols.tbl3).Where("col3 = ?", tableCols.val3).Where("method = ?", "Spurious").Pluck("json", &jsonData).Error
-		if err != nil {
-			return &appError{err, "Database query failed (DateCol).", http.StatusInternalServerError}
-		}
+		ctype = "Spurious"
+		query = query.Where("tbl3 = ?", tableCols.tbl3).Where("col3 = ?", tableCols.val3).Where("method = ?", ctype)
 	} else if c == V {
-		err := DB.Model(&cor).Where("tbl1 = ?", tableCols.tbl1).Where("col1 = ?", tableCols.val1).Where("tbl2 = ?", tableCols.tbl2).Where("col2 = ?", tableCols.val2).Where("method = ?", "Visual").Pluck("json", &jsonData).Error
-		if err != nil {
-			return &appError{err, "Database query failed (DateCol).", http.StatusInternalServerError}
-		}
+		ctype = "Visual"
+		query = query.Where("method = ?", ctype)
 	}
 
-	if jsonData == nil { // if no correlation exists then generate one
+	err := query.Find(&correlation).Error
+	if err != nil && err != gorm.RecordNotFound {
+		return &appError{err, "Database query failed (DateCol - " + ctype + ").", http.StatusInternalServerError}
+	} else if err == gorm.RecordNotFound {
+		return &appError{err, "Unable to find correlation (DateCol - " + ctype + ").", http.StatusNotFound}
+	}
+
+	if correlation.Json == nil { // if no correlation exists then generate one
 		cd := new(CorrelationData)
 		cf, errCF := CalculateCoefficient(tableCols, c, cd)
 		if errCF != nil {

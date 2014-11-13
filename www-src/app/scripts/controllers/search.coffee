@@ -36,6 +36,7 @@ angular.module('dataplayApp')
 			$scope.loading.overview = ($scope.query.length > 0)
 
 			$scope.search()
+			$scope.getTweets()
 			$scope.getNews()
 
 		$scope.changePage = () ->
@@ -50,7 +51,6 @@ angular.module('dataplayApp')
 			return if $scope.query.length < 3
 
 			$scope.loading.related = true
-			$scope.loading.tweets = true
 
 			User.search $scope.query, offset, count
 				.success (data) ->
@@ -68,6 +68,13 @@ angular.module('dataplayApp')
 					$scope.loading.related = false
 					console.log "Search::search::Error:", status
 					return
+
+			return
+
+		$scope.getTweets = () ->
+			return if $scope.query.length < 3
+
+			$scope.loading.tweets = true
 
 			User.searchTweets $scope.query
 				.success (data) ->

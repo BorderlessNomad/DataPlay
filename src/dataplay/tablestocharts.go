@@ -34,6 +34,7 @@ type PatternInfo struct {
 	SecondarySource string      `json:"source2, omitempty"`
 	Coefficient     float64     `json:"coefficient, omitempty"`
 	Strength        string      `json:"statstrength, omitempty"`
+	Overview        string      `json:"overview, omitempty"`
 	Observations    int         `json:"numobs"`
 	UserCredited    bool        `json:"userhascredited"`
 	UserDiscredited bool        `json:"userhasdiscredited"`
@@ -190,7 +191,7 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	user := User{}
 	err4 := DB.Where("uid = ?", discovered.Uid).Find(&user).Error
 	if err4 != nil && err4 != gorm.RecordNotFound {
-		return pattern, &appError{err4, "unable to retrieve user for related chart", http.StatusInternalServerError}
+		return pattern, &appError{err4, "Unable to retrieve user for related chart", http.StatusInternalServerError}
 	}
 
 	creditors := make([]string, 0)
@@ -205,7 +206,7 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	err5 := query.Find(&creditingUsers).Error
 
 	if err5 != nil && err5 != gorm.RecordNotFound {
-		return pattern, &appError{err5, "find creditors failed", http.StatusInternalServerError}
+		return pattern, &appError{err5, "Unable to Find Crediting user", http.StatusInternalServerError}
 	} else {
 		for _, vu := range creditingUsers {
 			if vu.Credflag == true {
@@ -219,8 +220,8 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	var observation []Observation
 	count := 0
 	err6 := DB.Model(&observation).Where("discovered_id = ?", discovered.DiscoveredId).Count(&count).Error
-	if err6 != nil {
-		return pattern, &appError{err6, "observation count failed", http.StatusInternalServerError}
+	if err6 != nil && err6 != gorm.RecordNotFound {
+		return pattern, &appError{err6, "Observation count failed", http.StatusInternalServerError}
 	}
 
 	var td TableData
@@ -242,19 +243,17 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	// See if user has credited or discredited this chart
 	cred := Credit{}
 	err8 := DB.Where("discovered_id = ?", discovered.DiscoveredId).Where("uid = ?", uid).Find(&cred).Error
-	if err8 == nil {
-		if cred.Credflag == true {
-			pattern.UserCredited = true
-			pattern.UserDiscredited = false
-		} else {
-			pattern.UserDiscredited = true
-			pattern.UserCredited = false
-		}
+	if err8 != nil && err8 != gorm.RecordNotFound {
+		return pattern, &appError{err8, "User credited failed", http.StatusInternalServerError}
 	} else if err8 == gorm.RecordNotFound {
 		pattern.UserCredited = false
 		pattern.UserDiscredited = false
-	} else if err8 != nil {
-		return pattern, &appError{err8, "user credited failed", http.StatusInternalServerError}
+	} else if cred.Credflag == true {
+		pattern.UserCredited = true
+		pattern.UserDiscredited = false
+	} else {
+		pattern.UserCredited = false
+		pattern.UserDiscredited = true
 	}
 
 	return pattern, nil
@@ -263,27 +262,27 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 // use the id relating to the record stored in the generated correlations table to return the json with the specific chart info
 func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	pattern := PatternInfo{}
-	var chart []string
 	var cd CorrelationData
 
-	err := DB.Model(Correlation{}).Where("correlation_id = ?", cid).Pluck("json", &chart).Error
+	correlation := Correlation{}
+	err := DB.Where("correlation_id = ?", cid).Find(&correlation).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return pattern, &appError{err, "Database query failed (ID)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
-		return pattern, &appError{err, "No related chart found", http.StatusNotFound}
+		return pattern, &appError{err, "No correlated chart found", http.StatusNotFound}
 	}
 
 	//if undiscovered add to the discovered table as an initial discovery
 	discovered := Discovered{}
 	err1 := DB.Where("correlation_id = ?", cid).Find(&discovered).Error
 	if err1 == gorm.RecordNotFound {
-		Discover(strconv.Itoa(cid), uid, []byte(chart[0]), true)
+		Discover(strconv.Itoa(cid), uid, correlation.Json, true)
 	}
 
 	user := User{}
 	err2 := DB.Where("uid = ?", discovered.Uid).Find(&user).Error
 	if err2 != nil && err2 != gorm.RecordNotFound {
-		return pattern, &appError{err2, "unable to retrieve user for correlated chart", http.StatusInternalServerError}
+		return pattern, &appError{err2, "Unable to retrieve User for correlated chart.", http.StatusInternalServerError}
 	}
 
 	creditors := make([]string, 0)
@@ -326,12 +325,6 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 		return pattern, &appError{err6, "Json failed", http.StatusInternalServerError}
 	}
 
-	correlation := Correlation{}
-	err7 := DB.Where("correlation_id = ?", cid).Find(&correlation).Error
-	if err7 != nil {
-		return pattern, &appError{err7, "Correlation failed", http.StatusInternalServerError}
-	}
-
 	pattern.ChartData = cd
 	pattern.PatternID = strconv.Itoa(discovered.CorrelationId)
 	pattern.DiscoveredID = discovered.DiscoveredId
@@ -344,6 +337,7 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	pattern.Coefficient = correlation.Coef
 	pattern.Strength = CalcStrength(correlation.Abscoef)
 	pattern.Observations = count
+	pattern.Overview = correlation.Tbl1
 
 	// See if user has credited or discredited this chart
 	cred := Credit{}
@@ -415,20 +409,18 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 		GenerateChartData("pie", guid, xyPie, &charts, index, true)
 	}
 
-	for _, v := range xyNames { /// create all other types of chart
+	for _, v := range xyNames { // create all other types of chart
 		if v.Xtype == "varchar" && v.Ytype == "varchar" { // stacked or scatter charts if string v string values
 			GenerateChartData("stacked column", guid, v, &charts, index, true)
 			GenerateChartData("scatter", guid, v, &charts, index, true)
-			// column and row charts for all that are not string v string values and are not date v string or string v date values
-		} else if !(v.Xtype == "varchar" && v.Ytype == "date") || !(v.Xtype == "date" && v.Ytype == "varchar") {
+		} else if !(v.Xtype == "varchar" && v.Ytype == "date") || !(v.Xtype == "date" && v.Ytype == "varchar") { // column and row charts for all that are not string v string values and are not date v string or string v date values
 			GenerateChartData("row", guid, v, &charts, index, true)
-			// no string values for y axis on column charts
-			if v.Ytype != "varchar" && v.Ytype != "date" {
+			if v.Ytype != "varchar" && v.Ytype != "date" { // no string values for y axis on column charts
 				GenerateChartData("column", guid, v, &charts, index, true)
 			}
 		}
 
-		if v.Xtype != "varchar" && (v.Ytype != "date" || v.Ytype != "varchar" && !strings.Contains(v.Ytype, "date")) { // line chart cannot be based on strings or have date on the Y axis
+		if v.Ytype != "varchar" && (v.Xtype == "date" || (v.Xtype != "varchar" && IsDateYear(v.X))) { // line chart cannot be based on strings or have date on the Y axis
 			GenerateChartData("line", guid, v, &charts, index, true)
 		}
 	}
@@ -474,23 +466,24 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int, re
 	od := OnlineData{}
 	e := DB.Where("guid = ?", guid).Find(&od).Error
 	if e != nil {
-		return CorrelatedCharts{nil, 0}, &appError{nil, "Bad guid", http.StatusInternalServerError}
+		return CorrelatedCharts{nil, 0}, &appError{nil, "Invalid or Empty GUID", http.StatusBadRequest}
 	}
 
 	tableName := od.Tablename
 
-	for i := 0; i < 30; i++ {
-		go GenerateCorrelations(tableName, searchDepth)
-	}
+	// for i := 0; i < 30; i++ {
+	// 	go GenerateCorrelations(tableName, searchDepth)
+	// }
+	// // time.Sleep(5 * time.Second) // WHY??????
 
-	// time.Sleep(5 * time.Second)
+	// @todo Mayur Run once and generate all possible correlations
+	go GenerateCorrelations(tableName, searchDepth)
 
-	err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Limit(40).Find(&correlation).Error
+	err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Find(&correlation).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return CorrelatedCharts{nil, 0}, &appError{nil, "Database query failed (TBL1)", http.StatusInternalServerError}
-	}
-	if err == gorm.RecordNotFound {
-		DB.Order("random()").Limit(40).Find(&correlation)
+	} else if err == gorm.RecordNotFound {
+		DB.Order("random()").Find(&correlation)
 	}
 
 	for _, c := range correlation {
@@ -523,10 +516,9 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int, re
 		originid := strconv.Itoa(c.CorrelationId)
 		discovered := Discovered{}
 		err := DB.Where("correlation_id = ?", originid).Find(&discovered).Error
+		c.Discovered = true
 		if err == gorm.RecordNotFound {
 			c.Discovered = false
-		} else {
-			c.Discovered = true
 		}
 	}
 
@@ -540,6 +532,7 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int, re
 	}
 
 	charts = charts[offset:last] // return marshalled slice
+
 	return CorrelatedCharts{charts, totalCharts}, nil
 }
 
@@ -606,6 +599,7 @@ func GetDiscoveredCharts(tableName string, correlated bool, offset int, count in
 	}
 
 	charts = charts[offset:last] // return slice
+
 	return DiscoveredCharts{charts, totalCharts}, nil
 }
 
@@ -626,16 +620,12 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 
 	sql := ""
 	if chartType == "pie" {
-		if names.Xtype == "float" {
-			sql = fmt.Sprintf("SELECT %q AS x, SUM(%q) AS y FROM %q GROUP BY %q", names.X, names.X, guid, names.X)
-			tmpTD.LabelY = "sum"
-		} else {
-			sql = fmt.Sprintf("SELECT %q AS x, COUNT(%q) AS y FROM %q GROUP BY %q", names.X, names.X, guid, names.X)
-			tmpTD.LabelY = "count"
+		if IsDateYear(names.X) && (names.Xtype == "float" || names.Xtype == "integer" || names.Xtype == "real") {
+			sql = fmt.Sprintf("SELECT * FROM %q ORDER BY %q", guid, names.X)
 		}
-	} else if chartType == "bubble" {
+	} else if chartType == "bubble" && len(names.Z) > 0 {
 		sql = fmt.Sprintf("SELECT %q AS x, %q AS y, %q AS z FROM %q", names.X, names.Y, names.Z, guid)
-	} else {
+	} else if IsDateYear(names.X) {
 		sql = fmt.Sprintf("SELECT %q AS x, %q AS y FROM %q", names.X, names.Y, guid)
 	}
 
@@ -647,19 +637,19 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 		tmpTD.LabelZ = names.Z
 
 		for rows.Next() {
-			if (names.Xtype == "float" || names.Xtype == "integer") && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
+			if (names.Xtype == "float" || names.Xtype == "integer" || names.Xtype == "real") && (names.Ytype == "float" || names.Ytype == "integer" || names.Ytype == "real") && (names.Ztype == "float" || names.Ztype == "integer" || names.Ztype == "real") {
 				rows.Scan(&fx, &fy, &fz)
 				tmpXY.X = FloatToString(fx)
 				tmpXY.Y = FloatToString(fy)
 				tmpXY.Z = FloatToString(fz)
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if (names.Xtype == "float" || names.Xtype == "integer") && names.Ytype == "varchar" && (names.Ztype == "float" || names.Ztype == "integer") {
+			} else if (names.Xtype == "float" || names.Xtype == "integer" || names.Xtype == "real") && names.Ytype == "varchar" && (names.Ztype == "float" || names.Ztype == "integer" || names.Ztype == "real") {
 				rows.Scan(&fx, &vy, &fz)
 				tmpXY.X = FloatToString(fx)
 				tmpXY.Y = vy
 				tmpXY.Z = FloatToString(fz)
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if names.Xtype == "varchar" && (names.Ytype == "float" || names.Ytype == "integer") && (names.Ztype == "float" || names.Ztype == "integer") {
+			} else if names.Xtype == "varchar" && (names.Ytype == "float" || names.Ytype == "integer" || names.Ytype == "real") && (names.Ztype == "float" || names.Ztype == "integer" || names.Ztype == "real") {
 				rows.Scan(&vx, &fy, &fz)
 				tmpXY.X = vx
 				tmpXY.Y = FloatToString(fy)
@@ -677,33 +667,40 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 			*charts = append(*charts, tmpTD)
 		}
 	} else if chartType == "pie" { // single column pie chart x = type, y = count
+		columnNames, _ := rows.Columns()
+		columns := make([]interface{}, len(columnNames))
+		columnPointers := make([]interface{}, len(columnNames))
+		for i := 0; i < len(columnNames); i++ {
+			columnPointers[i] = &columns[i]
+		}
+
 		for rows.Next() {
 			pieSlices++
 
-			if names.Xtype == "varchar" {
-				rows.Scan(&vx, &fy)
-				tmpXY.X = vx
-				tmpXY.Y = FloatToString(fy)
-				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if names.Xtype == "date" {
-				rows.Scan(&dx, &fy)
-				tmpXY.X = (dx.String()[0:10])
-				tmpXY.Y = FloatToString(fy)
-				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if names.Xtype == "float" || names.Xtype == "integer" {
-				rows.Scan(&fx, &fy)
-				tmpXY.X = FloatToString(fx)
-				tmpXY.Y = FloatToString(fy)
-				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else {
-				tmpXY.X = ""
-				tmpXY.Y = ""
-				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			}
-		}
+			if names.Xtype == "float" || names.Xtype == "integer" || names.Xtype == "real" {
+				rows.Scan(columnPointers...)
+				columnNames := FetchTableCols(guid)
 
-		if pieSlices <= 20 && pieSlices > 1 { // reject pies with too many slices or not enough
-			if ValueCheck(tmpTD) {
+				for k, v := range columnNames {
+					if v.Name != names.X {
+						tmpXY.X = v.Name
+						switch value := columns[k].(type) {
+						case int64:
+							tmpXY.Y = strconv.FormatInt(value, 10)
+						case float64:
+							tmpXY.Y = FloatToString(value)
+						case string:
+							tmpXY.Y = value
+						default:
+							continue
+						}
+
+						tmpTD.Values = append(tmpTD.Values, tmpXY)
+					} else {
+						tmpTD.LabelX = v.Name
+					}
+				}
+
 				*charts = append(*charts, tmpTD)
 			}
 		}
@@ -720,7 +717,7 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 				tmpXY.X = (dx.String()[0:10])
 				tmpXY.Y = (dy.String()[0:10])
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if names.Xtype == "date" && (names.Ytype == "float" || names.Ytype == "integer") {
+			} else if names.Xtype == "date" && (names.Ytype == "float" || names.Ytype == "integer" || names.Ytype == "real") {
 				rows.Scan(&dx, &fy)
 				tmpXY.X = (dx.String()[0:10])
 				tmpXY.Y = FloatToString(fy)
@@ -730,17 +727,17 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 				tmpXY.X = (dx.String()[0:10])
 				tmpXY.Y = vy
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if (names.Xtype == "float" || names.Xtype == "integer") && names.Ytype == "date" {
+			} else if (names.Xtype == "float" || names.Xtype == "integer" || names.Xtype == "real") && names.Ytype == "date" {
 				rows.Scan(&fx, &dy)
 				tmpXY.X = FloatToString(fx)
 				tmpXY.Y = (dy.String()[0:10])
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if (names.Xtype == "float" || names.Xtype == "integer") && (names.Ytype == "float" || names.Ytype == "integer") {
+			} else if (names.Xtype == "float" || names.Xtype == "integer" || names.Xtype == "real") && (names.Ytype == "float" || names.Ytype == "integer" || names.Ytype == "real") && names.Xtype != names.Ytype {
 				rows.Scan(&fx, &fy)
 				tmpXY.X = FloatToString(fx)
 				tmpXY.Y = FloatToString(fy)
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if (names.Xtype == "float" || names.Xtype == "integer") && names.Ytype == "varchar" {
+			} else if (names.Xtype == "float" || names.Xtype == "integer" || names.Xtype == "real") && names.Ytype == "varchar" {
 				rows.Scan(&fx, &vy)
 				tmpXY.X = FloatToString(fx)
 				tmpXY.Y = vy
@@ -750,7 +747,7 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 				tmpXY.X = vx
 				tmpXY.Y = (dy.String()[0:10])
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if names.Xtype == "varchar" && (names.Ytype == "float" || names.Ytype == "integer") {
+			} else if names.Xtype == "varchar" && (names.Ytype == "float" || names.Ytype == "integer" || names.Ytype == "real") {
 				rows.Scan(&vx, &fy)
 				tmpXY.X = vx
 				tmpXY.Y = FloatToString(fy)
@@ -773,23 +770,49 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 					*charts = append(*charts, tmpTD)
 				}
 			}
-		} else {
-			if ValueCheck(tmpTD) {
-				if reduce {
-					tmpTD.Values = ReduceXYValues(tmpTD.Values)
-				}
-				*charts = append(*charts, tmpTD)
+		} else if ValueCheck(tmpTD) {
+			if reduce {
+				tmpTD.Values = ReduceXYValues(tmpTD.Values)
 			}
+
+			*charts = append(*charts, tmpTD)
 		}
 	}
+}
+
+func IsDateYear(str string) bool {
+	if strings.Contains(strings.ToLower(str), "date") || strings.Contains(strings.ToLower(str), "year") {
+		return true
+	}
+
+	return false
 }
 
 // Gnerate all possible permutations of xy columns
 func XYPermutations(columns []ColType, bubble bool) []XYVal {
 	length := len(columns)
+	maxIter := 5
 	var xyNames []XYVal
 	var xyzNames []XYVal
 	var tmpXY XYVal
+
+	randomColumns := make([]ColType, 0)
+	checkedColumns := make([]bool, length)
+	if length > maxIter {
+		for i := 0; i < maxIter; i++ {
+			randomIndex := rand.Intn(length - 1)
+			if checkedColumns[randomIndex] {
+				i--
+				continue
+			}
+
+			randomColumns = append(randomColumns, columns[randomIndex])
+			checkedColumns[randomIndex] = true
+		}
+
+		columns = randomColumns
+		length = len(columns)
+	}
 
 	for i := 0; i < length; i++ {
 		for j := 0; j < length; j++ {
@@ -798,6 +821,7 @@ func XYPermutations(columns []ColType, bubble bool) []XYVal {
 				tmpXY.Y = columns[j].Name
 				tmpXY.Xtype = columns[i].Sqltype
 				tmpXY.Ytype = columns[j].Sqltype
+
 				xyNames = append(xyNames, tmpXY)
 			}
 		}
@@ -814,12 +838,11 @@ func XYPermutations(columns []ColType, bubble bool) []XYVal {
 					tmpXY.Xtype = v.Xtype
 					tmpXY.Ytype = v.Ytype
 					tmpXY.Ztype = columns[k].Sqltype
+
 					xyzNames = append(xyzNames, tmpXY)
 				}
 			}
 		}
-
-		return xyzNames
 	}
 
 	return xyNames
@@ -827,6 +850,10 @@ func XYPermutations(columns []ColType, bubble bool) []XYVal {
 
 // checks whether data values for x or y are singular and if so returns false so that the corresponding chart is not added
 func ValueCheck(t TableData) bool {
+	if len(t.Values) <= 0 {
+		return false
+	}
+
 	lastXval, lastYval := t.Values[0].X, t.Values[0].Y
 	xChk, yChk := false, false
 
@@ -834,6 +861,7 @@ func ValueCheck(t TableData) bool {
 		if lastXval != v.X {
 			xChk = true
 		}
+
 		if lastYval != v.Y {
 			yChk = true
 		}
@@ -841,9 +869,9 @@ func ValueCheck(t TableData) bool {
 
 	if xChk && yChk {
 		return true
-	} else {
-		return false
 	}
+
+	return false
 }
 
 // checks whether any X axis values are negative as bubble won't plot if they are
@@ -858,23 +886,21 @@ func NegCheck(t TableData) bool {
 	return true
 }
 
-//determines strength of correlation
+/**
+ * @brief Determines strength of correlation
+ */
 func CalcStrength(x float64) string {
-	if x <= 0.1 {
+	if x < 0.25 {
 		return "very low"
-	} else if x <= 0.2 {
+	} else if x < 0.33 {
 		return "low"
-	} else if x <= 0.3 {
-		return "quite low"
-	} else if x <= 0.4 {
+	} else if x < 0.5 {
 		return "medium"
-	} else if x <= 0.6 {
-		return "quite high"
-	} else if x <= 0.7 {
+	} else if x < 0.75 {
 		return "high"
-	} else {
-		return "very high"
 	}
+
+	return "very high"
 }
 
 //////////////////////////////////////////////////////////////////////////
