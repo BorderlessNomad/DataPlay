@@ -70,8 +70,6 @@ angular.module('dataplayApp')
 						for key, chart of data.charts
 							continue unless $scope.relatedChart.isPlotAllowed chart.type
 
-							chart.title = "#{chart.xLabel} vs #{chart.yLabel}"
-
 							key = parseInt(key)
 							chart.key = key
 							chart.id = "related-#{$scope.params.id}-#{chart.key + $scope.relatedChart.offset.related}-#{chart.type}"
