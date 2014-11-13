@@ -164,6 +164,7 @@ angular.module('dataplayApp')
 							$scope.relatedChart.setLabels chart
 
 							res.loading = false
+							delete chart.title
 							_.merge res, chart
 
 					return
