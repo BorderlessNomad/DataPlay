@@ -53,15 +53,19 @@ angular.module('dataplayApp')
 				OverviewScreen.get i
 					.success (data) ->
 						if data instanceof Array
-							$scope.mainSections[i].items = data.filter (i) ->
-								!! i.term
 							maxTotal = 0
+							maxValue = 0
+							$scope.mainSections[i].items = data.filter (item) ->
+								total = 0
+								for a in item.graph
+									if a.y > maxValue then maxValue = a.y
+									total += a.y
+								if total > maxTotal then maxTotal = total
+								item.total = total
+								!! item.term
 
 							$scope.mainSections[i].items.forEach (item) ->
-								total = 0
-								for a in item.graph then total += a.y
-
-								if total > maxTotal then maxTotal = total
+								item.max = maxValue
 
 								item.slug = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
 								item.id = "#{i.replace(/\W/g, '').toLowerCase()}-#{item.slug}"
@@ -70,7 +74,7 @@ angular.module('dataplayApp')
 									id: item.id
 									slug: item.slug
 									term: item.term
-									value: total
+									value: item.total
 
 								return
 
@@ -151,6 +155,10 @@ angular.module('dataplayApp')
 					.domain d3.extent group.all(), (d) -> parseInt d.key
 					.range [0, 60]
 				chart.x xScale
+
+				yScale = d3.scale.linear()
+					.domain [0, details.max]
+				chart.y yScale
 
 				chart.keyAccessor (d) -> d.key
 				chart.valueAccessor (d) -> d.value
