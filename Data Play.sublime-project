@@ -25,6 +25,10 @@
 		"follow_symlinks": true,
 		"name": "Monitoring",
 		"path": "../dataplay-monitoring"
+	}, {
+		"follow_symlinks": true,
+		"name": "NewsFetch",
+		"path": "src/newsfetch"
 	}],
 	"settings": {
 		"translate_tabs_to_spaces": false,
