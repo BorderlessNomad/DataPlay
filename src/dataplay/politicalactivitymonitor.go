@@ -134,7 +134,7 @@ func TermFrequency(terms []TermKey) ([]PoliticalActivity, error) {
 	for iter1.Scan(&date, &name) {
 		for _, term := range terms {
 			if name == term.KeyTerm && (date.Equal(from) || date.After(from) && date.Before(today)) { // for any key term matches in date
-				i := PaPlace(&politicalActivity, term.MainTerm)                                   // either get place of main term or add to array if doesn't exist
+				i := PaPlace(&politicalActivity, term.MainTerm) // either get place of main term or add to array if doesn't exist
 				dayindex := int((today.Round(time.Hour).Sub(date.Round(time.Hour)) / 24).Hours()) // get day index
 				politicalActivity[i].Mentions[dayindex].Y++
 			}
@@ -150,7 +150,7 @@ func TermFrequency(terms []TermKey) ([]PoliticalActivity, error) {
 	for iter2.Scan(&date, &name) {
 		for _, term := range terms {
 			if name == term.KeyTerm && (date.Equal(from) || date.After(from) && date.Before(today)) { // for any key term matches in date
-				i := PaPlace(&politicalActivity, term.MainTerm)                                   // either get place of main term or add to array if doesn't exist
+				i := PaPlace(&politicalActivity, term.MainTerm) // either get place of main term or add to array if doesn't exist
 				dayindex := int((today.Round(time.Hour).Sub(date.Round(time.Hour)) / 24).Hours()) // get day index
 				politicalActivity[i].Mentions[dayindex].Y++
 			}
@@ -209,6 +209,10 @@ func RankPA(activities []PoliticalActivity) []PoliticalActivity {
 		if n == 0 {
 			chk = false
 		}
+	}
+
+	if len(activities) < 15 {
+		return activities
 	}
 
 	return activities[0:15]
