@@ -52,15 +52,6 @@ angular.module('dataplayApp')
 			(['d', 'e', 'r']).forEach (i) ->
 				OverviewScreen.get i
 					.success (data) ->
-
-
-						# FOR DEMO PURPOSES - DELETE ME WHEN WE GET REAL DATA
-						if $scope.mainSections[i].type is 'map'
-							boroughNames = ["Kingston upon Thames", "Croydon", "Bromley", "Hounslow", "Ealing", "Havering", "Hillingdon", "Harrow", "Brent", "Barnet", "Lambeth", "Southwark", "Lewisham", "Greenwich", "Bexley", "Enfield", "Waltham Forest", "Redbridge", "Sutton", "Richmond upon Thames", "Merton", "Wandsworth", "Hammersmith and Fulham", "Kensington and Chelsea", "Westminster", "Camden", "Tower Hamlets", "Islington", "Hackney", "Haringey", "Newham", "Barking and Dagenham", "City of London"]
-							data.forEach (orig) ->
-								orig.term = boroughNames.splice(Math.floor(Math.random() * boroughNames.length) ,1)[0]
-
-
 						if data instanceof Array
 							$scope.mainSections[i].items = data.filter (i) ->
 								!! i.term
