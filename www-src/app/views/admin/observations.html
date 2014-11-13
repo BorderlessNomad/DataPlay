@@ -6,6 +6,7 @@
 			<li ng-class="{active: pagination.flaggedonly}"><a href="#" ng-click="setFilter(true)"><i class="fa fa-flag"></i> Flagged</a></li>
 		</ul>
 	</div>
+
 	<table class="table table-bordered table-hover table-striped">
 		<tr>
 			<th>
@@ -39,6 +40,11 @@
 			<th></th>
 		</tr>
 		<tr ng-if="loading && observations.length === 0"><td colspan="7" ng-include="'../views/loader.html'"></td></tr>
+		<tr ng-if="!loading && observations.length === 0">
+			<td colspan="7">
+				<div class="alert alert-danger">Sorry no Observation found!</div>
+			</td>
+		</tr>
 		<tr ng-repeat="observation in observations | limitTo: pagination.perPage">
 			<td>{{observation.observationid}}</td>
 			<td>{{humanDate(observation.created)}}</td>

@@ -10,6 +10,7 @@
 angular.module('dataplayApp')
 	.controller 'ChartsCorrelatedCtrl', ['$scope', '$location', '$timeout', '$routeParams', 'Auth', 'config', 'Overview', 'PatternMatcher', 'Charts', ($scope, $location, $timeout, $routeParams, Auth, config, Overview, PatternMatcher, Charts) ->
 		$scope.username = Auth.get config.userName
+		$scope.userid = Auth.get config.userId
 
 		$scope.params = $routeParams
 		$scope.mode = 'correlated'
