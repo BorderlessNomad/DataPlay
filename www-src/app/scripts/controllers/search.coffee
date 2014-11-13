@@ -11,6 +11,7 @@ angular.module('dataplayApp')
 	.controller 'SearchCtrl', ['$scope', '$location', '$routeParams', 'User', 'Overview', 'PatternMatcher', ($scope, $location, $routeParams, User, Overview, PatternMatcher) ->
 		$scope.query = if $routeParams.query? then $routeParams.query else ""
 		$scope.results = []
+		$scope.total = null
 		$scope.tweets = []
 
 		$scope.rowLimit = 3
@@ -36,8 +37,8 @@ angular.module('dataplayApp')
 			$scope.loading.overview = ($scope.query.length > 0)
 
 			$scope.search()
-			$scope.getTweets()
-			$scope.getNews()
+			# $scope.getTweets()
+			# $scope.getNews()
 
 		$scope.changePage = () ->
 			query = $scope.query.replace(/\/|\\/g, ' ')
@@ -47,7 +48,7 @@ angular.module('dataplayApp')
 			else
 				$scope.init true
 
-		$scope.search = (offset = 0, count = 9) ->
+		$scope.search = (offset = 0, count = 6) ->
 			return if $scope.query.length < 3
 
 			$scope.loading.related = true
@@ -56,7 +57,8 @@ angular.module('dataplayApp')
 				.success (data) ->
 					$scope.loading.related = false
 
-					$scope.results = if offset is 0 then data.Results else $scope.results.concat data.Results
+					$scope.results = data.Results
+					$scope.total = data.Total
 
 					$scope.results.forEach (r) ->
 						r.graph = []
@@ -117,7 +119,7 @@ angular.module('dataplayApp')
 
 		$scope.showMore = ->
 			# get more results
-			$scope.search $scope.chartsRelated.length, 9
+			$scope.search $scope.chartsRelated.length
 
 		$scope.collapse = (item) ->
 			item.show = false
