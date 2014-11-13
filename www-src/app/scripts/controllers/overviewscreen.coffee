@@ -63,76 +63,59 @@ angular.module('dataplayApp')
 
 								if total > maxTotal then maxTotal = total
 
-								item.id = "#{i.replace(/\W/g, '').toLowerCase()}-#{item.term.replace(/\W/g, '').toLowerCase()}"
+								item.slug = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
+								item.id = "#{i.replace(/\W/g, '').toLowerCase()}-#{item.slug}"
 
 								$scope.mainSections[i].graph.push
 									id: item.id
-									term: do ->
-										return item.term unless item.term.toLowerCase() is item.term
-										words = item.term.split /_|\-|\'|\s/g
-										newTerm = words.map((w) -> "#{w.substring(0,1).toUpperCase()}#{w.substring(1).toLowerCase()}").join ' '
-										item.term = newTerm
-										newTerm
+									slug: item.slug
+									term: item.term
 									value: total
 
 								return
 
 							if $scope.mainSections[i].type is 'map'
-								lowercaseItems = {}
+								dictionary = {}
 								$scope.mainSections[i].graph.forEach (item) ->
-									newKey = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
-									if $scope.mapGen.locationDictionary[newKey]
-										newKey = $scope.mapGen.locationDictionary[newKey]
-
-									lowercaseItems[newKey] = item.value
+									dictionary[item.term] = item
 
 								$scope.mapGen.maxvalue = maxTotal
 
 								regData = Object.keys($scope.mapGen.boundaryPaths).map (c) ->
 									name: c
-									value: lowercaseItems[c] || 0
+									value: dictionary[c]?.value || 0
 
 								$scope.mapGen.generate regData
 
 								$scope.mainSections[i].items.forEach (item) ->
-									newKey = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
-									if $scope.mapGen.locationDictionary[newKey]
-										newKey = $scope.mapGen.locationDictionary[newKey]
-									item.corresponds = "county-#{newKey}"
-									item.color = $scope.mapGen.getColor lowercaseItems[newKey] || 0
+									item.corresponds = "region-#{item.slug}"
+									item.color = $scope.mapGen.getColor dictionary[item.term]?.value || 0
 
-								counties = d3.selectAll '.county'
+								regions = d3.selectAll '.region'
 
-								counties.on "mouseover", (d) ->
+								regions.on "mouseover", (d) ->
 									x = d3.event.pageX - $(window.document).scrollLeft()
 									y = d3.event.pageY - $(window.document).scrollTop()
 
 									el = d3.select @
 
-									county = _.find $scope.mainSections[i].graph, (it) ->
-										return it.id.replace('r-', '') is el.attr('id').replace('county-', '')
-									if not county?
-										county =
-											id: "r-#{el.attr('id').replace('county-', '')}"
+									region = _.find $scope.mainSections[i].graph, (it) ->
+										return it.id.replace('r-', '') is el.attr('id').replace('region-', '')
+									if not region?
+										region =
+											id: "r-#{el.attr('id').replace('region-', '')}"
+											slug: el.attr('id').replace('region-', '')
 											term: el.attr 'data-display'
 											value: 0
-
-									Object.keys($scope.mapGen.locationDictionary).forEach (key) ->
-										val = $scope.mapGen.locationDictionary[key]
-										if county.id.replace('r-', '') is val
-											county.value = do ->
-												item =  _.find $scope.mainSections[i].graph, (it) ->
-													return it.id.replace('r-', '') is key
-												item?.value or 0
 
 									d3.select "#pie-tooltip"
 										.style "left", "#{x}px"
 										.style "top", "#{y}px"
 										.attr "class", "tooltip fade top in"
 										.select ".tooltip-inner"
-											.text "#{county.term}: #{county.value}"
+											.text "#{region.term}: #{region.value}"
 
-								counties.on "mouseout", (d) ->
+								regions.on "mouseout", (d) ->
 									d3.select "#pie-tooltip"
 										.attr "class", "tooltip top hidden"
 
@@ -143,7 +126,7 @@ angular.module('dataplayApp')
 					if data instanceof Array
 						$scope.sidebarSections = data.map (sect) ->
 							sect.url = if sect.id is "top_discoverers" then "user/profile" else "search"
-							sect.top5 = sect.top5.filter (item) ->
+							sect.top = sect.top.filter (item) ->
 								item.amount > 0
 
 							sect

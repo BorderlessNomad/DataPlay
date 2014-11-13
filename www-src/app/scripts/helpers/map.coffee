@@ -9,8 +9,8 @@ class MapGenerator
 	selector: ''
 	data: []
 
-	width: 156
-	height: 168
+	width: 180
+	height: 148
 
 	maxvalue: 50
 
@@ -25,30 +25,28 @@ class MapGenerator
 			.attr 'transform', "translate(#{@width / 2}, #{@height / 2})"
 
 		data.forEach (c) =>
-			@appendCounty trans, c
+			c.slug = c.name.toLowerCase().replace(/_|\-|\'|\s/g, '');
+			@appendRegion trans, c
 
-	appendCounty: (container, county) =>
-		displayName = @displayNameDictionary[county.name.toLowerCase()]
-		if not displayName?
-			displayName = county.name.toLowerCase().replace(/^(ire)/g, '')
-			displayName = displayName.substring(0,1).toUpperCase() + displayName.substring(1)
-
+	appendRegion: (container, region) =>
 		container.append 'g'
-			.attr 'class', 'county'
-			.attr 'id', "county-#{county.name}"
-			.attr 'data-display', displayName
+			.attr 'class', 'region'
+			.attr 'id', "region-#{region.slug}"
+			.attr 'data-display', region.name
 			.append 'path'
-				.attr 'fill', @getColor county
-				.attr 'd', @boundaryPaths[county.name]
+				.attr 'fill', @getColor region
+				.attr 'stroke', '#000000'
+				.attr 'stroke-width', '1'
+				.attr 'stroke-opacity', '0.05'
+				.attr 'd', @boundaryPaths[region.name]
 			.append 'title'
-				.html "#{displayName}: #{county.value}"
+				.html "#{region.name}: #{region.value}"
 
-	getColor: (county, max) =>
-		value = if typeof county is 'object' then (county.value || 0) else (county || 0)
+	getColor: (region, max) =>
+		value = if typeof region is 'object' then (region.value || 0) else (region || 0)
 
 		value = value / (max or @maxvalue)
 
-		if typeof county is 'object' and county.name.substring(0, 3) is 'ire' then return '#CCCCCC'
 		if value is 0 then return '#FFE455'
 
 		start = { r: 255, g: 228, b: 85 }
@@ -67,32 +65,6 @@ class MapGenerator
 	unhighlight: (corr) =>
 		d3.select "##{corr} path"
 			.style 'fill-opacity', null
-
-
-	locationDictionary:
-		'london': 'greaterlondon'
-		'manchester': 'greatermanchester'
-
-	displayNameDictionary:
-		'dumfriesandgalloway':  'Dumfries and Galloway'
-		'eastsussex':           'East Sussex'
-		'greaterlondon':        'London'
-		'greatermanchester':    'Manchester'
-		'herefordandworcester': 'Hereford and Worcester'
-		'isleofwight':          'Isle of Wight'
-		'midglamorgan':         'Mid Glamorgan'
-		'northernireland':      'Northern Ireland'
-		'northyorkshire':       'North Yorkshire'
-		'orkneyislands':        'Orkney Islands'
-		'scottishborders':      'Scottish Borders'
-		'southglamorgan':       'South Glamorgan'
-		'southyorkshire':       'South Yorkshire'
-		'tyneandwear':          'Tyne and Wear'
-		'westernisles':         'Western Isles'
-		'westglamorgan':        'West Glamorgan'
-		'westmidlands':         'West Midlands'
-		'westsussex':           'West Sussex'
-		'westyorkshire':        'West Yorkshire'
 
 	boundaryPaths: {}
 

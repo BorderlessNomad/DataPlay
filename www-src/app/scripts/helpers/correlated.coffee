@@ -19,7 +19,7 @@ typeDictionary =
 
 tickFormatFunc = (type) ->
 	(d) ->
-		type = type.toLowerCase()
+		if typeof type is 'string' then type = type.toLowerCase()
 		if type is 'none'
 			return ''
 		if type is 'date'

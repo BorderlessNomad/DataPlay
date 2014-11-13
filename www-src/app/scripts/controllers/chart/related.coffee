@@ -131,6 +131,7 @@ angular.module('dataplayApp')
 								y: obsv.y
 							flagged: !! obsv.flagged
 							action: obsv.action
+							highlight: false
 
 					if redraw? and redraw
 						$scope.redrawObservationIcons()
@@ -219,7 +220,9 @@ angular.module('dataplayApp')
 			pathId = "clipImage-#{xy}"
 			clipPath = area.append 'clipPath'
 				.attr 'id', pathId
+				.attr 'class', 'icon-clip'
 				.append 'circle'
+					.attr 'class', 'icon-circ'
 					.attr 'r', 10
 					.attr 'cx', plot[0]
 					.attr 'cy', plot[1]
@@ -229,6 +232,7 @@ angular.module('dataplayApp')
 
 			circ = area.append 'image'
 				.attr 'id', "observationIcon-#{xy}"
+				.attr 'class', 'icon-image'
 				.attr 'xlink:href', $('#observation-image').data('image')
 				.attr 'style', "stroke: none; fill: none; fill-opacity: 0.0; stroke-opacity: 0.0"
 				.attr 'height', '20px'
@@ -239,6 +243,18 @@ angular.module('dataplayApp')
 				.attr 'data-placement', 'top'
 				.attr 'data-html', true
 				.tooltip "#{$scope.chart.xLabel}: #{x}<br/>#{$scope.chart.yLabel}: #{y}<br/>comment: #{comment}"
+
+			circ.on 'click', () ->
+				d3.event.stopPropagation()
+				if $scope.userObservations? and $scope.userObservations.length
+					item = _.find $scope.userObservations,
+						xy: xy
+					item.highlight = true
+					$timeout ->
+						item.highlight = false
+					, 2000
+					$scope.$apply()
+
 
 		$scope.redrawObservationIcons = () ->
 			# Clean observation points and re-render

@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"regexp"
 )
 
 type NewsArticle struct {
@@ -51,7 +52,7 @@ func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
 	defer session.Close()
 
 	newsArticles := []NewsArticle{}
-	searchTerms := strings.Split(searchstring, "_")
+	searchTerms := strings.Split(strings.Replace(searchstring, "_", " ", -1), "!")
 	earliestDate := Earliest(searchTerms) // links with SQL database
 
 	var date time.Time
@@ -81,7 +82,8 @@ func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
 		termcount := 0.0
 
 		for i, term := range searchTerms {
-			termcount += float64(TermCheck(term, description+" "+title)) * 1 / float64(i+1)
+			termcount += float64(TermCheck(term, title)) * 1 / float64(i+1)
+			termcount += float64(TermCheck(term, description)) * 1 / float64(i+1)
 			termcount += float64(DateCheck(earliestDate, date)) * 1 / float64(i+1) // add weight if the article is from around the right month or year
 		}
 
@@ -117,11 +119,17 @@ func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
 
 // return 1 if the term is found in the passage
 func TermCheck(term string, passage string) int {
-	descriptions := strings.Split(passage, " ")
-	for _, d := range descriptions {
-		if d == term {
-			return 1
-		}
+	extras := `(e)?(()|s|d|ing|ion|tion|age|\'s|\ve|n\'t|en\'t|'d|s\')`
+	endsLoosely, _ := regexp.Compile(`(?i)(e|ed|es)$`)
+
+	for endsLoosely.MatchString(term) {
+		term = term[:len(term)-1]
+	}
+
+	r, _ := regexp.Compile(`(?i)(^|\s|\'|\"|\-)` + term + extras + `($|\s|\.|\,|\:|\;|\'|\"|\-)`)
+	check := r.MatchString(passage)
+	if check {
+		return 1
 	}
 	return 0
 }
