@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/codegangsta/martini"
-	"github.com/jinzhu/gorm"
 	"math"
 	"net/http"
 	"strconv"
@@ -562,28 +561,6 @@ func DumpReducedTable(params map[string]string) ([]map[string]interface{}, *appE
 	}
 
 	return results_calc, nil
-}
-
-/**
- * @brief Converts GUID ('friendly' name) into actual table inside database
- *
- * @param string GUID
- * @param http http.ResponseWriter
- *
- * @return string output, error
- */
-func GetRealTableName(guid string) (out string, e error) {
-	if guid == "" || guid == "No Record Found!" {
-		return "", fmt.Errorf("Invalid tablename")
-	}
-
-	data := OnlineData{}
-	err := DB.Select("tablename").Where("guid = ?", guid).Find(&data).Error
-	if err == gorm.RecordNotFound {
-		return "", fmt.Errorf("Could not find table")
-	}
-
-	return data.Tablename, err
 }
 
 /**

@@ -410,18 +410,16 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 	}
 
 	for _, v := range xyNames { // create all other types of chart
-		// if v.Xtype == "varchar" && v.Ytype == "varchar" { // stacked or scatter charts if string v string values
-		// 		fmt.Println("GenerateChartData", "STACK", v)
-		// 		GenerateChartData("stacked column", guid, v, &charts, index, true)
-		// 		GenerateChartData("scatter", guid, v, &charts, index, true)
-		// 	} else if !(v.Xtype == "varchar" && v.Ytype == "date") || !(v.Xtype == "date" && v.Ytype == "varchar") { // column and row charts for all that are not string v string values and are not date v string or string v date values
-		// 		// fmt.Println("GenerateChartData", "ROW", v)
-		// 		// GenerateChartData("row", guid, v, &charts, index, true)
-		// 		if v.Ytype != "varchar" && v.Ytype != "date" { // no string values for y axis on column charts
-		// 			fmt.Println("GenerateChartData", "COLUMN", v)
-		// 			GenerateChartData("column", guid, v, &charts, index, true)
-		// 		}
-		// 	}
+		if v.Xtype == "varchar" && v.Ytype == "varchar" { // stacked or scatter charts if string v string values
+			// GenerateChartData("stacked column", guid, v, &charts, index, true)
+			// GenerateChartData("scatter", guid, v, &charts, index, true)
+		} else if !(v.Xtype == "varchar" && v.Ytype == "date") || !(v.Xtype == "date" && v.Ytype == "varchar") { // column and row charts for all that are not string v string values and are not date v string or string v date values
+			// GenerateChartData("row", guid, v, &charts, index, true)
+			if v.Ytype != "varchar" && v.Ytype != "date" { // no string values for y axis on column charts
+				// GenerateChartData("column", guid, v, &charts, index, true)
+				// GenerateChartData("column dated", guid, v, &charts, index, true)
+			}
+		}
 
 		if v.Ytype != "varchar" && (v.Xtype == "date" || (v.Xtype != "varchar" && IsDateYear(v.X))) { // line chart cannot be based on strings or have date on the Y axis
 			GenerateChartData("line", guid, v, &charts, index, true)
@@ -431,7 +429,6 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 	// if len(columns) > 2 { // if there's more than 2 columns grab a 3rd variable for bubble charts
 	// 	xyNames = XYPermutations(columns, true) // set z flag to true to get all possible valid permuations of columns as X, Y & Z
 	// 	for _, v := range xyNames {
-	// 		fmt.Println("GenerateChartData", "BUBBLE", v)
 	// 		GenerateChartData("bubble", guid, v, &charts, index, true)
 	// 	}
 	// }
@@ -459,11 +456,10 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 		last = totalCharts
 	}
 
-	// @todo @mayur some random order as proposed by Jack
-	// for i := range charts {
-	// 	j := rand.Intn(i + 1)
-	// 	charts[i], charts[j] = charts[j], charts[i]
-	// }
+	for i := range uniqueCharts {
+		j := rand.Intn(i + 1)
+		uniqueCharts[i], uniqueCharts[j] = uniqueCharts[j], uniqueCharts[i]
+	}
 
 	if count > 15 {
 		last = offset + 15
@@ -655,6 +651,9 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 		}
 	} else if chartType == "bubble" && len(names.Z) > 0 {
 		sql = fmt.Sprintf("SELECT %q AS x, %q AS y, %q AS z FROM %q", names.X, names.Y, names.Z, guid)
+	} else if chartType == "column dated" && (names.Xtype == "float" || names.Xtype == "integer" || names.Xtype == "real") && IsDateYear(names.X) && names.Ytype == "" {
+		y, _ := strconv.Atoi(names.Y)
+		sql = fmt.Sprintf("SELECT * FROM %q WHERE EXTRACT(year FROM %q) = %d", guid, names.X, y)
 	} else if IsDateYear(names.X) {
 		sql = fmt.Sprintf("SELECT %q AS x, %q AS y FROM %q", names.X, names.Y, guid)
 	}
@@ -743,6 +742,48 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 				if len(tmpTD.Values) > 1 {
 					*charts = append(*charts, tmpTD)
 				}
+			}
+		}
+	} else if chartType == "column dated" { // single column pie chart x = type, y = count
+		for rows.Next() {
+			if names.Xtype == "date" && (names.Ytype == "float" || names.Ytype == "integer" || names.Ytype == "real") {
+				rows.Scan(columnPointers...)
+
+				// fmt.Println(names.Xtype, names.Ytype, columnNames)
+
+				// for k, v := range columnNames {
+				// 	fmt.Println(k, v)
+				// 	// if !IsDateYear(v.Name) {
+				// 	// 	length := len(tmpTD.Values)
+				// 	// 	if length > 0 && tmpTD.Values[length-1].X == v.Name {
+				// 	// 		return
+				// 	// 	}
+
+				// 	// 	tmpXY.X = v.Name
+				// 	// 	switch value := columns[k].(type) {
+				// 	// 	case int64:
+				// 	// 		tmpXY.Y = strconv.FormatInt(value, 10)
+				// 	// 	case float64:
+				// 	// 		tmpXY.Y = FloatToString(value)
+				// 	// 	case string:
+				// 	// 		tmpXY.Y = value
+				// 	// 	default:
+				// 	// 		continue
+				// 	// 	}
+
+				// 	// 	tmpTD.Values = append(tmpTD.Values, tmpXY)
+				// 	// } else if v.Sqltype == "date" {
+				// 	// 	date := columns[k].(time.Time)
+
+				// 	// 	tmpTD.LabelX = v.Name
+				// 	// 	tmpTD.LabelY = strconv.Itoa(date.Year())
+				// 	// 	tmpTD.Title = tmpTD.LabelX + " " + tmpTD.LabelY
+				// 	// }
+				// }
+
+				// if len(tmpTD.Values) > 1 {
+				// 	*charts = append(*charts, tmpTD)
+				// }
 			}
 		}
 	} else { // for all other types of chart
