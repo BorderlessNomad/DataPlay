@@ -19,23 +19,15 @@ angular.module('dataplayApp')
 			left: 0
 
 		$scope.mainSections =
-			d:
-				title: 'Gov Departments/Bodies'
-				colNameA: 'Entities'
+			'PLACEHOLDER1':
+				title: 'Media Pulse'
+				colNameA: 'Keywords'
 				colNameB: 'Last 30 days'
 				error: null
 				type: 'pie'
 				graph: []
 				items: []
-			e:
-				title: 'Political Events'
-				colNameA: 'Event'
-				colNameB: 'Last 30 days'
-				error: null
-				type: 'pie'
-				graph: []
-				items: []
-			r:
+			regions:
 				title: 'Politically Aware/Active'
 				colNameA: 'Location'
 				colNameB: 'Last 30 days'
@@ -49,7 +41,7 @@ angular.module('dataplayApp')
 		$scope.sidebarSections = []
 
 		$scope.init = ->
-			(['d', 'e', 'r']).forEach (i) ->
+			Object.keys($scope.mainSections).forEach (i) ->
 				OverviewScreen.get i
 					.success (data) ->
 						if data instanceof Array
@@ -125,7 +117,7 @@ angular.module('dataplayApp')
 
 					.error $scope.handleError i
 
-			OverviewScreen.get 'p'
+			OverviewScreen.get 'popular'
 				.success (data) ->
 					if data instanceof Array
 						$scope.sidebarSections = data.map (sect) ->
@@ -134,7 +126,7 @@ angular.module('dataplayApp')
 								item.amount > 0
 
 							sect
-				.error $scope.handleError 'p'
+				.error $scope.handleError 'popular'
 
 		$scope.renderLine = (details) ->
 			(chart) ->
@@ -240,22 +232,13 @@ angular.module('dataplayApp')
 
 		$scope.highlight = (show, type, item) ->
 			if type is 'pie'
-				$scope.highlightPieSlice item.id, show
+				el = d3.select "#slice-#{item.id} path"
 			else if type is 'map'
-				if show
-					$scope.mapGen.highlight item.corresponds
-				else
-					$scope.mapGen.unhighlight item.corresponds
+				el = d3.select "##{item.corresponds} path"
 
-		$scope.highlightPieSlice = (id, highlight) ->
-			slice = d3.select "#slice-#{id} path"
-			return unless slice?
-			if highlight is false
-				slice.attr 'fill', slice.attr 'data-color'
-				slice.attr 'data-color', null
-			else
-				if not slice.attr('data-color')? then slice.attr 'data-color', slice.attr 'fill'
-				slice.attr 'fill', '#3498db'
+			return unless el? and not el.empty()
+
+			el.attr 'class', if show then 'highlight' else null
 
 		$scope.labelClass = (priority) ->
 			return "label label-primary label-severe-#{priority + 1}"
@@ -269,7 +252,7 @@ angular.module('dataplayApp')
 					when err then err
 					else ''
 
-				if type isnt 'p'
+				if type isnt 'popular'
 					$scope.mainSections[type].error = errMsg
 
 					if $scope.mainSections[type].error.substring(0, 6) is '<html>'

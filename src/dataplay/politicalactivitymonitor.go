@@ -16,12 +16,13 @@ const numdays = 30
 type TermKey struct {
 	KeyTerm  string
 	MainTerm string
+	DataFreq int    `json:"omitempty"`
 }
 
 type PoliticalActivity struct {
 	Term     string                   `json:"term"`
 	Mentions [numdays + 1]PoliticalXY `json:"graph"`
-	Val      int                      `json:"-"`
+	Val      int                      `json:"val"`
 }
 
 type PoliticalXY struct {
@@ -40,20 +41,20 @@ type TermAmt struct {
 	Amount int    `json:"amount"`
 }
 
-// gets names of all departments, checks for mentions in specified time period and returns ranked array of 15 most popular terms and their 30 day frequencies
-func DepartmentsPoliticalActivity() ([]PoliticalActivity, error) {
-	var dept []Departments // get all departments from postgres sql table
+func PLACEHOLDER1PoliticalActivity() ([]PoliticalActivity, error) {
+	var dictionary []Dictionary
 	var terms []TermKey
 
-	err := DB.Find(&dept).Error
+	err := DB.Find(&dictionary).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return nil, err
 	}
 
 	var tmp TermKey
-	for _, d := range dept {
-		tmp.KeyTerm = d.Key
-		tmp.MainTerm = d.Dept
+	for _, d := range dictionary {
+		tmp.KeyTerm = d.Term
+		tmp.MainTerm = d.Term
+		tmp.DataFreq = d.Frequency
 		terms = append(terms, tmp)
 	}
 
@@ -310,13 +311,11 @@ func GetPoliticalActivityHttp(res http.ResponseWriter, req *http.Request, params
 	var result []PoliticalActivity
 	var err error
 
-	if params["type"] == "d" {
-		result, err = DepartmentsPoliticalActivity()
-	} else if params["type"] == "e" {
-		result, err = EventsPoliticalActivity()
-	} else if params["type"] == "r" {
+	if params["type"] == "PLACEHOLDER1" {
+		result, err = PLACEHOLDER1PoliticalActivity()
+	} else if params["type"] == "regions" {
 		result, err = RegionsPoliticalActivity()
-	} else if params["type"] == "p" {
+	} else if params["type"] == "popular" {
 		pResult, errP := PopularPoliticalActivity()
 		if errP != nil {
 			http.Error(res, errP.Error(), http.StatusInternalServerError)
