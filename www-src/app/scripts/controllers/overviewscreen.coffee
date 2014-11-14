@@ -19,7 +19,7 @@ angular.module('dataplayApp')
 			left: 0
 
 		$scope.mainSections =
-			d:
+			departments:
 				title: 'Gov Departments/Bodies'
 				colNameA: 'Entities'
 				colNameB: 'Last 30 days'
@@ -27,7 +27,7 @@ angular.module('dataplayApp')
 				type: 'pie'
 				graph: []
 				items: []
-			e:
+			events:
 				title: 'Political Events'
 				colNameA: 'Event'
 				colNameB: 'Last 30 days'
@@ -35,7 +35,7 @@ angular.module('dataplayApp')
 				type: 'pie'
 				graph: []
 				items: []
-			r:
+			regions:
 				title: 'Politically Aware/Active'
 				colNameA: 'Location'
 				colNameB: 'Last 30 days'
@@ -49,7 +49,7 @@ angular.module('dataplayApp')
 		$scope.sidebarSections = []
 
 		$scope.init = ->
-			(['d', 'e', 'r']).forEach (i) ->
+			(['departments', 'events', 'regions']).forEach (i) ->
 				OverviewScreen.get i
 					.success (data) ->
 						if data instanceof Array
@@ -125,7 +125,7 @@ angular.module('dataplayApp')
 
 					.error $scope.handleError i
 
-			OverviewScreen.get 'p'
+			OverviewScreen.get 'popular'
 				.success (data) ->
 					if data instanceof Array
 						$scope.sidebarSections = data.map (sect) ->
@@ -134,7 +134,7 @@ angular.module('dataplayApp')
 								item.amount > 0
 
 							sect
-				.error $scope.handleError 'p'
+				.error $scope.handleError 'popular'
 
 		$scope.renderLine = (details) ->
 			(chart) ->
@@ -269,7 +269,7 @@ angular.module('dataplayApp')
 					when err then err
 					else ''
 
-				if type isnt 'p'
+				if type isnt 'popular'
 					$scope.mainSections[type].error = errMsg
 
 					if $scope.mainSections[type].error.substring(0, 6) is '<html>'

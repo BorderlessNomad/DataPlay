@@ -310,13 +310,13 @@ func GetPoliticalActivityHttp(res http.ResponseWriter, req *http.Request, params
 	var result []PoliticalActivity
 	var err error
 
-	if params["type"] == "d" {
+	if params["type"] == "departments" {
 		result, err = DepartmentsPoliticalActivity()
-	} else if params["type"] == "e" {
+	} else if params["type"] == "events" {
 		result, err = EventsPoliticalActivity()
-	} else if params["type"] == "r" {
+	} else if params["type"] == "regions" {
 		result, err = RegionsPoliticalActivity()
-	} else if params["type"] == "p" {
+	} else if params["type"] == "popular" {
 		pResult, errP := PopularPoliticalActivity()
 		if errP != nil {
 			http.Error(res, errP.Error(), http.StatusInternalServerError)
