@@ -1,4 +1,4 @@
-![](http://i.imgur.com/esjTHFE.png)
+![](http://i.imgur.com/l7RwTtQ.png)
 
 ### Overview
 DataPlay is an open-source data analysis and exploration game developed by [PlayGen](http://playgen.com/) as part of the EU's [CELAR](http://celarcloud.eu) initiative.
