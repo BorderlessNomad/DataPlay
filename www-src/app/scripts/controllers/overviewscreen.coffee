@@ -19,17 +19,9 @@ angular.module('dataplayApp')
 			left: 0
 
 		$scope.mainSections =
-			departments:
-				title: 'Gov Departments/Bodies'
-				colNameA: 'Entities'
-				colNameB: 'Last 30 days'
-				error: null
-				type: 'pie'
-				graph: []
-				items: []
-			events:
-				title: 'Political Events'
-				colNameA: 'Event'
+			'PLACEHOLDER1':
+				title: 'Media Pulse'
+				colNameA: 'Keywords'
 				colNameB: 'Last 30 days'
 				error: null
 				type: 'pie'
@@ -49,7 +41,7 @@ angular.module('dataplayApp')
 		$scope.sidebarSections = []
 
 		$scope.init = ->
-			(['departments', 'events', 'regions']).forEach (i) ->
+			Object.keys($scope.mainSections).forEach (i) ->
 				OverviewScreen.get i
 					.success (data) ->
 						if data instanceof Array
