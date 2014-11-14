@@ -38,8 +38,11 @@ type TableData struct {
 	Title      string  `json:"title"`
 	Desc       string  `json:"desc"`
 	LabelX     string  `json:"xLabel"`
+	LabelXLong string  `json:"xxLabel"`
 	LabelY     string  `json:"yLabel,omitempty"`
+	LabelYLong string  `json:"yyLabel,omitempty"`
 	LabelZ     string  `json:"zLabel,omitempty"`
+	LabelZLong string  `json:"zzLabel,omitempty"`
 	Values     []XYVal `json:"values,omitempty"`
 }
 

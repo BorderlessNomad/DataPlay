@@ -53,7 +53,7 @@ class RelatedCharts
 		if chart.type isnt 'pie'
 			chart.labels =
 				x: chart.xLabel
-				y: chart.yLabel
+				y: chart.yyLabel or chart.yLabel
 
 	isPlotAllowed: (type) ->
 		if type in @allowed then true else false

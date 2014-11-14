@@ -1,0 +1,19 @@
+<div class="dc-chart chartSwitch column"
+	ng-if="chart.type == 'column'"
+
+	id="{{chart.id}}"
+
+	dc-chart="barChart"
+
+	dc-width="{{width}}"
+	dc-height="{{heightColumn}}"
+	dc-margins="{{marginColumn}}"
+	dc-mouse-zoomable="false"
+	dc-brush-on="false"
+
+	dc-elastic-y="true"
+	dc-transition-duration="0"
+	dc-colors="d3.scale.category20()"
+
+	dc-post-setup-chart="columnChartPostSetup"
+></div>
