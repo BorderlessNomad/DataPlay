@@ -2,13 +2,13 @@
 
 ###*
  # @ngdoc service
- # @name dataplayApp.OverviewScreen
+ # @name dataplayApp.ActivityMonitor
  # @description
- # # OverviewScreen
+ # # ActivityMonitor
  # Factory in the dataplayApp.
 ###
 angular.module('dataplayApp')
-	.factory 'OverviewScreen', ['$http', 'Auth', 'config', ($http, Auth, config) ->
+	.factory 'ActivityMonitor', ['$http', 'Auth', 'config', ($http, Auth, config) ->
 		get: (type = 'd') ->
 			$http.get config.api.base_url + "/political/#{type}"
 	]

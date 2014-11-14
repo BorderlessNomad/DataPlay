@@ -2,13 +2,13 @@
 
 ###*
  # @ngdoc function
- # @name dataplayApp.controller:OverviewScreenCtrl
+ # @name dataplayApp.controller:ActivityMonitorCtrl
  # @description
- # # OverviewScreenCtrl
+ # # ActivityMonitorCtrl
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'OverviewScreenCtrl', ['$scope', '$location', '$routeParams', 'OverviewScreen', 'Auth', 'config', ($scope, $location, $routeParams, OverviewScreen, Auth, config) ->
+	.controller 'ActivityMonitorCtrl', ['$scope', '$location', '$routeParams', 'ActivityMonitor', 'Auth', 'config', ($scope, $location, $routeParams, ActivityMonitor, Auth, config) ->
 		$scope.params = $routeParams
 		$scope.mapGen = new MapGenerator '#regionMap'
 
@@ -53,7 +53,7 @@ angular.module('dataplayApp')
 
 		$scope.init = ->
 			Object.keys($scope.mainSections).forEach (i) ->
-				OverviewScreen.get i
+				ActivityMonitor.get i
 					.success (data) ->
 						if data instanceof Array
 							maxValue = 0
@@ -127,7 +127,7 @@ angular.module('dataplayApp')
 
 					.error $scope.handleError i
 
-			OverviewScreen.get 'popular'
+			ActivityMonitor.get 'popular'
 				.success (data) ->
 					if data instanceof Array
 						$scope.sidebarSections = data.map (sect) ->
