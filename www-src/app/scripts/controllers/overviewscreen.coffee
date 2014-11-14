@@ -60,7 +60,7 @@ angular.module('dataplayApp')
 								item.max = maxValue
 
 								item.slug = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
-								item.id = "#{i.replace(/\W/g, '').toLowerCase()}-#{item.slug}"
+								item.id = "#{i.replace(/\W/g, '').toLowerCase().substr(0,1)}-#{item.slug}"
 
 								$scope.mainSections[i].graph.push
 									id: item.id
@@ -99,7 +99,7 @@ angular.module('dataplayApp')
 										return it.id.replace('r-', '') is el.attr('id').replace('region-', '')
 									if not region?
 										region =
-											id: "r-#{el.attr('id').replace('region-', '')}"
+											id: el.attr('id').replace('region-', 'r-')
 											slug: el.attr('id').replace('region-', '')
 											term: el.attr 'data-display'
 											value: 0
