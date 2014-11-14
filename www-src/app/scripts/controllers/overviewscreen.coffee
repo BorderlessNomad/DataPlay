@@ -19,7 +19,17 @@ angular.module('dataplayApp')
 			left: 0
 
 		$scope.mainSections =
-			'PLACEHOLDER1':
+			keywords:
+				order: 0
+				title: 'Keywords'
+				colNameA: 'Keywords'
+				colNameB: 'Last 30 days'
+				error: null
+				type: 'pie'
+				graph: []
+				items: []
+			mediapulse:
+				order: 1
 				title: 'Media Pulse'
 				colNameA: 'Keywords'
 				colNameB: 'Last 30 days'
@@ -28,7 +38,8 @@ angular.module('dataplayApp')
 				graph: []
 				items: []
 			regions:
-				title: 'Politically Aware/Active'
+				order: 2
+				title: 'London Borough Activity'
 				colNameA: 'Location'
 				colNameB: 'Last 30 days'
 				error: null
@@ -45,15 +56,13 @@ angular.module('dataplayApp')
 				OverviewScreen.get i
 					.success (data) ->
 						if data instanceof Array
-							maxTotal = 0
 							maxValue = 0
+							maxTotal = 0
 							$scope.mainSections[i].items = data.filter (item) ->
-								total = 0
+								if item.val > maxTotal then maxTotal = item.val
 								for a in item.graph
 									if a.y > maxValue then maxValue = a.y
-									total += a.y
-								if total > maxTotal then maxTotal = total
-								item.total = total
+
 								!! item.term
 
 							$scope.mainSections[i].items.forEach (item) ->
@@ -66,7 +75,8 @@ angular.module('dataplayApp')
 									id: item.id
 									slug: item.slug
 									term: item.term
-									value: item.total
+									value: item.val
+									max: maxValue
 
 								return
 
