@@ -53,15 +53,19 @@ angular.module('dataplayApp')
 				OverviewScreen.get i
 					.success (data) ->
 						if data instanceof Array
-							$scope.mainSections[i].items = data.filter (i) ->
-								!! i.term
 							maxTotal = 0
+							maxValue = 0
+							$scope.mainSections[i].items = data.filter (item) ->
+								total = 0
+								for a in item.graph
+									if a.y > maxValue then maxValue = a.y
+									total += a.y
+								if total > maxTotal then maxTotal = total
+								item.total = total
+								!! item.term
 
 							$scope.mainSections[i].items.forEach (item) ->
-								total = 0
-								for a in item.graph then total += a.y
-
-								if total > maxTotal then maxTotal = total
+								item.max = maxValue
 
 								item.slug = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
 								item.id = "#{i.replace(/\W/g, '').toLowerCase()}-#{item.slug}"
@@ -70,7 +74,7 @@ angular.module('dataplayApp')
 									id: item.id
 									slug: item.slug
 									term: item.term
-									value: total
+									value: item.total
 
 								return
 
@@ -152,6 +156,10 @@ angular.module('dataplayApp')
 					.range [0, 60]
 				chart.x xScale
 
+				yScale = d3.scale.linear()
+					.domain [0, details.max]
+				chart.y yScale
+
 				chart.keyAccessor (d) -> d.key
 				chart.valueAccessor (d) -> d.value
 
@@ -230,29 +238,46 @@ angular.module('dataplayApp')
 						d3.select "#pie-tooltip"
 							.attr "class", "tooltip top hidden"
 
+		$scope.highlight = (show, type, item) ->
+			if type is 'pie'
+				$scope.highlightPieSlice item.id, show
+			else if type is 'map'
+				if show
+					$scope.mapGen.highlight item.corresponds
+				else
+					$scope.mapGen.unhighlight item.corresponds
+
 		$scope.highlightPieSlice = (id, highlight) ->
-			slice = d3.select "#slice-#{id}"
+			slice = d3.select "#slice-#{id} path"
 			return unless slice?
-			slice.style 'opacity', if highlight is false then null else 0.75
+			if highlight is false
+				slice.attr 'fill', slice.attr 'data-color'
+				slice.attr 'data-color', null
+			else
+				if not slice.attr('data-color')? then slice.attr 'data-color', slice.attr 'fill'
+				slice.attr 'fill', '#3498db'
 
 		$scope.labelClass = (priority) ->
 			return "label label-primary label-severe-#{priority + 1}"
 
 		$scope.handleError = (type) ->
 			(err, status) ->
-				$scope.mainSections[type].error = switch
+				errMsg = switch
 					when err and err.message then err.message
 					when err and err.data and err.data.message then err.data.message
 					when err and err.data then err.data
 					when err then err
 					else ''
 
-				if $scope.mainSections[type].error.substring(0, 6) is '<html>'
-					$scope.mainSections[type].error = do ->
-						curr = $scope.mainSections[type].error
-						curr = curr.replace(/(\r\n|\n|\r)/gm, '')
-						curr = curr.replace(/.{0,}(\<title\>)/, '')
-						curr = curr.replace(/(\<\/title\>).{0,}/, '')
-						curr
+				if type isnt 'p'
+					$scope.mainSections[type].error = errMsg
+
+					if $scope.mainSections[type].error.substring(0, 6) is '<html>'
+						$scope.mainSections[type].error = do ->
+							curr = $scope.mainSections[type].error
+							curr = curr.replace(/(\r\n|\n|\r)/gm, '')
+							curr = curr.replace(/.{0,}(\<title\>)/, '')
+							curr = curr.replace(/(\<\/title\>).{0,}/, '')
+							curr
 		return
 	]
