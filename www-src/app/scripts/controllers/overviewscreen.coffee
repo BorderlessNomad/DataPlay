@@ -232,22 +232,13 @@ angular.module('dataplayApp')
 
 		$scope.highlight = (show, type, item) ->
 			if type is 'pie'
-				$scope.highlightPieSlice item.id, show
+				el = d3.select "#slice-#{item.id} path"
 			else if type is 'map'
-				if show
-					$scope.mapGen.highlight item.corresponds
-				else
-					$scope.mapGen.unhighlight item.corresponds
+				el = d3.select "##{item.corresponds} path"
 
-		$scope.highlightPieSlice = (id, highlight) ->
-			slice = d3.select "#slice-#{id} path"
-			return unless slice?
-			if highlight is false
-				slice.attr 'fill', slice.attr 'data-color'
-				slice.attr 'data-color', null
-			else
-				if not slice.attr('data-color')? then slice.attr 'data-color', slice.attr 'fill'
-				slice.attr 'fill', '#3498db'
+			return unless el? and not el.empty()
+
+			el.attr 'class', if show then 'highlight' else null
 
 		$scope.labelClass = (priority) ->
 			return "label label-primary label-severe-#{priority + 1}"

@@ -58,18 +58,6 @@ class MapGenerator
 
 		return '#' + rgb.r.toString(16) + rgb.g.toString(16) + rgb.b.toString(16)
 
-	highlight: (corr) =>
-		el = d3.select "##{corr} path"
-		return unless el? && not el.attr('data-color')?
-		el.attr 'data-color', el.style 'fill'
-		el.style 'fill', '#3498db'
-
-	unhighlight: (corr) =>
-		el = d3.select "##{corr} path"
-		return unless el?
-		el.style 'fill', el.attr 'data-color'
-		el.attr 'data-color', null
-
 	boundaryPaths: {}
 
 
