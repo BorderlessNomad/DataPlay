@@ -24,6 +24,7 @@ angular.module('dataplayApp')
 				title: 'Keywords'
 				colNameA: 'Keywords'
 				colNameB: 'Last 30 days'
+				valDesc: 'Number of appearances in data'
 				error: null
 				type: 'pie'
 				graph: []
@@ -33,6 +34,7 @@ angular.module('dataplayApp')
 				title: 'Media Pulse'
 				colNameA: 'Keywords'
 				colNameB: 'Last 30 days'
+				valDesc: 'Number of appearances in media in last 30 days'
 				error: null
 				type: 'pie'
 				graph: []
@@ -42,6 +44,7 @@ angular.module('dataplayApp')
 				title: 'London Borough Activity'
 				colNameA: 'Location'
 				colNameB: 'Last 30 days'
+				valDesc: 'Number of appearances in media in last 30 days'
 				error: null
 				type: 'map'
 				graph: []
