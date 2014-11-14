@@ -52,7 +52,7 @@
 								ng-attr-title="{{sect.valDesc}}"
 							>{{item.val}}</a>
 							<a class="label label-default" ng-style="{'background-color': item.color}" ng-if="sect.type == 'map'" ng-attr-title="{{sect.valDesc}}">{{item.val}}</a>
-							<small><strong><a class="li-term" ng-href="/search/{{item.term}}">{{item.term}}</a></strong></small>
+							<small><strong><a class="li-term" ng-href="/search/{{item.term}}">{{item.term | truncate: 15}}</a></strong></small>
 						</div>
 						<div class="col-xs-4">
 							<span>
@@ -97,7 +97,7 @@
 						<p class="item" ng-show="item.amount > 0">
 							<a href="/{{sect.url}}/{{item.term}}">
 								<span ng-class="labelClass(key)">{{item.amount}}</span>&nbsp;&nbsp;
-								<span class="text-info">{{item.term}}</span>
+								<span class="text-info">{{item.term | truncate: 15}}</span>
 							</a>
 						</p>
 					</div>
