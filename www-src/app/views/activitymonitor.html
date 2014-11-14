@@ -1,7 +1,7 @@
 <div class="row" ng-init="init()">
 	<div class="col-xs-12 col-md-9">
-		<div class="row overviewscreen">
-			<div class="col-xs-12 col-sm-4 section" ng-repeat="sect in mainSections | limitTo: 3">
+		<div class="row activitymonitor">
+			<div class="col-xs-12 col-sm-4 section" ng-repeat="sect in mainSections | orderObjectBy: 'order' | limitTo: 3">
 				<h4 class="text-center">{{sect.title}}</h4>
 
 				<div class="loading" ng-if="sect.items.length == 0 && !sect.error" ng-include="'views/loader.html'"></div>
@@ -49,9 +49,10 @@
 								data-toggle="tooltip"
 								data-placement="bottom"
 								data-html="true"
-							>&nbsp;</a>
-							<a class="label label-default" ng-style="{'background-color': item.color}" ng-if="sect.type == 'map'">&nbsp;</a>
-							<small><strong><a class="li-term" ng-href="/search/{{item.term}}">{{item.term}}</a></strong></small>
+								ng-attr-title="{{sect.valDesc}}"
+							>{{item.val}}</a>
+							<a class="label label-default" ng-style="{'background-color': item.color}" ng-if="sect.type == 'map'" ng-attr-title="{{sect.valDesc}}">{{item.val}}</a>
+							<small><strong><a class="li-term" ng-href="/search/{{item.term}}">{{item.term | truncate: 15}}</a></strong></small>
 						</div>
 						<div class="col-xs-4">
 							<span>
@@ -96,7 +97,7 @@
 						<p class="item" ng-show="item.amount > 0">
 							<a href="/{{sect.url}}/{{item.term}}">
 								<span ng-class="labelClass(key)">{{item.amount}}</span>&nbsp;&nbsp;
-								<span class="text-info">{{item.term}}</span>
+								<span class="text-info">{{item.term | truncate: 15}}</span>
 							</a>
 						</p>
 					</div>

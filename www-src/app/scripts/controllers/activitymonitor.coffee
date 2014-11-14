@@ -2,13 +2,13 @@
 
 ###*
  # @ngdoc function
- # @name dataplayApp.controller:OverviewScreenCtrl
+ # @name dataplayApp.controller:ActivityMonitorCtrl
  # @description
- # # OverviewScreenCtrl
+ # # ActivityMonitorCtrl
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'OverviewScreenCtrl', ['$scope', '$location', '$routeParams', 'OverviewScreen', 'Auth', 'config', ($scope, $location, $routeParams, OverviewScreen, Auth, config) ->
+	.controller 'ActivityMonitorCtrl', ['$scope', '$location', '$routeParams', 'ActivityMonitor', 'Auth', 'config', ($scope, $location, $routeParams, ActivityMonitor, Auth, config) ->
 		$scope.params = $routeParams
 		$scope.mapGen = new MapGenerator '#regionMap'
 
@@ -19,18 +19,32 @@ angular.module('dataplayApp')
 			left: 0
 
 		$scope.mainSections =
-			'PLACEHOLDER1':
+			keywords:
+				order: 0
+				title: 'Keywords'
+				colNameA: 'Keywords'
+				colNameB: 'Last 30 days'
+				valDesc: 'Number of appearances in data'
+				error: null
+				type: 'pie'
+				graph: []
+				items: []
+			mediapulse:
+				order: 1
 				title: 'Media Pulse'
 				colNameA: 'Keywords'
 				colNameB: 'Last 30 days'
+				valDesc: 'Number of appearances in media in last 30 days'
 				error: null
 				type: 'pie'
 				graph: []
 				items: []
 			regions:
-				title: 'Politically Aware/Active'
+				order: 2
+				title: 'London Borough Activity'
 				colNameA: 'Location'
 				colNameB: 'Last 30 days'
+				valDesc: 'Number of appearances in media in last 30 days'
 				error: null
 				type: 'map'
 				graph: []
@@ -42,31 +56,30 @@ angular.module('dataplayApp')
 
 		$scope.init = ->
 			Object.keys($scope.mainSections).forEach (i) ->
-				OverviewScreen.get i
+				ActivityMonitor.get i
 					.success (data) ->
 						if data instanceof Array
-							maxTotal = 0
 							maxValue = 0
+							maxTotal = 0
 							$scope.mainSections[i].items = data.filter (item) ->
-								total = 0
+								if item.val > maxTotal then maxTotal = item.val
 								for a in item.graph
 									if a.y > maxValue then maxValue = a.y
-									total += a.y
-								if total > maxTotal then maxTotal = total
-								item.total = total
+
 								!! item.term
 
 							$scope.mainSections[i].items.forEach (item) ->
 								item.max = maxValue
 
 								item.slug = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
-								item.id = "#{i.replace(/\W/g, '').toLowerCase()}-#{item.slug}"
+								item.id = "#{i.replace(/\W/g, '').toLowerCase().substr(0,1)}-#{item.slug}"
 
 								$scope.mainSections[i].graph.push
 									id: item.id
 									slug: item.slug
 									term: item.term
-									value: item.total
+									value: item.val
+									max: maxValue
 
 								return
 
@@ -99,7 +112,7 @@ angular.module('dataplayApp')
 										return it.id.replace('r-', '') is el.attr('id').replace('region-', '')
 									if not region?
 										region =
-											id: "r-#{el.attr('id').replace('region-', '')}"
+											id: el.attr('id').replace('region-', 'r-')
 											slug: el.attr('id').replace('region-', '')
 											term: el.attr 'data-display'
 											value: 0
@@ -117,7 +130,7 @@ angular.module('dataplayApp')
 
 					.error $scope.handleError i
 
-			OverviewScreen.get 'popular'
+			ActivityMonitor.get 'popular'
 				.success (data) ->
 					if data instanceof Array
 						$scope.sidebarSections = data.map (sect) ->

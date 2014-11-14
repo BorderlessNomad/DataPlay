@@ -41,7 +41,7 @@ type TermAmt struct {
 	Amount int    `json:"amount"`
 }
 
-func PLACEHOLDER1PoliticalActivity() ([]PoliticalActivity, error) {
+func KeywordsPoliticalActivity() ([]PoliticalActivity, error) {
 	var dictionary []Dictionary
 	var terms []TermKey
 
@@ -63,23 +63,25 @@ func PLACEHOLDER1PoliticalActivity() ([]PoliticalActivity, error) {
 		return nil, termError
 	}
 
-	return termFrequency, nil
+	termFrequency = CalcPAValsDatasets(termFrequency, dictionary)
+
+	return RankPA(termFrequency), nil
 }
 
-// gets names of all events, checks for mentions in specified time period and returns ranked array of 15 most popular terms and their 30 day frequencies
-func EventsPoliticalActivity() ([]PoliticalActivity, error) {
-	var event []Events
+func MediaPulsePoliticalActivity() ([]PoliticalActivity, error) {
+	var dictionary []Dictionary
 	var terms []TermKey
 
-	err := DB.Find(&event).Error
+	err := DB.Find(&dictionary).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return nil, err
 	}
 
 	var tmp TermKey
-	for _, e := range event {
-		tmp.KeyTerm = e.Key
-		tmp.MainTerm = e.Event
+	for _, d := range dictionary {
+		tmp.KeyTerm = d.Term
+		tmp.MainTerm = d.Term
+		tmp.DataFreq = d.Frequency
 		terms = append(terms, tmp)
 	}
 
@@ -88,7 +90,8 @@ func EventsPoliticalActivity() ([]PoliticalActivity, error) {
 		return nil, termError
 	}
 
-	return termFrequency, nil
+	termFrequency = CalcPAValsMedia(termFrequency)
+	return RankPA(termFrequency), nil
 }
 
 // gets names of all regions, checks for mentions in specified time period and returns ranked array of 15 most popular terms and their 30 day frequencies
@@ -113,7 +116,8 @@ func RegionsPoliticalActivity() ([]PoliticalActivity, error) {
 		return nil, termError
 	}
 
-	return termFrequency, nil
+	termFrequency = CalcPAValsMedia(termFrequency)
+	return RankPA(termFrequency), nil
 }
 
 func TermFrequency(terms []TermKey) ([]PoliticalActivity, error) {
@@ -162,7 +166,7 @@ func TermFrequency(terms []TermKey) ([]PoliticalActivity, error) {
 		return nil, err2
 	}
 
-	return RankPA(politicalActivity), nil
+	return politicalActivity, nil
 }
 
 func PaPlace(pa *[]PoliticalActivity, t string) int {
@@ -179,8 +183,28 @@ func PaPlace(pa *[]PoliticalActivity, t string) int {
 	return len(*pa) - 1
 }
 
-// sort PA array and returns slice of top 15
-func RankPA(activities []PoliticalActivity) []PoliticalActivity {
+// attach Vals based upon our datasets (frequency)
+func CalcPAValsDatasets(activities []PoliticalActivity, dictionary []Dictionary) []PoliticalActivity {
+	for i, _ := range activities {
+
+		for j, _ := range activities[i].Mentions {
+			activities[i].Mentions[j].X = j
+		}
+
+		freq := 0
+		for _, d := range dictionary {
+			if d.Term == activities[i].Term {
+				freq = d.Frequency
+			}
+		}
+		activities[i].Val = freq
+	}
+
+	return activities
+}
+
+// attach Vals based upon the media data (bbc mentions)
+func CalcPAValsMedia(activities []PoliticalActivity) []PoliticalActivity {
 	for i, _ := range activities {
 		total := 0
 		for j, _ := range activities[i].Mentions {
@@ -190,6 +214,11 @@ func RankPA(activities []PoliticalActivity) []PoliticalActivity {
 		activities[i].Val = total
 	}
 
+	return activities
+}
+
+// sort PA array and returns slice of top 15
+func RankPA(activities []PoliticalActivity) []PoliticalActivity {
 	n := len(activities)
 	chk := true
 	var tmp PoliticalActivity
@@ -311,8 +340,10 @@ func GetPoliticalActivityHttp(res http.ResponseWriter, req *http.Request, params
 	var result []PoliticalActivity
 	var err error
 
-	if params["type"] == "PLACEHOLDER1" {
-		result, err = PLACEHOLDER1PoliticalActivity()
+	if params["type"] == "keywords" {
+		result, err = KeywordsPoliticalActivity()
+	} else if params["type"] == "mediapulse" {
+		result, err = MediaPulsePoliticalActivity()
 	} else if params["type"] == "regions" {
 		result, err = RegionsPoliticalActivity()
 	} else if params["type"] == "popular" {

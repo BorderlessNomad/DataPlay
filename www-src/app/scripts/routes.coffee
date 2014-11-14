@@ -44,8 +44,8 @@ angular.module('dataplayApp')
 				login: true
 				preventReload: true
 			.when '/activitymonitor',
-				templateUrl: 'views/overviewscreen.html'
-				controller: 'OverviewScreenCtrl'
+				templateUrl: 'views/activitymonitor.html'
+				controller: 'ActivityMonitorCtrl'
 				title: ['Activity Monitor']
 				login: true
 			.when '/overview/:id',
