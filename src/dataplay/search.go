@@ -66,8 +66,6 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 		return response, &appError{nil, "There was no search request", http.StatusBadRequest}
 	}
 
-	AddSearchTerm(keyword) // add to search term count
-
 	offset, count := 0, 9
 
 	if params["offset"] != "" {
@@ -139,6 +137,8 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 	}
 
 	Response.Results = Response.Results[offset:last] // return slice
+
+	AddSearchTerm(keyword) // add to search term count
 
 	return Response, nil
 }
