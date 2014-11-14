@@ -262,19 +262,22 @@ angular.module('dataplayApp')
 
 		$scope.handleError = (type) ->
 			(err, status) ->
-				$scope.mainSections[type].error = switch
+				errMsg = switch
 					when err and err.message then err.message
 					when err and err.data and err.data.message then err.data.message
 					when err and err.data then err.data
 					when err then err
 					else ''
 
-				if $scope.mainSections[type].error.substring(0, 6) is '<html>'
-					$scope.mainSections[type].error = do ->
-						curr = $scope.mainSections[type].error
-						curr = curr.replace(/(\r\n|\n|\r)/gm, '')
-						curr = curr.replace(/.{0,}(\<title\>)/, '')
-						curr = curr.replace(/(\<\/title\>).{0,}/, '')
-						curr
+				if type isnt 'p'
+					$scope.mainSections[type].error = errMsg
+
+					if $scope.mainSections[type].error.substring(0, 6) is '<html>'
+						$scope.mainSections[type].error = do ->
+							curr = $scope.mainSections[type].error
+							curr = curr.replace(/(\r\n|\n|\r)/gm, '')
+							curr = curr.replace(/.{0,}(\<title\>)/, '')
+							curr = curr.replace(/(\<\/title\>).{0,}/, '')
+							curr
 		return
 	]
