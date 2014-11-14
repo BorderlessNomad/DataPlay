@@ -186,7 +186,7 @@ angular.module('dataplayApp')
 					# ------------------------- Simple Numbered Date --------------------------
 					{
 						# Matches yyyy/mm/dd, yy/m/d, mm/dd .... with separator -
-						pattern: /^[^0-9]*(((19|20)?\d\d)-)?((0)?([1-9])|1[012])-((0)?([1-9])|[12][0-9]|3[01])[^0-9]*$/
+						pattern: /^[^0-9]*(((0|1|2)?\d\d\d)-)?((0)?([1-9])|1[012])-((0)?([1-9])|[12][0-9]|3[01])[^0-9]*$/
 						# Groups: 1->yearEntry, 2->fullYear, 3->century, 4->monthEntry, 5->month0, 6->monthN, 7->dayEntry, 8->day0, 9->dayN
 						parse: (m) => parseDate m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9]
 					}

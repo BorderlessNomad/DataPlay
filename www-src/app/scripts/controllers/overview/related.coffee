@@ -72,7 +72,7 @@ angular.module('dataplayApp')
 
 							key = parseInt(key)
 							chart.key = key
-							chart.id = "related-#{$scope.params.id}-#{chart.key + $scope.relatedChart.offset.related}-#{chart.type}"
+							chart.id = "related-#{$scope.params.id}-#{chart.key + $scope.offset.related}-#{chart.type}"
 							chart.url = "charts/related/#{$scope.params.id}/#{chart.key}/#{chart.type}/#{chart.xLabel}/#{chart.yLabel}"
 							chart.url += "/#{chart.zLabel}" if chart.type is 'bubble'
 
@@ -93,8 +93,6 @@ angular.module('dataplayApp')
 							$scope.relatedChart.setLabels chart
 
 							$scope.chartsRelated.push chart
-
-						console.log $scope.chartsRelated
 
 						$scope.offset.related += count
 						if $scope.offset.related >= $scope.max.related

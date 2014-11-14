@@ -96,8 +96,6 @@ angular.module('dataplayApp')
 						$scope.info.approved = data.userhascredited
 						$scope.info.disapproved = data.userhasdiscredited
 
-					console.log "Chart", $scope.chart
-
 					$scope.initObservations()
 				.error (data, status) ->
 					$scope.handleError data, status
@@ -123,6 +121,7 @@ angular.module('dataplayApp')
 						$scope.userObservationsMessage[xy] = obsv.comment
 						if obsv.user.avatar is ''
 							obsv.user.avatar = "http://www.gravatar.com/avatar/#{obsv.user.email}?d=identicon"
+
 						$scope.userObservations.push
 							xy: xy
 							oid : obsv['observation_id']
@@ -143,6 +142,7 @@ angular.module('dataplayApp')
 						$scope.redrawObservationIcons()
 
 					newObservations = d3.select 'g.stack-list > .observations.new'
+
 					$scope.renderObservationIcons $scope.xScale, $scope.yDomain, $scope.chart, newObservations
 				, $scope.handleError
 			return
