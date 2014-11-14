@@ -37,8 +37,8 @@ angular.module('dataplayApp')
 			$scope.loading.overview = ($scope.query.length > 0)
 
 			$scope.search()
-			# $scope.getTweets()
-			# $scope.getNews()
+			$scope.getTweets()
+			$scope.getNews()
 
 		$scope.changePage = () ->
 			query = $scope.query.replace(/\/|\\/g, ' ')

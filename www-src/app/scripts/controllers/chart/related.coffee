@@ -16,10 +16,16 @@ angular.module('dataplayApp')
 		$scope.mode = 'related'
 		$scope.width = 570
 		$scope.height = $scope.width * 9 / 16 # 16:9
+		$scope.heightColumn = $scope.height + 150
 		$scope.margin =
 			top: 50
-			right: 10
+			right: 20
 			bottom: 50
+			left: 100
+		$scope.marginColumn =
+			top: 50
+			right: 20
+			bottom: 150
 			left: 100
 		$scope.marginAlt =
 			top: 0
@@ -464,7 +470,7 @@ angular.module('dataplayApp')
 
 			chart.x $scope.getYScale data
 
-			if ordinals? and ordinals.length > 0
+			if data.ordinals? and data.ordinals.length > 0
 				chart.xUnits switch data.patterns[data.xLabel].valuePattern
 					when 'date' then d3.time.years
 					when 'intNumber' then dc.units.integers
@@ -491,11 +497,13 @@ angular.module('dataplayApp')
 
 			chart.colorAccessor (d, i) -> i + 1
 
+			# chart.height = $scope.height + 150
+			# chart.margin = $scope.margin #bottom + 150
 			chart.yAxis().ticks $scope.xTicks
 
 			chart.x $scope.getXScale data
 
-			if ordinals? and ordinals.length > 0
+			if data.ordinals? and data.ordinals.length > 0
 				chart.xUnits switch data.patterns[data.xLabel].valuePattern
 					when 'date' then d3.time.years
 					when 'intNumber' then dc.units.integers
@@ -503,7 +511,14 @@ angular.module('dataplayApp')
 					else dc.units.ordinal
 
 			chart.xAxisLabel data.xLabel
-			chart.yAxisLabel data.yLabel
+			chart.yAxisLabel data.yyLabel or data.yLabel
+
+			chart.renderlet (chart) ->
+				chart.selectAll('g.x text')
+					.style "text-anchor", "end"
+					.attr "dx", "-.8em"
+					.attr "dy", "-.15em"
+					.attr "transform", (d) -> "rotate(-65)"
 
 			return
 
