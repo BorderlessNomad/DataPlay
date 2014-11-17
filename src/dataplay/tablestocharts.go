@@ -8,10 +8,10 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
-	"sort"
 )
 
 type RelatedCharts struct {
@@ -51,6 +51,8 @@ type DiscoveredCharts struct {
 	Charts []interface{} `json:"charts"`
 	Count  int           `json:"count"`
 }
+
+var RelatedChartsCollection = make(map[string]map[int]TableData)
 
 // given a small fraction of ratings there is a strong (95%) chance that the "real", final positive rating will be this value
 // eg: gives expected (not necessarily current as there may have only been a few votes so far) value of positive ratings / total ratings
@@ -424,7 +426,9 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 		if v.Xtype == "varchar" && v.Ytype == "varchar" { // stacked or scatter charts if string v string values
 			// GenerateChartData("stacked column", guid, v, &charts, index, true)
 			// GenerateChartData("scatter", guid, v, &charts, index, true)
-		} else if !(v.Xtype == "varchar" && v.Ytype == "date") || !(v.Xtype == "date" && v.Ytype == "varchar") { // column and row charts for all that are not string v string values and are not date v string or string v date values
+		}
+
+		if !(v.Xtype == "varchar" && v.Ytype == "date") || !(v.Xtype == "date" && v.Ytype == "varchar") { // column and row charts for all that are not string v string values and are not date v string or string v date values
 			// GenerateChartData("row", guid, v, &charts, index, true)
 			if v.Ytype != "varchar" && v.Ytype != "date" { // no string values for y axis on column charts
 				GenerateChartData("column", guid, v, &charts, index, true)
@@ -436,12 +440,14 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 		}
 	}
 
-	// if len(columns) > 2 { // if there's more than 2 columns grab a 3rd variable for bubble charts
-	// 	xyNames = XYPermutations(columns, true) // set z flag to true to get all possible valid permuations of columns as X, Y & Z
-	// 	for _, v := range xyNames {
-	// 		GenerateChartData("bubble", guid, v, &charts, index, true)
-	// 	}
-	// }
+	if len(columns) > 2 { // if there's more than 2 columns grab a 3rd variable for bubble charts
+		xyNames = XYPermutations(columns, true) // set z flag to true to get all possible valid permuations of columns as X, Y & Z
+		for _, v := range xyNames {
+			if v.Xtype == "date" && IsNumeric(v.Ytype) && IsNumeric(v.Ztype) {
+				GenerateChartData("bubble", guid, v, &charts, index, true)
+			}
+		}
+	}
 
 	// Filter unique slice from *charts
 	RelatedChartsHash := make(map[string]bool)
@@ -644,12 +650,21 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 	var dx, dy time.Time
 	var fx, fy, fz float64
 	var vx, vy string
-	pieSlices, rowAmt := 0, 0
+	rowAmt := 0
+
+	hashKey := chartType + "|" + guid + "|" + names.X + "|" + names.Y + "|" + names.Z
+	if _, ok := RelatedChartsCollection[hashKey]; ok {
+		for _, chart := range RelatedChartsCollection[hashKey] {
+			*charts = append(*charts, chart)
+		}
+
+		return
+	}
 
 	sql := ""
 	validChartType := ""
 	if chartType == "pie" {
-		if names.Xtype == "float" || names.Xtype == "integer" || names.Xtype == "real" {
+		if IsNumeric(names.Xtype) {
 			sql = fmt.Sprintf("SELECT * FROM %q ORDER BY %q", guid, names.X)
 		} else if IsDateYear(names.X) && names.Ytype == "" {
 			validChartType = "pie dated"
@@ -658,7 +673,7 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 		}
 	} else if chartType == "bubble" && len(names.Z) > 0 {
 		sql = fmt.Sprintf("SELECT %q AS x, %q AS y, %q AS z FROM %q", names.X, names.Y, names.Z, guid)
-	} else if (chartType == "column" && names.X == "boroughs") || (chartType == "column dated" && IsDateYear(names.X) && (names.Ytype == "float" || names.Ytype == "integer" || names.Ytype == "real")) {
+	} else if (chartType == "column" && names.X == "boroughs") || (chartType == "column dated" && IsDateYear(names.X) && IsNumeric(names.Ytype)) {
 		validChartType = "column dated"
 		if y, err := strconv.Atoi(names.Z); err == nil {
 			sql = fmt.Sprintf("SELECT * FROM %q WHERE EXTRACT(year FROM %q) = %d", guid, names.Y, y)
@@ -681,47 +696,58 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 		columnPointers[i] = &columns[i]
 	}
 
+	RelatedChartsCollection[hashKey] = make(map[int]TableData, 0)
+
 	if chartType == "bubble" {
 		tmpTD.LabelY = names.Y
 		tmpTD.LabelZ = names.Z
 
 		for rows.Next() {
-			if (names.Xtype == "float" || names.Xtype == "integer" || names.Xtype == "real") && (names.Ytype == "float" || names.Ytype == "integer" || names.Ytype == "real") && (names.Ztype == "float" || names.Ztype == "integer" || names.Ztype == "real") {
+			if IsNumeric(names.Xtype) && IsNumeric(names.Ytype) && IsNumeric(names.Ztype) {
 				rows.Scan(&fx, &fy, &fz)
+
 				tmpXY.X = FloatToString(fx)
 				tmpXY.Y = FloatToString(fy)
 				tmpXY.Z = FloatToString(fz)
+
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if (names.Xtype == "float" || names.Xtype == "integer" || names.Xtype == "real") && names.Ytype == "varchar" && (names.Ztype == "float" || names.Ztype == "integer" || names.Ztype == "real") {
+			} else if IsNumeric(names.Xtype) && names.Ytype == "varchar" && IsNumeric(names.Ztype) {
 				rows.Scan(&fx, &vy, &fz)
+
 				tmpXY.X = FloatToString(fx)
 				tmpXY.Y = vy
 				tmpXY.Z = FloatToString(fz)
+
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if names.Xtype == "varchar" && (names.Ytype == "float" || names.Ytype == "integer" || names.Ytype == "real") && (names.Ztype == "float" || names.Ztype == "integer" || names.Ztype == "real") {
+			} else if names.Xtype == "varchar" && IsNumeric(names.Ytype) && IsNumeric(names.Ztype) {
 				rows.Scan(&vx, &fy, &fz)
+
 				tmpXY.X = vx
 				tmpXY.Y = FloatToString(fy)
 				tmpXY.Z = FloatToString(fz)
+
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else {
-				tmpXY.X = ""
-				tmpXY.Y = ""
-				tmpXY.Z = ""
+			} else if names.Xtype == "date" && IsNumeric(names.Ytype) && IsNumeric(names.Ztype) {
+				rows.Scan(&dx, &fy, &fz)
+
+				tmpXY.X = strconv.Itoa(dx.Year())
+				tmpXY.Y = FloatToString(fy)
+				tmpXY.Z = FloatToString(fz)
+
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			}
 		}
 
 		if ValueCheck(tmpTD) && NegCheck(tmpTD) {
+			RelatedChartsCollection[hashKey][0] = tmpTD
 			*charts = append(*charts, tmpTD)
 		}
 	} else if chartType == "pie" { // single column pie chart x = type, y = count
 		for rows.Next() {
-			if (names.Xtype == "float" || names.Xtype == "integer" || names.Xtype == "real") || (names.Xtype == "date" && names.Ytype == "") {
-				pieSlices++
-
+			if IsNumeric(names.Xtype) || (names.Xtype == "date" && names.Ytype == "") {
 				rows.Scan(columnPointers...)
 
+				var date time.Time
 				for k, v := range columnNames {
 					if !IsDateYear(v.Name) {
 						length := len(tmpTD.Values)
@@ -743,7 +769,7 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 
 						tmpTD.Values = append(tmpTD.Values, tmpXY)
 					} else if v.Sqltype == "date" {
-						date := columns[k].(time.Time)
+						date = columns[k].(time.Time)
 
 						tmpTD.LabelX = v.Name
 						tmpTD.LabelY = strconv.Itoa(date.Year())
@@ -752,17 +778,14 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 				}
 
 				if ValueCheck(tmpTD) && NegCheck(tmpTD) {
+					RelatedChartsCollection[hashKey][date.Year()] = tmpTD
 					*charts = append(*charts, tmpTD)
 				}
-
-				// if len(tmpTD.Values) > 1 {
-				// 	*charts = append(*charts, tmpTD)
-				// }
 			}
 		}
 	} else if chartType == "column dated" || validChartType == "column dated" { // single column pie chart x = type, y = count
 		for rows.Next() {
-			if names.Ytype == "date" || (names.Xtype == "date" && (names.Ytype == "float" || names.Ytype == "integer" || names.Ytype == "real")) {
+			if names.Ytype == "date" || (names.Xtype == "date" && IsNumeric(names.Ytype)) {
 				rows.Scan(columnPointers...)
 
 				var tmpTD TableData
@@ -800,6 +823,7 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 				}
 
 				if ValueCheck(tmpTD) && NegCheck(tmpTD) {
+					RelatedChartsCollection[hashKey][0] = tmpTD
 					*charts = append(*charts, tmpTD)
 				}
 			}
@@ -817,7 +841,7 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 				tmpXY.X = (dx.String()[0:10])
 				tmpXY.Y = (dy.String()[0:10])
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if names.Xtype == "date" && (names.Ytype == "float" || names.Ytype == "integer" || names.Ytype == "real") {
+			} else if names.Xtype == "date" && IsNumeric(names.Ytype) {
 				rows.Scan(&dx, &fy)
 				tmpXY.X = (dx.String()[0:10])
 				tmpXY.Y = FloatToString(fy)
@@ -828,17 +852,17 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 				tmpXY.X = (dx.String()[0:10])
 				tmpXY.Y = vy
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if (names.Xtype == "float" || names.Xtype == "integer" || names.Xtype == "real") && names.Ytype == "date" {
+			} else if IsNumeric(names.Xtype) && names.Ytype == "date" {
 				rows.Scan(&fx, &dy)
 				tmpXY.X = FloatToString(fx)
 				tmpXY.Y = (dy.String()[0:10])
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if (names.Xtype == "float" || names.Xtype == "integer" || names.Xtype == "real") && (names.Ytype == "float" || names.Ytype == "integer" || names.Ytype == "real") && names.Xtype != names.Ytype {
+			} else if IsNumeric(names.Xtype) && IsNumeric(names.Ytype) && names.Xtype != names.Ytype {
 				rows.Scan(&fx, &fy)
 				tmpXY.X = FloatToString(fx)
 				tmpXY.Y = FloatToString(fy)
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if (names.Xtype == "float" || names.Xtype == "integer" || names.Xtype == "real") && names.Ytype == "varchar" {
+			} else if IsNumeric(names.Xtype) && names.Ytype == "varchar" {
 				rows.Scan(&fx, &vy)
 				tmpXY.X = FloatToString(fx)
 				tmpXY.Y = vy
@@ -848,7 +872,7 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 				tmpXY.X = vx
 				tmpXY.Y = (dy.String()[0:10])
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
-			} else if names.Xtype == "varchar" && (names.Ytype == "float" || names.Ytype == "integer" || names.Ytype == "real") {
+			} else if names.Xtype == "varchar" && IsNumeric(names.Ytype) {
 				rows.Scan(&vx, &fy)
 				tmpXY.X = vx
 				tmpXY.Y = FloatToString(fy)
@@ -868,6 +892,7 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 		if chartType == "row" {
 			if rowAmt <= 20 && rowAmt > 1 {
 				if ValueCheck(tmpTD) {
+					RelatedChartsCollection[hashKey][0] = tmpTD
 					*charts = append(*charts, tmpTD)
 				}
 			}
@@ -876,6 +901,7 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 				tmpTD.Values = ReduceXYValues(tmpTD.Values)
 			}
 
+			RelatedChartsCollection[hashKey][0] = tmpTD
 			*charts = append(*charts, tmpTD)
 		}
 	}
@@ -952,6 +978,8 @@ func XYPermutations(columns []ColType, bubble bool) []XYVal {
 				}
 			}
 		}
+
+		return xyzNames
 	}
 
 	return xyNames
@@ -1497,4 +1525,12 @@ func GetChartInfoHttp(res http.ResponseWriter, req *http.Request, params martini
 	r, _ := json.Marshal(result)
 
 	return string(r)
+}
+
+func IsNumeric(str string) bool {
+	if str == "float" || str == "integer" || str == "real" {
+		return true
+	}
+
+	return false
 }
