@@ -40,7 +40,7 @@
 					</div>
 
 					<div class="row li" ng-repeat="item in sect.items" ng-mouseover="highlight(true, sect.type, item)" ng-mouseleave="highlight(false, sect.type, item)">
-						<div class="col-xs-8 label-container">
+						<div class="col-xs-8 col-dynamic label-container">
 							<a class="label label-default"
 								ng-if="sect.type == 'pie'"
 								ng-attr-id="legend-{{item.id}}"

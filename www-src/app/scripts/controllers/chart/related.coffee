@@ -757,7 +757,7 @@ angular.module('dataplayApp')
 
 			$scope.resetObservations()
 
-		$scope.showApprovalMessage = (type) ->
+		$scope.showApproveMessage = (type) ->
 			$scope.approveMsg = type
 			$timeout ->
 				$scope.approveMsg = null

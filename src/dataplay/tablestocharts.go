@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"sort"
 )
 
 type RelatedCharts struct {
@@ -472,14 +473,8 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 	}
 
 	// randomise order
-	for i := range uniqueCharts {
-		j := rand.Intn(i + 1)
-		uniqueCharts[i], uniqueCharts[j] = uniqueCharts[j], uniqueCharts[i]
-	}
+	sort.Sort(MixRepeatably(uniqueCharts))
 
-	if count > 15 {
-		last = offset + 15
-	}
 	uniqueCharts = uniqueCharts[offset:last] // return marshalled slice
 
 	return RelatedCharts{uniqueCharts, totalCharts}, nil

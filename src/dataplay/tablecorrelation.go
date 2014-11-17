@@ -46,6 +46,17 @@ type TableData struct {
 	Values     []XYVal `json:"values,omitempty"`
 }
 
+type MixRepeatably []TableData
+func (s MixRepeatably) Len() int {
+	return len(s)
+}
+func (s MixRepeatably) Swap(a, b int) {
+	s[a], s[b] = s[b], s[a]
+}
+func (s MixRepeatably) Less(a, b int) bool {
+	return ((a * 17) % 12) < ((b * 17) % 12)
+}
+
 type XYVal struct {
 	X     string `json:"x"`
 	Y     string `json:"y"`
