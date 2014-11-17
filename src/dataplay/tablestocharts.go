@@ -8,10 +8,10 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
-	"sort"
 )
 
 type RelatedCharts struct {
@@ -51,6 +51,8 @@ type DiscoveredCharts struct {
 	Charts []interface{} `json:"charts"`
 	Count  int           `json:"count"`
 }
+
+var RelatedChartsCollection = make(map[string]map[int]TableData)
 
 // given a small fraction of ratings there is a strong (95%) chance that the "real", final positive rating will be this value
 // eg: gives expected (not necessarily current as there may have only been a few votes so far) value of positive ratings / total ratings
@@ -392,8 +394,6 @@ func Discover(id string, uid int, json []byte, correlated bool) (Discovered, *ap
 	return discovered, nil
 }
 
-var RelatedChartsCollection = make(map[string]TableData)
-
 // generate all the potentially valid charts that relate to a single tablename, add apt charting types,
 // and return them along with their total count and whether they've been discovered
 func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *appError) {
@@ -650,11 +650,14 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 	var dx, dy time.Time
 	var fx, fy, fz float64
 	var vx, vy string
-	pieSlices, rowAmt := 0, 0
+	rowAmt := 0
 
 	hashKey := chartType + "|" + guid + "|" + names.X + "|" + names.Y + "|" + names.Z
 	if _, ok := RelatedChartsCollection[hashKey]; ok {
-		*charts = append(*charts, RelatedChartsCollection[hashKey])
+		for _, chart := range RelatedChartsCollection[hashKey] {
+			*charts = append(*charts, chart)
+		}
+
 		return
 	}
 
@@ -692,6 +695,8 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 	for i := 0; i < len(columnNames); i++ {
 		columnPointers[i] = &columns[i]
 	}
+
+	RelatedChartsCollection[hashKey] = make(map[int]TableData, 0)
 
 	if chartType == "bubble" {
 		tmpTD.LabelY = names.Y
@@ -734,16 +739,15 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 		}
 
 		if ValueCheck(tmpTD) && NegCheck(tmpTD) {
-			RelatedChartsCollection[hashKey] = tmpTD
+			RelatedChartsCollection[hashKey][0] = tmpTD
 			*charts = append(*charts, tmpTD)
 		}
 	} else if chartType == "pie" { // single column pie chart x = type, y = count
 		for rows.Next() {
 			if IsNumeric(names.Xtype) || (names.Xtype == "date" && names.Ytype == "") {
-				pieSlices++
-
 				rows.Scan(columnPointers...)
 
+				var date time.Time
 				for k, v := range columnNames {
 					if !IsDateYear(v.Name) {
 						length := len(tmpTD.Values)
@@ -765,7 +769,7 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 
 						tmpTD.Values = append(tmpTD.Values, tmpXY)
 					} else if v.Sqltype == "date" {
-						date := columns[k].(time.Time)
+						date = columns[k].(time.Time)
 
 						tmpTD.LabelX = v.Name
 						tmpTD.LabelY = strconv.Itoa(date.Year())
@@ -774,7 +778,7 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 				}
 
 				if ValueCheck(tmpTD) && NegCheck(tmpTD) {
-					fmt.Println(hashKey)
+					RelatedChartsCollection[hashKey][date.Year()] = tmpTD
 					*charts = append(*charts, tmpTD)
 				}
 			}
@@ -819,7 +823,7 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 				}
 
 				if ValueCheck(tmpTD) && NegCheck(tmpTD) {
-					RelatedChartsCollection[hashKey] = tmpTD
+					RelatedChartsCollection[hashKey][0] = tmpTD
 					*charts = append(*charts, tmpTD)
 				}
 			}
@@ -888,7 +892,7 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 		if chartType == "row" {
 			if rowAmt <= 20 && rowAmt > 1 {
 				if ValueCheck(tmpTD) {
-					RelatedChartsCollection[hashKey] = tmpTD
+					RelatedChartsCollection[hashKey][0] = tmpTD
 					*charts = append(*charts, tmpTD)
 				}
 			}
@@ -897,7 +901,7 @@ func GenerateChartData(chartType string, guid string, names XYVal, charts *[]Tab
 				tmpTD.Values = ReduceXYValues(tmpTD.Values)
 			}
 
-			RelatedChartsCollection[hashKey] = tmpTD
+			RelatedChartsCollection[hashKey][0] = tmpTD
 			*charts = append(*charts, tmpTD)
 		}
 	}
