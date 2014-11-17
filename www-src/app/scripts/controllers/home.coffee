@@ -30,6 +30,8 @@ angular.module('dataplayApp')
 
 		$scope.relatedChart = new RelatedCharts $scope.chartsRelated
 		$scope.relatedChart.setPreview true
+		$scope.relatedChart.width = 225
+		$scope.relatedChart.height = 175
 
 		$scope.init = ->
 			$scope.loading.charts = true;
