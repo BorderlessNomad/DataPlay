@@ -62,7 +62,7 @@
 	</div>
 
 	<div class="row" id="streams">
-		<div class="col-xs-10 col-xs-offset-1">
+		<div class="col-xs-12 col-sm-10 col-sm-offset-1">
 			<div class="row">
 				<div class="col-xs-12 col-sm-6 col-md-4">
 					<h4 class="text-center">My Activity Stream</h4>
@@ -122,8 +122,8 @@
 							<span class="bold" ng-if="!item.rankclass">#{{item.rank}}</span>
 						</div>
 						<div class="col-xs-2 text-center"><a href="/profile/{{item.name}}"><img class="avatar" ng-src="{{item.avatar}}" /></a></div>
-						<div class="col-xs-6 text-center"><a href="/profile/{{item.name}}">{{item.name}}</a></div>
-						<div class="col-xs-3 gold" title="Reputation Points">
+						<div class="col-xs-6 col-dynamic text-center"><a href="/profile/{{item.name}}">{{item.name}}</a></div>
+						<div class="col-xs-3 col-dynamic gold" title="Reputation Points">
 							<i class="glyphicon glyphicon-star"></i>
 							<span>{{item.score}}</span>
 						</div>
