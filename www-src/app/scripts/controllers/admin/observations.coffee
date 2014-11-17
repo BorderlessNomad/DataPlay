@@ -52,7 +52,7 @@ angular.module('dataplayApp')
 								comment: u.comment || 0
 								uid: u.uid || 0
 								username: u.username || ''
-								rating: (u.approved || 0) - (u.disapproved)
+								rating: (u.credited || 0) - (u.discredited || 0)
 								flagged: if not u.flagged? then false else u.flagged
 						$scope.pagination.total = data.count
 
