@@ -213,6 +213,8 @@ class RelatedCharts
 			data.groupSum += y
 			y
 
+		chart.innerRadius Math.min(@width, @height) / 4
+
 		chart.dimension data.dimension
 		chart.group data.group
 

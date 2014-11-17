@@ -9,6 +9,7 @@
 
 .searchpage {
 	.dc-chart {
+		float: none;
 		.axis {
 			display: none;
 		}
@@ -68,7 +69,13 @@
 			color: darken(#55ACEE, 15%);
 		}
 	}
-	.highlight { background-color: rgba(243, 156, 18, 0.15); }
+	.highlight {
+		background-color: rgba(243, 156, 18, 0.15);
+		padding: 1px 2px;
+		margin: -2px -3px;
+		border-radius: 5px;
+		border: 1px solid rgba(0, 0, 0, .05);
+	}
 
 	.tweet-header {
 		margin-bottom: 0;
