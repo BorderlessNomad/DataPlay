@@ -74,6 +74,11 @@ angular.module('dataplayApp')
 
 							chartObj.title = chart.table2.title
 							chartObj.coeff = Math.floor Math.abs chart.coefficient * 100
+							chartObj.strength = do ->
+								chart.strength.split ' '
+									.map (i) ->
+										i.substr(0,1).toUpperCase() + i.substr(1).toLowerCase()
+									.join ' '
 
 							if not chartObj.error
 								key = parseInt(key)

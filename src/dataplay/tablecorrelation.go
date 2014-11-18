@@ -29,6 +29,18 @@ type CorrelationData struct {
 	Table2        TableData `json:"table2"`
 	Table3        TableData `json:"table3, omitempty"`
 	Coefficient   float64   `json:"coefficient, omitempty"`
+	Strength      string    `json:"strength, omitempty"`
+}
+
+type SortByCoefficient []CorrelationData
+func (s SortByCoefficient) Len() int {
+	return len(s)
+}
+func (s SortByCoefficient) Swap(a, b int) {
+	s[a], s[b] = s[b], s[a]
+}
+func (s SortByCoefficient) Less(a, b int) bool {
+	return math.Abs(s[a].Coefficient) > math.Abs(s[b].Coefficient)
 }
 
 type TableData struct {
