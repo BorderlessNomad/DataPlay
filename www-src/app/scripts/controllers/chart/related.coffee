@@ -326,9 +326,9 @@ angular.module('dataplayApp')
 			yScale = $scope.getYScale data
 
 			if data.ordinals.length > 0
-				chart.xUnits switch data.patterns[data.xLabel].valuePattern
-					when 'date' then d3.time.years
-					when 'intNumber' then dc.units.integers
+				chart.xUnits switch data.patterns[data.xLabel].valuePattern?.toLowerCase()
+					when 'date', 'year' then d3.time.years
+					when 'intnumber' then dc.units.integers
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
 
@@ -443,9 +443,9 @@ angular.module('dataplayApp')
 			chart.x $scope.getXScale data
 
 			if data.ordinals.length > 0
-				chart.xUnits switch data.patterns[data.xLabel].valuePattern
-					when 'date' then d3.time.years
-					when 'intNumber' then dc.units.integers
+				chart.xUnits switch data.patterns[data.xLabel].valuePattern?.toLowerCase()
+					when 'date', 'year' then d3.time.years
+					when 'intnumber' then dc.units.integers
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
 
@@ -471,9 +471,9 @@ angular.module('dataplayApp')
 			chart.x $scope.getYScale data
 
 			if data.ordinals? and data.ordinals.length > 0
-				chart.xUnits switch data.patterns[data.xLabel].valuePattern
-					when 'date' then d3.time.years
-					when 'intNumber' then dc.units.integers
+				chart.xUnits switch data.patterns[data.xLabel].valuePattern?.toLowerCase()
+					when 'date', 'year' then d3.time.years
+					when 'intnumber' then dc.units.integers
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
 
@@ -504,9 +504,9 @@ angular.module('dataplayApp')
 			chart.x $scope.getXScale data
 
 			if data.ordinals? and data.ordinals.length > 0
-				chart.xUnits switch data.patterns[data.xLabel].valuePattern
-					when 'date' then d3.time.years
-					when 'intNumber' then dc.units.integers
+				chart.xUnits switch data.patterns[data.xLabel].valuePattern?.toLowerCase()
+					when 'date', 'year' then d3.time.years
+					when 'intnumber' then dc.units.integers
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
 
@@ -570,15 +570,22 @@ angular.module('dataplayApp')
 			# and replace radius with count of X/Y
 			###
 
+			normaliseNumber = (i) ->
+				if typeof i isnt 'number' then return normaliseNumber parseFloat i
+				if i is 0 or isNaN(i) or typeof i isnt 'number' then return 0
+				if i < 0 then return normaliseNumber i * -1
+				if i < 1 then return normaliseNumber i * 100
+				return i
+
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) ->
-				z = Math.abs parseInt d.z
+				d.z = normaliseNumber d.z
 
-				if not minR? or minR > z
-					minR = if z is 0 then 1 else z
+				if not minR? or minR > d.z
+					minR = if d.z < 1 then 1 else d.z
 
-				if not maxR? or maxR <= z
-					maxR = if z is 0 then 1 else z
+				if not maxR? or maxR <= d.z
+					maxR = if d.z < 1 then 1 else d.z
 
 				"#{d.x}|#{d.y}|#{d.z}"
 
@@ -596,12 +603,12 @@ angular.module('dataplayApp')
 				r = Math.abs d.key.split("|")[2]
 				if r >= minR then r else minR
 
-			chart.x switch data.patterns[data.xLabel].valuePattern
+			chart.x switch data.patterns[data.xLabel].valuePattern?.toLowerCase()
 				when 'label'
 					d3.scale.ordinal()
 						.domain data.ordinals
 						.rangeBands [0, $scope.width]
-				when 'date'
+				when 'date', 'year'
 					d3.time.scale()
 						.domain d3.extent data.group.all(), (d) -> d.key.split("|")[0]
 						.range [0, $scope.width]
@@ -610,12 +617,12 @@ angular.module('dataplayApp')
 						.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[0]
 						.range [0, $scope.width]
 
-			chart.y switch data.patterns[data.xLabel].valuePattern
+			chart.y switch data.patterns[data.xLabel].valuePattern?.toLowerCase()
 				when 'label'
 					d3.scale.ordinal()
 						.domain data.ordinals
 						.rangeBands [0, $scope.height]
-				when 'date'
+				when 'date', 'year'
 					d3.time.scale()
 						.domain d3.extent data.group.all(), (d) -> d.key.split("|")[1]
 						.range [0, $scope.height]
@@ -625,7 +632,7 @@ angular.module('dataplayApp')
 						.range [0, $scope.height]
 
 			rScale = d3.scale.linear()
-				.domain d3.extent data.group.all(), (d) -> Math.abs parseInt d.key.split("|")[2]
+				.domain d3.extent data.group.all(), (d) -> Math.abs parseInt d.key.split("|")[2] or 1
 			chart.r rScale
 
 			chart.xAxis().ticks $scope.xTicks
