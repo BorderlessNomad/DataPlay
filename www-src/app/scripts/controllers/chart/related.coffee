@@ -564,12 +564,6 @@ angular.module('dataplayApp')
 			minR = null
 			maxR = null
 
-			###
-			# TODO: when X/Y is String group all similar X/Y and SUM Y/X.
-			# if Z is 'transaction_number' or 'invoice_number' ignore it
-			# and replace radius with count of X/Y
-			###
-
 			data.entry = crossfilter data.values
 			data.dimension = data.entry.dimension (d) ->
 				z = Math.abs parseInt d.z
