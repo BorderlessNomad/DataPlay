@@ -14,6 +14,8 @@ angular.module('dataplayApp')
 			name: $scope.params.id
 			title: $scope.params.id
 
+		$scope.hasInfo = false
+
 		$scope.error = null
 
 		$scope.info = () ->
@@ -23,6 +25,8 @@ angular.module('dataplayApp')
 
 					if $scope.info.name isnt $scope.params.id
 						$location.path("/overview/#{$scope.info.name}").replace()
+					else
+						$scope.hasInfo = true
 
 					console.log $scope.info
 					return

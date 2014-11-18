@@ -18,13 +18,19 @@
 		</div>
 	</div>
 
-	<!-- Related -->
-	<div class="related" ng-hide="error" ng-controller="OverviewRelatedCtrl" ng-init="getRelatedCharts()" ng-include="'views/overview/related.html'"></div>
+	<!-- Charts -->
+	<div class="info row" ng-if="!error && hasInfo">
+		<div class="col-xs-12">
 
-	<hr ng-hide="error" />
+			<!-- Related -->
+			<div class="related" ng-if="!error" ng-controller="OverviewRelatedCtrl" ng-init="getRelatedCharts()" ng-include="'views/overview/related.html'"></div>
 
-	<!-- Correlated -->
-	<!-- <div class="row correlated" ng-hide="error" ng-controller="OverviewCorrelatedCtrl" ng-init="getCorrelatedCharts()" ng-include="'views/overview/correlated.html'"></div> -->
+			<hr />
+
+			<!-- Correlated -->
+			<!-- <div class="row correlated" ng-if="!error" ng-controller="OverviewCorrelatedCtrl" ng-init="getCorrelatedCharts()" ng-include="'views/overview/correlated.html'"></div> -->
+		</div>
+	</div>
 </div>
 
 <!-- Smart Caching [allows to pre-load views] -->
