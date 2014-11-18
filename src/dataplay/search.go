@@ -92,9 +92,10 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 
 	fmt.Sprintln("Searching for keyword: %q", term)
 
-	query := DB.Where("LOWER(title) LIKE ?", term)
-	query = query.Or("LOWER(notes) LIKE ?", term)
-	query = query.Or("LOWER(name) LIKE ?", term)
+	query := DB.Where(fmt.Sprintf("LOWER(%q) LIKE ?", "title"), term)
+	query = query.Or(fmt.Sprintf("LOWER(%q) LIKE ?", "notes"), term)
+	query = query.Or(fmt.Sprintf("LOWER(%q) LIKE ?", "name"), term)
+	query = query.Or(fmt.Sprintf("LOWER(%q) LIKE ?", "desc"), term)
 
 	err := query.Order("random()").Limit(count).Offset(offset).Find(&indices).Error
 	if err != nil && err != gorm.RecordNotFound {
