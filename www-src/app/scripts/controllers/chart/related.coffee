@@ -564,12 +564,6 @@ angular.module('dataplayApp')
 			minR = null
 			maxR = null
 
-			###
-			# TODO: when X/Y is String group all similar X/Y and SUM Y/X.
-			# if Z is 'transaction_number' or 'invoice_number' ignore it
-			# and replace radius with count of X/Y
-			###
-
 			normaliseNumber = (i) ->
 				if typeof i isnt 'number' then return normaliseNumber parseFloat i
 				if i is 0 or isNaN(i) or typeof i isnt 'number' then return 0
