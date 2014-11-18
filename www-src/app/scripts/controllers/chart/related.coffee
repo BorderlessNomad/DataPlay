@@ -21,17 +21,17 @@ angular.module('dataplayApp')
 			top: 50
 			right: 20
 			bottom: 50
-			left: 100
+			left: 50
 		$scope.marginColumn =
 			top: 50
 			right: 20
 			bottom: 150
-			left: 100
+			left: 50
 		$scope.marginAlt =
 			top: 0
 			right: 10
 			bottom: 50
-			left: 110
+			left: 60
 		$scope.xTicks = 8
 
 		$scope.approveMsg = null
@@ -332,7 +332,7 @@ angular.module('dataplayApp')
 					when 'label', 'text' then dc.units.ordinal
 					else dc.units.ordinal
 
-			chart.yAxisLabel data.yLabel
+			chart.yAxisLabel data.yyLabel or data.yLabel
 
 			existingObservations = null
 			newObservations = null
@@ -478,7 +478,7 @@ angular.module('dataplayApp')
 					else dc.units.ordinal
 
 			chart.xAxisLabel data.xLabel
-			chart.yAxisLabel data.yLabel
+			chart.yAxisLabel data.yyLabel or data.yLabel
 
 			return
 
@@ -497,6 +497,10 @@ angular.module('dataplayApp')
 
 			chart.colorAccessor (d, i) -> i + 1
 
+			columnSpacing = 2
+			totalColumnSpacing = columnSpacing * (data.ordinals.length + 1)
+			columnWidth = ($scope.width - $scope.marginColumn.right - $scope.marginColumn.left - totalColumnSpacing) / data.ordinals.length
+
 			# chart.height = $scope.height + 150
 			# chart.margin = $scope.margin #bottom + 150
 			chart.yAxis().ticks $scope.xTicks
@@ -514,7 +518,16 @@ angular.module('dataplayApp')
 			chart.yAxisLabel data.yyLabel or data.yLabel
 
 			chart.renderlet (chart) ->
-				chart.selectAll('g.x text')
+				chart.selectAll "g.chart-body rect"
+					.attr "width", columnWidth - (columnSpacing * 2)
+					.attr "x", (d, i) -> (i * columnWidth) + (columnSpacing * 2)
+
+				chart.selectAll "g.x g.tick"
+					.attr "transform", (d, i) ->
+						x = (i * columnWidth) + (columnSpacing * 2) + (columnWidth) / 2
+						"translate(#{x},0)"
+
+				chart.selectAll "g.x text"
 					.style "text-anchor", "end"
 					.attr "dx", "-.8em"
 					.attr "dy", "-.15em"
@@ -629,7 +642,7 @@ angular.module('dataplayApp')
 				x = d.key.split("|")[0]
 				y = d.key.split("|")[1]
 				z = d.key.split("|")[2]
-				"#{data.xLabel}: #{x}\n#{data.yLabel}: #{y}\n#{data.zLabel}: #{z}"
+				"#{data.xLabel}: #{x}\n#{data.yyLabel or data.yLabel}: #{y}\n#{data.zLabel}: #{z}"
 
 			minRL = Math.log minR
 			maxRL = Math.log maxR
@@ -641,7 +654,7 @@ angular.module('dataplayApp')
 			chart.mouseZoomable true
 
 			chart.xAxisLabel data.xLabel
-			chart.yAxisLabel data.yLabel
+			chart.yAxisLabel data.yyLabel or data.yLabel
 
 			# chart.renderlet (c) ->
 			# 	circles = c.svg().selectAll('g.chart-body').selectAll('g circle')
