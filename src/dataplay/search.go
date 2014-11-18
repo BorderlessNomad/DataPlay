@@ -194,7 +194,7 @@ func BuildDataDictionary() {
 	}
 
 	terms := make(map[string]int)
-	re, _ := regexp.Compile("[^A-Za-z]+")
+	re, _ := regexp.Compile("[^A-Za-z]+") //\W
 
 	for _, index := range indices {
 		title := re.ReplaceAllString(index.Title, "-")
@@ -214,6 +214,19 @@ func BuildDataDictionary() {
 		name = strings.ToLower(strings.Trim(name, "-"))
 		keywords_name := strings.Split(name, "-")
 		for _, k := range keywords_name {
+			if len(k) > 2 {
+				if _, ok := terms[k]; !ok {
+					terms[k] = 0
+				}
+
+				terms[k]++
+			}
+		}
+
+		desc := re.ReplaceAllString(index.Desc, "-")
+		desc = strings.ToLower(strings.Trim(desc, "-"))
+		keywords_desc := strings.Split(desc, "-")
+		for _, k := range keywords_desc {
 			if len(k) > 2 {
 				if _, ok := terms[k]; !ok {
 					terms[k] = 0
