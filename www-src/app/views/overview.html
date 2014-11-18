@@ -1,4 +1,13 @@
 <div class="overview" ng-init="info()">
+
+	<div class="info row">
+		<div class="col-xs-12">
+			<h2>{{info.title}}</h2>
+			<p>{{info.desc}}</p>
+			<p class="text-muted"><small>Data sourced from <a ng-href="{{info.sourceurl}}">{{info.sourcename}}</a></small></p>
+		</div>
+	</div>
+
 	<!-- Related -->
 	<div class="related" ng-controller="OverviewRelatedCtrl" ng-init="getRelatedCharts()" ng-include="'views/overview/related.html'"></div>
 
