@@ -8,7 +8,7 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'OverviewCtrl', ['$scope', '$routeParams', 'Overview', ($scope, $routeParams, Overview) ->
+	.controller 'OverviewCtrl', ['$scope', '$routeParams', '$location', 'Overview', ($scope, $routeParams, $location, Overview) ->
 		$scope.params = $routeParams
 		$scope.info =
 			name: $scope.params.id
@@ -18,6 +18,9 @@ angular.module('dataplayApp')
 			Overview.info $scope.params.id
 				.success (data) ->
 					$scope.info = data
+
+					if $scope.info.name isnt $scope.params.id
+						$location.path("/overview/#{$scope.info.name}").replace()
 
 					console.log $scope.info
 					return
