@@ -9,6 +9,12 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
+DB_HOST="localhost"
+DB_PORT="5432"
+DB_USER="playgen"
+DB_PASSWORD="aDam3ntiUm"
+DB_NAME="dataplay"
+
 timestamp () {
 	date +"%F %T,%3N"
 }
@@ -31,8 +37,8 @@ setup_database () {
 	HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
 	# Create a PostgreSQL user named 'playgen' with 'aDam3ntiUm' as the password and
 	# then create a database 'dataplay' owned by the 'playgen' role.
-	psql --command "CREATE USER playgen WITH SUPERUSER PASSWORD 'aDam3ntiUm';" && \
-	createdb -O playgen dataplay
+	psql --command "CREATE USER $DB_USER WITH SUPERUSER PASSWORD '$DB_PASSWORD';" && \
+	createdb -O $DB_USER $DB_NAME
 
 	# Adjust PostgreSQL configuration so that remote connections to the database are possible.
 	# From Private cluster & PlayGen dev IP
@@ -57,9 +63,9 @@ import_data () {
 	BACKUP_DIR="postgresql/$LASTDATE-daily"
 	BACKUP_USER="playgen"
 	BACKUP_PASS="D@taP1aY"
-	BACKUP_FILE="dataplay.sql.gz"
+	BACKUP_FILE="$DB_NAME.sql.gz"
 
-	echo "localhost:5432:dataplay:playgen:aDam3ntiUm" > .pgpass && chmod 0600 .pgpass
+	echo "$DB_HOST:$DB_PORT:$DB_NAME:$DB_USER:$DB_PASSWORD" > .pgpass && chmod 0600 .pgpass
 
 	until axel -a "http://$BACKUP_USER:$BACKUP_PASS@$BACKUP_HOST:$BACKUP_PORT/$BACKUP_DIR/$BACKUP_FILE"; do
 		LASTDATE=$(date +%Y-%m-%d --date="$LASTDATE -1 days") # Decrement by 1 Day
@@ -68,19 +74,7 @@ import_data () {
 	done
 
 	gunzip -vk $BACKUP_FILE
-	nohup psql -h localhost -U playgen -d dataplay -f dataplay.sql > postgres-import.log 2>&1&
-	###
-	# on Dev
-	# echo "10.0.0.2:5432:dataplay:playgen:aDam3ntiUm" > .pgpass
-	# chmod 0600 .pgpass
-	# pg_dump -v -cC -f dataplay.sql -h 10.0.0.2 -U playgen dataplay
-	# gzip -vk dataplay.sql
-	# scp dataplay.sql.gz ubuntu@109.231.121.12:/home/ubuntu
-	#
-	# on Server
-	# gunzip -vk dataplay.sql.gz
-	# psql -h localhost -U playgen -d dataplay -f dataplay.sql >> postgres-import.log
-	###
+	nohup psql -h $DB_HOST -U $DB_USER -d $DB_NAME -f $DB_NAME.sql > $DB_NAME.import.log 2>&1&
 }
 
 update_iptables () {

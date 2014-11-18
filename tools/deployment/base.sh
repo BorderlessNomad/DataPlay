@@ -22,9 +22,6 @@ setup_ssh_keys () {
 
 	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/authorized_keys
 	cat authorized_keys >> /home/ubuntu/.ssh/authorized_keys
-	chmod 700 /home/ubuntu/.ssh
-	chmod 600 /home/ubuntu/.ssh/authorized_keys
-	chown -R ubuntu:ubuntu /home/ubuntu/.ssh
 }
 
 update () {
