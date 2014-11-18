@@ -180,19 +180,20 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 
 	GenerateChartData(chartType, guid, xyz, index, false)
 
-	charts := make([]TableData, 0)
+	var chart TableData
 	hashKey := guid + "|" + chartType + "|" + xyz.X + "|" + xyz.Y + "|" + xyz.Z
 	if _, ok := RelatedChartsCollection[hashKey]; ok {
-		for _, chart := range RelatedChartsCollection[hashKey] {
-			charts = append(charts, chart)
+		for _, ch := range RelatedChartsCollection[hashKey] {
+			chart = ch
+			break
 		}
 	}
 
-	if len(charts) == 0 {
-		return pattern, &appError{err, "Not possible to plot this chart", http.StatusInternalServerError}
+	if len(chart.Values) < 1 {
+		return pattern, &appError{err, "Not possible to plot this chart.", http.StatusBadRequest}
 	}
 
-	jByte, err1 := json.Marshal(charts[0])
+	jByte, err1 := json.Marshal(chart)
 	if err1 != nil {
 		return pattern, &appError{err1, "Unable to parse JSON", http.StatusInternalServerError}
 	}
@@ -241,16 +242,10 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	count := 0
 	err6 := DB.Model(&observation).Where("discovered_id = ?", discovered.DiscoveredId).Count(&count).Error
 	if err6 != nil && err6 != gorm.RecordNotFound {
-		return pattern, &appError{err6, "Observation count failed", http.StatusInternalServerError}
+		return pattern, &appError{err6, "Observation count failed.", http.StatusInternalServerError}
 	}
 
-	var td TableData
-	err7 := json.Unmarshal(discovered.Json, &td)
-	if err7 != nil {
-		return pattern, &appError{err7, "json failed", http.StatusInternalServerError}
-	}
-
-	pattern.ChartData = td
+	pattern.ChartData = chart
 	pattern.PatternID = discovered.RelationId
 	pattern.DiscoveredID = discovered.DiscoveredId
 	pattern.Discoverer = user.Username
@@ -264,7 +259,7 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	cred := Credit{}
 	err8 := DB.Where("discovered_id = ?", discovered.DiscoveredId).Where("uid = ?", uid).Find(&cred).Error
 	if err8 != nil && err8 != gorm.RecordNotFound {
-		return pattern, &appError{err8, "User credited failed", http.StatusInternalServerError}
+		return pattern, &appError{err8, "User credited failed.", http.StatusInternalServerError}
 	} else if err8 == gorm.RecordNotFound {
 		pattern.UserCredited = false
 		pattern.UserDiscredited = false
@@ -655,6 +650,7 @@ func GenerateChartData(chartType string, guid string, names XYVal, ind Index, re
 	tmpTD.Title = SanitizeString(ind.Title)
 	tmpTD.Desc = SanitizeString(ind.Notes)
 	tmpTD.LabelX = names.X
+	tmpTD.LabelYLong = SanitizeString(ind.Notes)
 
 	var dx, dy time.Time
 	var fx, fy, fz float64
@@ -791,14 +787,14 @@ func GenerateChartData(chartType string, guid string, names XYVal, ind Index, re
 			if names.Ytype == "date" || (names.Xtype == "date" && IsNumeric(names.Ytype)) {
 				rows.Scan(columnPointers...)
 
-				var tmpTD TableData
+				var tmpTDColDated TableData
 				var tmpXY XYVal
-				tmpTD.ChartType = "column"
+				tmpTDColDated.ChartType = "column"
 
 				for k, v := range columnNames {
 					if !IsDateYear(v.Name) {
-						length := len(tmpTD.Values)
-						if length > 0 && tmpTD.Values[length-1].X == v.Name {
+						length := len(tmpTDColDated.Values)
+						if length > 0 && tmpTDColDated.Values[length-1].X == v.Name {
 							return
 						}
 
@@ -814,19 +810,19 @@ func GenerateChartData(chartType string, guid string, names XYVal, ind Index, re
 							continue
 						}
 
-						tmpTD.Values = append(tmpTD.Values, tmpXY)
+						tmpTDColDated.Values = append(tmpTDColDated.Values, tmpXY)
 					} else if v.Sqltype == "date" {
 						date := columns[k].(time.Time)
 
-						tmpTD.LabelX = "boroughs"
-						tmpTD.LabelY = strconv.Itoa(date.Year())
-						tmpTD.LabelYLong = "Values in Year " + strconv.Itoa(date.Year())
-						tmpTD.Title = "In Year" + " " + strconv.Itoa(date.Year())
+						tmpTDColDated.LabelX = "boroughs"
+						tmpTDColDated.LabelY = strconv.Itoa(date.Year())
+						tmpTDColDated.LabelYLong = tmpTD.LabelYLong + " in " + v.Name + " " + strconv.Itoa(date.Year())
+						tmpTDColDated.Title = tmpTDColDated.LabelYLong
 					}
 				}
 
-				if ValueCheck(tmpTD) && NegCheck(tmpTD) {
-					RelatedChartsCollection[hashKey][0] = tmpTD
+				if ValueCheck(tmpTDColDated) && NegCheck(tmpTDColDated) {
+					RelatedChartsCollection[hashKey][0] = tmpTDColDated
 				}
 			}
 		}
@@ -898,6 +894,10 @@ func GenerateChartData(chartType string, guid string, names XYVal, ind Index, re
 				}
 			}
 		} else if ValueCheck(tmpTD) {
+			if chartType == "column" && len(tmpTD.Values) > 50 {
+				return
+			}
+
 			if reduce {
 				tmpTD.Values = ReduceXYValues(tmpTD.Values)
 			}

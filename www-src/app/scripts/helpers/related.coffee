@@ -197,6 +197,16 @@ class RelatedCharts
 
 		chart.xUnits @getXUnits data if data.ordinals?.length > 0
 
+		margins = chart.margins()
+		columnSpacing = 2
+		totalColumnSpacing = columnSpacing * (data.ordinals.length + 1)
+		columnWidth = (@width - margins.right - margins.left - totalColumnSpacing) / data.ordinals.length
+
+		chart.renderlet (chart) ->
+			chart.selectAll "g.chart-body rect"
+				.attr "width", columnWidth - (columnSpacing * 2)
+				.attr "x", (d, i) -> (i * columnWidth) + (columnSpacing * 2)
+
 		return
 
 	pieChartPostSetup: (chart) =>
