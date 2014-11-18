@@ -1012,17 +1012,17 @@ func ValueCheck(t TableData) bool {
 func NegCheck(t TableData) bool {
 	for _, v := range t.Values {
 		x, _ := strconv.Atoi(v.X)
-		if x < 1 {
+		if x < 0 {
 			return false
 		}
 
 		y, _ := strconv.Atoi(v.Y)
-		if y < 1 {
+		if y < 0 {
 			return false
 		}
 
 		z, _ := strconv.Atoi(v.Z)
-		if z < 1 {
+		if z < 0 {
 			return false
 		}
 	}
