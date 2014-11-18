@@ -2,9 +2,20 @@
 
 	<div class="info row" ng-hide="error">
 		<div class="col-xs-12">
-			<h2>{{info.title}}</h2>
-			<p>{{info.desc}}</p>
-			<p class="text-muted"><small>Data sourced from <a ng-href="{{info.sourceurl}}" target="_blank">{{info.sourcename}} <i class="fa fa-external-link"></i></a></small></p>
+			<div class="row">
+				<div class="col-xs-12 col-sm-8">
+					<h2>{{info.title}}</h2>
+				</div>
+				<div class="col-xs-12 col-sm-4">
+					<p></p>
+					<p class="text-muted"><small>Data sourced from <a ng-href="{{info.sourceurl}}" target="_blank">{{info.sourcename}} <i class="fa fa-external-link"></i></a></small></p>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-12">
+					<p>{{info.desc}}</p>
+				</div>
+			</div>
 		</div>
 	</div>
 
