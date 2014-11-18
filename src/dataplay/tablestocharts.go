@@ -452,11 +452,15 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 	}
 
 	uniqueCharts := make([]TableData, 0)
+	check := make(map[string]bool)
 	for key, charts := range RelatedChartsCollection {
 		hashKey := strings.Split(key, "|")
 		if hashKey[0] == guid {
 			for _, chart := range charts {
-				uniqueCharts = append(uniqueCharts, chart)
+				if !check[hashKey[1]+chart.Title] {
+					check[hashKey[1]+chart.Title] = true
+					uniqueCharts = append(uniqueCharts, chart)
+				}
 			}
 		}
 	}
@@ -659,6 +663,13 @@ func GenerateChartData(chartType string, guid string, names XYVal, ind Index, re
 		return
 	}
 
+	if chartType == "bubble" {
+		hashKeyBubble := guid + "|" + chartType + "|" + names.X + "|" + names.Z + "|" + names.Y
+		if _, ok := RelatedChartsCollection[hashKeyBubble]; ok {
+			return
+		}
+	}
+
 	sql := ""
 	validChartType := ""
 	if chartType == "pie" {
@@ -732,6 +743,7 @@ func GenerateChartData(chartType string, guid string, names XYVal, ind Index, re
 				tmpXY.Y = FloatToString(fy)
 				tmpXY.Z = FloatToString(fz)
 
+				tmpTD.Title = tmpTD.Desc + " in " + tmpTD.LabelY + " & " + tmpTD.LabelZ
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			}
 		}
@@ -744,11 +756,13 @@ func GenerateChartData(chartType string, guid string, names XYVal, ind Index, re
 			if IsNumeric(names.Xtype) || (names.Xtype == "date" && names.Ytype == "") {
 				rows.Scan(columnPointers...)
 
+				tmpTDPie := tmpTD
 				var date time.Time
+
 				for k, v := range columnNames {
 					if !IsDateYear(v.Name) {
-						length := len(tmpTD.Values)
-						if length > 0 && tmpTD.Values[length-1].X == v.Name {
+						length := len(tmpTDPie.Values)
+						if length > 0 && tmpTDPie.Values[length-1].X == v.Name {
 							return
 						}
 
@@ -764,18 +778,18 @@ func GenerateChartData(chartType string, guid string, names XYVal, ind Index, re
 							continue
 						}
 
-						tmpTD.Values = append(tmpTD.Values, tmpXY)
+						tmpTDPie.Values = append(tmpTDPie.Values, tmpXY)
 					} else if v.Sqltype == "date" {
 						date = columns[k].(time.Time)
 
-						tmpTD.LabelX = v.Name
-						tmpTD.LabelY = strconv.Itoa(date.Year())
-						tmpTD.Title = tmpTD.LabelX + " " + tmpTD.LabelY
+						tmpTDPie.LabelX = v.Name
+						tmpTDPie.LabelY = strconv.Itoa(date.Year())
+						tmpTDPie.Title = tmpTD.Desc + " in " + v.Name + " " + tmpTDPie.LabelY
 					}
 				}
 
-				if ValueCheck(tmpTD) && NegCheck(tmpTD) {
-					RelatedChartsCollection[hashKey][date.Year()] = tmpTD
+				if ValueCheck(tmpTDPie) && NegCheck(tmpTDPie) {
+					RelatedChartsCollection[hashKey][date.Year()] = tmpTDPie
 				}
 			}
 		}
@@ -786,6 +800,8 @@ func GenerateChartData(chartType string, guid string, names XYVal, ind Index, re
 
 				var tmpTDColDated TableData
 				var tmpXY XYVal
+				var date time.Time
+				var year int
 				tmpTDColDated.ChartType = "column"
 
 				for k, v := range columnNames {
@@ -809,17 +825,18 @@ func GenerateChartData(chartType string, guid string, names XYVal, ind Index, re
 
 						tmpTDColDated.Values = append(tmpTDColDated.Values, tmpXY)
 					} else if v.Sqltype == "date" {
-						date := columns[k].(time.Time)
+						date = columns[k].(time.Time)
+						year = date.Year()
 
-						tmpTDColDated.LabelX = "boroughs"
-						tmpTDColDated.LabelY = strconv.Itoa(date.Year())
-						tmpTDColDated.LabelYLong = tmpTD.LabelYLong + " in " + v.Name + " " + strconv.Itoa(date.Year())
-						tmpTDColDated.Title = tmpTDColDated.LabelYLong
+						tmpTDColDated.LabelX = "boroughs" // @todo: mayur
+						tmpTDColDated.LabelY = strconv.Itoa(year)
+						tmpTDColDated.LabelYLong = tmpTD.LabelYLong
+						tmpTDColDated.Title = tmpTD.Desc + " in " + v.Name + " " + strconv.Itoa(year)
 					}
 				}
 
 				if ValueCheck(tmpTDColDated) && NegCheck(tmpTDColDated) {
-					RelatedChartsCollection[hashKey][0] = tmpTDColDated
+					RelatedChartsCollection[hashKey][year] = tmpTDColDated
 				}
 			}
 		}
@@ -840,7 +857,7 @@ func GenerateChartData(chartType string, guid string, names XYVal, ind Index, re
 				rows.Scan(&dx, &fy)
 				tmpXY.X = (dx.String()[0:10])
 				tmpXY.Y = FloatToString(fy)
-				tmpTD.Title = names.Y
+				tmpTD.Title = tmpTD.Desc + " in " + names.Y
 				tmpTD.Values = append(tmpTD.Values, tmpXY)
 			} else if names.Xtype == "date" && names.Ytype == "varchar" {
 				rows.Scan(&dx, &vy)
