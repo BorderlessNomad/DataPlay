@@ -1,6 +1,6 @@
 <div class="overview" ng-init="info()">
 
-	<div class="info row">
+	<div class="info row" ng-hide="error">
 		<div class="col-xs-12">
 			<h2>{{info.title}}</h2>
 			<p>{{info.desc}}</p>
@@ -8,13 +8,23 @@
 		</div>
 	</div>
 
-	<!-- Related -->
-	<div class="related" ng-controller="OverviewRelatedCtrl" ng-init="getRelatedCharts()" ng-include="'views/overview/related.html'"></div>
+	<div class="info row" ng-show="error">
+		<p></p>
+		<div class="col-xs-12">
+			<div class="alert alert-warning">
+				<h4>There seems to be a problem...</h4>
+				<p>{{error}}</p>
+			</div>
+		</div>
+	</div>
 
-	<hr/>
+	<!-- Related -->
+	<div class="related" ng-hide="error" ng-controller="OverviewRelatedCtrl" ng-init="getRelatedCharts()" ng-include="'views/overview/related.html'"></div>
+
+	<hr ng-hide="error" />
 
 	<!-- Correlated -->
-	<!-- <div class="row correlated" ng-controller="OverviewCorrelatedCtrl" ng-init="getCorrelatedCharts()" ng-include="'views/overview/correlated.html'"></div> -->
+	<!-- <div class="row correlated" ng-hide="error" ng-controller="OverviewCorrelatedCtrl" ng-init="getCorrelatedCharts()" ng-include="'views/overview/correlated.html'"></div> -->
 </div>
 
 <!-- Smart Caching [allows to pre-load views] -->

@@ -1531,7 +1531,7 @@ func GetChartInfoHttp(res http.ResponseWriter, req *http.Request, params martini
 			http.Error(res, fmt.Sprintf("Database Query Failed (%q)", table), http.StatusInternalServerError)
 			return ""
 		} else if err == gorm.RecordNotFound {
-			http.Error(res, "Invalid Tablename.", http.StatusBadRequest)
+			http.Error(res, "No matching data found", http.StatusBadRequest)
 			return ""
 		}
 	}
