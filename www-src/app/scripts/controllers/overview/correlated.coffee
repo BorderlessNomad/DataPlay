@@ -11,7 +11,7 @@ angular.module('dataplayApp')
 	.controller 'OverviewCorrelatedCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', ($scope, $routeParams, Overview, PatternMatcher) ->
 		$scope.allowed = ['line', 'bar', 'row', 'column', 'bubble', 'scatter', 'stacked']
 		$scope.params = $routeParams
-		$scope.count = 3
+		$scope.count = 6
 		$scope.loading =
 			correlated: false
 		$scope.offset =
