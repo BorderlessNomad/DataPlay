@@ -20,8 +20,11 @@ type RelatedCharts struct {
 }
 
 type DataEntry struct {
-	Name  string `json:"name"`
-	Title string `json:"title"`
+	Name       string `json:"name"`
+	Title      string `json:"title"`
+	Desc       string `json:"desc"`
+	SourceUrl  string `json:"sourceurl"`
+	SourceName string `json:"sourcename"`
 }
 
 type PatternInfo struct {
@@ -1545,7 +1548,7 @@ func GetChartInfoHttp(res http.ResponseWriter, req *http.Request, params martini
 			http.Error(res, fmt.Sprintf("Database Query Failed (%q)", table), http.StatusInternalServerError)
 			return ""
 		} else if err == gorm.RecordNotFound {
-			http.Error(res, "Invalid Tablename.", http.StatusBadRequest)
+			http.Error(res, "No matching data found", http.StatusBadRequest)
 			return ""
 		}
 	}
@@ -1553,6 +1556,9 @@ func GetChartInfoHttp(res http.ResponseWriter, req *http.Request, params martini
 	result := DataEntry{
 		Name:  SanitizeString(index.Name),
 		Title: SanitizeString(index.Title),
+		Desc: SanitizeString(index.Desc),
+		SourceUrl: SanitizeString(index.SourceUrl),
+		SourceName: SanitizeString(index.SourceName),
 	}
 
 	r, _ := json.Marshal(result)

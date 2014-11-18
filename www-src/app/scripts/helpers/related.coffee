@@ -62,12 +62,12 @@ class RelatedCharts
 		Object.keys(@chartsRelated).length
 
 	getXScale: (data) ->
-		xScale = switch data.patterns[data.xLabel].valuePattern
+		xScale = switch data.patterns[data.xLabel].valuePattern?.toLowerCase()
 			when 'label'
 				d3.scale.ordinal()
 					.domain data.ordinals
 					.rangeBands [0, @width]
-			when 'date'
+			when 'date', 'year'
 				d3.time.scale()
 					.domain d3.extent data.group.all(), (d) -> d.key
 					.range [0, @width]
@@ -79,21 +79,21 @@ class RelatedCharts
 		xScale
 
 	getXUnits: (data) ->
-		xUnits = switch data.patterns[data.xLabel].valuePattern
-			when 'date' then d3.time.years
-			when 'intNumber' then dc.units.integers
+		xUnits = switch data.patterns[data.xLabel].valuePattern?.toLowerCase()
+			when 'date', 'year' then d3.time.years
+			when 'intnumber' then dc.units.integers
 			when 'label', 'text' then dc.units.ordinal
 			else dc.units.ordinal
 
 		xUnits
 
 	getYScale: (data) ->
-		yScale = switch data.patterns[data.yLabel].valuePattern
+		yScale = switch data.patterns[data.yLabel].valuePattern?.toLowerCase()
 			when 'label'
 				d3.scale.ordinal()
 					.domain data.ordinals
 					.rangeBands [0, @height]
-			when 'date'
+			when 'date', 'year'
 				d3.time.scale()
 					.domain d3.extent data.group.all(), (d) -> d.value
 					.range [0, @height]
@@ -240,15 +240,22 @@ class RelatedCharts
 		minR = null
 		maxR = null
 
+		normaliseNumber = (i) ->
+			if typeof i isnt 'number' then return normaliseNumber parseFloat i
+			if i is 0 or isNaN(i) or typeof i isnt 'number' then return 0
+			if i < 0 then return normaliseNumber i * -1
+			if i < 1 then return normaliseNumber i * 100
+			return i
+
 		data.entry = crossfilter data.values
 		data.dimension = data.entry.dimension (d) ->
-			z = Math.abs parseInt d.z
+			d.z = normaliseNumber d.z
 
-			if not minR? or minR > z
-				minR = if z is 0 then 1 else z
+			if not minR? or minR > d.z
+				minR = if d.z is 0 then 1 else d.z
 
-			if not maxR? or maxR <= z
-				maxR = if z is 0 then 1 else z
+			if not maxR? or maxR <= d.z
+				maxR = if d.z is 0 then 1 else d.z
 
 			"#{d.x}|#{d.y}|#{d.z}"
 
@@ -267,12 +274,12 @@ class RelatedCharts
 			r = Math.abs parseInt d.key.split("|")[2]
 			if r >= minR then r else minR
 
-		chart.x switch data.patterns[data.xLabel].valuePattern
+		chart.x switch data.patterns[data.xLabel].valuePattern?.toLowerCase()
 			when 'label'
 				d3.scale.ordinal()
 					.domain data.ordinals
 					.rangeBands [0, @width]
-			when 'date'
+			when 'date', 'year'
 				d3.time.scale()
 					.domain d3.extent data.group.all(), (d) -> d.key.split("|")[0]
 					.range [0, @width]
@@ -281,12 +288,12 @@ class RelatedCharts
 					.domain d3.extent data.group.all(), (d) -> parseInt d.key.split("|")[0]
 					.range [0, @width]
 
-		chart.y switch data.patterns[data.xLabel].valuePattern
+		chart.y switch data.patterns[data.xLabel].valuePattern?.toLowerCase()
 			when 'label'
 				d3.scale.ordinal()
 					.domain data.ordinals
 					.rangeBands [0, @height]
-			when 'date'
+			when 'date', 'year'
 				d3.time.scale()
 					.domain d3.extent data.group.all(), (d) -> d.key.split("|")[1]
 					.range [0, @height]

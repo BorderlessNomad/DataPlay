@@ -46,7 +46,7 @@
 				<img class="avatar" ng-if="user.avatar !== ''" ng-src="{{user.avatar}}"/>
 				<img class="avatar" ng-if="user.avatar == ''" ng-src="http://www.gravatar.com/avatar/{{user.md5email}}?d=identicon&s=50" />
 			</td>
-			<td>{{user.username}}</td>
+			<td><a ng-href="/profile/{{user.username}}">{{user.username}}</a></td>
 			<td>{{user.email}}</td>
 			<td>
 				<div class="text-center gold bold">

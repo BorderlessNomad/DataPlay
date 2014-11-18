@@ -92,9 +92,12 @@ type Index struct {
 	Name        string
 	Title       string
 	Notes       string
-	CkanUrl     string
+	Desc        string
 	Owner       int
 	PrimaryDate string
+	Combined    string
+	SourceUrl   string
+	SourceName  string
 }
 
 func (i Index) TableName() string {
