@@ -63,7 +63,13 @@ angular.module('dataplayApp')
 								type = if data.chartdata.type is 'column' or data.chartdata.type is 'bar' then 'bar' else 'area'
 
 								$scope.chart.data.push
-									key: data.chartdata['table' + i].title.substr 0, 30
+									key: do ->
+										key = data.chartdata['table' + i].title
+										if key.length < 35
+											return key
+										else
+											words = key.substr(0, 35).split ' '
+											return words.slice(0, words.length - 1).join(' ') + ' ...'
 									type: type
 									yAxis: i
 									values: vals
