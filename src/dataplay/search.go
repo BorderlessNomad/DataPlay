@@ -92,9 +92,10 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 
 	fmt.Sprintln("Searching for keyword: %q", term)
 
-	query := DB.Where("LOWER(title) LIKE ?", term)
-	query = query.Or("LOWER(notes) LIKE ?", term)
-	query = query.Or("LOWER(name) LIKE ?", term)
+	query := DB.Where(fmt.Sprintf("LOWER(%q) LIKE ?", "title"), term)
+	query = query.Or(fmt.Sprintf("LOWER(%q) LIKE ?", "notes"), term)
+	query = query.Or(fmt.Sprintf("LOWER(%q) LIKE ?", "name"), term)
+	query = query.Or(fmt.Sprintf("LOWER(%q) LIKE ?", "desc"), term)
 
 	err := query.Order("random()").Limit(count).Offset(offset).Find(&indices).Error
 	if err != nil && err != gorm.RecordNotFound {
@@ -194,7 +195,7 @@ func BuildDataDictionary() {
 	}
 
 	terms := make(map[string]int)
-	re, _ := regexp.Compile("[^A-Za-z]+")
+	re, _ := regexp.Compile("[^A-Za-z]+") //\W
 
 	for _, index := range indices {
 		title := re.ReplaceAllString(index.Title, "-")
@@ -214,6 +215,19 @@ func BuildDataDictionary() {
 		name = strings.ToLower(strings.Trim(name, "-"))
 		keywords_name := strings.Split(name, "-")
 		for _, k := range keywords_name {
+			if len(k) > 2 {
+				if _, ok := terms[k]; !ok {
+					terms[k] = 0
+				}
+
+				terms[k]++
+			}
+		}
+
+		desc := re.ReplaceAllString(index.Desc, "-")
+		desc = strings.ToLower(strings.Trim(desc, "-"))
+		keywords_desc := strings.Split(desc, "-")
+		for _, k := range keywords_desc {
 			if len(k) > 2 {
 				if _, ok := terms[k]; !ok {
 					terms[k] = 0

@@ -522,6 +522,7 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int, re
 		json.Unmarshal(c.Json, &cd)
 		cd.CorrelationId = c.CorrelationId
 		cd.Coefficient = c.Coef
+		cd.Strength = CalcStrength(c.Abscoef)
 
 		if reduce {
 			cd.Table1.Values = ReduceXYValues(cd.Table1.Values)
@@ -564,10 +565,8 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int, re
 		}
 	}
 
-	for i := range charts {
-		j := rand.Intn(i + 1)
-		charts[i], charts[j] = charts[j], charts[i]
-	}
+	// sort by coefficient
+	sort.Sort(SortByCoefficient(charts))
 
 	if count > 30 {
 		last = offset + 30
