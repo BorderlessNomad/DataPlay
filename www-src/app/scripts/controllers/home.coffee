@@ -162,16 +162,19 @@ angular.module('dataplayApp')
 
 						medals = ['gold', 'silver', 'bronze']
 
-						$scope.dataExperts = data.map (d, key) ->
-							obj =
-								rank: key + 1
-								name: d.username
-								avatar: d.avatar or "http://www.gravatar.com/avatar/#{d.MD5email}?d=identicon"
-								score: d.reputation
+						$scope.dataExperts = data
+							.filter (d) ->
+								d.reputation > 0
+							.map (d, key) ->
+								obj =
+									rank: key + 1
+									name: d.username
+									avatar: d.avatar or "http://www.gravatar.com/avatar/#{d.MD5email}?d=identicon"
+									score: d.reputation
 
-							if obj.rank <= 3 then obj.rankclass = medals[obj.rank - 1]
+								if obj.rank <= 3 then obj.rankclass = medals[obj.rank - 1]
 
-							obj
+								obj
 					else
 						$scope.dataExperts = []
 				.error ->
