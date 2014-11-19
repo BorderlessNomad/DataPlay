@@ -300,19 +300,22 @@ func GetRecentObservationsHttp(res http.ResponseWriter, req *http.Request) strin
 	}
 
 	observations := []Observation{}
-	gErr := DB.Order("created desc").Where("uid != ?", uid).Limit(5).Find(&observations).Error
-	if gErr != nil {
-		return "not found"
+	gErr := DB.Where("uid != ?", uid).Order("created DESC").Limit(5).Find(&observations).Error
+	if gErr != nil && gErr != gorm.RecordNotFound {
+		http.Error(res, "Database Error (Observations)", http.StatusInternalServerError)
+		return ""
 	}
 
 	var tmpCO CommunityObservation
 	var communityObservations []CommunityObservation
 	for _, o := range observations {
 		user := User{}
-		err1 := DB.Where("uid= ?", o.Uid).Find(&user).Error
+		err1 := DB.Where("uid = ?", o.Uid).Find(&user).Error
 		if err1 != nil {
-			return "not found"
+			http.Error(res, "Database Error (User)", http.StatusInternalServerError)
+			return ""
 		}
+
 		tmpCO.Username = user.Username
 		tmpCO.Avatar = user.Avatar
 		tmpCO.Comment = o.Comment
@@ -321,8 +324,10 @@ func GetRecentObservationsHttp(res http.ResponseWriter, req *http.Request) strin
 		discovered := Discovered{}
 		err := DB.Where("discovered_id = ?", o.DiscoveredId).Find(&discovered).Error
 		if err != nil {
-			return "can't find dicovered to generate link"
+			http.Error(res, "Database Error (Discovered)", http.StatusInternalServerError)
+			return ""
 		}
+
 		if discovered.CorrelationId == 0 {
 			tmpCO.Link = "charts/related/" + discovered.RelationId
 		} else {
@@ -339,11 +344,7 @@ func GetRecentObservationsHttp(res http.ResponseWriter, req *http.Request) strin
 		return ""
 	}
 
-	if r == nil {
-		return "No observations have been made yet"
-	} else {
-		return string(r)
-	}
+	return string(r)
 }
 
 func FlagObservationHttp(res http.ResponseWriter, req *http.Request, params martini.Params) string {
