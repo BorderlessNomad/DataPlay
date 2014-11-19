@@ -63,7 +63,7 @@ angular.module('dataplayApp')
 								type = if data.chartdata.type is 'column' or data.chartdata.type is 'bar' then 'bar' else 'area'
 
 								$scope.chart.data.push
-									key: data.chartdata['table' + i].title
+									key: data.chartdata['table' + i].title.substr 0, 30
 									type: type
 									yAxis: i
 									values: vals
@@ -74,6 +74,7 @@ angular.module('dataplayApp')
 
 							$scope.chart.setAxisTypes data.chartdata.table1.xLabel, data.chartdata.table1.yLabel, data.chartdata.table2.yLabel
 							$scope.chart.setLabels data.chartdata
+							$scope.chart.title = "#{data.chartdata.table1.title} & #{data.chartdata.table2.title}"
 
 					if data?
 						$scope.info.patternId = data.patternid or ''

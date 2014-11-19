@@ -302,7 +302,7 @@ func GetRecentObservationsHttp(res http.ResponseWriter, req *http.Request) strin
 	observations := []Observation{}
 	gErr := DB.Where("uid != ?", uid).Order("created DESC").Limit(5).Find(&observations).Error
 	if gErr != nil && gErr != gorm.RecordNotFound {
-		http.Error(res, "Database Error (Observations)", http.StatusInternalServerError)
+		http.Error(res, "Database query failed (Observations).", http.StatusInternalServerError)
 		return ""
 	}
 
@@ -312,10 +312,11 @@ func GetRecentObservationsHttp(res http.ResponseWriter, req *http.Request) strin
 		user := User{}
 		err1 := DB.Where("uid = ?", o.Uid).Find(&user).Error
 		if err1 != nil {
-			http.Error(res, "Database Error (User)", http.StatusInternalServerError)
+			http.Error(res, "Database query failed (User).", http.StatusInternalServerError)
 			return ""
 		}
 
+		tmpCO.EmailMD5 = GetMD5Hash(user.Email)
 		tmpCO.Username = user.Username
 		tmpCO.Avatar = user.Avatar
 		tmpCO.Comment = o.Comment
@@ -324,7 +325,7 @@ func GetRecentObservationsHttp(res http.ResponseWriter, req *http.Request) strin
 		discovered := Discovered{}
 		err := DB.Where("discovered_id = ?", o.DiscoveredId).Find(&discovered).Error
 		if err != nil {
-			http.Error(res, "Database Error (Discovered)", http.StatusInternalServerError)
+			http.Error(res, "Database query failed (Discovered).", http.StatusInternalServerError)
 			return ""
 		}
 
@@ -334,7 +335,6 @@ func GetRecentObservationsHttp(res http.ResponseWriter, req *http.Request) strin
 			tmpCO.Link = "charts/correlated/" + strconv.Itoa(discovered.CorrelationId)
 		}
 
-		tmpCO.EmailMD5 = GetMD5Hash(user.Email)
 		communityObservations = append(communityObservations, tmpCO)
 	}
 
