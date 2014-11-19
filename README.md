@@ -14,19 +14,19 @@ DataPlay alpha contains a rudimentary selection of datasets drawn from [data.gov
 
 ##Screens
 ### Landing Page
-![](http://i.imgur.com/mGn80SN.png)
+![](http://i.imgur.com/lMcdMYL.png)
 
 ### Home Page
-![](http://i.imgur.com/Ut62v6k.png)
+![](http://i.imgur.com/81T9n1k.png)
 
-### Overview Screen
-![](http://i.imgur.com/krYs5fT.png)
+### Activity Monitor
+![](http://i.imgur.com/U1gm66j.png)
 
 ### Search Page
-![](http://i.imgur.com/3kkjeM7.png)
+![](http://i.imgur.com/RbI9YbX.png)
 
 ### Chart Page
-![](http://i.imgur.com/sS58Hli.png)
+![](http://i.imgur.com/LP5c5C3.png)
 
 ## Installation
 
