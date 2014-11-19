@@ -73,6 +73,7 @@ angular.module('dataplayApp')
 
 								item.slug = item.term.toLowerCase().replace(/_|\-|\'|\s/g, '')
 								item.id = "#{i.replace(/\W/g, '').toLowerCase().substr(0,1)}-#{item.slug}"
+								item.highlight = false
 
 								$scope.mainSections[i].graph.push
 									id: item.id
@@ -108,6 +109,10 @@ angular.module('dataplayApp')
 
 									el = d3.select @
 
+									id = el.attr 'id'
+									li = _.find $scope.mainSections[i].items, { corresponds: id }
+									if li? then li.highlight = true
+
 									region = _.find $scope.mainSections[i].graph, (it) ->
 										return it.id.replace('r-', '') is el.attr('id').replace('region-', '')
 									if not region?
@@ -124,9 +129,19 @@ angular.module('dataplayApp')
 										.select ".tooltip-inner"
 											.text "#{region.term}: #{region.value}"
 
+									$scope.$apply()
+
 								regions.on "mouseout", (d) ->
+									el = d3.select @
+
+									id = el.attr 'id'
+									li = _.find $scope.mainSections[i].items, { corresponds: id }
+									if li? then li.highlight = false
+
 									d3.select "#pie-tooltip"
 										.attr "class", "tooltip top hidden"
+
+									$scope.$apply()
 
 					.error $scope.handleError i
 
@@ -227,6 +242,10 @@ angular.module('dataplayApp')
 					slices.on "mouseover", (d) ->
 						slice = d3.select @
 
+						id = slice.attr 'id'
+						li = _.find details.items, { id: id.replace('slice-', '') }
+						if li? then li.highlight = true
+
 						x = d3.event.pageX - $(window.document).scrollLeft()
 						y = d3.event.pageY - $(window.document).scrollTop()
 
@@ -239,9 +258,19 @@ angular.module('dataplayApp')
 							.select ".tooltip-inner"
 								.text "#{d.data.key}: #{d.data.value} (#{percent}%)"
 
+						$scope.$apply()
+
 					slices.on "mouseout", (d) ->
+						slice = d3.select @
+
+						id = slice.attr 'id'
+						li = _.find details.items, { id: id.replace('slice-', '') }
+						if li? then li.highlight = false
+
 						d3.select "#pie-tooltip"
 							.attr "class", "tooltip top hidden"
+
+						$scope.$apply()
 
 		$scope.highlight = (show, type, item) ->
 			if type is 'pie'
