@@ -40,7 +40,7 @@ optionsList =
 			transitionDuration: 0
 			xAxis:
 				axisLabel: ""
-				showMaxMin: false
+				showMaxMin: true
 				tickFormat: tickFormatFunc()
 				ticks: settings.xTicks
 			yAxis1:
@@ -70,7 +70,7 @@ optionsList =
 			transitionDuration: 0
 			xAxis:
 				axisLabel: ""
-				showMaxMin: false
+				showMaxMin: true
 				tickFormat: tickFormatFunc()
 				ticks: settings.xTicks
 			yAxis1:
@@ -104,7 +104,7 @@ optionsList =
 			transitionDuration: 0
 			xAxis:
 				axisLabel: ""
-				showMaxMin: false
+				showMaxMin: true
 				tickFormat: tickFormatFunc()
 				ticks: settings.xTicks
 			yAxis:

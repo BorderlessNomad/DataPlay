@@ -8,7 +8,7 @@
  # Controller of the dataplayApp
 ###
 angular.module('dataplayApp')
-	.controller 'SearchCtrl', ['$scope', '$location', '$routeParams', 'User', 'Overview', 'PatternMatcher', ($scope, $location, $routeParams, User, Overview, PatternMatcher) ->
+	.controller 'SearchCtrl', ['$scope', '$location', '$routeParams', 'User', 'Overview', 'PatternMatcher', 'ActivityMonitor', ($scope, $location, $routeParams, User, Overview, PatternMatcher, ActivityMonitor) ->
 		$scope.query = if $routeParams.query? then $routeParams.query else ""
 		$scope.results = []
 		$scope.total = null
@@ -20,6 +20,8 @@ angular.module('dataplayApp')
 		$scope.isSearch = !! $scope.query
 
 		$scope.chartsRelated = []
+
+		$scope.suggestions = []
 
 		$scope.relatedChart = new RelatedCharts $scope.chartsRelated
 		$scope.relatedChart.setPreview true
@@ -38,9 +40,13 @@ angular.module('dataplayApp')
 			$scope.loading.tweets = ($scope.query.length > 0)
 			$scope.loading.overview = ($scope.query.length > 0)
 
-			$scope.search()
-			$scope.getTweets()
-			$scope.getNews()
+			if $scope.isSearch
+				$scope.search()
+				$scope.getTweets()
+				$scope.getNews()
+			else
+				$scope.getSuggestions()
+
 
 		$scope.changePage = () ->
 			query = $scope.query.replace(/\/|\\/g, ' ')
@@ -117,6 +123,25 @@ angular.module('dataplayApp')
 				.error (status, data) ->
 					$scope.loading.overview = false
 					console.log "Search::getNews::Error:", status
+					return
+
+		$scope.getSuggestions = () ->
+			$scope.loading.suggestions = true
+			$scope.suggestions = []
+
+			ActivityMonitor.get 'popular'
+				.success (data) ->
+					$scope.loading.suggestions = false
+					if data?
+						popular = _.find data, { id: 'most_popular' }
+						if popular? and popular.top instanceof Array
+							$scope.suggestions = popular.top
+							if $scope.suggestions.length > 8
+								$scope.suggestions = $scope.suggestions.slice(0, 8)
+
+				.error (status, data) ->
+					$scope.loading.suggestions = false
+					console.log "Search::getSuggestions::Error:", status
 					return
 
 		$scope.showMore = ->

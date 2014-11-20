@@ -43,7 +43,8 @@
 			border-top: 1px solid rgba(0, 0, 0, 0.15);
 			cursor: default;
 
-			&:hover {
+			&.highlight, &:hover {
+				background-color: rgba(52, 152, 219, 0.1);
 				.label {
 					background-color: #3498db !important;
 				}
@@ -82,8 +83,12 @@
 			text-align: center;
 		}
 
-		.highlight {
-			fill: #3498db !important;
+		.region, .pie-slice {
+			path {
+				&:hover, &.highlight {
+					fill: #3498db !important;
+				}
+			}
 		}
 
 		.dc-chart {
