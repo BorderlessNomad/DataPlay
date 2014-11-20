@@ -38,7 +38,8 @@ type PatternInfo struct {
 	SecondarySource string      `json:"source2, omitempty"`
 	Coefficient     float64     `json:"coefficient, omitempty"`
 	Strength        string      `json:"statstrength, omitempty"`
-	Overview        string      `json:"overview, omitempty"`
+	PrimOverview    string      `json:"overview1, omitempty"`
+	SecoOverview    string      `json:"overview2, omitempty"`
 	Observations    int         `json:"numobs"`
 	UserCredited    bool        `json:"userhascredited"`
 	UserDiscredited bool        `json:"userhasdiscredited"`
@@ -352,7 +353,8 @@ func GetChartCorrelated(cid int, uid int) (PatternInfo, *appError) {
 	pattern.Coefficient = correlation.Coef
 	pattern.Strength = CalcStrength(correlation.Abscoef)
 	pattern.Observations = count
-	pattern.Overview = correlation.Tbl1
+	pattern.PrimOverview = correlation.Tbl1
+	pattern.SecoOverview = correlation.Tbl2
 
 	// See if user has credited or discredited this chart
 	cred := Credit{}

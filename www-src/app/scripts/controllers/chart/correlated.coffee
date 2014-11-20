@@ -37,8 +37,8 @@ angular.module('dataplayApp')
 			disapprovers: []
 			overview: null
 			source:
-				prim: ''
-				seco: ''
+				prim: null
+				seco: null
 			strength: ''
 
 		$scope.init = () ->
@@ -89,14 +89,21 @@ angular.module('dataplayApp')
 						$scope.info.discoverDate = if data.discoverydate then Overview.humanDate new Date( data.discoverydate ) else ''
 						$scope.info.approvers = data.creditedby or ''
 						$scope.info.disapprovers = data.discreditedby or ''
-						$scope.info.source =
-							prim: data.source1 or ''
-							seco: data.source2 or ''
 						$scope.info.strength = data.statstrength
 						$scope.info.approved = data.userhascredited
 						$scope.info.disapproved = data.userhasdiscredited
 						$scope.info.coeff = Math.floor Math.abs data.coefficient * 100
-						$scope.info.overview = data.overview
+						$scope.info.overview = data.overview1
+
+						$scope.info.source = { prim: null, seco: null }
+						if data.source1? or data.overview1?
+							$scope.info.source.prim =
+								title: data.source1 or ''
+								id: data.overview1 or $scope.params.id or ''
+						if data.source2? or data.overview2?
+							$scope.info.source.seco =
+								title: data.source2 or ''
+								id: data.overview2 or ''
 
 					$scope.initObservations()
 					console.log "Chart", $scope.chart
