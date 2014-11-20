@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"strings"
 )
 
 var TableSchemaStorage = make(map[string][]ColType)
@@ -82,4 +83,27 @@ func GetRealTableName(guid string) (out string, e error) {
 	RealTableStorage[guid] = data
 
 	return data.Tablename, nil
+}
+
+var IndexSchemaStorage = make(map[string]Index)
+
+func GetTableIndex(guid string) (Index, error) {
+	guid = strings.ToLower(strings.Trim(guid, " "))
+	if guid == "" || guid == "No Record Found!" {
+		return Index{}, fmt.Errorf("Invalid tablename")
+	}
+
+	if _, schemaExists := IndexSchemaStorage[guid]; schemaExists {
+		return IndexSchemaStorage[guid], nil
+	}
+
+	index := Index{}
+	err := DB.Where("LOWER(guid) = ?", guid).Find(&index).Error
+	if err != nil {
+		return Index{}, err
+	}
+
+	IndexSchemaStorage[guid] = index
+
+	return index, nil
 }

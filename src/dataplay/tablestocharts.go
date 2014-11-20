@@ -152,8 +152,7 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 	xyz := XYVal{X: x, Y: y, Z: z}
 
 	guid, _ := GetRealTableName(tablename)
-	index := Index{}
-	err := DB.Where("guid = ?", tablename).Find(&index).Error
+	index, err := GetTableIndex(tablename)
 	if err != nil && err != gorm.RecordNotFound {
 		return pattern, &appError{err, "Database query failed (GUID)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
@@ -407,10 +406,9 @@ func Discover(id string, uid int, json []byte, correlated bool) (Discovered, *ap
 func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *appError) {
 	columns := FetchTableCols(tablename) //array column names
 	guid, _ := GetRealTableName(tablename)
-	index := Index{}
 	xyNames := XYPermutations(columns, false) // get all possible valid permuations of columns as X & Y
 
-	err := DB.Where("guid = ?", tablename).Find(&index).Error
+	index, err := GetTableIndex(tablename)
 	if err != nil && err != gorm.RecordNotFound {
 		return RelatedCharts{nil, 0}, &appError{err, "Database query failed (GUID)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
@@ -504,13 +502,13 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int, re
 
 	tableName := od.Tablename
 
-	for i := 0; i < 30; i++ {
-		go GenerateCorrelations(tableName, searchDepth)
-	}
+	// for i := 0; i < 30; i++ {
+	// 	go GenerateCorrelations(tableName, searchDepth)
+	// }
 	// // time.Sleep(5 * time.Second) // WHY??????
 
 	// @todo Mayur Run once and generate all possible correlations
-	// go GenerateCorrelations(tableName, searchDepth)
+	go GenerateCorrelations(tableName, searchDepth)
 
 	err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Find(&correlation).Error
 	if err != nil && err != gorm.RecordNotFound {
@@ -1541,8 +1539,7 @@ func GetChartInfoHttp(res http.ResponseWriter, req *http.Request, params martini
 	}
 
 	table := strings.ToLower(strings.Trim(params["tablename"], " "))
-	index := Index{}
-	err := DB.Where("LOWER(guid) = ?", table).Find(&index).Error
+	index, err := GetTableIndex(table)
 	if err != nil && err != gorm.RecordNotFound {
 		http.Error(res, fmt.Sprintf("Database Query Failed (%q)", table), http.StatusInternalServerError)
 		return ""

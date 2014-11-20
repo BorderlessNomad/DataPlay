@@ -429,27 +429,18 @@ func CalculateCoefficient(tableCols TableCols, c cmeth, cd *CorrelationData) (fl
 
 //Create a json string containing all the data needed for generating a graph and then insert this and all the other correlation info into the correlations table
 func SaveCorrelation(tableCols TableCols, c cmeth, cf float64, cd *CorrelationData) *appError {
-	ind1, ind2, ind3 := Index{}, Index{}, Index{}
-
 	guid1, _ := GetGuid(tableCols.tbl1)
 	guid2, _ := GetGuid(tableCols.tbl2)
 	guid3, _ := GetGuid(tableCols.tbl3)
 
-	err1 := DB.Model(&ind1).Where("guid= ?", guid1).Find(&ind1).Error
+	ind1, err1 := GetTableIndex(guid1)
 	if err1 != nil {
 		return &appError{err1, "Database query failed (guid index1)", http.StatusServiceUnavailable}
 	}
 
-	err2 := DB.Model(&ind2).Where("guid= ?", guid2).Find(&ind2).Error
+	ind2, err2 := GetTableIndex(guid2)
 	if err2 != nil {
 		return &appError{err2, "Database query failed (guid index2)", http.StatusServiceUnavailable}
-	}
-
-	if c == S {
-		err3 := DB.Model(&ind3).Where("guid= ?", guid3).Find(&ind3).Error
-		if err3 != nil {
-			return &appError{err3, "Database query failed (guid index3)", http.StatusServiceUnavailable}
-		}
 	}
 
 	(*cd).Method = tableCols.ctype
@@ -464,6 +455,11 @@ func SaveCorrelation(tableCols TableCols, c cmeth, cf float64, cd *CorrelationDa
 	(*cd).Table2.LabelY = tableCols.val2
 
 	if c == S {
+		ind3, err3 := GetTableIndex(guid3)
+		if err3 != nil {
+			return &appError{err3, "Database query failed (guid index3)", http.StatusServiceUnavailable}
+		}
+
 		(*cd).Table3.Title = SanitizeString(ind3.Title)
 		(*cd).Table3.Desc = SanitizeString(ind3.Notes)
 		(*cd).Table3.LabelX = tableCols.dat3
