@@ -58,6 +58,8 @@ func initApiServer() {
 	/* Database connection will be closed only when Server closes */
 	defer DB.Close()
 
+	AsyncMonitoringPush()
+
 	m := martini.Classic()
 
 	m.Use(cors.Allow(&cors.Options{
