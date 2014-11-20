@@ -239,7 +239,7 @@ func AdminApiSessionHandler(res http.ResponseWriter, req *http.Request) {
 	if err1 != nil && err1 != gorm.RecordNotFound {
 		http.Error(res, "Database query failed (User).", http.StatusInternalServerError)
 	} else if err1 == gorm.RecordNotFound {
-		http.Error(res, "No such user found!", http.StatusNotFound)
+		http.Error(res, "No such user found! (AdminApiSessionHandler)", http.StatusNotFound)
 	}
 
 	if user.Usertype != UserTypeAdmin {

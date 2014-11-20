@@ -65,8 +65,8 @@ func (self *Database) Connect() (err error) {
 	fmt.Println("[Database] Connected!", self.User, "@", self.Host, ":", self.Port, "/", self.Schema)
 
 	self.DB.DB().Exec("SET NAMES UTF8")
-	self.DB.DB().SetMaxIdleConns(2048) // < 0 no idle connections are retained.
-	self.DB.DB().SetMaxOpenConns(1024) // Unlimited  = < 0
+	self.DB.DB().SetMaxIdleConns(10)  // < 0 no idle connections are retained.
+	self.DB.DB().SetMaxOpenConns(100) // Unlimited  = < 0
 	self.DB.DB().Ping()
 
 	/* Debug */
