@@ -33,6 +33,7 @@ type CorrelationData struct {
 }
 
 type SortByCoefficient []CorrelationData
+
 func (s SortByCoefficient) Len() int {
 	return len(s)
 }
@@ -59,6 +60,7 @@ type TableData struct {
 }
 
 type MixRepeatably []TableData
+
 func (s MixRepeatably) Len() int {
 	return len(s)
 }
@@ -202,8 +204,6 @@ func AttemptCorrelation(tableCols TableCols) *appError {
 	err := query.Find(&correlation).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return &appError{err, "Database query failed (DateCol - " + ctype + ").", http.StatusInternalServerError}
-	} else if err == gorm.RecordNotFound {
-		return &appError{err, "Unable to find correlation (DateCol - " + ctype + ").", http.StatusNotFound}
 	}
 
 	if correlation.Json == nil { // if no correlation exists then generate one

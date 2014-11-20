@@ -134,7 +134,7 @@ func TermFrequency(terms []TermKey) ([]PoliticalActivity, error) {
 	}
 	defer session.Close()
 
-	iter1 := session.Query(`SELECT date, name FROM keyword LIMIT 60000`).Iter()
+	iter1 := session.Query(`SELECT date, name FROM keyword WHERE date > ? LIMIT ? ALLOW FILTERING`, from, 40000).Iter()
 
 	for iter1.Scan(&date, &name) {
 		for _, term := range terms {
@@ -150,7 +150,7 @@ func TermFrequency(terms []TermKey) ([]PoliticalActivity, error) {
 		return nil, err1
 	}
 
-	iter2 := session.Query(`SELECT date, name FROM entity LIMIT 60000`).Iter()
+	iter2 := session.Query(`SELECT date, name FROM entity WHERE date > ? LIMIT ? ALLOW FILTERING`, from, 40000).Iter()
 
 	for iter2.Scan(&date, &name) {
 		for _, term := range terms {

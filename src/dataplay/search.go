@@ -139,9 +139,9 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 
 	Response.Results = Response.Results[offset:last] // return slice
 
-	AddSearchTerm(keyword) // add to search term count
+	searchTermErr := AddSearchTerm(keyword, 1) // add to search term count
 
-	return Response, nil
+	return Response, searchTermErr
 }
 
 func ProcessSearchResults(keyword string, rows []Index) SearchResponse {
@@ -170,19 +170,33 @@ func SanitizeString(str string) string {
 	return strings.Replace(str, "Ã‚Â£", "£", -1)
 }
 
-func AddSearchTerm(str string) {
+func AddSearchTerm(str string, attempts int) *appError {
 	searchterm := SearchTerm{}
 
 	err := DB.Where("term = ?", str).Find(&searchterm).Error
-	if err == nil && err != gorm.RecordNotFound {
-		searchterm.Count++
-		err = DB.Save(&searchterm).Error
+	if err != nil && err != gorm.RecordNotFound {
+		if attempts > 5 {
+			return &appError{err, "Database query failed (Add Search Term)", http.StatusInternalServerError}
+		}
+
+		errApp := AddSearchTerm(str, attempts+1)
+
+		return errApp
 	} else if err == gorm.RecordNotFound {
 		searchterm.Count = 0
 		searchterm.Term = str
 		searchterm.Count++
 		err = DB.Save(&searchterm).Error
+	} else {
+		searchterm.Count++
+		err = DB.Save(&searchterm).Error
 	}
+
+	if err != nil {
+		return &appError{err, "Database query failed (Save Search Term)", http.StatusInternalServerError}
+	}
+
+	return nil
 }
 
 // Takes all the key terms from the title, name and description in the index table and writes them to the datadictionary along with their frequency

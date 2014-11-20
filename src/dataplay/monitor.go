@@ -19,24 +19,25 @@ import (
  * @param httpCode [int] e.g. 200, 500
  * @param executionTime [int], total execution time to complete request
  */
+
+type MonitoringData struct {
+	Hash int64
+	Url  string
+	Data map[string]interface{}
+}
+
+var MonitoringCollection []MonitoringData
+var MonitoringLastFlush int
+var MonitoringRedisDB int = 1
+
 func StoreMonitoringData(httpEndPoint, httpRequest, httpUrl, httpMethod string, httpCode int, executionTime int64) (e error) {
 	timeNow, nanoTime := GetUnixNanoTimeStamp()
+	host, _ := GetHostName()
 
-	c, err := GetRedisConnection()
-	if err != nil {
-		return fmt.Errorf("Could not connect to Redis.")
-	}
-
-	defer c.Close()
-
-	r := c.Cmd("SELECT", 1) // DB 1
-	if r.Err != nil {
-		return fmt.Errorf("Could not select database from Redis.")
-	}
-
-	host, err := GetHostName()
-
-	data := map[string]interface{}{
+	monitoringData := MonitoringData{}
+	monitoringData.Hash = nanoTime
+	monitoringData.Url = httpEndPoint
+	monitoringData.Data = map[string]interface{}{
 		"endpoint":  httpEndPoint,
 		"request":   httpRequest,
 		"method":    httpMethod,
@@ -47,21 +48,75 @@ func StoreMonitoringData(httpEndPoint, httpRequest, httpUrl, httpMethod string, 
 		"host":      host,
 	}
 
-	key := strconv.FormatInt(nanoTime, 10)
+	MonitoringCollection = append(MonitoringCollection, monitoringData)
 
-	// Store hash into DB
-	r = c.Cmd("HMSET", httpEndPoint+":"+key, data)
-	if r.Err != nil {
-		return fmt.Errorf("Could not store HMSET in Redis.")
+	return nil
+}
+
+func FlushMonitoringData(lastFlush int64) error {
+	if len(MonitoringCollection) == 0 {
+		return nil
 	}
 
-	// Store pointer to hash's key in DB
-	r = c.Cmd("SADD", httpEndPoint, key)
+	c, err := GetRedisConnection()
+	if err != nil {
+		return fmt.Errorf("Could not connect to Redis.")
+	}
+
+	defer c.Close()
+
+	r := c.Cmd("SELECT", MonitoringRedisDB) // DB 1
 	if r.Err != nil {
-		return fmt.Errorf("Could not store SADD in Redis.")
+		return fmt.Errorf("Could not SELECT DB %d from Redis.", MonitoringRedisDB)
+	}
+
+	for i, monitor := range MonitoringCollection {
+		if monitor.Hash < lastFlush {
+			if i > len(MonitoringCollection) {
+				break
+			}
+
+			hash := strconv.FormatInt(monitor.Hash, 10)
+
+			// Store hash into DB
+			r = c.Cmd("HMSET", monitor.Url+":"+hash, monitor.Data)
+			if r.Err != nil {
+				return fmt.Errorf("Could not store HMSET in Redis.")
+			}
+
+			// Store pointer to hash's key in DB
+			r = c.Cmd("SADD", monitor.Url, hash)
+			if r.Err != nil {
+				return fmt.Errorf("Could not store SADD in Redis.")
+			}
+
+			if i == len(MonitoringCollection) {
+				MonitoringCollection = make([]MonitoringData, 0)
+			} else {
+				MonitoringCollection = MonitoringCollection[:i+copy(MonitoringCollection[i:], MonitoringCollection[i+1:])]
+			}
+		}
 	}
 
 	return nil
+}
+
+func AsyncMonitoringPush() {
+	ticker := time.NewTicker(10 * time.Second)
+	quit := make(chan struct{})
+
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				_, nanoTime := GetUnixNanoTimeStamp()
+				FlushMonitoringData(nanoTime)
+			case <-quit:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
 }
 
 func GetUnixNanoTimeStamp() (time.Time, int64) {
