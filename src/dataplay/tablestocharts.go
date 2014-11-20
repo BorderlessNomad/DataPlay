@@ -502,13 +502,13 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int, re
 
 	tableName := od.Tablename
 
-	// for i := 0; i < 30; i++ {
-	// 	go GenerateCorrelations(tableName, searchDepth)
-	// }
+	for i := 0; i < 30; i++ {
+		go GenerateCorrelations(tableName, searchDepth)
+	}
 	// // time.Sleep(5 * time.Second) // WHY??????
 
 	// @todo Mayur Run once and generate all possible correlations
-	go GenerateCorrelations(tableName, searchDepth)
+	// go GenerateCorrelations(tableName, searchDepth)
 
 	err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Find(&correlation).Error
 	if err != nil && err != gorm.RecordNotFound {
@@ -550,10 +550,14 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int, re
 		origins = append(origins, c.CorrelationId)
 	}
 
+	if len(origins) == 0 {
+		return CorrelatedCharts{nil, 0}, &appError{nil, "Unable to Generate Correlations (Origins).", http.StatusInternalServerError}
+	}
+
 	discoveries := []Discovered{}
 	err1 := DB.Where("correlation_id IN (?)", origins).Find(&discoveries).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {
-		return CorrelatedCharts{nil, 0}, &appError{err1, "Database query failed (Discoveries)", http.StatusInternalServerError}
+		return CorrelatedCharts{nil, 0}, &appError{err1, "Database query failed (Discoveries).", http.StatusInternalServerError}
 	}
 
 	for _, discovery := range discoveries {
@@ -1553,10 +1557,10 @@ func GetChartInfoHttp(res http.ResponseWriter, req *http.Request, params martini
 	}
 
 	result := DataEntry{
-		Name:  SanitizeString(index.Name),
-		Title: SanitizeString(index.Title),
-		Desc: SanitizeString(index.Desc),
-		SourceUrl: SanitizeString(index.SourceUrl),
+		Name:       SanitizeString(index.Name),
+		Title:      SanitizeString(index.Title),
+		Desc:       SanitizeString(index.Desc),
+		SourceUrl:  SanitizeString(index.SourceUrl),
 		SourceName: SanitizeString(index.SourceName),
 	}
 
