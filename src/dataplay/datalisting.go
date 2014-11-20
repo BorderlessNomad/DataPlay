@@ -89,20 +89,17 @@ func DumpTable(params map[string]string) ([]map[string]interface{}, *appError) {
 		}
 	}
 
-	var tablename string
-	var err error
-
-	tablename, err = GetRealTableName(params["id"])
-	if err != nil || len(tablename) == 0 {
-		return nil, &appError{err, "Unable to find that table", http.StatusBadRequest}
+	onlineData, err := GetOnlineDataByGuid(params["id"])
+	if err != nil {
+		return nil, &appError{err, "Unable to find Table.", http.StatusBadRequest}
 	}
 
 	var rows *sql.Rows
 
 	if UsingRanges {
-		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %q OFFSET %d LIMIT %d", tablename, offset, count)).Rows()
+		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %q OFFSET %d LIMIT %d", onlineData.Tablename, offset, count)).Rows()
 	} else {
-		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %q", tablename)).Rows()
+		rows, err = DB.Raw(fmt.Sprintf("SELECT * FROM %q", onlineData.Tablename)).Rows()
 	}
 
 	if err != nil {
@@ -163,7 +160,7 @@ func DumpTableRangeHttp(res http.ResponseWriter, req *http.Request, params marti
 // This function will empty a whole table out into JSON
 // Due to what seems to be a golang bug, everything is outputted as a string.
 func DumpTableRange(params map[string]string) ([]map[string]interface{}, *appError) {
-	tablename, e := GetRealTableName(params["id"])
+	tablename, e := GetOnlineDataByGuid(params["id"])
 	if e != nil {
 		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
@@ -242,7 +239,7 @@ func DumpTableGroupedHttp(res http.ResponseWriter, req *http.Request, params mar
 // This is very useful for things like picharts
 // /api/getdatagrouped/:id/:x/:y
 func DumpTableGrouped(params map[string]string) ([]map[string]interface{}, *appError) {
-	tablename, e := GetRealTableName(params["id"])
+	tablename, e := GetOnlineDataByGuid(params["id"])
 	if e != nil {
 		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
@@ -336,7 +333,7 @@ func DumpTablePredictionHttp(res http.ResponseWriter, req *http.Request, params 
 
 // This call will get a X,Y and a prediction of a value. that is asked for
 func DumpTablePrediction(params map[string]string) ([]float64, *appError) {
-	tablename, e := GetRealTableName(params["id"])
+	tablename, e := GetOnlineDataByGuid(params["id"])
 	if e != nil {
 		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
@@ -436,7 +433,7 @@ func DumpReducedTable(params map[string]string) ([]map[string]interface{}, *appE
 		return nil, &appError{nil, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest}
 	}
 
-	tablename, e := GetRealTableName(params["id"])
+	tablename, e := GetOnlineDataByGuid(params["id"])
 	if e != nil {
 		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
@@ -618,12 +615,11 @@ func PrimaryDate() {
 	for _, name := range names {
 		cols := FetchTableCols(name)
 		dateCol := RandomDateColumn(cols)
-		table, _ := GetRealTableName(name)
-		d := "DELETE FROM " + table + " WHERE " + dateCol + " = '0001-01-01 BC'" ////////TEMP FIX TO GET RID OF INVALID VALUES IN GOV DATA
-		DB.Exec(d)
+		onlineData, _ := GetOnlineDataByGuid(name)
+
 		if dateCol != "" {
 			var dates []time.Time
-			err := DB.Table(fmt.Sprintf("%q", table)).Pluck(dateCol, &dates).Error
+			err := DB.Table(fmt.Sprintf("%q", onlineData.Tablename)).Pluck(dateCol, &dates).Error
 			if err == nil {
 				dv := make([]DateVal, 0)
 				var d DateVal
@@ -635,6 +631,7 @@ func PrimaryDate() {
 
 				primaryDate := MainDate(dv)
 				err := DB.Model(Index{}).Where("guid= ?", name).Update("primary_date", primaryDate).Error
+
 				check(err)
 			}
 		}

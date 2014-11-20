@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"strings"
 )
 
@@ -53,7 +52,7 @@ func GetSQLTableSchema(table string) []ColType {
 	return schema
 }
 
-var RealTableStorage = make(map[string]OnlineData)
+var OnlineDataSchemaStorageGuid = make(map[string]OnlineData)
 
 /**
  * @brief Converts GUID ('friendly' name) into actual table inside database
@@ -63,26 +62,48 @@ var RealTableStorage = make(map[string]OnlineData)
  *
  * @return string output, error
  */
-func GetRealTableName(guid string) (out string, e error) {
+func GetOnlineDataByGuid(guid string) (OnlineData, error) {
+	guid = strings.ToLower(strings.Trim(guid, " "))
 	if guid == "" || guid == "No Record Found!" {
-		return "", fmt.Errorf("Invalid tablename")
+		return OnlineData{}, fmt.Errorf("Invalid GUID.")
 	}
 
-	if _, schemaExists := RealTableStorage[guid]; schemaExists {
-		return RealTableStorage[guid].Tablename, nil
+	if _, schemaExists := OnlineDataSchemaStorageGuid[guid]; schemaExists {
+		return OnlineDataSchemaStorageGuid[guid], nil
 	}
 
-	data := OnlineData{}
-	err := DB.Select("tablename").Where("guid = ?", guid).Find(&data).Error
-	if err != nil && err != gorm.RecordNotFound {
-		return "", fmt.Errorf("Database query failed (OnlineData)")
-	} else if err == gorm.RecordNotFound {
-		return "", fmt.Errorf("Could not find table")
+	onlineData := OnlineData{}
+	err := DB.Select("tablename").Where("guid = ?", guid).Find(&onlineData).Error
+	if err != nil {
+		return OnlineData{}, err
 	}
 
-	RealTableStorage[guid] = data
+	OnlineDataSchemaStorageGuid[guid] = onlineData
 
-	return data.Tablename, nil
+	return onlineData, nil
+}
+
+var OnlineDataSchemaStorageTablename = make(map[string]OnlineData)
+
+func GetOnlineDataByTablename(tablename string) (OnlineData, error) {
+	tablename = strings.ToLower(strings.Trim(tablename, " "))
+	if tablename == "" || tablename == "No Record Found!" {
+		return OnlineData{}, fmt.Errorf("Invalid Tablename.")
+	}
+
+	if _, schemaExists := OnlineDataSchemaStorageTablename[tablename]; schemaExists {
+		return OnlineDataSchemaStorageTablename[tablename], nil
+	}
+
+	onlineData := OnlineData{}
+	err := DB.Where("LOWER(tablename) = ?", tablename).Find(&onlineData).Error
+	if err != nil {
+		return OnlineData{}, err
+	}
+
+	OnlineDataSchemaStorageTablename[tablename] = onlineData
+
+	return onlineData, nil
 }
 
 var IndexSchemaStorage = make(map[string]Index)
@@ -90,7 +111,7 @@ var IndexSchemaStorage = make(map[string]Index)
 func GetTableIndex(guid string) (Index, error) {
 	guid = strings.ToLower(strings.Trim(guid, " "))
 	if guid == "" || guid == "No Record Found!" {
-		return Index{}, fmt.Errorf("Invalid tablename")
+		return Index{}, fmt.Errorf("Invalid GUID")
 	}
 
 	if _, schemaExists := IndexSchemaStorage[guid]; schemaExists {

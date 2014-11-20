@@ -81,13 +81,12 @@ func FetchTableCols(guid string) (output []ColType) {
 		return output
 	}
 
-	var tablename string
-	tablename, e := GetRealTableName(guid)
+	onlineData, e := GetOnlineDataByGuid(guid)
 	if e != nil {
 		return output
 	}
 
-	results := GetSQLTableSchema(tablename)
+	results := GetSQLTableSchema(onlineData.Tablename)
 
 	return results
 }
@@ -133,13 +132,13 @@ func CheckColExists(schema []ColType, column string) bool {
  * @return JSON containing Matched data
  */
 func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	RealTableName, e := GetRealTableName(params["id"])
+	onlineData, e := GetOnlineDataByGuid(params["id"])
 	if e != nil {
 		http.Error(res, "Could not find that Table", http.StatusInternalServerError)
 		return ""
 	}
 
-	schema := GetSQLTableSchema(RealTableName)
+	schema := GetSQLTableSchema(onlineData.Tablename)
 
 	if !CheckColExists(schema, params["x"]) || !CheckColExists(schema, params["y"]) {
 		http.Error(res, "Could not find the X or Y", http.StatusInternalServerError)
@@ -149,7 +148,7 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, params mar
 	/* Check if data exists in the stats table. so we can compare its poly to other Polynomial */
 	stats := StatsCheck{}
 	count := 0
-	err := DB.Model(&stats).Where("LOWER(\"table\") = ?", strings.ToLower(RealTableName)).Where("LOWER(x) = ?", strings.ToLower(params["x"])).Where("LOWER(y) = ?", strings.ToLower(params["y"])).Count(&count).Find(&stats).Error
+	err := DB.Model(&stats).Where(fmt.Sprintf("LOWER(%q) = ?", "table"), strings.ToLower(onlineData.Tablename)).Where("LOWER(x) = ?", strings.ToLower(params["x"])).Where("LOWER(y) = ?", strings.ToLower(params["y"])).Count(&count).Find(&stats).Error
 	check(err)
 
 	if count == 0 {
@@ -205,7 +204,7 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, params martin
 }
 
 func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	RealTableName, e := GetRealTableName(params["guid"])
+	onlineData, e := GetOnlineDataByGuid(params["guid"])
 	if e != nil {
 		http.Error(res, "Could not find that table", http.StatusInternalServerError)
 		return ""
@@ -213,13 +212,13 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, para
 
 	jobs := make([]ScanJob, 0)
 
-	Bits := GetSQLTableSchema(RealTableName)
+	Bits := GetSQLTableSchema(onlineData.Tablename)
 
 	/* Prepare a job list */
 	for _, bit := range Bits {
 		if bit.Sqltype == "varchar" || bit.Sqltype == "character varying" {
 			newJob := ScanJob{
-				TableName: RealTableName,
+				TableName: onlineData.Tablename,
 				X:         bit.Name,
 			}
 

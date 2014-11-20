@@ -151,7 +151,11 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 
 	xyz := XYVal{X: x, Y: y, Z: z}
 
-	guid, _ := GetRealTableName(tablename)
+	onlineData, err := GetOnlineDataByGuid(tablename)
+	if err != nil {
+		return pattern, &appError{err, "Database query failed (GUID)", http.StatusInternalServerError}
+	}
+
 	index, err := GetTableIndex(tablename)
 	if err != nil && err != gorm.RecordNotFound {
 		return pattern, &appError{err, "Database query failed (GUID)", http.StatusInternalServerError}
@@ -178,10 +182,10 @@ func GetChart(tablename string, tablenum int, chartType string, uid int, coords 
 		}
 	}
 
-	GenerateChartData(chartType, guid, xyz, index, false)
+	GenerateChartData(chartType, onlineData.Tablename, xyz, index, false)
 
 	var chart TableData
-	hashKey := guid + "|" + chartType + "|" + xyz.X + "|" + xyz.Y + "|" + xyz.Z
+	hashKey := onlineData.Tablename + "|" + chartType + "|" + xyz.X + "|" + xyz.Y + "|" + xyz.Z
 	if _, ok := RelatedChartsCollection[hashKey]; ok {
 		for _, ch := range RelatedChartsCollection[hashKey] {
 			chart = ch
@@ -404,9 +408,12 @@ func Discover(id string, uid int, json []byte, correlated bool) (Discovered, *ap
 // generate all the potentially valid charts that relate to a single tablename, add apt charting types,
 // and return them along with their total count and whether they've been discovered
 func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *appError) {
-	columns := FetchTableCols(tablename) //array column names
-	guid, _ := GetRealTableName(tablename)
+	columns := FetchTableCols(tablename)      //array column names
 	xyNames := XYPermutations(columns, false) // get all possible valid permuations of columns as X & Y
+	onlineData, err := GetOnlineDataByGuid(tablename)
+	if err != nil {
+		return RelatedCharts{nil, 0}, &appError{err, "Database query failed (GUID)", http.StatusInternalServerError}
+	}
 
 	index, err := GetTableIndex(tablename)
 	if err != nil && err != gorm.RecordNotFound {
@@ -420,28 +427,28 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 	for _, v := range columns { // create single column pie charts
 		xyPie.X = v.Name
 		xyPie.Xtype = v.Sqltype
-		GenerateChartData("pie", guid, xyPie, index, true)
+		GenerateChartData("pie", onlineData.Tablename, xyPie, index, true)
 	}
 
 	for _, v := range xyNames { // create all other types of chart
 		if v.Xtype != "varchar" && v.Ytype != "varchar" {
-			GenerateChartData("column dated", guid, v, index, true)
+			GenerateChartData("column dated", onlineData.Tablename, v, index, true)
 		}
 
 		if v.Xtype == "varchar" && v.Ytype == "varchar" { // stacked or scatter charts if string v string values
-			// GenerateChartData("stacked column", guid, v, index, true)
-			// GenerateChartData("scatter", guid, v, index, true)
+			// GenerateChartData("stacked column", onlineData.Tablename, v, index, true)
+			// GenerateChartData("scatter", onlineData.Tablename, v, index, true)
 		}
 
 		if !(v.Xtype == "varchar" && v.Ytype == "date") || !(v.Xtype == "date" && v.Ytype == "varchar") { // column and row charts for all that are not string v string values and are not date v string or string v date values
-			// GenerateChartData("row", guid, v, index, true)
+			// GenerateChartData("row", onlineData.Tablename, v, index, true)
 			if v.Ytype != "varchar" && v.Ytype != "date" { // no string values for y axis on column charts
-				GenerateChartData("column", guid, v, index, true)
+				GenerateChartData("column", onlineData.Tablename, v, index, true)
 			}
 		}
 
 		if v.Ytype != "varchar" && (v.Xtype == "date" || (v.Xtype != "varchar" && IsDateYear(v.X))) { // line chart cannot be based on strings or have date on the Y axis
-			GenerateChartData("line", guid, v, index, true)
+			GenerateChartData("line", onlineData.Tablename, v, index, true)
 		}
 	}
 
@@ -449,7 +456,7 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 		xyNames = XYPermutations(columns, true) // set z flag to true to get all possible valid permuations of columns as X, Y & Z
 		for _, v := range xyNames {
 			if v.Xtype == "date" && IsNumeric(v.Ytype) && IsNumeric(v.Ztype) {
-				GenerateChartData("bubble", guid, v, index, true)
+				GenerateChartData("bubble", onlineData.Tablename, v, index, true)
 			}
 		}
 	}
@@ -458,7 +465,7 @@ func GetRelatedCharts(tablename string, offset int, count int) (RelatedCharts, *
 	check := make(map[string]bool)
 	for key, charts := range RelatedChartsCollection {
 		hashKey := strings.Split(key, "|")
-		if hashKey[0] == guid {
+		if hashKey[0] == onlineData.Tablename {
 			for _, chart := range charts {
 				if !check[hashKey[1]+chart.Title] {
 					check[hashKey[1]+chart.Title] = true
@@ -494,13 +501,10 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int, re
 	correlation := make([]Correlation, 0)
 	charts := make([]CorrelationData, 0) ///empty slice for adding all possible charts
 
-	od := OnlineData{}
-	e := DB.Where("guid = ?", guid).Find(&od).Error
+	onlineData, e := GetOnlineDataByGuid(guid)
 	if e != nil {
 		return CorrelatedCharts{nil, 0}, &appError{nil, "Invalid or Empty GUID", http.StatusBadRequest}
 	}
-
-	tableName := od.Tablename
 
 	// for i := 0; i < 30; i++ {
 	// 	go GenerateCorrelations(tableName, searchDepth)
@@ -508,9 +512,9 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int, re
 	// // time.Sleep(5 * time.Second) // WHY??????
 
 	// @todo Mayur Run once and generate all possible correlations
-	go GenerateCorrelations(tableName, searchDepth)
+	go GenerateCorrelations(onlineData.Tablename, searchDepth)
 
-	err := DB.Where("tbl1 = ?", tableName).Order("abscoef DESC").Find(&correlation).Error
+	err := DB.Where("tbl1 = ?", onlineData.Tablename).Order("abscoef DESC").Find(&correlation).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return CorrelatedCharts{nil, 0}, &appError{nil, "Database query failed (TBL1)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
@@ -700,7 +704,11 @@ func GenerateChartData(chartType string, guid string, names XYVal, ind Index, re
 		sql = fmt.Sprintf("SELECT %q AS x, %q AS y FROM %q", names.X, names.Y, guid)
 	}
 
-	rows, _ := DB.Raw(sql).Rows()
+	rows, err := DB.Raw(sql).Rows()
+	if err != nil {
+		return
+	}
+
 	defer rows.Close()
 
 	// columnNames, _ := rows.Columns()
@@ -925,6 +933,8 @@ func GenerateChartData(chartType string, guid string, names XYVal, ind Index, re
 			RelatedChartsCollection[hashKey][0] = tmpTD
 		}
 	}
+
+	err = rows.Err() // get any error encountered during iteration
 }
 
 func IsDateYear(str string) bool {

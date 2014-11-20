@@ -86,11 +86,8 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 
 	// Search index
 	indices := []Index{}
-	keyword = strings.Trim(keyword, " ")
-	keyword = strings.ToLower(keyword)
+	keyword = strings.ToLower(strings.Trim(keyword, " "))
 	term := "%" + strings.Replace(keyword, " ", "%", -1) + "%" // e.g. "gold" => "%gold%", nh s" => "%nh%s%", "  cri m e " => "%cri%m%e%"
-
-	fmt.Sprintln("Searching for keyword: %q", term)
 
 	query := DB.Where(fmt.Sprintf("LOWER(%q) LIKE ?", "title"), term)
 	query = query.Or(fmt.Sprintf("LOWER(%q) LIKE ?", "notes"), term)
@@ -100,6 +97,8 @@ func SearchForData(uid int, keyword string, params map[string]string) (SearchRes
 	err := query.Order("random()").Limit(count).Offset(offset).Find(&indices).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return response, &appError{err, "Database query failed (Index - random)", http.StatusServiceUnavailable}
+	} else if err == gorm.RecordNotFound {
+		indices = make([]Index, 0)
 	}
 
 	searchResults := indices

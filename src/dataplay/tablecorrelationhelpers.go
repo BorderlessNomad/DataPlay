@@ -291,10 +291,11 @@ func GetGuid(tablename string) (string, error) {
 		return "", fmt.Errorf("Invalid tablename")
 	}
 
-	data := OnlineData{}
-	err := DB.Where("tablename = ?", tablename).Find(&data).Error
-	if err == gorm.RecordNotFound {
-		return "", fmt.Errorf("Could not find table")
+	data, err := GetOnlineDataByTablename(tablename)
+	if err != nil && err != gorm.RecordNotFound {
+		return "", fmt.Errorf("Internal Server Error.")
+	} else if err == gorm.RecordNotFound {
+		return "", fmt.Errorf("Could not find Table.")
 	}
 
 	return data.Guid, err
