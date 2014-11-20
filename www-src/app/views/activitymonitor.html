@@ -39,7 +39,7 @@
 						<div class="col-xs-4"><small><strong>{{sect.colNameB}}</strong></small></div>
 					</div>
 
-					<div class="row li" ng-repeat="item in sect.items" ng-mouseover="highlight(true, sect.type, item)" ng-mouseleave="highlight(false, sect.type, item)">
+					<div class="row li" ng-class="{true: 'highlight'}[item.highlight]" ng-repeat="item in sect.items" ng-mouseover="highlight(true, sect.type, item)" ng-mouseleave="highlight(false, sect.type, item)">
 						<div class="col-xs-8 col-dynamic label-container">
 							<a class="label label-default"
 								ng-if="sect.type == 'pie'"

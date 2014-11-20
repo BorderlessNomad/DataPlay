@@ -43,6 +43,8 @@ angular.module('dataplayApp')
 		$scope.discoveries = []
 		$scope.observations = []
 
+		$scope.truncate = 40
+
 		$scope.profile = (user = '') ->
 			$scope.loading.profile = true
 

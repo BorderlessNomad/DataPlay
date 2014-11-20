@@ -21,6 +21,20 @@
 			</form>
 
 			<div class="list-group search-results">
+				<!-- <div class="well"> -->
+				<div class="row" ng-if="!isSearch">
+					<div class="col-xs-12 col-sm-10 col-sm-offset-1 well">
+						<div class="row">
+							<div class="col-xs-12">Suggested Keywords</div>
+						</div>
+						<div class="row" ng-if="suggestions.length">
+							<a ng-href="/search/{{keyw.term}}" class="col-xs-4 col-sm-3 col-dynamic" ng-repeat="keyw in suggestions">{{keyw.term}}</a>
+						</div>
+						<div class="row" ng-if="!suggestions.length">
+							<div class="col-md-12 loader-tight" ng-if="loading.suggestions" ng-include="'views/loader.html'"></div>
+						</div>
+					</div>
+				</div>
 				<div class="row">
 					<div class="list-group-item col-xs-12 col-sm-6 col-md-4 text-center" ng-repeat="chart in chartsRelated" id="{{chart.id}}">
 						<div class="media-heading">
