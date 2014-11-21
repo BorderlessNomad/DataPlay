@@ -16,7 +16,7 @@ const numdays = 30
 type TermKey struct {
 	KeyTerm  string
 	MainTerm string
-	DataFreq int    `json:"omitempty"`
+	DataFreq int `json:"omitempty"`
 }
 
 type PoliticalActivity struct {
@@ -139,7 +139,7 @@ func TermFrequency(terms []TermKey) ([]PoliticalActivity, error) {
 	for iter1.Scan(&date, &name) {
 		for _, term := range terms {
 			if name == term.KeyTerm && (date.Equal(from) || date.After(from) && date.Before(today)) { // for any key term matches in date
-				i := PaPlace(&politicalActivity, term.MainTerm) // either get place of main term or add to array if doesn't exist
+				i := PaPlace(&politicalActivity, term.MainTerm)                                   // either get place of main term or add to array if doesn't exist
 				dayindex := int((today.Round(time.Hour).Sub(date.Round(time.Hour)) / 24).Hours()) // get day index
 				politicalActivity[i].Mentions[dayindex].Y++
 			}
@@ -155,7 +155,7 @@ func TermFrequency(terms []TermKey) ([]PoliticalActivity, error) {
 	for iter2.Scan(&date, &name) {
 		for _, term := range terms {
 			if name == term.KeyTerm && (date.Equal(from) || date.After(from) && date.Before(today)) { // for any key term matches in date
-				i := PaPlace(&politicalActivity, term.MainTerm) // either get place of main term or add to array if doesn't exist
+				i := PaPlace(&politicalActivity, term.MainTerm)                                   // either get place of main term or add to array if doesn't exist
 				dayindex := int((today.Round(time.Hour).Sub(date.Round(time.Hour)) / 24).Hours()) // get day index
 				politicalActivity[i].Mentions[dayindex].Y++
 			}
@@ -302,7 +302,7 @@ func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
 	// cassandraHost := "109.231.121.96"
 	// cassandraPort := 9042
 	cassandraHost := "10.0.0.2"
-	cassandraPort := 49211
+	cassandraPort := 49164
 
 	if os.Getenv("DP_CASSANDRA_HOST") != "" {
 		cassandraHost = os.Getenv("DP_CASSANDRA_HOST")

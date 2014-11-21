@@ -25,7 +25,7 @@ func (self *Database) Setup() {
 	flag.StringVar(&self.User, "DBUser", "playgen", "The username to use while connecting to the postgresql DB")
 	flag.StringVar(&self.Pass, "DBPasswd", "aDam3ntiUm", "The password to use while connecting to the postgresql DB")
 
-	flag.StringVar(&self.Host, "DBHost", "10.0.0.2", "Where to connect to the postgresql DB")
+	flag.StringVar(&self.Host, "DBHost", "109.231.124.105", "Where to connect to the postgresql DB")
 	flag.StringVar(&self.Port, "DBPort", "5432", "Where to connect to the postgresql DB")
 
 	flag.StringVar(&self.Schema, "DBDatabase", "dataplay", "The database name to use while connecting to the postgresql DB")
@@ -33,7 +33,7 @@ func (self *Database) Setup() {
 }
 
 func (self *Database) ParseEnvironment() {
-	databaseHost := "10.0.0.2"
+	databaseHost := "109.231.124.105"
 	databasePort := "5432"
 
 	if os.Getenv("DP_DATABASE_HOST") != "" {

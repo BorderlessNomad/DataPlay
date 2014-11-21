@@ -9,12 +9,6 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
-DB_HOST="localhost"
-DB_PORT="5432"
-DB_USER="playgen"
-DB_PASSWORD="aDam3ntiUm"
-DB_NAME="dataplay"
-
 timestamp () {
 	date +"%F %T,%3N"
 }
@@ -33,6 +27,10 @@ install_postgres () {
 
 setup_database () {
 	cd # /var/lib/postgresql
+
+	DB_USER="playgen"
+	DB_PASSWORD="aDam3ntiUm"
+	DB_NAME="dataplay"
 
 	HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
 	# Create a PostgreSQL user named 'playgen' with 'aDam3ntiUm' as the password and
@@ -56,6 +54,12 @@ setup_database () {
 
 import_data () {
 	cd # /var/lib/postgresql
+
+	DB_HOST="localhost"
+	DB_PORT="5432"
+	DB_USER="playgen"
+	DB_PASSWORD="aDam3ntiUm"
+	DB_NAME="dataplay"
 
 	LASTDATE=$(date +%Y-%m-%d) # Today
 	BACKUP_HOST="109.231.121.85"
