@@ -11,7 +11,7 @@ angular.module('dataplayApp')
 	.controller 'OverviewRelatedCtrl', ['$scope', '$routeParams', 'Overview', 'PatternMatcher', ($scope, $routeParams, Overview, PatternMatcher) ->
 		$scope.allowed = ['line', 'bar', 'row', 'column', 'pie', 'bubble']
 		$scope.params = $routeParams
-		$scope.count = 6
+		$scope.count = 3
 		$scope.loading =
 			related: false
 		$scope.offset =

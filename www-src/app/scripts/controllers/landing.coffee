@@ -13,6 +13,9 @@ angular.module('dataplayApp')
 		$scope.Auth = Auth
 		$scope.username = Auth.get config.userName
 
+		$scope.loading =
+			charts: true
+
 		$scope.chartsRelated = []
 
 		$scope.relatedChart = new RelatedCharts $scope.chartsRelated
@@ -35,8 +38,12 @@ angular.module('dataplayApp')
 						data.forEach (d) ->
 							$scope.stats[d.Label] = $scope.commarise d.Value
 
+			$scope.loading.charts = true
+
 			Home.getTopRated()
 				.success (data) ->
+					$scope.loading.charts = false
+
 					if data? and data.length > 0
 						for key, chart of data
 							continue unless $scope.relatedChart.isPlotAllowed chart.type

@@ -45,16 +45,17 @@
 	</div>
 
 	<div class="row" id="graphs">
-
 		<div class="row">
 			<div class="col-xs-12"><h4>Top Rated Charts</h4></div>
 		</div>
+
 		<div class="row">
 			<div class="col-xs-12 col-sm-6 col-md-3 text-center" ng-repeat="chart in chartsRelated | limitTo: 4">
 				<span class="chtlabel chtlabel-x" ng-if="chart.labels.x">{{chart.labels.x}}</span>
 				<span class="chtlabel chtlabel-y" ng-if="chart.labels.y">{{chart.labels.y}}</span>
 				<span class="chtlabel chtlabel-y1" ng-if="chart.labels.y1">{{chart.labels.y1}}</span>
 				<span class="chtlabel chtlabel-y2" ng-if="chart.labels.y2">{{chart.labels.y2}}</span>
+
 				<div ng-if="!chart.info">
 					<div class="chart-title">{{chart.title}}</div>
 					<span ng-include="'views/charts/related/line.html'"></span>
@@ -70,6 +71,12 @@
 					<span ng-include="'views/charts/correlated/column.html'"></span>
 					<span ng-include="'views/charts/correlated/scatter.html'"></span>
 				</div>
+			</div>
+
+			<div class="col-xs-12" ng-if="chartsRelated.length < 1 || loading.charts" ng-include="'views/loader.html'"></div>
+
+			<div class="col-md-12" ng-show="chartsRelated.length < 1 || !loading.charts">
+				<p class="text-center text-muted">Sorry we are unable to find any new chart.</p>
 			</div>
 		</div>
 	</div>

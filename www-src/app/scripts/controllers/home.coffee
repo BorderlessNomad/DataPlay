@@ -34,10 +34,12 @@ angular.module('dataplayApp')
 		$scope.relatedChart.height = 175
 
 		$scope.init = ->
-			$scope.loading.charts = true;
+			$scope.loading.charts = true
+
 			Home.getAwaitingCredit()
 				.success (data) ->
-					$scope.loading.charts = false;
+					$scope.loading.charts = false
+
 					if data? and data.charts? and data.charts.length > 0
 						counter = 0
 						for key, chart of data.charts
