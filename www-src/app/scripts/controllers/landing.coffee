@@ -80,7 +80,7 @@ angular.module('dataplayApp')
 							else if chart.correlationid?
 								chartObj = new CorrelatedChart chart.type
 
-								if not chartObj.error
+								if not chartObj.error and $scope.params?.id?.length > 0
 									chartObj.info =
 										key: key
 										id: "correlated-#{$scope.params.id}-#{chart.key + $scope.offset.correlated}-#{chart.type}"
