@@ -28,4 +28,4 @@ angular.module('dataplayApp')
 		userName: "DPUser"
 		userType: "DPType"
 		api:
-			base_url: "http://dataplay.playgen.com/api"
+			base_url: "http://localhost:3000/api"
