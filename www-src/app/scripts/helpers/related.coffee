@@ -203,8 +203,12 @@ class RelatedCharts
 		columnWidth = (@width - margins.right - margins.left - totalColumnSpacing) / data.ordinals.length
 
 		chart.renderlet (chart) ->
+			width = columnWidth - (columnSpacing * 2)
+			if width < 1
+				width = 3
+
 			chart.selectAll "g.chart-body rect"
-				.attr "width", columnWidth - (columnSpacing * 2)
+				.attr "width", width
 				.attr "x", (d, i) -> (i * columnWidth) + (columnSpacing * 2)
 
 		return
