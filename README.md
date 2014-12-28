@@ -42,7 +42,7 @@ DataPlay alpha contains a rudimentary selection of datasets drawn from [data.gov
 3. Computation/API instances [`tools/deployment/app/master.sh`](tools/deployment/app/master.sh)
 4. PostgreSQL DB instance [`tools/deployment/db/postgresql.sh`](tools/deployment/db/postgresql.sh)
 5. Cassandra DB instance [`tools/deployment/db/cassandra.sh`](tools/deployment/db/cassandra.sh)
-6. Redis instance [`tools/deployment/db/redis.sh`](tools/deployment/queue/redis.sh)
+6. Redis instance [`tools/deployment/db/redis.sh`](tools/deployment/db/redis.sh)
 
 ### Monitoring:
 
