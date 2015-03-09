@@ -38,7 +38,6 @@ module.exports = (grunt) ->
 				files: ["test/spec/**/*.{coffee,litcoffee,coffee.md}"]
 				tasks: [
 					"newer:coffee:test"
-					"karma"
 				]
 
 			less:
@@ -102,9 +101,6 @@ module.exports = (grunt) ->
 			options:
 				jshintrc: ".jshintrc"
 				reporter: require "jshint-stylish"
-
-			all:
-				src: ["Gruntfile.coffee"]
 
 
 		# Empties folders to start fresh
@@ -347,12 +343,6 @@ module.exports = (grunt) ->
 			]
 
 
-		# Test settings
-		karma:
-			unit:
-				configFile: "test/karma.conf.coffee"
-				singleRun: true
-
 	# Usage:
 	#   grunt serve (For Development mode. Has LiveReload and is served directly from app root)
 	#   grunt serve:dist (For Production mode. No LiveReload and served from 'dist' root)
@@ -379,7 +369,6 @@ module.exports = (grunt) ->
 		"less"
 		"concurrent:test"
 		"connect:test"
-		"karma"
 	]
 
 	grunt.registerTask "build", [
