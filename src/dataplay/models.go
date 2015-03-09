@@ -13,7 +13,7 @@ type appError struct {
 type Activity struct {
 	ActivityId    int `gorm:"primary_key:yes"`
 	Type          string
-	Created       time.Time
+	Created       time.Time `sql:"DEFAULT:current_timestamp"`
 	Uid           int
 	DiscoveredId  int
 	ObservationId int
@@ -64,7 +64,7 @@ func (dp Departments) TableName() string {
 type Discovered struct {
 	DiscoveredId  int `gorm:"primary_key:yes"`
 	Uid           int
-	Created       time.Time
+	Created       time.Time `sql:"DEFAULT:current_timestamp"`
 	Rating        float64
 	Credited      int
 	Discredited   int
@@ -111,8 +111,8 @@ type Observation struct {
 	Rating        float64
 	Credited      int
 	Discredited   int
-	ObservationId int `gorm:"primary_key:yes"`
-	Created       time.Time
+	ObservationId int       `gorm:"primary_key:yes"`
+	Created       time.Time `sql:"DEFAULT:current_timestamp"`
 	X             string
 	Y             string
 	Flagged       bool
@@ -199,7 +199,7 @@ type Tracking struct {
 	User    int
 	Guid    string
 	Info    string
-	Created time.Time
+	Created time.Time `sql:"DEFAULT:current_timestamp"`
 }
 
 func (t Tracking) TableName() string {
@@ -244,7 +244,7 @@ type UserTokens struct {
 	Uid     int
 	Hash    string
 	Used    bool
-	Created time.Time
+	Created time.Time `sql:"DEFAULT:current_timestamp"`
 }
 
 func (ut UserTokens) TableName() string {
@@ -254,8 +254,8 @@ func (ut UserTokens) TableName() string {
 type Credit struct {
 	DiscoveredId  int
 	Uid           int
-	CreditId      int `gorm:"primary_key:yes"`
-	Created       time.Time
+	CreditId      int       `gorm:"primary_key:yes"`
+	Created       time.Time `sql:"DEFAULT:current_timestamp"`
 	ObservationId int
 	Credflag      bool
 }
