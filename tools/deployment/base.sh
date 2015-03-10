@@ -26,7 +26,7 @@ setup_ssh_keys () {
 
 update () {
 	apt-get update
-	apt-get -y upgrade
+	sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
 }
 
 install_essentials () {

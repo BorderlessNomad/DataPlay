@@ -27,9 +27,11 @@ install_redis () {
 	apt-get install -y redis-server
 
 	service redis-server restart
+}
 
+install_redis_admin () {
 	npm install -g redis-commander
-	redis-commander > redis-commander.log &
+	nohup redis-commander > redis-commander.log 2>&1&
 }
 
 update_iptables () {
@@ -46,7 +48,10 @@ setuphost
 echo "[$(timestamp)] ---- 2. Install Redis ----"
 install_redis
 
-echo "[$(timestamp)] ---- 3. Update IPTables rules ----"
+echo "[$(timestamp)] ---- 3. Install Redis Admin ----"
+install_redis_admin
+
+echo "[$(timestamp)] ---- 4. Update IPTables rules ----"
 update_iptables
 
 echo "[$(timestamp)] ---- Completed ----"

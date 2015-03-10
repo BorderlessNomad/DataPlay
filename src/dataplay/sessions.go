@@ -133,7 +133,7 @@ func randString(n int) string {
 }
 
 func GetRedisConnection() (c *redis.Client, err error) {
-	redisHost := "10.0.0.2"
+	redisHost := "109.231.124.16"
 	redisPort := "6379"
 
 	if os.Getenv("DP_REDIS_HOST") != "" {
