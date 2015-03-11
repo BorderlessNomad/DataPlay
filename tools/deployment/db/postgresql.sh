@@ -55,6 +55,8 @@ setup_database () {
 import_data () {
 	cd # /var/lib/postgresql
 
+	MAX_RETRIES="200"
+
 	DB_HOST="localhost"
 	DB_PORT="5432"
 	DB_USER="playgen"
@@ -62,7 +64,8 @@ import_data () {
 	DB_NAME="dataplay"
 
 	LASTDATE=$(date +%Y-%m-%d) # Today
-	BACKUP_HOST="109.231.121.85"
+	#BACKUP_HOST="109.231.121.85"
+	BACKUP_HOST="108.61.197.87"
 	BACKUP_PORT="8080"
 	BACKUP_DIR="postgresql/$LASTDATE-daily"
 	BACKUP_USER="playgen"
@@ -71,11 +74,16 @@ import_data () {
 
 	echo "$DB_HOST:$DB_PORT:$DB_NAME:$DB_USER:$DB_PASSWORD" > .pgpass && chmod 0600 .pgpass
 
+	i="1"
 	until axel -a "http://$BACKUP_USER:$BACKUP_PASS@$BACKUP_HOST:$BACKUP_PORT/$BACKUP_DIR/$BACKUP_FILE"; do
 		LASTDATE=$(date +%Y-%m-%d --date="$LASTDATE -1 days") # Decrement by 1 Day
 		BACKUP_DIR="postgresql/$LASTDATE-daily"
 		echo "Latest backup not available, try fetching $LASTDATE"
+		i=$[$i+1]
 	done
+	if [[ $i -ge $MAX_RETRIES ]]; then
+		echo >&2 "Error: Unable to fetch '$BACKUP_FILE' from backup server."; exit 1;
+	fi
 
 	gunzip -vk $BACKUP_FILE
 	nohup psql -h $DB_HOST -U $DB_USER -d $DB_NAME -f $DB_NAME.sql > $DB_NAME.import.log 2>&1&
