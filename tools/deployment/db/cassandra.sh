@@ -10,7 +10,7 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 IP=`ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`
-MAX_RETRIES="50"
+MAX_RETRIES="200"
 TIMEOUT="5"
 
 timestamp () {
@@ -96,7 +96,8 @@ export_variables () {
 
 import_data () {
 	LASTDATE=$(date +%Y-%m-%d) # Today
-	BACKUP_HOST="109.231.121.85"
+	#BACKUP_HOST="109.231.121.85"
+	BACKUP_HOST="108.61.197.87"
 	BACKUP_PORT="8080"
 	BACKUP_DIR="cassandra/$LASTDATE"
 	BACKUP_USER="playgen"
