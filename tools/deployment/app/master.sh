@@ -43,7 +43,6 @@ setuphost () {
 	HOSTNAME=$(hostname)
 	HOSTLOCAL="127.0.1.1"
 	echo "$HOSTLOCAL $HOSTNAME" >> /etc/hosts
-	echo "173.194.40.164 code.google.com" >> /etc/hosts # Remove this once code.google.com is Fixed
 }
 
 install_go () {
