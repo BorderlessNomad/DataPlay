@@ -31,6 +31,7 @@ setup_database () {
 	DB_USER="playgen"
 	DB_PASSWORD="aDam3ntiUm"
 	DB_NAME="dataplay"
+	DB_VERSION="9.4"
 
 	HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
 	# Create a PostgreSQL user named 'playgen' with 'aDam3ntiUm' as the password and
@@ -40,14 +41,14 @@ setup_database () {
 
 	# Adjust PostgreSQL configuration so that remote connections to the database are possible.
 	# From Private cluster & PlayGen dev IP
-	echo "host    all             all             109.231.121.0/24        md5" >> /etc/postgresql/9.3/main/pg_hba.conf
-	echo "host    all             all             109.231.122.0/24        md5" >> /etc/postgresql/9.3/main/pg_hba.conf
-	echo "host    all             all             109.231.123.0/24        md5" >> /etc/postgresql/9.3/main/pg_hba.conf
-	echo "host    all             all             109.231.124.0/24        md5" >> /etc/postgresql/9.3/main/pg_hba.conf
-	echo "host    all             all             213.122.181.2/32        md5" >> /etc/postgresql/9.3/main/pg_hba.conf
+	echo "host    all             all             109.231.121.0/24        md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf
+	echo "host    all             all             109.231.122.0/24        md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf
+	echo "host    all             all             109.231.123.0/24        md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf
+	echo "host    all             all             109.231.124.0/24        md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf
+	echo "host    all             all             213.122.181.2/32        md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf
 
-	# And add 'listen_addresses' to '/etc/postgresql/9.3/main/postgresql.conf'
-	echo "listen_addresses='*'" >> /etc/postgresql/9.3/main/postgresql.conf
+	# And add 'listen_addresses' to '/etc/postgresql/$DB_VERSION/main/postgresql.conf'
+	echo "listen_addresses='*'" >> /etc/postgresql/$DB_VERSION/main/postgresql.conf
 
 	service postgresql restart
 }
