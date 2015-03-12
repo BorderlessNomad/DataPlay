@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/codegangsta/martini"
 	"github.com/kennygrant/sanitize"
@@ -52,16 +51,11 @@ func GetTweetsHttp(res http.ResponseWriter, req *http.Request, params martini.Pa
 	for _, term := range terms {
 		v := url.Values{}
 		v.Set("count", "40") // take sample 40 tweets but will only use first best 10
-		result, err := api.GetSearch(term, v)
-		if err != nil {
-			fmt.Println(err)
-			http.Error(res, "Twitter GetSearch Error", http.StatusInternalServerError)
-			return ""
-		}
+		searchResult, _ := api.GetSearch(term, v)
 
 		tmpTweet := Tweet{}
 
-		for _, tweet := range result {
+		for _, tweet := range searchResult {
 			if tweet.User.Lang == "en" && !strings.Contains(tweet.Text, "RT @") && !tweet.PossiblySensitive && len(tweets) <= 10 {
 				tmpTweet.Created, _ = tweet.CreatedAtTime()
 
