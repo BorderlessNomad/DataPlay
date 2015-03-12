@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/codegangsta/martini"
 	"github.com/kennygrant/sanitize"
@@ -42,19 +43,25 @@ func GetTweetsHttp(res http.ResponseWriter, req *http.Request, params martini.Pa
 		return ""
 	}
 
-	anaconda.SetConsumerKey("37a5BBIeovRJ6eit5Bv2HFCJV")
-	anaconda.SetConsumerSecret("IyclAamSNVeCZkrOypNpCwMZYpZX6RMbRlN0TdL1NjghhyKlSU")
-	api := anaconda.NewTwitterApi("2834288205-7noj46EGdEDsXRu9wRou4hEC7lkM3ptNC3bktvo", "6LGn5IcZcWGEfSvpGU6rzfp4rqEPc8GVRM23qFHJoJsOg")
+	anaconda.SetConsumerKey("okJJRSM9oHTyuYY3ePoYbjtXA")
+	anaconda.SetConsumerSecret("zj6iaxrJzwY2B9HxiZk7atdo2yQxGheJSoUiIq7Z8fQ7yut7Kk")
+	api := anaconda.NewTwitterApi("73992277-Bf13OY4Nn0MmI9amLyDcfUe57MXc2tk6YdQ0eLiVA", "VZ3JUSdgG8NkZvmmnI7oiLHINlCLiTZUVBKJv1VDdqK4Q")
 	terms := strings.Split(params["searchterms"], "_")
 	tweets := []Tweet{}
 
 	for _, term := range terms {
 		v := url.Values{}
 		v.Set("count", "40") // take sample 40 tweets but will only use first best 10
-		searchResult, _ := api.GetSearch(term, v)
+		result, err := api.GetSearch(term, v)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(res, "Twitter GetSearch Error", http.StatusInternalServerError)
+			return ""
+		}
+
 		tmpTweet := Tweet{}
 
-		for _, tweet := range searchResult {
+		for _, tweet := range result {
 			if tweet.User.Lang == "en" && !strings.Contains(tweet.Text, "RT @") && !tweet.PossiblySensitive && len(tweets) <= 10 {
 				tmpTweet.Created, _ = tweet.CreatedAtTime()
 
