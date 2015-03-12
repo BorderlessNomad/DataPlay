@@ -55,7 +55,7 @@ func GetTweetsHttp(res http.ResponseWriter, req *http.Request, params martini.Pa
 
 		tmpTweet := Tweet{}
 
-		for _, tweet := range searchResult {
+		for _, tweet := range searchResult.Statuses {
 			if tweet.User.Lang == "en" && !strings.Contains(tweet.Text, "RT @") && !tweet.PossiblySensitive && len(tweets) <= 10 {
 				tmpTweet.Created, _ = tweet.CreatedAtTime()
 
