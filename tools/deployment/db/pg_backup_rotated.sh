@@ -4,13 +4,13 @@
 #
 ###
 # # Daily backup of PostgreSQL data on 22:30
-# 30      22      *       *       *       PGPASSWORD=aDam3ntiUm /var/lib/postgresql/pg_backup_rotated.sh >> /var/lib/postgresql/output.log
+# 30      22      *       *       *       PGPASSWORD=aDam3ntiUm /var/lib/postgresql/pg_backup_rotated.sh >> /var/lib/postgresql/output.log &
 #
-# # Sync it with Backup server
+# # Sync it with Backup servers
 # # VULTR
-# 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r --delete /var/lib/postgresql/backups/ root@108.61.197.87:~/backups/postgresql/ >> /var/lib/postgresql/rsync.vultr.log
+# 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r /var/lib/postgresql/backups/ root@108.61.197.87:~/backups/postgresql/ >> /var/lib/postgresql/rsync.vultr.log
 # # Flexiant
-# 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r --delete /var/lib/postgresql/backups/ ubuntu@109.231.121.85:~/backups/postgresql/ >> /var/lib/postgresql/rsync.flexiant.log
+# 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r /var/lib/postgresql/backups/ ubuntu@109.231.122.208:~/backups/postgresql/ >> /var/lib/postgresql/rsync.flexiant.log
 ###
 
 ###########################
