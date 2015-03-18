@@ -6,11 +6,11 @@
 # # Daily backup of Cassandra data on 22:30
 # 30      22      *       *       *       /root/cassandra_backup.sh >> /root/cassandra_backup.log
 #
-# # Sync it with Backup server
+# # Sync it with Backup servers
 # # VULTR
 # 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r /var/lib/cassandra/backups/ root@108.61.197.87:~/backups/cassandra/ >> /var/lib/cassandra/rsync.vultr.log
 # # Flexiant
-# 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r /var/lib/cassandra/backups/ ubuntu@109.231.121.85:~/backups/cassandra/ >> /var/lib/cassandra/rsync.flexiant.log
+# 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r /var/lib/cassandra/backups/ ubuntu@109.231.122.208:~/backups/cassandra/ >> /var/lib/cassandra/rsync.flexiant.log
 ###
 #	1. run $ nodetool snapshot dp (using CRON)
 #		output is,

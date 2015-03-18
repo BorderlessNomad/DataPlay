@@ -64,8 +64,8 @@ import_data () {
 	DB_NAME="dataplay"
 
 	LASTDATE=$(date +%Y-%m-%d) # Today
-	#BACKUP_HOST="109.231.121.85"
-	BACKUP_HOST="108.61.197.87"
+	BACKUP_HOST="109.231.122.208"
+	#BACKUP_HOST="108.61.197.87"
 	BACKUP_PORT="8080"
 	BACKUP_DIR="postgresql/$LASTDATE-daily"
 	BACKUP_USER="playgen"
