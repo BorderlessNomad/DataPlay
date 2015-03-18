@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Cassandra source backup script (should run as CRON)
+# Cassandra source backup script (should run as ROOT)
 #
 ###
 # # Daily backup of Cassandra data on 22:30
@@ -12,7 +12,7 @@
 # # Flexiant
 # 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r /var/lib/cassandra/backups/ ubuntu@109.231.122.208:~/backups/cassandra/ >> /var/lib/cassandra/rsync.flexiant.log
 ###
-#	1. run $ nodetool snapshot dp (using CRON)
+#	1. run $ nodetool snapshot dp (using ROOT)
 #		output is,
 #			Requested creating snapshot(s) for [dp] with snapshot name [1413378613098]
 #			Snapshot directory: 1413378613098
@@ -30,7 +30,7 @@ timestamp () {
 
 echo "[$(timestamp)] ---- Started ----"
 
-HOST="172.17.0.78" # Local
+HOST=`ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`
 KEYSPACE="dataplay"
 NODETOOL=$(nodetool -h $HOST snapshot $KEYSPACE)
 TIMESTAMP=${NODETOOL#*: }
