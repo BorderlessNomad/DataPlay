@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"strconv"
 	"time"
@@ -32,7 +33,7 @@ var MonitoringRedisDB int = 1
 
 func StoreMonitoringData(httpEndPoint, httpRequest, httpUrl, httpMethod string, httpCode int, executionTime int64) (e error) {
 	timeNow, nanoTime := GetUnixNanoTimeStamp()
-	host, _ := GetHostName()
+	host, _ := GetLocalIp()
 
 	monitoringData := MonitoringData{}
 	monitoringData.Hash = nanoTime
@@ -134,4 +135,30 @@ func GetHostName() (name string, err error) {
 	name, err = os.Hostname()
 
 	return
+}
+
+/**
+ * @brief Get local IP address
+ * @details Loop through all network interfaces and get local
+ * IP address of the host
+ */
+func GetLocalIp() (address string, err error) {
+	addrs, err := net.InterfaceAddrs()
+
+	if err != nil {
+		return GetHostName()
+	}
+
+	for _, address := range addrs {
+		fmt.Println("GetLocalIp address", address)
+		// check the address type and if it is not a loopback the display it
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP.String(), nil
+			}
+
+		}
+	}
+
+	return GetHostName()
 }
