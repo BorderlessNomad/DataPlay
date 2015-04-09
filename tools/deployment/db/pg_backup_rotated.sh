@@ -2,6 +2,11 @@
 
 # PostgreSQL source backup script (should run as CRON under user 'postgres')
 #
+# Copy ssh keys before RSYNC
+# ssh-keygen
+# ssh-copy-id -i ~/.ssh/id_rsa.pub ubuntu@109.231.122.208
+# ssh-copy-id -i ~/.ssh/id_rsa.pub ubuntu@108.61.197.87
+#
 ###
 # # Daily backup of PostgreSQL data on 22:30
 # 30      22      *       *       *       PGPASSWORD=aDam3ntiUm /var/lib/postgresql/pg_backup_rotated.sh >> /var/lib/postgresql/output.log &

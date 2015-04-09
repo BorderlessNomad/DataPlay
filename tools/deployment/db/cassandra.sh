@@ -148,6 +148,8 @@ import_data () {
 		mv $SOURCE_DIR/$table/* $DATA_DIR/$KEYSPACE/$table_name-*
 	done
 
+	chown -R cassandra:cassandra $DATA_DIR/$KEYSPACE # Fix permissions
+
 	rm -rf $LOG_DIR/*.log
 
 	restart_cassandra

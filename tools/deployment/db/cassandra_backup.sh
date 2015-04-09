@@ -1,6 +1,11 @@
 #!/bin/bash
 
-# Cassandra source backup script (should run as ROOT)
+# Cassandra source backup script (should run as 'root')
+#
+# Copy ssh keys before RSYNC
+# ssh-keygen
+# ssh-copy-id -i ~/.ssh/id_rsa.pub ubuntu@109.231.122.208
+# ssh-copy-id -i ~/.ssh/id_rsa.pub ubuntu@108.61.197.87
 #
 ###
 # # Daily backup of Cassandra data on 22:30
