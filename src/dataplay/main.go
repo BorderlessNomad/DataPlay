@@ -91,6 +91,7 @@ func initApiServer() {
 	}))
 
 	m.Get("/api/ping", func(res http.ResponseWriter, req *http.Request) string { return "pong" })
+	m.Get("/api/info", GetPerformanceInfo)
 
 	m.Delete("/api/admin/observations/:id", DeleteObservationHttp)
 	m.Delete("/api/logout", HandleLogout)

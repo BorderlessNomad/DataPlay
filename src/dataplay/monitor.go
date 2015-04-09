@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"math"
 	"net"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -29,6 +32,7 @@ type MonitoringData struct {
 
 var MonitoringCollection []MonitoringData
 var MonitoringLastFlush int
+var MonitoringEndPoint string = "api"
 var MonitoringRedisDB int = 1
 
 func StoreMonitoringData(httpEndPoint, httpRequest, httpUrl, httpMethod string, httpCode int, executionTime int64) (e error) {
@@ -66,7 +70,7 @@ func FlushMonitoringData(lastFlush int64) error {
 
 	defer c.Close()
 
-	r := c.Cmd("SELECT", MonitoringRedisDB) // DB 1
+	r := c.Cmd("SELECT", MonitoringRedisDB)
 	if r.Err != nil {
 		return fmt.Errorf("Could not SELECT DB %d from Redis.", MonitoringRedisDB)
 	}
@@ -118,6 +122,59 @@ func AsyncMonitoringPush() {
 			}
 		}
 	}()
+}
+
+func GetPerformanceInfo(res http.ResponseWriter, req *http.Request) string {
+	endPoint := MonitoringEndPoint
+
+	c, err := GetRedisConnection()
+	if err != nil {
+		Logger.Println("Could not connect to Redis.", err)
+		http.Error(res, "Could not connect to Redis.", http.StatusInternalServerError)
+		return ""
+	}
+
+	defer c.Close()
+
+	Logger.Println("SELECT DB", MonitoringRedisDB)
+	r := c.Cmd("SELECT", MonitoringRedisDB)
+	if r.Err != nil {
+		Logger.Println("Could not select database from Redis.", r.Err)
+		http.Error(res, "Could not select database from Redis.", http.StatusInternalServerError)
+		return ""
+	}
+
+	Logger.Println("SORT", endPoint, "LIMIT", 0, 100, "GET", endPoint+":*->duration", "BY", endPoint+":*->timestamp", "DESC")
+	sortedData, err := c.Cmd("SORT", endPoint, "LIMIT", 0, 100, "GET", endPoint+":*->duration", "BY", endPoint+":*->timestamp", "DESC").List()
+	if err != nil {
+		Logger.Println("Could not select keys from Redis.", err)
+		http.Error(res, "Could not select keys from Redis.", http.StatusInternalServerError)
+		return ""
+	}
+
+	data := make([]float64, 0)
+	for _, val := range sortedData {
+		v, _ := strconv.ParseFloat(val, 10)
+		data = append(data, v)
+	}
+
+	mean := Mean(data)
+	variation := Variation(data)
+	standev := StandDev(data)
+
+	info := map[string]interface{}{
+		"endpoint":  endPoint,
+		"mean":      math.Ceil(mean / 1000),
+		"standev":   math.Ceil(standev / 1000),
+		"variation": variation,
+		"timestamp": time.Now(),
+	}
+
+	b, _ := json.Marshal(info)
+
+	Logger.Println("Data:", string(b))
+
+	return string(b)
 }
 
 func GetUnixNanoTimeStamp() (time.Time, int64) {

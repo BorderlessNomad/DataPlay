@@ -159,6 +159,7 @@ func Visual(xBuckets []float64, yBuckets []float64, bucketRange []FromTo) float6
 func Variation(x []float64) float64 {
 	standDev := StandDev(x)
 	mean := Mean(x)
+
 	return standDev / mean
 }
 
@@ -176,6 +177,7 @@ func StandDev(x []float64) float64 {
 	for _, v := range x {
 		sumx += math.Pow((v - mean), 2)
 	}
+
 	return math.Sqrt(sumx / n)
 }
 
@@ -192,6 +194,7 @@ func Mean(x []float64) float64 {
 	for _, v := range x {
 		sumx += v
 	}
+
 	return sumx / n
 }
 
