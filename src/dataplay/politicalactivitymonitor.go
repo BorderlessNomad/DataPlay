@@ -299,10 +299,8 @@ func PopularPoliticalActivity() ([2]Popular, error) {
 }
 
 func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
-	// cassandraHost := "109.231.121.96"
-	// cassandraPort := 9042
-	cassandraHost := "10.0.0.2"
-	cassandraPort := 49164
+	cassandraHost := "109.231.122.107"
+	cassandraPort := 9042
 
 	if os.Getenv("DP_CASSANDRA_HOST") != "" {
 		cassandraHost = os.Getenv("DP_CASSANDRA_HOST")

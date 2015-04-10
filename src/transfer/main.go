@@ -118,7 +118,7 @@ func DataTransfer() {
 }
 
 func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
-	cassandraHost := "109.231.121.96"
+	cassandraHost := "109.231.122.107"
 	cassandraPort := 9042
 
 	if os.Getenv("DP_CASSANDRA_HOST") != "" {
