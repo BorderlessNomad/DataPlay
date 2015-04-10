@@ -5,7 +5,7 @@
 # Copy ssh keys before RSYNC
 # ssh-keygen
 # ssh-copy-id -i ~/.ssh/id_rsa.pub ubuntu@109.231.122.208
-# ssh-copy-id -i ~/.ssh/id_rsa.pub ubuntu@108.61.197.87
+# ssh-copy-id -i ~/.ssh/id_rsa.pub root@108.61.197.87
 #
 ###
 # # Daily backup of PostgreSQL data on 22:30

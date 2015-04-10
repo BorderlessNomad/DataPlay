@@ -5,7 +5,7 @@
 # Copy ssh keys before RSYNC
 # ssh-keygen
 # ssh-copy-id -i ~/.ssh/id_rsa.pub ubuntu@109.231.122.208
-# ssh-copy-id -i ~/.ssh/id_rsa.pub ubuntu@108.61.197.87
+# ssh-copy-id -i ~/.ssh/id_rsa.pub root@108.61.197.87
 #
 ###
 # # Daily backup of Cassandra data on 22:30
@@ -36,8 +36,9 @@ timestamp () {
 echo "[$(timestamp)] ---- Started ----"
 
 HOST=`ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`
+LOCAL="localhost"
 KEYSPACE="dataplay"
-NODETOOL=$(nodetool -h $HOST snapshot $KEYSPACE)
+NODETOOL=$(nodetool -h $LOCAL snapshot $KEYSPACE)
 TIMESTAMP=${NODETOOL#*: }
 SOURCE="/var/lib/cassandra/data/$KEYSPACE"
 TABLES=`ls -l $SOURCE | egrep '^d' | awk '{print $9}'`
