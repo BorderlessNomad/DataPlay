@@ -5,6 +5,7 @@ import (
 	"github.com/fzzy/radix/redis"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -132,9 +133,10 @@ func randString(n int) string {
 	return string(bytes)
 }
 
-func GetRedisConnection() (c *redis.Client, err error) {
+func GetRedisConnection() (client *redis.Client, err error) {
 	redisHost := "109.231.124.16"
 	redisPort := "6379"
+	redisTimeout := time.Duration(10) * time.Second
 
 	if os.Getenv("DP_REDIS_HOST") != "" {
 		redisHost = os.Getenv("DP_REDIS_HOST")
@@ -144,8 +146,13 @@ func GetRedisConnection() (c *redis.Client, err error) {
 		redisPort = os.Getenv("DP_REDIS_PORT")
 	}
 
-	Logger.Println("Connecting to Redis on Host %s, Port %s...", redisHost, redisPort)
-	c, err = redis.DialTimeout("tcp", redisHost+":"+redisPort, time.Duration(10)*time.Second)
+	if os.Getenv("DP_REDIS_TIMEOUT") != "" {
+		timeout, _ := strconv.Atoi(os.Getenv("DP_REDIS_TIMEOUT"))
+		redisTimeout = time.Duration(timeout) * time.Second
+	}
+
+	Logger.Println("Connecting to Redis " + redisHost + ":" + redisPort + " with " + strconv.FormatFloat(redisTimeout.Seconds(), 'f', -1, 64) + " secs timeout...")
+	client, err = redis.DialTimeout("tcp", redisHost+":"+redisPort, redisTimeout)
 
 	if err != nil {
 		Logger.Println("Could not connect to the redis server.")
@@ -154,5 +161,5 @@ func GetRedisConnection() (c *redis.Client, err error) {
 
 	Logger.Println("Connected!")
 
-	return c, nil
+	return client, nil
 }

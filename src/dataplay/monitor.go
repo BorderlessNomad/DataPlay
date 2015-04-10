@@ -27,6 +27,7 @@ import (
 type MonitoringData struct {
 	Hash int64
 	Url  string
+	Host string
 	Data map[string]interface{}
 }
 
@@ -42,6 +43,7 @@ func StoreMonitoringData(httpEndPoint, httpRequest, httpUrl, httpMethod string, 
 	monitoringData := MonitoringData{}
 	monitoringData.Hash = nanoTime
 	monitoringData.Url = httpEndPoint
+	monitoringData.Host = host
 	monitoringData.Data = map[string]interface{}{
 		"endpoint":  httpEndPoint,
 		"request":   httpRequest,
@@ -81,10 +83,25 @@ func FlushMonitoringData(lastFlush int64) error {
 				break
 			}
 
+			/**
+			 * api
+			 * 	1428676155432861500
+			 * 	1428676155722498000
+			 * 	1428676155981220800
+			 * 	1428677145605146200
+			 *
+			 * 1.2.3.4
+			 * 	1.2.3.4: 1428676155432861500
+			 * 	1.2.3.4: 1428676155981220800
+			 *
+			 * 5.6.7.8
+			 * 	5.6.7.8: 1428676155722498000
+			 * 	5.6.7.8: 1428677145605146200
+			 */
 			hash := strconv.FormatInt(monitor.Hash, 10)
 
 			// Store hash into DB
-			r = c.Cmd("HMSET", monitor.Url+":"+hash, monitor.Data)
+			r = c.Cmd("HMSET", monitor.Host+":"+hash, monitor.Data)
 			if r.Err != nil {
 				return fmt.Errorf("Could not store HMSET in Redis.")
 			}
@@ -126,6 +143,7 @@ func AsyncMonitoringPush() {
 
 func GetPerformanceInfo(res http.ResponseWriter, req *http.Request) string {
 	endPoint := MonitoringEndPoint
+	host, _ := GetLocalIp()
 
 	c, err := GetRedisConnection()
 	if err != nil {
@@ -144,8 +162,9 @@ func GetPerformanceInfo(res http.ResponseWriter, req *http.Request) string {
 		return ""
 	}
 
-	Logger.Println("SORT", endPoint, "LIMIT", 0, 100, "GET", endPoint+":*->duration", "BY", endPoint+":*->timestamp", "DESC")
-	sortedData, err := c.Cmd("SORT", endPoint, "LIMIT", 0, 100, "GET", endPoint+":*->duration", "BY", endPoint+":*->timestamp", "DESC").List()
+	// SORT api LIMIT 0 100 GET 5.6.7.8:*->duration BY 5.6.7.8:*->timestamp DESC
+	Logger.Println("SORT", endPoint, "LIMIT", 0, 100, "GET", host+":*->duration", "BY", host+":*->timestamp", "DESC")
+	sortedData, err := c.Cmd("SORT", endPoint, "LIMIT", 0, 100, "GET", host+":*->duration", "BY", host+":*->timestamp", "DESC").List()
 	if err != nil {
 		Logger.Println("Could not select keys from Redis.", err)
 		http.Error(res, "Could not select keys from Redis.", http.StatusInternalServerError)
@@ -155,7 +174,9 @@ func GetPerformanceInfo(res http.ResponseWriter, req *http.Request) string {
 	data := make([]float64, 0)
 	for _, val := range sortedData {
 		v, _ := strconv.ParseFloat(val, 10)
-		data = append(data, v)
+		if v > 0 {
+			data = append(data, v)
+		}
 	}
 
 	mean := Mean(data)
@@ -163,6 +184,7 @@ func GetPerformanceInfo(res http.ResponseWriter, req *http.Request) string {
 	standev := StandDev(data)
 
 	info := map[string]interface{}{
+		"host":      host,
 		"endpoint":  endPoint,
 		"mean":      math.Ceil(mean / 1000),
 		"standev":   math.Ceil(standev / 1000),
@@ -207,7 +229,6 @@ func GetLocalIp() (address string, err error) {
 	}
 
 	for _, address := range addrs {
-		fmt.Println("GetLocalIp address", address)
 		// check the address type and if it is not a loopback the display it
 		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 			if ipnet.IP.To4() != nil {
