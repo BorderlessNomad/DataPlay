@@ -19,60 +19,64 @@ setuphost () {
 	echo "$HOSTLOCAL $HOSTNAME" >> /etc/hosts
 }
 
-restart_postgres () {
-	systemctl restart postgresql-9.4
-}
+install_pgpool () {
+	DB_USER="playgen"
+	DB_PASSWORD="aDam3ntiUm"
 
-install_postgres () {
-	rpm -Uvh http://yum.postgresql.org/9.4/redhat/rhel-7-x86_64/pgdg-centos94-9.4-1.noarch.rpm
-	yum update
-	yum upgrade -y
-	yum install -y postgresql94
+	yum install -y http://yum.postgresql.org/9.4/redhat/rhel-7-x86_64/pgdg-centos94-9.4-1.noarch.rpm
+	yum install -y http://www.pgpool.net/yum/rpms/3.4/redhat/rhel-7-x86_64/pgpool-II-release-3.4-1.noarch.rpm
+
+	yum update -y
+
+	yum install -y pgpool-II-94 pgpool-II-94-extensions postgresql94
 
 	/usr/pgsql-9.4/bin/postgresql94-setup initdb
 
 	systemctl start postgresql-9.4
 	systemctl enable postgresql-9.4
-}
-
-setup_database () {
-	cd # /var/lib/postgresql
-
-	DB_USER="playgen"
-	DB_PASSWORD="aDam3ntiUm"
-	DB_NAME="dataplay"
-	DB_VERSION="9.4"
-
-	# Install PostgreSQL Adminpack
-	psql --command "CREATE EXTENSION adminpack;"
-
-	# Create a PostgreSQL user named 'playgen' with 'aDam3ntiUm' as the password and
-	# then create a database 'dataplay' owned by the 'playgen' role.
-	psql --command "CREATE USER $DB_USER WITH SUPERUSER PASSWORD '$DB_PASSWORD';" && \
-	createdb -O $DB_USER $DB_NAME
-
-	# Adjust PostgreSQL configuration so that remote connections to the database are possible.
-	# From Private cluster & PlayGen dev IP
-	echo "host    all             all             109.231.121.0/24        md5" >> /var/lib/pgsql/$DB_VERSION/data/pg_hba.conf
-	echo "host    all             all             109.231.122.0/24        md5" >> /var/lib/pgsql/$DB_VERSION/data/pg_hba.conf
-	echo "host    all             all             109.231.123.0/24        md5" >> /var/lib/pgsql/$DB_VERSION/data/pg_hba.conf
-	echo "host    all             all             109.231.124.0/24        md5" >> /var/lib/pgsql/$DB_VERSION/data/pg_hba.conf
-	echo "host    all             all             213.122.181.2/32        md5" >> /var/lib/pgsql/$DB_VERSION/data/pg_hba.conf
-
-	# And add 'listen_addresses' to '/etc/postgresql/$DB_VERSION/main/postgresql.conf'
-	echo "listen_addresses = '*'" >> /var/lib/pgsql/$DB_VERSION/data/postgresql.conf
-	echo "port = 5432" >> /var/lib/pgsql/$DB_VERSION/data/postgresql.conf
-}
-
-install_pgpool () {
-	DB_USER="playgen"
-	DB_PASSWORD="aDam3ntiUm"
-
-	yum install -y http://www.pgpool.net/yum/rpms/3.4/redhat/rhel-7-x86_64/pgpool-II-release-3.4-1.noarch.rpm
-	yum install -y pgpool-II-94 pgpool-II-94-extensions
 
 	cp /etc/pgpool-II-94/pcp.conf.sample /etc/pgpool-II-94/pcp.conf
 	echo "$DB_USER:`pg_md5 $DB_PASSWORD`" >> /etc/pgpool-II-94/pcp.conf
+
+	cp /etc/pgpool-II-94/pgpool.conf.sample /etc/pgpool-II-94/pgpool.conf
+	# - pgpool Connection Settings -
+	sed -i "s/^listen_addresses = .localhost./listen_addresses = '*'/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^port = .*/port = 5432/" /etc/pgpool-II-94/pgpool.conf
+	# - Where to log -
+	sed -i "s/^log_destination = .stderr./log_destination = 'syslog'/" /etc/pgpool-II-94/pgpool.conf
+	# - What to log -
+	sed -i "s/^log_connections = off/log_connections = on/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^log_hostname =.*/log_hostname = on/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^log_statement = off/log_statement = on/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^log_per_node_statement = off/log_per_node_statement = on/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^log_standby_delay = 'none'/log_standby_delay = 'always'/" /etc/pgpool-II-94/pgpool.conf
+	# - Syslog specific -
+	sed -i "s/^syslog_facility =.*/syslog_facility = 'daemon.info'/" /etc/pgpool-II-94/pgpool.conf
+	# MASTER/SLAVE MODE
+	sed -i "s/^master_slave_mode = off/master_slave_mode = on/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^master_slave_sub_mode =.*/master_slave_sub_mode = 'stream'/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^sr_check_period = 0/sr_check_period = 10/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^sr_check_user =.*/sr_check_user = '$DB_USER'/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^sr_check_password =.*/sr_check_password = '$DB_PASSWORD'/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^delay_threshold = 0/delay_threshold = 10000000/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^enable_pool_hba = off/enable_pool_hba = on/" /etc/pgpool-II-94/pgpool.conf
+	# HEALTH CHECK
+	sed -i "s/^health_check_period =.*/health_check_period = 10/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^health_check_user =.*/health_check_user = 'admin'/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^health_check_password =.*/health_check_password = 'password123'/" /etc/pgpool-II-94/pgpool.conf
+	# WATCHDOG
+	sed -i "s/^use_watchdog =.*/use_watchdog = on/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^delegate_IP =.*/delegate_IP = '10.32.243.250'/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^netmask 255.255.255.0/netmask 255.255.255.128/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^heartbeat_device0 =.*/heartbeat_device0 = 'eth0'/" /etc/pgpool-II-94/pgpool.conf
+	# LOAD BALANCING MODE
+	sed -i "s/^load_balance_mode = off/load_balance_mode = on/" /etc/pgpool-II-94/pgpool.conf
+	# FAILOVER AND FAILBACK
+	sed -i "s@^failover_command = ''@failover_command = '/etc/pgpool-II-94/failover_stream.sh %d %H'@"
+	# ONLINE RECOVERY
+	sed -i "s/^recovery_user = 'nobody'/recovery_user = 'admin'/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^recovery_password = ''/recovery_password = 'password123'/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^recovery_1st_stage_command = ''/recovery_1st_stage_command = 'basebackup.sh'/" /etc/pgpool-II-94/pgpool.conf
 
 	cp /etc/pgpool-II-94/pool_hba.conf.sample /etc/pgpool-II-94/pool_hba.conf
 	echo "host    all         all         0.0.0.0/0             md5" >> /etc/pgpool-II-94/pool_hba.conf
@@ -92,16 +96,10 @@ update_iptables () {
 echo "[$(timestamp)] ---- 1. Setup Host ----"
 setuphost
 
-echo "[$(timestamp)] ---- 2. Install PostgresSQL ----"
-install_postgres
+echo "[$(timestamp)] ---- 2. Install pgpool-II ----"
+install_pgpool
 
-echo "[$(timestamp)] ---- 3. Setup Database ----"
-su postgres -c "$(typeset -f setup_database); setup_database" # Run function as user 'postgres'
-
-echo "[$(timestamp)] ---- 4. Restart PostgresSQL ----"
-restart_postgres
-
-echo "[$(timestamp)] ---- 5. Update IPTables rules ----"
+echo "[$(timestamp)] ---- 3. Update IPTables rules ----"
 update_iptables
 
 echo "[$(timestamp)] ---- Completed ----"
