@@ -39,32 +39,31 @@ install_pgpool () {
 	echo "$DB_USER:`pg_md5 $DB_PASSWORD`" >> /etc/pgpool-II-94/pcp.conf
 
 	cp /etc/pgpool-II-94/pgpool.conf.sample /etc/pgpool-II-94/pgpool.conf
-	# - pgpool Connection Settings -
+	# Connections
 	sed -i "s/^listen_addresses = .localhost./listen_addresses = '*'/" /etc/pgpool-II-94/pgpool.conf
 	sed -i "s/^port = .*/port = 5432/" /etc/pgpool-II-94/pgpool.conf
-	# - Where to log -
+	# Logs
 	sed -i "s/^log_destination = .stderr./log_destination = 'syslog'/" /etc/pgpool-II-94/pgpool.conf
-	# - What to log -
 	sed -i "s/^log_connections = off/log_connections = on/" /etc/pgpool-II-94/pgpool.conf
 	sed -i "s/^log_hostname =.*/log_hostname = on/" /etc/pgpool-II-94/pgpool.conf
 	sed -i "s/^log_statement = off/log_statement = on/" /etc/pgpool-II-94/pgpool.conf
 	sed -i "s/^log_per_node_statement = off/log_per_node_statement = on/" /etc/pgpool-II-94/pgpool.conf
 	sed -i "s/^log_standby_delay = 'none'/log_standby_delay = 'always'/" /etc/pgpool-II-94/pgpool.conf
-	# - Syslog specific -
 	sed -i "s/^syslog_facility =.*/syslog_facility = 'daemon.info'/" /etc/pgpool-II-94/pgpool.conf
-	# MASTER/SLAVE MODE
+	# Health check
+	sed -i "s/^health_check_period =.*/health_check_period = 10/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^health_check_user =.*/health_check_user = 'admin'/" /etc/pgpool-II-94/pgpool.conf
+	sed -i "s/^health_check_password =.*/health_check_password = 'password123'/" /etc/pgpool-II-94/pgpool.conf
+	# Pools
+	sed -i "s/^enable_pool_hba = off/enable_pool_hba = on/" /etc/pgpool-II-94/pgpool.conf
+	# Master/Slave Mode + Streaming Replication
 	sed -i "s/^master_slave_mode = off/master_slave_mode = on/" /etc/pgpool-II-94/pgpool.conf
 	sed -i "s/^master_slave_sub_mode =.*/master_slave_sub_mode = 'stream'/" /etc/pgpool-II-94/pgpool.conf
 	sed -i "s/^sr_check_period = 0/sr_check_period = 10/" /etc/pgpool-II-94/pgpool.conf
 	sed -i "s/^sr_check_user =.*/sr_check_user = '$DB_USER'/" /etc/pgpool-II-94/pgpool.conf
 	sed -i "s/^sr_check_password =.*/sr_check_password = '$DB_PASSWORD'/" /etc/pgpool-II-94/pgpool.conf
 	sed -i "s/^delay_threshold = 0/delay_threshold = 10000000/" /etc/pgpool-II-94/pgpool.conf
-	sed -i "s/^enable_pool_hba = off/enable_pool_hba = on/" /etc/pgpool-II-94/pgpool.conf
-	# HEALTH CHECK
-	sed -i "s/^health_check_period =.*/health_check_period = 10/" /etc/pgpool-II-94/pgpool.conf
-	sed -i "s/^health_check_user =.*/health_check_user = 'admin'/" /etc/pgpool-II-94/pgpool.conf
-	sed -i "s/^health_check_password =.*/health_check_password = 'password123'/" /etc/pgpool-II-94/pgpool.conf
-	# WATCHDOG
+	# Watchdog
 	sed -i "s/^use_watchdog =.*/use_watchdog = on/" /etc/pgpool-II-94/pgpool.conf
 	sed -i "s/^delegate_IP =.*/delegate_IP = '10.32.243.250'/" /etc/pgpool-II-94/pgpool.conf
 	sed -i "s/^netmask 255.255.255.0/netmask 255.255.255.128/" /etc/pgpool-II-94/pgpool.conf
