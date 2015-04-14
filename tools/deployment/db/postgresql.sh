@@ -37,7 +37,6 @@ setup_database () {
 	DB_NAME="dataplay"
 	DB_VERSION="9.4"
 
-	HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
 	# Create a PostgreSQL user named 'playgen' with 'aDam3ntiUm' as the password and
 	# then create a database 'dataplay' owned by the 'playgen' role.
 	psql --command "CREATE USER $DB_USER WITH SUPERUSER PASSWORD '$DB_PASSWORD';" && \
