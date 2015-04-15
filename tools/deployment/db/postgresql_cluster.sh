@@ -28,7 +28,7 @@ install_pgpool () {
 
 	yum update -y
 
-	yum install -y pgpool-II-94 pgpool-II-94-extensions postgresql94
+	yum install -y wget pgpool-II-94 pgpool-II-94-extensions postgresql94
 
 	/usr/pgsql-9.4/bin/postgresql94-setup initdb
 
@@ -38,35 +38,48 @@ install_pgpool () {
 	cp /etc/pgpool-II-94/pcp.conf.sample /etc/pgpool-II-94/pcp.conf
 	echo "$DB_USER:`pg_md5 $DB_PASSWORD`" >> /etc/pgpool-II-94/pcp.conf
 
-	cp /etc/pgpool-II-94/pgpool.conf.sample /etc/pgpool-II-94/pgpool.conf
-	# Connections
-	sed -i "s/^listen_addresses = .localhost./listen_addresses = '*'/" /etc/pgpool-II-94/pgpool.conf
-	sed -i "s/^port = .*/port = 9999/" /etc/pgpool-II-94/pgpool.conf
-	# Logs
-	sed -i "s/^log_destination = .stderr./log_destination = 'syslog'/" /etc/pgpool-II-94/pgpool.conf
-	sed -i "s/^log_connections = off/log_connections = on/" /etc/pgpool-II-94/pgpool.conf
-	sed -i "s/^log_hostname =.*/log_hostname = on/" /etc/pgpool-II-94/pgpool.conf
-	sed -i "s/^log_statement = off/log_statement = on/" /etc/pgpool-II-94/pgpool.conf
-	sed -i "s/^log_per_node_statement = off/log_per_node_statement = on/" /etc/pgpool-II-94/pgpool.conf
-	sed -i "s/^log_standby_delay = 'none'/log_standby_delay = 'always'/" /etc/pgpool-II-94/pgpool.conf
-	sed -i "s/^syslog_facility =.*/syslog_facility = 'daemon.info'/" /etc/pgpool-II-94/pgpool.conf
-	# Health check
-	sed -i "s/^health_check_period =.*/health_check_period = 10/" /etc/pgpool-II-94/pgpool.conf
-	sed -i 's/^health_check_user =.*/health_check_user = '\'"$DB_USER"\''/' /etc/pgpool-II-94/pgpool.conf
-	sed -i 's/^health_check_password =.*/health_check_password = '\'"$DB_PASSWORD"\''/' /etc/pgpool-II-94/pgpool.conf
-	# Pools
-	sed -i "s/^enable_pool_hba = off/enable_pool_hba = on/" /etc/pgpool-II-94/pgpool.conf
-	# Load Balancing Mode
-	sed -i "s/^load_balance_mode = off/load_balance_mode = on/" /etc/pgpool-II-94/pgpool.conf
-	# Replication Mode
-	sed -i "s/^replication_mode = off/replication_mode = on/" /etc/pgpool-II-94/pgpool.conf
-
 	cp /etc/pgpool-II-94/pool_hba.conf.sample /etc/pgpool-II-94/pool_hba.conf
 	echo "host    all         all         0.0.0.0/0             md5" >> /etc/pgpool-II-94/pool_hba.conf
 
 	pg_md5 -m -u $DB_USER $DB_PASSWORD # Generate pool_passwd
 
 	systemctl restart pgpool-II-94
+}
+
+install_nodejs () {
+	curl -sL https://rpm.nodesource.com/setup | bash -
+	yum install -y nodejs
+	# yum install gcc-c++ make
+}
+
+setup_pgpool_api () {
+	URL="https://raw.githubusercontent.com"
+	USER="playgenhub"
+	REPO="DataPlay"
+	BRANCH="master"
+	SOURCE="$URL/$USER/$REPO/$BRANCH"
+
+	npm cache clean
+	npm install -g coffee-script forever
+
+	command -v pgpool >/dev/null 2>&1 || { echo >&2 'Error: Command "pgpool" not found!'; exit 1; }
+
+	command -v forever >/dev/null 2>&1 || { echo >&2 'Error: "forever" is not installed!'; exit 1; }
+
+	command -v coffee >/dev/null 2>&1 || { echo >&2 'Error: "coffee-script" is not installed!'; exit 1; }
+
+	cd /root && mkdir -p pgpool-api && cd pgpool-api
+
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/db/api/app.coffee && \
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/db/api/package.json && \
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/db/api/cluster.json && \
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/db/api/pgpool.conf.template
+
+	npm install
+
+	coffee -cb app.coffee > app.js
+
+	forever start -l forever.log -o output.log -e errors.log app.js >/dev/null 2>&1
 
 	###
 	# curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"ip":"109.231.121.55"}' http://localhost:1937
@@ -79,8 +92,15 @@ update_iptables () {
 	systemctl start firewalld.service
 	systemctl enable firewalld.service
 
+	firewall-cmd --permanent --add-port=1937/tcp # pgpool-API
+	firewall-cmd --permanent --add-port=9999/tcp # pgpool
+
+	# JCatascopia
 	firewall-cmd --permanent --add-port=80/tcp
-	firewall-cmd --permanent --add-port=9999/tcp
+	firewall-cmd --permanent --add-port=8080/tcp
+	firewall-cmd --permanent --add-port=4242/tcp
+	firewall-cmd --permanent --add-port=4243/tcp
+	firewall-cmd --permanent --add-port=4245/tcp
 
 	firewall-cmd --reload
 }
@@ -91,7 +111,13 @@ setuphost
 echo "[$(timestamp)] ---- 2. Install pgpool-II ----"
 install_pgpool
 
-echo "[$(timestamp)] ---- 3. Update IPTables rules ----"
+echo "[$(timestamp)] ---- 3. Install Node.js ----"
+install_nodejs
+
+echo "[$(timestamp)] ---- 4. Setup pgpool API ----"
+setup_pgpool_api
+
+echo "[$(timestamp)] ---- 5. Update IPTables rules ----"
 update_iptables
 
 echo "[$(timestamp)] ---- Completed ----"

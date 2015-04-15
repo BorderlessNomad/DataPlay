@@ -52,13 +52,13 @@ setup_haproxy_api () {
 	SOURCE="$URL/$USER/$REPO/$BRANCH"
 
 	npm cache clean
-	npm install -gd coffee-script forever
+	npm install -g coffee-script forever
 
 	command -v haproxy >/dev/null 2>&1 || { echo >&2 "Error: Command 'haproxy' not found!"; exit 1; }
 
 	command -v forever >/dev/null 2>&1 || { echo >&2 "Error: 'forever' is not installed!"; exit 1; }
 
-	command -v coffee >/dev/null 2>&1 || { echo >&2 "Error: 'coffee' is not installed!"; exit 1; }
+	command -v coffee >/dev/null 2>&1 || { echo >&2 "Error: 'coffee-script' is not installed!"; exit 1; }
 
 	mkdir -p /home/ubuntu && cd /home/ubuntu
 	mkdir -p haproxy-api && cd haproxy-api
