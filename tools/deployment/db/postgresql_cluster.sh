@@ -37,10 +37,11 @@ install_pgpool () {
 	echo "local0.*                                                /var/log/pgpool.log" >> /etc/rsyslog.conf
 
 	systemctl restart rsyslog.service
+	systemctl enable rsyslog.service
 
 	/usr/pgsql-9.4/bin/postgresql94-setup initdb
 
-	systemctl start postgresql-9.4
+	systemctl restart postgresql-9.4
 	systemctl enable postgresql-9.4
 
 	cp /etc/pgpool-II-94/pcp.conf.sample /etc/pgpool-II-94/pcp.conf
@@ -52,6 +53,7 @@ install_pgpool () {
 	pg_md5 -m -u $DB_USER $DB_PASSWORD # Generate pool_passwd
 
 	systemctl restart pgpool-II-94
+	systemctl enable pgpool-II-94
 }
 
 install_nodejs () {
