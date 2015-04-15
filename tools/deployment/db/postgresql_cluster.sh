@@ -28,7 +28,15 @@ install_pgpool () {
 
 	yum update -y
 
-	yum install -y wget pgpool-II-94 pgpool-II-94-extensions postgresql94
+	yum install -y wget rsyslog pgpool-II-94 pgpool-II-94-extensions postgresql94
+
+	sed -i 's/^#$ModLoad imudp/$ModLoad imudp/g' /etc/rsyslog.conf
+	sed -i 's/^#$UDPServerRun 514/$UDPServerRun 514/g' /etc/rsyslog.conf
+	sed -i 's/^#$ModLoad imtcp/$ModLoad imtcp/g' /etc/rsyslog.conf
+	sed -i 's/^#$InputTCPServerRun 514/$InputTCPServerRun 514/g' /etc/rsyslog.conf
+	echo "local0.*                                                /var/log/pgpool.log" >> /etc/rsyslog.conf
+
+	systemctl restart rsyslog.service
 
 	/usr/pgsql-9.4/bin/postgresql94-setup initdb
 
@@ -79,11 +87,11 @@ setup_pgpool_api () {
 
 	coffee -cb app.coffee > app.js
 
-	forever start -l forever.log -o output.log -e errors.log app.js >/dev/null 2>&1
+	forever -a start -l forever.log -o output.log -e errors.log app.js >/dev/null 2>&1
 
 	###
-	# curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"ip":"109.231.121.55"}' http://localhost:1937
-	# curl -i -H "Accept: application/json" -X DELETE http://localhost:1937/109.231.121.55
+	# curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"ip":"109.231.124.136"}' http://109.231.124.122:1937
+	# curl -i -H "Accept: application/json" -X DELETE http://109.231.124.122:1937/109.231.124.136
 	###
 }
 

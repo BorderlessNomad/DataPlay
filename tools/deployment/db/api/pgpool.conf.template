@@ -64,7 +64,7 @@ log_per_node_statement = on
 log_standby_delay = 'always'
 
 # - Syslog specific -
-syslog_facility = 'daemon.info'
+syslog_facility = 'LOCAL0'
 syslog_ident = 'pgpool'
 
 # - Debug -
