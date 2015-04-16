@@ -29,12 +29,12 @@ install_pgpool () {
 	DB_USER="playgen"
 	DB_PASSWORD="aDam3ntiUm"
 
-	yum install -y http://yum.postgresql.org/9.4/redhat/rhel-7-x86_64/pgdg-centos94-9.4-1.noarch.rpm
+	yum install -y epel-release http://yum.postgresql.org/9.4/redhat/rhel-7-x86_64/pgdg-centos94-9.4-1.noarch.rpm
 	yum install -y http://www.pgpool.net/yum/rpms/3.4/redhat/rhel-7-x86_64/pgpool-II-release-3.4-1.noarch.rpm
 
 	yum update -y
 
-	yum install -y wget rsyslog pgpool-II-94 pgpool-II-94-extensions postgresql94
+	yum install -y htop wget rsyslog pgpool-II-94 pgpool-II-94-extensions postgresql94
 
 	sed -i 's/^#$ModLoad imudp/$ModLoad imudp/g' /etc/rsyslog.conf
 	sed -i 's/^#$UDPServerRun 514/$UDPServerRun 514/g' /etc/rsyslog.conf
@@ -97,22 +97,25 @@ setup_pgpool_api () {
 	###
 }
 
-setup_nginx_php () {
-	yum install -y http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm
-	yum install -y nginx php php-mysql php-fpm
+setup_pgpoolAdmin () {
+	yum install -y httpd
 
-	systemctl start nginx.service
+	systemctl start httpd.service
+	systemctl enable httpd.service
 
-	sed -i 's/^;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g' /etc/php.ini
-	sed -i 's/^listen = 127.0.0.1:9000/listen = \/var\/run\/php-fpm\/php-fpm.sock/g' /etc/php-fpm.d/www.conf
+	yum install -y php php-fpm
 
-	systemctl start php-fpm
-	systemctl enable php-fpm.service
+	systemctl restart httpd.service
 
-	cp /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.orginal
-	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/db/nginx/default.conf -O /etc/nginx/conf.d/default.conf
+	yum install -y pgpoolAdmin
 
-	systemctl restart nginx
+	chown -R root:root /var/www/html/pgpoolAdmin/
+
+	chcon -R -t httpd_sys_content_rw_t /var/www/html/pgpoolAdmin/templates_c
+	chcon -R -t httpd_sys_content_rw_t /var/www/html/pgpoolAdmin/conf/pgmgt.conf.php
+	chcon -R -t httpd_sys_content_rw_t /etc/pgpool-II-94/pgpool.conf
+	chcon -R -t httpd_sys_content_rw_t /etc/pgpool-II-94/pcp.conf
+	chcon -R -t httpd_sys_content_rw_t /var/log/pgpool.log
 }
 
 update_iptables () {
