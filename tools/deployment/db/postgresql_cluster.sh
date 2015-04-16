@@ -12,7 +12,7 @@ fi
 URL="https://raw.githubusercontent.com"
 USER="playgenhub"
 REPO="DataPlay"
-BRANCH="develop"
+BRANCH="master"
 SOURCE="$URL/$USER/$REPO/$BRANCH"
 
 timestamp () {
