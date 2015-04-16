@@ -105,6 +105,8 @@ router.route("/:ip").delete (req, res) ->
 
 		return res.status(404).json error: "No such IP found!" unless index?
 
+		return res.status(400).json error: "Can not remove last node from Cluster, must have atleast one running node." if Object.keys(file.data[datakey]).length <= 1
+
 		timestamp = Date.now()
 
 		file.data[datakey].splice index, 1
