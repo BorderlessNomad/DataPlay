@@ -1,0 +1,18 @@
+{
+	"name": "dataplay-pgpool-api",
+	"version": "1.0.1",
+	"author": "PlayGen",
+	"license": "All Rights Reserved",
+	"private": "true",
+	"dependencies": {
+		"swig": "^1.4",
+		"express": "^4.9",
+		"body-parser": "^1.9",
+		"errorhandler": "^1.2",
+		"json-file-plus": "^2.0",
+		"console-stamp": "latest"
+	},
+	"devDependencies": {
+		"coffee-script": "^1.7"
+	}
+}

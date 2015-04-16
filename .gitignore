@@ -37,6 +37,8 @@ stress/concurrent.sh
 src/dataplay/NewsFetch/__init__(scraper_script) - Copy.py
 tools/deployment/loadbalancer/api/app.js
 tools/deployment/loadbalancer/api/haproxy.cfg
+tools/deployment/db/api/app.js
+tools/deployment/db/api/pgpool.conf
 src/newsfetch/config.go
 src/DP/main.go
 *.dmp
