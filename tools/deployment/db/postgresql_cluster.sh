@@ -9,6 +9,12 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
+URL="https://raw.githubusercontent.com"
+USER="playgenhub"
+REPO="DataPlay"
+BRANCH="develop"
+SOURCE="$URL/$USER/$REPO/$BRANCH"
+
 timestamp () {
 	date +"%F %T,%3N"
 }
@@ -63,12 +69,6 @@ install_nodejs () {
 }
 
 setup_pgpool_api () {
-	URL="https://raw.githubusercontent.com"
-	USER="playgenhub"
-	REPO="DataPlay"
-	BRANCH="master"
-	SOURCE="$URL/$USER/$REPO/$BRANCH"
-
 	npm cache clean
 	npm install -g coffee-script forever
 
@@ -95,6 +95,24 @@ setup_pgpool_api () {
 	# curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"ip":"109.231.124.136"}' http://109.231.124.122:1937
 	# curl -i -H "Accept: application/json" -X DELETE http://109.231.124.122:1937/109.231.124.136
 	###
+}
+
+setup_nginx_php () {
+	yum install -y http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm
+	yum install -y nginx php php-mysql php-fpm
+
+	systemctl start nginx.service
+
+	sed -i 's/^;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g' /etc/php.ini
+	sed -i 's/^listen = 127.0.0.1:9000/listen = \/var\/run\/php-fpm\/php-fpm.sock/g' /etc/php-fpm.d/www.conf
+
+	systemctl start php-fpm
+	systemctl enable php-fpm.service
+
+	cp /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.orginal
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/db/nginx/default.conf -O /etc/nginx/conf.d/default.conf
+
+	systemctl restart nginx
 }
 
 update_iptables () {
