@@ -95,7 +95,8 @@ import_data () {
 	fi
 
 	gunzip -vk $BACKUP_FILE
-	nohup psql -h $DB_HOST -U $DB_USER -d $DB_NAME -f $DB_NAME.sql > $DB_NAME.import.log 2>&1&
+	#nohup psql -h $DB_HOST -U $DB_USER -d $DB_NAME -f $DB_NAME.sql > $DB_NAME.import.log 2>&1&
+	psql -h $DB_HOST -U $DB_USER -d $DB_NAME -f $DB_NAME.sql
 }
 
 update_iptables () {
