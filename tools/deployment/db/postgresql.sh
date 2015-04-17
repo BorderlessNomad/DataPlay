@@ -29,7 +29,6 @@ install_postgres () {
 	echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/postgresql.list
 	wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 	apt-get update
-	apt-get -y upgrade
 	apt-get install -y axel postgresql postgresql-contrib postgresql-client libpq-dev
 	apt-get autoclean
 	service postgresql restart

@@ -33,7 +33,7 @@ timestamp () {
 	date +"%F %T,%3N"
 }
 
-echo "[$(timestamp)] ---- Started ----"
+echo "[$(timestamp)] ---- 1. Start ----"
 
 HOST=`ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`
 LOCAL="localhost"
@@ -45,10 +45,14 @@ TABLES=`ls -l $SOURCE | egrep '^d' | awk '{print $9}'`
 BACKUP="/var/lib/cassandra/backups"
 DATE=$(date +%Y-%m-%d)
 
+echo "[$(timestamp)] ---- 2. Creating backup for $BACKUP/$DATE ----"
+
 mkdir -p $BACKUP/$DATE && cd $BACKUP/$DATE
 
 # Schema
 cqlsh $HOST -e "DESCRIBE KEYSPACE $KEYSPACE;" > $BACKUP/$DATE/$KEYSPACE-schema.cql 2>&1
+
+echo "[$(timestamp)] ---- 3. DESCRIBE KEYSPACE $KEYSPACE; successful ----"
 
 # Tables
 for table in $TABLES; do
@@ -56,9 +60,15 @@ for table in $TABLES; do
 	cp -R $SOURCE/$table/snapshots/$TIMESTAMP/. $BACKUP/$KEYSPACE/$table
 done
 
+echo "[$(timestamp)] ---- 4. Moving tables successful ----"
+
 tar -czvf $KEYSPACE-data.tar.gz -C $BACKUP/$KEYSPACE .
 
+echo "[$(timestamp)] ---- 5. $KEYSPACE-data.tar.gz successful ----"
+
 rm -rf $BACKUP/$KEYSPACE
+
+echo "[$(timestamp)] ---- 6. Cleaning BACKUP/$KEYSPACE successful ----"
 
 echo "[$(timestamp)] ---- Completed ----"
 
