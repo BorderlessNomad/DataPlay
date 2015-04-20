@@ -18,6 +18,8 @@
 # 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r /var/lib/postgresql/backups/ ubuntu@109.231.122.208:~/backups/postgresql/ >> /var/lib/postgresql/rsync.flexiant.log
 ###
 
+set -x
+
 ###########################
 ####### LOAD CONFIG #######
 ###########################

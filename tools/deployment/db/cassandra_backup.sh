@@ -27,7 +27,7 @@
 #	4. compress the dir and place it in response-3b35cc404d6311e497ddbd0e0515b177
 ###
 
-set -ex
+set -x
 
 timestamp () {
 	date +"%F %T,%3N"
