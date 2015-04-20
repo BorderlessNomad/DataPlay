@@ -58,6 +58,8 @@ angular.module('dataplayApp')
 			Object.keys($scope.mainSections).forEach (i) ->
 				ActivityMonitor.get i
 					.success (data) ->
+						$scope.mainSections[i].error = false
+
 						if data instanceof Array
 							maxValue = 0
 							maxTotal = 0
@@ -143,7 +145,9 @@ angular.module('dataplayApp')
 
 									$scope.$apply()
 
-					.error $scope.handleError i
+					.error (data) ->
+						$scope.mainSections[i].error = true
+						$scope.handleError i
 
 			ActivityMonitor.get 'popular'
 				.success (data) ->
@@ -154,7 +158,7 @@ angular.module('dataplayApp')
 								item.amount > 0
 
 							sect
-				.error $scope.handleError 'popular'
+				.error (data) -> $scope.handleError 'popular'
 
 		$scope.renderLine = (details) ->
 			(chart) ->

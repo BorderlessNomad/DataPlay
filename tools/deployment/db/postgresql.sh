@@ -11,7 +11,7 @@ fi
 
 APP_HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
 
-# PGPOOL_API_HOST="109.231.124.145"
+#PGPOOL_API_HOST="109.231.124.33"
 PGPOOL_API_HOST=$(ss-get --timeout 360 pgpool.hostname)
 PGPOOL_API_PORT="1937"
 
@@ -118,8 +118,7 @@ setup_pgpool_access() {
 
 	mkdir ~/pgpool-local
 
-	CLUSTER_IP="109.231.124.105" # Replace with Cluster IP
-	echo "host    all             playgen         $PGPOOL_API_HOST/32        md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf
+	echo "host    all             playgen         $PGPOOL_API_HOST/32       md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf
 
 	service postgresql restart
 

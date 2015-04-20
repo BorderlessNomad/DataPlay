@@ -86,7 +86,7 @@ reset_query_list = 'ABORT; DISCARD ALL'
 # REPLICATION MODE
 #------------------------------------------------------------------------------
 replication_mode = on
-replicate_select = off
+replicate_select = off #Default: off # http://www.pgpool.net/docs/latest/pgpool-en.html#REPLICATE_SELECT
 insert_lock = on
 lobj_lock_table = ''
 

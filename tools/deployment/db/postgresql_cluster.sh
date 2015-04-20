@@ -92,8 +92,8 @@ setup_pgpool_api () {
 	forever -a start -l forever.log -o output.log -e errors.log app.js >/dev/null 2>&1
 
 	###
-	# curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"ip":"109.231.124.136"}' http://109.231.124.122:1937
-	# curl -i -H "Accept: application/json" -X DELETE http://109.231.124.122:1937/109.231.124.136
+	# curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"ip":"109.231.124.33"}' http://109.231.124.33:1937
+	# curl -i -H "Accept: application/json" -X DELETE http://109.231.124.33:1937/109.231.124.33
 	###
 }
 

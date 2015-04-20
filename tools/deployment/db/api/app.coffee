@@ -46,7 +46,7 @@ compileTemplate = (data) ->
 		console.log "[Copy] - Replace -", "pgpool.conf => /etc/pgpool-II-94/pgpool.conf"
 
 		console.log "[Service] - Reload -", "Start"
-		exec "systemctl restart pgpool-II-94", puts
+		exec "/usr/pgpool-9.4/bin/pgpool reload", puts
 		console.log "[Service] - Reload -", "Success"
 
 router = express.Router()

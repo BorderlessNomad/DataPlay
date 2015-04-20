@@ -4,8 +4,7 @@
 			<div class="col-xs-12 col-sm-4 section" ng-repeat="sect in mainSections | orderObjectBy: 'order' | limitTo: 3">
 				<h4 class="text-center">{{sect.title}}</h4>
 
-				<div class="loading" ng-if="sect.items.length == 0 && !sect.error" ng-include="'views/loader.html'"></div>
-
+				<div class="loading" ng-if="sect.items.length == 0 && sect.error == null" ng-include="'views/loader.html'"></div>
 				<div class="row sect-graph" ng-if="sect.graph.length > 0 && !sect.error && sect.type != 'map'">
 					<!-- grpah here -->
 					<div class="dc-chart chartSwitch pie"
@@ -26,12 +25,15 @@
 						dc-post-setup-chart="renderPie(sect)"
  					></div>
 				</div>
+				<div class="alert alert-info" ng-if="sect.items.length == 0 && sect.error === false">
+					<h5>Sorry, we don't have any data to show.</h5>
+				</div>
 				<div class="alert alert-warning" ng-if="sect.error">
 					<h5>Something went wrong</h5>
 					<p>{{sect.error}}</p>
 				</div>
-				<div class="row sect-graph map text-center" id="regionMap" ng-if="sect.type == 'map'"></div>
 
+				<div class="row sect-graph map text-center" id="regionMap" ng-if="sect.type == 'map'"></div>
 
 				<div class="row list" ng-if="sect.items.length > 0 && !sect.error">
 					<div class="row sect-header">
@@ -39,7 +41,11 @@
 						<div class="col-xs-4"><small><strong>{{sect.colNameB}}</strong></small></div>
 					</div>
 
-					<div class="row li" ng-class="{true: 'highlight'}[item.highlight]" ng-repeat="item in sect.items" ng-mouseover="highlight(true, sect.type, item)" ng-mouseleave="highlight(false, sect.type, item)">
+					<div class="row li"
+						ng-class="{true: 'highlight'}[item.highlight]"
+						ng-repeat="item in sect.items"
+						ng-mouseover="highlight(true, sect.type, item)"
+						ng-mouseleave="highlight(false, sect.type, item)">
 						<div class="col-xs-8 col-dynamic label-container">
 							<a class="label label-default"
 								ng-if="sect.type == 'pie'"
@@ -51,7 +57,13 @@
 								data-html="true"
 								ng-attr-title="{{sect.valDesc}}"
 							>{{item.val}}</a>
-							<a class="label label-default" ng-style="{'background-color': item.color}" ng-if="sect.type == 'map'" ng-attr-title="{{sect.valDesc}}">{{item.val}}</a>
+
+							<a class="label label-default"
+								ng-style="{'background-color': item.color}"
+								ng-if="sect.type == 'map'"
+								ng-attr-title="{{sect.valDesc}}"
+							>{{item.val}}</a>
+
 							<small><strong><a class="li-term" ng-href="/search/{{item.term}}">{{item.term | truncate: 15}}</a></strong></small>
 						</div>
 						<div class="col-xs-4">
