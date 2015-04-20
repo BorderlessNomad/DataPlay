@@ -520,6 +520,7 @@ func CreditObservationHttp(res http.ResponseWriter, req *http.Request, params ma
 		} else {
 			msg = "Could not discredit observation" + err3.Message
 		}
+
 		return msg
 	}
 

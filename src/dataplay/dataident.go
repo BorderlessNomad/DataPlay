@@ -230,7 +230,7 @@ func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, para
 
 	for _, job := range jobs {
 		var data []string
-		err := DB.Table(fmt.Sprintf("%q", job.TableName)).Pluck(fmt.Sprintf("%q", job.X), &data).Error
+		err := DB.Table(job.TableName).Pluck(fmt.Sprintf("%q", job.X), &data).Error
 
 		if err != nil {
 			http.Error(res, "Could not read from target table", http.StatusInternalServerError)

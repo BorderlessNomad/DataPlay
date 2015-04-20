@@ -67,21 +67,21 @@ func RandomDateColumn(cols []ColType) string {
 
 /// return date and value columns combined within struct from table
 func ExtractDateVal(tablename string, dateCol string, valCol string) ([]DateVal, *appError) {
-	if tablename == "" || dateCol == "" || valCol == "" {
+	if len(tablename) < 3 || len(dateCol) < 3 || len(valCol) < 3 {
 		return nil, &appError{nil, "Invalid or empty data.", http.StatusBadRequest}
 	}
 
 	var dates []time.Time
 	var amounts []float64
 
-	err := DB.Table(fmt.Sprintf("%q", tablename)).Pluck(fmt.Sprintf("%q", dateCol), &dates).Error
+	err := DB.Table(tablename).Pluck(fmt.Sprintf("%q", dateCol), &dates).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return nil, &appError{err, "Database query failed (DateCol).", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
 		return nil, &appError{err, "No table for for DateCol.", http.StatusNotFound}
 	}
 
-	err = DB.Table(fmt.Sprintf("%q", tablename)).Pluck(fmt.Sprintf("%q", valCol), &amounts).Error
+	err = DB.Table(tablename).Pluck(fmt.Sprintf("%q", valCol), &amounts).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return nil, &appError{err, "Database query failed (ValCol).", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
@@ -90,12 +90,9 @@ func ExtractDateVal(tablename string, dateCol string, valCol string) ([]DateVal,
 
 	result := make([]DateVal, len(dates))
 
-	for i, v := range dates {
-		result[i].Date = v
-	}
-
-	for i, v := range amounts {
-		result[i].Value = v
+	for i, _ := range dates {
+		result[i].Date = dates[i]
+		result[i].Value = amounts[i]
 	}
 
 	return result, nil

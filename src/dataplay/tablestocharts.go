@@ -84,17 +84,17 @@ func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
 		rcid = strings.Replace(rcid, "_", "/", -1)
 		err := DB.Where("relation_id = ?", rcid).Find(&discovered).Error
 		if err != nil && err != gorm.RecordNotFound {
-			return "", &appError{err, ", database query failed (relation_id)", http.StatusInternalServerError}
+			return "", &appError{err, "Database query failed (relation_id)", http.StatusInternalServerError}
 		}
 	} else { // if a correlation id of type int
 		cid, e := strconv.Atoi(rcid)
 		if e != nil {
-			return "", &appError{e, ", could not convert id to int", http.StatusInternalServerError}
+			return "", &appError{e, "Could not convert id to int", http.StatusInternalServerError}
 		}
 
 		err := DB.Where("correlation_id = ?", cid).Find(&discovered).Error
 		if err != nil && err != gorm.RecordNotFound {
-			return "", &appError{err, ", database query failed (correlation_id)", http.StatusInternalServerError}
+			return "", &appError{err, "Database query failed (correlation_id)", http.StatusInternalServerError}
 		}
 	}
 
@@ -107,11 +107,13 @@ func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
 		Reputation(discovered.Uid, discDiscredit) // remove points for discovery discredit
 		AddActivity(uid, "dc", t, discovered.DiscoveredId, 0)
 	}
+
 	discovered.Rating = RankCredits(discovered.Credited, discovered.Discredited)
 	err1 := DB.Save(&discovered).Error
 	if err1 != nil {
-		return "", &appError{err1, ", database query failed - credit chart (Save discovered)", http.StatusInternalServerError}
+		return "", &appError{err1, "Database query failed - Credit Chart (Save discovered)", http.StatusInternalServerError}
 	}
+
 	credit.DiscoveredId = discovered.DiscoveredId
 	credit.Uid = uid
 	credit.Created = t
@@ -124,13 +126,13 @@ func CreditChart(rcid string, uid int, credflag bool) (string, *appError) {
 	if err2 == gorm.RecordNotFound {
 		err3 := DB.Save(&credit).Error
 		if err3 != nil {
-			return "", &appError{err3, ", database query failed (Save credit)", http.StatusInternalServerError}
+			return "", &appError{err3, "Database query failed (Save credit)", http.StatusInternalServerError}
 		}
 	} else {
 		credit.CreditId = creditchk.CreditId
 		err4 := DB.Model(&creditchk).Update("credflag", credflag).Error
 		if err4 != nil {
-			return "", &appError{err4, ", database query failed (Update credit)", http.StatusInternalServerError}
+			return "", &appError{err4, "Database query failed (Update credit)", http.StatusInternalServerError}
 		}
 	}
 
@@ -514,7 +516,7 @@ func GetCorrelatedCharts(guid string, searchDepth int, offset int, count int, re
 	// @todo Mayur Run once and generate all possible correlations
 	go GenerateCorrelations(onlineData.Tablename, searchDepth)
 
-	err := DB.Where("tbl1 = ?", onlineData.Tablename).Order("abscoef DESC").Find(&correlation).Error
+	err := DB.Where("tbl1 = ?", onlineData.Tablename).Order("abscoef DESC").Limit(100).Find(&correlation).Error
 	if err != nil && err != gorm.RecordNotFound {
 		return CorrelatedCharts{nil, 0}, &appError{nil, "Database query failed (TBL1)", http.StatusInternalServerError}
 	} else if err == gorm.RecordNotFound {
@@ -702,6 +704,10 @@ func GenerateChartData(chartType string, guid string, names XYVal, ind Index, re
 
 	} else if IsDateYear(names.X) {
 		sql = fmt.Sprintf("SELECT %q AS x, %q AS y FROM %q", names.X, names.Y, guid)
+	}
+
+	if len(sql) < 3 {
+		return
 	}
 
 	rows, err := DB.Raw(sql).Rows()
@@ -1117,13 +1123,13 @@ func CreditChartHttp(res http.ResponseWriter, req *http.Request, params martini.
 	if err2 != nil {
 		msg := ""
 		if credflag {
-			msg = "Could not credit chart" + err2.Message
+			msg = err2.Message + " - Could not Credit chart"
 		} else {
-			msg = "Could not discredit chart" + err2.Message
+			msg = err2.Message + " - Could not Discredit chart"
 		}
 
-		http.Error(res, err2.Message+msg, http.StatusBadRequest)
-		return msg
+		http.Error(res, msg, http.StatusBadRequest)
+		return ""
 	}
 
 	return result

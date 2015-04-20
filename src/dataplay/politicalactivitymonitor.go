@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const numdays = 30
+const numdays = 365 // @todo: change this to '30' after importing new data in Cassandra - Mayur
 
 type TermKey struct {
 	KeyTerm  string

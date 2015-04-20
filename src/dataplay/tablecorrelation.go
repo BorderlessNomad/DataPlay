@@ -178,6 +178,7 @@ func GenerateCorrelations(tablename string, searchDepth int) {
  * @return *appError
  */
 func AttemptCorrelation(tableCols TableCols) *appError {
+	limit := 100
 	c := P
 	if tableCols.ctype == "Pearson" {
 		c = P
@@ -201,7 +202,7 @@ func AttemptCorrelation(tableCols TableCols) *appError {
 		query = query.Where("method = ?", ctype)
 	}
 
-	err := query.Find(&correlation).Error
+	err := query.Order("random()").Limit(limit).Find(&correlation).Error // @note: added 'random' & 'limit' to make it faster
 	if err != nil && err != gorm.RecordNotFound {
 		return &appError{err, "Database query failed (DateCol - " + ctype + ").", http.StatusInternalServerError}
 	}
@@ -424,6 +425,7 @@ func CalculateCoefficient(tableCols TableCols, c cmeth, cd *CorrelationData) (fl
 	} else {
 		return 0.0, nil
 	}
+
 	return cf, nil
 }
 

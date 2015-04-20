@@ -433,7 +433,7 @@ func DumpReducedTable(params map[string]string) ([]map[string]interface{}, *appE
 		return nil, &appError{nil, "Sorry! Could not compleate this request (Hint, You didnt ask for a table to be dumped)", http.StatusBadRequest}
 	}
 
-	tablename, e := GetOnlineDataByGuid(params["id"])
+	onlineData, e := GetOnlineDataByGuid(params["id"])
 	if e != nil {
 		return nil, &appError{e, "Unable to find that table", http.StatusBadRequest}
 	}
@@ -441,7 +441,7 @@ func DumpReducedTable(params map[string]string) ([]map[string]interface{}, *appE
 	var rows *sql.Rows
 	var e1 error
 	if params["x"] == "" || params["y"] == "" {
-		rows, e1 = DB.Table(fmt.Sprintf("%q", tablename)).Rows()
+		rows, e1 = DB.Table(onlineData.Tablename).Rows()
 	} else {
 		x := params["x"]
 		y := params["y"]
@@ -476,10 +476,10 @@ func DumpReducedTable(params map[string]string) ([]map[string]interface{}, *appE
 
 		if sumY {
 			// If Y is Int/Float we can SUM
-			rows, e1 = DB.Table(fmt.Sprintf("%q", tablename)).Select(fmt.Sprintf("DISTINCT %q, SUM(%q) AS %q", x, y, y)).Group(x).Order(x).Rows()
+			rows, e1 = DB.Table(onlineData.Tablename).Select(fmt.Sprintf("DISTINCT %q, SUM(%q) AS %q", x, y, y)).Group(x).Order(x).Rows()
 		} else {
 			// Just count X aginst Y
-			rows, e1 = DB.Table(fmt.Sprintf("%q", tablename)).Select(fmt.Sprintf("DISTINCT %q, COUNT(%q) AS %q", x, y, y)).Group(x).Order(x).Rows()
+			rows, e1 = DB.Table(onlineData.Tablename).Select(fmt.Sprintf("DISTINCT %q, COUNT(%q) AS %q", x, y, y)).Group(x).Order(x).Rows()
 		}
 	}
 
@@ -619,7 +619,7 @@ func PrimaryDate() {
 
 		if dateCol != "" {
 			var dates []time.Time
-			err := DB.Table(fmt.Sprintf("%q", onlineData.Tablename)).Pluck(dateCol, &dates).Error
+			err := DB.Table(onlineData.Tablename).Pluck(dateCol, &dates).Error
 			if err == nil {
 				dv := make([]DateVal, 0)
 				var d DateVal

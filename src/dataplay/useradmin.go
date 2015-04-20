@@ -1,9 +1,9 @@
 package main
 
 import (
-	bcrypt "code.google.com/p/go.crypto/bcrypt"
 	"encoding/json"
 	"github.com/codegangsta/martini"
+	bcrypt "golang.org/x/crypto/bcrypt"
 	"net/http"
 	"strconv"
 	"time"
