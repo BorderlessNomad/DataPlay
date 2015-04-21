@@ -34,7 +34,7 @@ install_pgpool () {
 
 	yum update -y
 
-	yum install -y htop wget rsyslog pgpool-II-94 pgpool-II-94-extensions postgresql94
+	yum install -y pgpool-II-94 pgpool-II-94-extensions postgresql94
 
 	sed -i 's/^#$ModLoad imudp/$ModLoad imudp/g' /etc/rsyslog.conf
 	sed -i 's/^#$UDPServerRun 514/$UDPServerRun 514/g' /etc/rsyslog.conf
@@ -62,16 +62,7 @@ install_pgpool () {
 	systemctl enable pgpool-II-94
 }
 
-install_nodejs () {
-	curl -sL https://rpm.nodesource.com/setup | bash -
-	yum install -y nodejs
-	# yum install gcc-c++ make
-}
-
 setup_pgpool_api () {
-	npm cache clean
-	npm install -g coffee-script forever
-
 	command -v pgpool >/dev/null 2>&1 || { echo >&2 'Error: Command "pgpool" not found!'; exit 1; }
 
 	command -v forever >/dev/null 2>&1 || { echo >&2 'Error: "forever" is not installed!'; exit 1; }
@@ -119,19 +110,8 @@ setup_pgpoolAdmin () {
 }
 
 update_iptables () {
-	yum install -y firewalld
-	systemctl start firewalld.service
-	systemctl enable firewalld.service
-
 	firewall-cmd --permanent --add-port=1937/tcp # pgpool-API
 	firewall-cmd --permanent --add-port=9999/tcp # pgpool
-
-	# JCatascopia
-	firewall-cmd --permanent --add-port=80/tcp
-	firewall-cmd --permanent --add-port=8080/tcp
-	firewall-cmd --permanent --add-port=4242/tcp
-	firewall-cmd --permanent --add-port=4243/tcp
-	firewall-cmd --permanent --add-port=4245/tcp
 
 	firewall-cmd --reload
 }
@@ -142,13 +122,10 @@ setuphost
 echo "[$(timestamp)] ---- 2. Install pgpool-II ----"
 install_pgpool
 
-echo "[$(timestamp)] ---- 3. Install Node.js ----"
-install_nodejs
-
-echo "[$(timestamp)] ---- 4. Setup pgpool API ----"
+echo "[$(timestamp)] ---- 3. Setup pgpool API ----"
 setup_pgpool_api
 
-echo "[$(timestamp)] ---- 5. Update IPTables rules ----"
+echo "[$(timestamp)] ---- 4. Update IPTables rules ----"
 update_iptables
 
 echo "[$(timestamp)] ---- Completed ----"

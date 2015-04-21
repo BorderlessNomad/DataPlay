@@ -159,7 +159,7 @@ setup_pgpool_access() {
 inform_pgpool () {
 	retries=0
 	until curl -H "Content-Type: application/json" -X POST -d "{\"ip\":\"$APP_HOST\"}" http://$PGPOOL_API_HOST:$PGPOOL_API_PORT; do
-		echo "[$(timestamp)] Load Balancer is not up yet, retry... [$(( retries++ ))]"
+		echo "[$(timestamp)] PGPOOL Server is not up yet, retry... [$(( retries++ ))]"
 		sleep 5
 	done
 }

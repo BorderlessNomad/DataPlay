@@ -16,11 +16,10 @@ APP="dataplay"
 APP_HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
 APP_PORT="3000"
 APP_TYPE="master"
-APP_MODE="3"
 
 # DATABASE_HOST="109.231.121.13"
-DATABASE_HOST=$(ss-get --timeout 360 postgres.hostname)
-DATABASE_PORT="5432"
+DATABASE_HOST=$(ss-get --timeout 360 pgpool.hostname)
+DATABASE_PORT="9999"
 
 # REDIS_HOST="109.231.121.13"
 REDIS_HOST=$(ss-get --timeout 360 redis.hostname)
@@ -108,8 +107,8 @@ run_master_server () {
 	mv -f $REPO-$BRANCH/* $APP
 	cd $APP
 	chmod u+x $START
-	echo "Starting $APP_TYPE in Mode=$APP_MODE"
-	nohup sh $START --mode=$APP_MODE > $LOG 2>&1&
+	echo "Starting $APP_TYPE"
+	nohup sh $START > $LOG 2>&1&
 	echo "Done! $ sudo tail -f $DEST/$APP/$LOG for more details"
 }
 
