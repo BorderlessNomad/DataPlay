@@ -42,3 +42,4 @@ tools/deployment/db/api/pgpool.conf
 src/newsfetch/config.go
 src/DP/main.go
 *.dmp
+src/newsfetch/embedly.txt

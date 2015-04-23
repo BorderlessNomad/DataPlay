@@ -45,7 +45,7 @@ func DailyKimono() error {
 	ey := fmt.Sprintf("%4d", t.Year())
 
 	tbs := "cdr%3A1%2Ccd_min%3A" + sd + "%2F" + sm + "%2F" + sy + "%2Ccd_max%3A" + ed + "%2F" + em + "%2F" + ey
-	addr := "https://www.kimonolabs.com/api/bvt2gs12?apikey=J6hUZ7JPZbnc2ASz6YoG6J4DeI6TuxvL" + "&tbs=" + tbs
+	addr := "https://www.kimonolabs.com/api/5wmhftp0?apikey=J6hUZ7JPZbnc2ASz6YoG6J4DeI6TuxvL" + "&tbs=" + tbs
 	fmt.Println("KIMONO", addr)
 
 	resp, err := http.Get(addr)
