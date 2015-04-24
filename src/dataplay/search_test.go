@@ -5,18 +5,18 @@ import (
 	"testing"
 )
 
-func TestDataDictionary(t *testing.T) {
+func TestBuildDataDictionary(t *testing.T) {
 	Convey("Create DataDictionary", t, func() {
-		DataDict()
+		BuildDataDictionary()
 	})
 }
 
 func TestSearchForData(t *testing.T) {
-
 	params := map[string]string{
 		"offset": "0",
 		"count":  "5",
 	}
+
 	Convey("Should search financial", t, func() {
 		result, _ := SearchForData(1, "financial", params)
 		So(result, ShouldNotBeNil)

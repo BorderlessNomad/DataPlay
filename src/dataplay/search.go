@@ -198,7 +198,10 @@ func AddSearchTerm(str string, attempts int) *appError {
 	return nil
 }
 
-// Takes all the key terms from the title, name and description in the index table and writes them to the datadictionary along with their frequency
+/**
+ * @brief Build Data Dictionary
+ * @details Takes all the key terms from the title, name and description in the index table and writes them to the datadictionary along with their frequency
+ */
 func BuildDataDictionary() {
 	indices := []Index{}
 	err := DB.Find(&indices).Error
