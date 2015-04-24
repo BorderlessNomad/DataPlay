@@ -67,15 +67,15 @@ DataPlay (Beta) contains a rudimentary selection of datasets drawn from [DATA.GO
 
 1. Deploy HAProxy Server & DataPlay HAProxy API (written in Node.js)
 2. Deploy number of required master nodes
-	a. Run back end and API server on each master nodes using `./start.sh`
-	b. Send add `master` node requests to DataPlay HAProxy API via cURL
+  1. Run back end and API server on each master nodes using `./start.sh`
+  2. Send add `master` node requests to DataPlay HAProxy API via cURL
 3. Deploy number of required master nodes
-	a. Install Nginx to serve data & set appropriate path for `www-src` directory
-	b. Send add `gamification` node requests to DataPlay HAProxy API via cURL
+  1. Install Nginx to serve data & set appropriate path for `www-src` directory
+  2. Send add `gamification` node requests to DataPlay HAProxy API via cURL
 4. Install pgpool-II on CentOS server (for best compatibility) & DataPlay PGPOOL API (written in Node.js)
 5. Deploy number of required PostgreSQL nodes
-	a. Install PostgreSQL along with pgpool-II client plugin
-	b. Send add node request to DataPlay PGPOOL API via cURL
+  1. Install PostgreSQL along with pgpool-II client plugin
+  2. Send add node request to DataPlay PGPOOL API via cURL
 6. Create an A Record for required domain and point it to HAProxy Sever IP
 
 ## Contributing
