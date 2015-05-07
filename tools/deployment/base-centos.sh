@@ -39,11 +39,13 @@ install_nodejs () {
 	npm install -g grunt-cli coffee-script bower
 }
 
-update_iptables () {
+install_firewall () {
 	yum install -y firewalld
 	systemctl start firewalld.service
 	systemctl enable firewalld.service
+}
 
+update_firewall () {
 	# JCatascopia
 	firewall-cmd --permanent --add-port=80/tcp
 	firewall-cmd --permanent --add-port=8080/tcp
@@ -66,8 +68,11 @@ install_essentials
 echo "[$(timestamp)] ---- 4. Install Node.js ----"
 install_nodejs
 
-echo "[$(timestamp)] ---- 5. Update IPTables rules ----"
-update_iptables
+echo "[$(timestamp)] ---- 5. Install Firewall ----"
+install_firewall
+
+echo "[$(timestamp)] ---- 6. Update Firewall rules ----"
+update_firewall
 
 echo "[$(timestamp)] ---- Completed ----"
 

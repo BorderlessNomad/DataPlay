@@ -109,7 +109,7 @@ setup_pgpoolAdmin () {
 	chcon -R -t httpd_sys_content_rw_t /var/log/pgpool.log
 }
 
-update_iptables () {
+update_firewall () {
 	firewall-cmd --permanent --add-port=1937/tcp # pgpool-API
 	firewall-cmd --permanent --add-port=9999/tcp # pgpool
 
@@ -125,8 +125,8 @@ install_pgpool
 echo "[$(timestamp)] ---- 3. Setup pgpool API ----"
 setup_pgpool_api
 
-echo "[$(timestamp)] ---- 4. Update IPTables rules ----"
-update_iptables
+echo "[$(timestamp)] ---- 4. Update Firewall rules ----"
+update_firewall
 
 echo "[$(timestamp)] ---- Completed ----"
 
