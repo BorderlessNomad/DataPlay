@@ -30,19 +30,16 @@ update () {
 }
 
 install_essentials () {
-	yum install -y htop wget rsyslog gcc-c++ make
+	yum install -y htop wget rsyslog gcc-c++ make firewalld
+
+	systemctl start firewalld.service
+	systemctl enable firewalld.service
 }
 
 install_nodejs () {
 	curl -sL https://rpm.nodesource.com/setup | bash -
 	yum install -y nodejs
 	npm install -g grunt-cli coffee-script bower
-}
-
-install_firewall () {
-	yum install -y firewalld
-	systemctl start firewalld.service
-	systemctl enable firewalld.service
 }
 
 update_firewall () {
@@ -68,10 +65,7 @@ install_essentials
 echo "[$(timestamp)] ---- 4. Install Node.js ----"
 install_nodejs
 
-echo "[$(timestamp)] ---- 5. Install Firewall ----"
-install_firewall
-
-echo "[$(timestamp)] ---- 6. Update Firewall rules ----"
+echo "[$(timestamp)] ---- 5. Update Firewall rules ----"
 update_firewall
 
 echo "[$(timestamp)] ---- Completed ----"
