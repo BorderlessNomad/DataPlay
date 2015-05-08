@@ -35,7 +35,7 @@ timestamp () {
 
 echo "[$(timestamp)] ---- 1. Start ----"
 
-HOST=`ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`
+HOST=$(ip route get 8.8.8.8 | awk 'NR==1 {print $NF}')
 LOCAL="localhost"
 KEYSPACE="dataplay"
 NODETOOL=$(nodetool -h $LOCAL snapshot $KEYSPACE)
@@ -50,7 +50,7 @@ echo "[$(timestamp)] ---- 2. Creating backup for $BACKUP/$DATE ----"
 mkdir -p $BACKUP/$DATE && cd $BACKUP/$DATE
 
 # Schema
-cqlsh $HOST -e "DESCRIBE KEYSPACE $KEYSPACE;" > $BACKUP/$DATE/$KEYSPACE-schema.cql 2>&1
+cqlsh "$HOST" -e "DESCRIBE KEYSPACE $KEYSPACE;" > $BACKUP/$DATE/$KEYSPACE-schema.cql 2>&1
 
 echo "[$(timestamp)] ---- 3. DESCRIBE KEYSPACE $KEYSPACE; successful ----"
 
