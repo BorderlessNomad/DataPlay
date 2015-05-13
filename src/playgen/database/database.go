@@ -65,9 +65,20 @@ func (self *Database) Connect() (err error) {
 
 	fmt.Println("[Database] Connected!", self.User, "@", self.Host, ":", self.Port, "/", self.Schema)
 
+	maxIdleConns := 2048 // < 0 no idle connections are retained.
+	maxOpenConns := 1024 // Unlimited  = < 0
+
+	if os.Getenv("DP_DATABASE_MAXIDLECONNS") != "" {
+		maxIdleConns, _ = strconv.Atoi(os.Getenv("DP_DATABASE_MAXIDLECONNS"))
+	}
+
+	if os.Getenv("DP_DATABASE_MAXOPENCONNS") != "" {
+		maxOpenConns, _ = strconv.Atoi(os.Getenv("DP_DATABASE_MAXOPENCONNS"))
+	}
+
 	self.DB.DB().Exec("SET NAMES UTF8")
-	self.DB.DB().SetMaxIdleConns(2048) // < 0 no idle connections are retained.
-	self.DB.DB().SetMaxOpenConns(1024) // Unlimited  = < 0
+	self.DB.DB().SetMaxIdleConns(maxIdleConns)
+	self.DB.DB().SetMaxOpenConns(maxOpenConns)
 	self.DB.DB().Ping()
 
 	/* Debug */
