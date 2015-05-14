@@ -26,12 +26,16 @@ func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
 	cluster.Consistency = gocql.Quorum
 	cluster.Compressor = gocql.SnappyCompressor{}
 	cluster.RetryPolicy = &gocql.SimpleRetryPolicy{NumRetries: 5}
+
+	Logger.Println("Connecting to Cassandara " + cassandraHost + ":" + cassandraPort)
 	session, err := cluster.CreateSession()
 
 	if err != nil {
 		Logger.Println("Could not connect to the Cassandara server.")
 		return nil, err
 	}
+
+	Logger.Println("Connected!")
 
 	return session, nil
 }

@@ -25,7 +25,7 @@ func GetRedisConnection() (client *redis.Client, err error) {
 		redisTimeout = time.Duration(timeout) * time.Second
 	}
 
-	Logger.Println("Connecting to Redis " + redisHost + ":" + redisPort + " with " + strconv.FormatFloat(redisTimeout.Seconds(), 'f', -1, 64) + " secs timeout...")
+	Logger.Println("Connecting to Redis " + redisHost + ":" + redisPort)
 	client, err = redis.DialTimeout("tcp", redisHost+":"+redisPort, redisTimeout)
 
 	if err != nil {
