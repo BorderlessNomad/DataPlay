@@ -21,8 +21,8 @@ APP_TYPE="gamification"
 LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
 LOADBALANCER_REQUEST_PORT="80"
 LOADBALANCER_API_PORT="1937"
-DOMAIN="dataplay.playgen.com"
-# DOMAIN="$LOADBALANCER_HOST:LOADBALANCER_REQUEST_PORT"
+# DOMAIN="dataplay.playgen.com"
+DOMAIN="$LOADBALANCER_HOST:LOADBALANCER_REQUEST_PORT"
 
 timestamp () {
 	date +"%F %T,%3N"
