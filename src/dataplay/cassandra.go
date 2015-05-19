@@ -10,6 +10,8 @@ import (
 func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
 	cassandraHost := "109.231.122.107"
 	cassandraPort := 9042
+	cassandraTimeout := 1 * time.Minute
+	cassandraMaxRetries := 5
 
 	if os.Getenv("DP_CASSANDRA_HOST") != "" {
 		cassandraHost = os.Getenv("DP_CASSANDRA_HOST")
@@ -19,15 +21,24 @@ func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
 		cassandraPort, _ = strconv.Atoi(os.Getenv("DP_CASSANDRA_PORT"))
 	}
 
+	if os.Getenv("DP_CASSANDRA_TIMEOUT") != "" {
+		timeoutDuration, _ := strconv.Atoi(os.Getenv("DP_CASSANDRA_TIMEOUT"))
+		cassandraTimeout = time.Duration(timeoutDuration) * time.Minute
+	}
+
+	if os.Getenv("DP_CASSANDRA_MAX_RETRIES") != "" {
+		cassandraMaxRetries, _ = strconv.Atoi(os.Getenv("DP_CASSANDRA_MAX_RETRIES"))
+	}
+
 	cluster := gocql.NewCluster(cassandraHost)
-	cluster.Timeout = 1 * time.Minute
 	cluster.Port = cassandraPort
 	cluster.Keyspace = keyspace
 	cluster.Consistency = gocql.Quorum
 	cluster.Compressor = gocql.SnappyCompressor{}
-	cluster.RetryPolicy = &gocql.SimpleRetryPolicy{NumRetries: 5}
+	cluster.RetryPolicy = &gocql.SimpleRetryPolicy{NumRetries: cassandraMaxRetries}
+	cluster.Timeout = cassandraTimeout
 
-	Logger.Println("Connecting to Cassandara " + cassandraHost + ":" + cassandraPort)
+	Logger.Println("Connecting to Cassandara " + cassandraHost + ":" + strconv.Itoa(cassandraPort))
 	session, err := cluster.CreateSession()
 
 	if err != nil {
