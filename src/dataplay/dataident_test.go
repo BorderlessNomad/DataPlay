@@ -52,7 +52,7 @@ func TestFetchTableCols(t *testing.T) {
 	})
 
 	Convey("Should return column names and types", t, func() {
-		result = FetchTableCols("gdp")
+		result = FetchTableCols("births")
 		So(result, ShouldNotBeNil)
 	})
 }
