@@ -39,9 +39,6 @@ angular.module('dataplayApp')
 		info: (guid) ->
 			$http.get config.api.base_url + "/chartinfo/#{guid}"
 
-		reducedData: (guid, percent, min) ->
-			$http.get config.api.base_url + "/getreduceddata/#{guid}/#{percent}/#{min}"
-
 		related: (guid, offset, count) ->
 			offset = if offset? then offset else 0
 			count = if count? then count else 3

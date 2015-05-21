@@ -90,22 +90,28 @@ func initApiServer() {
 		},
 	}))
 
+	// System status & info APIs
 	m.Get("/api/ping", func(res http.ResponseWriter, req *http.Request) string { return "pong" })
 	m.Get("/api/info", GetPerformanceInfo)
 
+	// Admin APIs
+	m.Get("/api/admin/observations/get/:order/:offset/:count/:flagged", GetObservationsTableHttp)
+	m.Get("/api/admin/user/get/:order/:offset/:count", GetUserTableHttp)
 	m.Delete("/api/admin/observations/:id", DeleteObservationHttp)
+	m.Put("/api/admin/user/edit", binding.Bind(UserEdit{}), func(res http.ResponseWriter, req *http.Request, userEdit UserEdit) string {
+		return EditUserHttp(res, req, userEdit)
+	})
+
+	// User APIs
 	m.Delete("/api/logout", HandleLogout)
 	m.Delete("/api/logout/:session", HandleLogout)
 
-	m.Get("/api/admin/observations/get/:order/:offset/:count/:flagged", GetObservationsTableHttp)
-	m.Get("/api/admin/user/get/:order/:offset/:count", GetUserTableHttp)
 	m.Get("/api/chart/awaitingcredit", GetAwaitingCreditHttp)
 	m.Get("/api/chart/toprated", GetTopRatedChartsHttp)
 	m.Get("/api/chartinfo/:tablename", GetChartInfoHttp)
 	// m.Get("/api/classifydata/:table/:col", SuggestColType)
 	m.Get("/api/correlated/:tablename", GetCorrelatedChartsHttp)
 	m.Get("/api/findmatches/:id/:x/:y", AttemptToFindMatches)
-	m.Get("/api/getdefaults/:id", GetDefaults)
 	// m.Get("/api/getimportstatus/:id", CheckImportStatus)
 	m.Get("/api/home/data", GetHomePageDataHttp)
 	m.Get("/api/identifydata/:id", IdentifyTable)
@@ -135,7 +141,6 @@ func initApiServer() {
 	m.Post("/api/register", binding.Bind(UserForm{}), func(res http.ResponseWriter, req *http.Request, login UserForm) string {
 		return HandleRegister(res, req, login)
 	})
-	m.Post("/api/setdefaults/:id", SetDefaults)
 	m.Post("/api/login/social", binding.Bind(UserSocialForm{}), func(res http.ResponseWriter, req *http.Request, login UserSocialForm) string {
 		return HandleSocialLogin(res, req, login)
 	})
@@ -150,9 +155,6 @@ func initApiServer() {
 	// 	return TrackVisitedHttp(res, req, visited)
 	// })
 
-	m.Put("/api/admin/user/edit", binding.Bind(UserEdit{}), func(res http.ResponseWriter, req *http.Request, userEdit UserEdit) string {
-		return EditUserHttp(res, req, userEdit)
-	})
 	m.Put("/api/chart/:rcid/:credflag", CreditChartHttp)
 	m.Put("/api/observations", binding.Bind(ObservationComment{}), func(res http.ResponseWriter, req *http.Request, observation ObservationComment) string {
 		return AddObservationHttp(res, req, observation)
@@ -173,15 +175,7 @@ func initApiServer() {
 	m.Get("/api/correlated/:tablename/:search/:offset/:count", GetCorrelatedChartsHttp)
 	m.Get("/api/discovered/:tablename/:correlated", GetDiscoveredChartsHttp)
 	m.Get("/api/discovered/:tablename/:correlated/:offset/:count", GetDiscoveredChartsHttp)
-	m.Get("/api/getdata/:id", DumpTableHttp)
-	m.Get("/api/getdata/:id/:offset/:count", DumpTableHttp)
-	m.Get("/api/getdata/:id/:x/:startx/:endx", DumpTableRangeHttp)
-	m.Get("/api/getdatagrouped/:id/:x/:y", DumpTableGroupedHttp)
-	m.Get("/api/getdatapred/:id/:x/:y", DumpTablePredictionHttp)
-	m.Get("/api/getreduceddata/:id", DumpReducedTableHttp)
-	m.Get("/api/getreduceddata/:id/:percent", DumpReducedTableHttp)
-	m.Get("/api/getreduceddata/:id/:percent/:min", DumpReducedTableHttp)
-	m.Get("/api/getreduceddata/:id/:percent/:min/:x/:y", DumpReducedTableHttp)
+
 	m.Get("/api/news/search/:terms", SearchForNewsHttp)
 	m.Get("/api/observations/:did", GetObservationsHttp)
 	m.Get("/api/political/:type", GetPoliticalActivityHttp)
