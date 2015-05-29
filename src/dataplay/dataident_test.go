@@ -122,14 +122,6 @@ func TestAttemptToFindMatches(t *testing.T) {
 		result := AttemptToFindMatches(response, request, params)
 		So(result, ShouldEqual, "")
 	})
-
-	// Convey("When parameters are correct", t, func() {
-	// 	params["id"] = "gdp"
-	// 	params["x"] = "date"
-	// 	params["y"] = "gdp"
-	// 	result := AttemptToFindMatches(response, request, params)
-	// 	So(result, ShouldNotBeBlank)
-	// })
 }
 
 func TestFindStringMatches(t *testing.T) {
