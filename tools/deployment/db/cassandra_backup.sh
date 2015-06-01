@@ -5,6 +5,7 @@
 # Copy ssh keys before RSYNC
 # ssh-keygen
 # ssh-copy-id -i ~/.ssh/id_rsa.pub ubuntu@109.231.122.208
+# ssh-copy-id -i ~/.ssh/id_rsa.pub ubuntu@109.231.121.227
 # ssh-copy-id -i ~/.ssh/id_rsa.pub root@108.61.197.87
 #
 ###
