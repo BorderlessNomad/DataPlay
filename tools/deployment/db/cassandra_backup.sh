@@ -4,7 +4,6 @@
 #
 # Copy ssh keys before RSYNC
 # ssh-keygen
-# ssh-copy-id -i ~/.ssh/id_rsa.pub ubuntu@109.231.122.208
 # ssh-copy-id -i ~/.ssh/id_rsa.pub ubuntu@109.231.121.227
 # ssh-copy-id -i ~/.ssh/id_rsa.pub root@108.61.197.87
 #
@@ -16,7 +15,7 @@
 # # VULTR
 # 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r /var/lib/cassandra/backups/ root@108.61.197.87:~/backups/cassandra/ >> /var/lib/cassandra/rsync.vultr.log
 # # Flexiant
-# 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r /var/lib/cassandra/backups/ ubuntu@109.231.122.208:~/backups/cassandra/ >> /var/lib/cassandra/rsync.flexiant.log
+# 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r /var/lib/cassandra/backups/ ubuntu@109.231.121.227:~/backups/cassandra/ >> /var/lib/cassandra/rsync.flexiant.log
 ###
 #	1. run $ nodetool snapshot dp (using ROOT)
 #		output is,
