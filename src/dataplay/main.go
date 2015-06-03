@@ -21,19 +21,33 @@ type AuthHandler struct {
 	Users map[string]string
 }
 
-var DB database.Database
-var isDBSetup bool
+var DB database.PostgreSQL
+var isPostgreSQLSetup bool
 
-func DBSetup() error {
-	if isDBSetup {
+func PostgreSQLSetup() error {
+	if isPostgreSQLSetup {
 		return nil
 	}
-	isDBSetup = true
+
+	isPostgreSQLSetup = true
 
 	DB.Setup()
 	DB.ParseEnvironment()
 
 	return DB.Connect()
+}
+
+var Redis database.Redis
+var isRedisSetup bool
+
+func RedisSetup() error {
+	if isRedisSetup {
+		return nil
+	}
+
+	isRedisSetup = true
+
+	return Redis.Connect()
 }
 
 /**
@@ -50,13 +64,20 @@ func main() {
 func initApiServer() {
 	fmt.Println("[init] starting in Classic mode")
 
-	e := DBSetup()
+	e := PostgreSQLSetup()
 	if e != nil {
-		fmt.Sprintf("[database] Unable to connect to the Database: %s\n", e)
+		fmt.Sprintf("[database] Unable to connect to the PostgreSQL: %s\n", e)
 	}
 
-	/* Database connection will be closed only when Server closes */
+	/* PostgreSQL connection will be closed only when Server closes */
 	defer DB.Close()
+
+	e := RedisSetup()
+	if e != nil {
+		fmt.Sprintf("[database] Unable to connect to the Redis: %s\n", e)
+	}
+
+	defer Redis.Close()
 
 	AsyncMonitoringPush()
 
@@ -231,7 +252,7 @@ func AdminApiSessionHandler(res http.ResponseWriter, req *http.Request) {
 	user := User{}
 	err1 := DB.Where("uid = ?", uid).First(&user).Error
 	if err1 != nil && err1 != gorm.RecordNotFound {
-		http.Error(res, "Database query failed (User).", http.StatusInternalServerError)
+		http.Error(res, "PostgreSQL query failed (User).", http.StatusInternalServerError)
 	} else if err1 == gorm.RecordNotFound {
 		http.Error(res, "No such user found! (AdminApiSessionHandler)", http.StatusNotFound)
 	}
