@@ -11,6 +11,10 @@
 		"path": "."
 	}, {
 		"follow_symlinks": true,
+		"name": "Deployment",
+		"path": "tools/deployment"
+	}, {
+		"follow_symlinks": true,
 		"name": "Backend",
 		"path": "src/dataplay"
 	}, {

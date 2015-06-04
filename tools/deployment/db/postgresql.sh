@@ -73,8 +73,8 @@ import_data () {
 	DB_NAME="dataplay"
 
 	LASTDATE=$(date +%Y-%m-%d) # Today
-	#BACKUP_HOST="109.231.121.227" # Flexiant
-	BACKUP_HOST="108.61.197.87" # Vultr
+	BACKUP_HOST="109.231.121.227" # Flexiant C2
+	#BACKUP_HOST="108.61.197.87" # Vultr
 	BACKUP_PORT="8080"
 	BACKUP_DIR="postgresql/$LASTDATE-daily"
 	BACKUP_USER="playgen"
