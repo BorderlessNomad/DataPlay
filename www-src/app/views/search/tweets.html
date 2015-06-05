@@ -1,13 +1,13 @@
-<div class="col-xs-12" ng-if="loading.tweets || tweets.length > 0">
-	<h4 class="title">Tweets</h4>
+<div class="col-xs-12 dp-tweets" ng-if="loading.tweets || tweets.length > 0">
+	<div class="title">Tweets</div>
 
-	<div class="row tweets" ng-repeat="tweet in tweets | limitTo: 10">
+	<div class="row" ng-repeat="tweet in tweets | limitTo: 10">
 		<p class="tweet-header">
 			<a ng-href="{{tweet.url}}" class="no-underline" target="_blank">
 				<i class="fa fa-twitter twitter-blue"></i>
 			</a>
 			<span>
-				<span class="tweet-author">{{tweet.name}}</span> (<a ng-href="https://twitter.com/{{tweet.username}}">@{{tweet.username}}</a>)&nbsp;
+				<span class="tweet-author">{{tweet.name}}</span> (<a ng-href="https://twitter.com/{{tweet.username}}" target="_blank">@{{tweet.username}}</a>)&nbsp;
 				<a ng-href="{{tweet.url}}" class="pull-right" target="_blank">
 					<small><i class="fa fa-external-link"></i> View on Twitter</small>
 				</a>
