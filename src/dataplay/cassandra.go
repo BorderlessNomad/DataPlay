@@ -8,7 +8,7 @@ import (
 )
 
 func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
-	cassandraHost := "109.231.122.107"
+	cassandraHost := "109.231.121.224"
 	cassandraPort := 9042
 	cassandraTimeout := 1 * time.Minute
 	cassandraMaxRetries := 5

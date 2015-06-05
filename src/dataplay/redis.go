@@ -8,7 +8,7 @@ import (
 )
 
 func GetRedisConnection() (client *redis.Client, err error) {
-	redisHost := "109.231.124.16"
+	redisHost := "109.231.121.62"
 	redisPort := "6379"
 	redisTimeout := time.Duration(10) * time.Second
 
