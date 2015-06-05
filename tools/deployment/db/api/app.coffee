@@ -45,9 +45,22 @@ compileTemplate = (data) ->
 		exec "cp -rf pgpool.conf /etc/pgpool-II-94/pgpool.conf", puts
 		console.log "[Copy] - Replace -", "pgpool.conf => /etc/pgpool-II-94/pgpool.conf"
 
+		###
+		# Reloading is ideal since it will only reload the config file,
+		# however we still need to test what happens to cached queries which will be
+		# running only on particular postgresql node.
+		###
 		console.log "[Service] - Reload -", "Start"
 		exec "/usr/pgpool-9.4/bin/pgpool reload", puts
 		console.log "[Service] - Reload -", "Success"
+
+		###
+		# Restarting is not really a good idea since it will destroy all
+		# waiting connections and running queries but is ensuring about new config.
+		###
+		# console.log "[Service] - Restart -", "Start"
+		# exec "systemctl restart pgpool-II-94", puts
+		# console.log "[Service] - Restart -", "Success"
 
 router = express.Router()
 
