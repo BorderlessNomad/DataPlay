@@ -45,6 +45,7 @@ compileTemplate = (data) ->
 		exec "cp -rf pgpool.conf /etc/pgpool-II-94/pgpool.conf", puts
 		console.log "[Copy] - Replace -", "pgpool.conf => /etc/pgpool-II-94/pgpool.conf"
 
+		# https://gist.github.com/spikegrobstein/1609189
 		###
 		# Reloading is ideal since it will only reload the config file,
 		# however we still need to test what happens to cached queries which will be

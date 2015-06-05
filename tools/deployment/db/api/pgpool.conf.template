@@ -59,8 +59,8 @@ log_destination = 'syslog'
 log_line_prefix = '%t: pid %p: '   # printf-style string to output at beginning of each log line.
 log_connections = on
 log_hostname = on
-log_statement = on
-log_per_node_statement = on
+log_statement = off # Default 'on' # Note: 'on' will slower the speed of operation substantially
+log_per_node_statement = off # Default 'on' # Note: 'on' will slower the speed of operation substantially
 log_standby_delay = 'always'
 
 # - Syslog specific -
