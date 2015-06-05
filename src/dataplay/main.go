@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/codegangsta/martini"
 	"github.com/codegangsta/martini-contrib/binding"
 	"github.com/jinzhu/gorm"
@@ -48,11 +47,11 @@ func main() {
 }
 
 func initApiServer() {
-	fmt.Println("[init] starting in Classic mode")
+	Logger.Println("[init] starting in Classic mode")
 
 	e := DBSetup()
 	if e != nil {
-		fmt.Sprintf("[database] Unable to connect to the Database: %s\n", e)
+		Logger.Println("[database] Unable to connect to the Database" + e.Error())
 	}
 
 	/* Database connection will be closed only when Server closes */
@@ -318,6 +317,6 @@ func LogRequest(res http.ResponseWriter, req *http.Request, c martini.Context) {
  */
 func check(e error) {
 	if e != nil {
-		fmt.Println(e.Error())
+		Logger.Println(e.Error())
 	}
 }

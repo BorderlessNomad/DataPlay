@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/jinzhu/gorm"
 	"math"
 	"math/rand"
@@ -119,10 +118,10 @@ func GenerateCorrelations(tablename string, searchDepth int) {
 
 	err := DB.Model(OnlineData{}).Order("random()").Pluck("tablename", &tablenames).Error
 	if err != nil && err != gorm.RecordNotFound {
-		fmt.Println("Database Error while generating correlations.", err)
+		Logger.Println("Database Error while generating correlations: " + err.Error())
 		return
 	} else if err == gorm.RecordNotFound {
-		fmt.Println("No tables for generating correlations.", err)
+		Logger.Println("No tables for generating correlations: " + err.Error())
 		return
 	}
 

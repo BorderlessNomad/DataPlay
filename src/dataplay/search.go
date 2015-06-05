@@ -206,7 +206,7 @@ func BuildDataDictionary() {
 	indices := []Index{}
 	err := DB.Find(&indices).Error
 	if err != nil {
-		fmt.Println("Error", err)
+		Logger.Println("Error" + err.Error())
 		return
 	}
 
@@ -262,7 +262,7 @@ func BuildDataDictionary() {
 
 		err1 := DB.Create(&dictionary).Error
 		if err1 != nil {
-			fmt.Println("Error:", err)
+			Logger.Println("Error: " + err.Error())
 		}
 	}
 }
