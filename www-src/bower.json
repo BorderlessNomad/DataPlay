@@ -19,7 +19,7 @@
 		"angular-dc": "^0.0",
 		"angular-nvd3": "^0.0",
 		"ng-tiny-scrollbar": "^0.7",
-		"hello": "1.2"
+		"hello": "^1.2"
 	},
 	"devDependencies": {
 		"angular-mocks": "^1.3",
