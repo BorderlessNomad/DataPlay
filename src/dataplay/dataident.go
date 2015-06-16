@@ -149,9 +149,12 @@ func AttemptToFindMatches(res http.ResponseWriter, req *http.Request, params mar
 	stats := StatsCheck{}
 	count := 0
 	err := DB.Model(&stats).Where(fmt.Sprintf("LOWER(%q) = ?", "table"), strings.ToLower(onlineData.Tablename)).Where("LOWER(x) = ?", strings.ToLower(params["x"])).Where("LOWER(y) = ?", strings.ToLower(params["y"])).Count(&count).Find(&stats).Error
-	check(err)
+	if err != nil && err != gorm.RecordNotFound {
+		http.Error(res, "Unexpected error (AttemptToFindMatches).", http.StatusInternalServerError)
+		return ""
+	}
 
-	if count == 0 {
+	if count == 0 || err == gorm.RecordNotFound {
 		http.Error(res, "Unable to find the Polynomial code using given X and Y co-ordinates.", http.StatusBadRequest)
 		return ""
 	}
@@ -197,113 +200,6 @@ func FindStringMatches(res http.ResponseWriter, req *http.Request, params martin
 	b, e := json.Marshal(Results)
 	if e != nil {
 		http.Error(res, "Unable to parse JSON", http.StatusInternalServerError)
-		return ""
-	}
-
-	return string(b)
-}
-
-func GetRelatedDatasetByStrings(res http.ResponseWriter, req *http.Request, params martini.Params) string {
-	onlineData, e := GetOnlineDataByGuid(params["guid"])
-	if e != nil {
-		http.Error(res, "Could not find that table", http.StatusInternalServerError)
-		return ""
-	}
-
-	jobs := make([]ScanJob, 0)
-
-	Bits := GetSQLTableSchema(onlineData.Tablename)
-
-	/* Prepare a job list */
-	for _, bit := range Bits {
-		if bit.Sqltype == "varchar" || bit.Sqltype == "character varying" {
-			newJob := ScanJob{
-				TableName: onlineData.Tablename,
-				X:         bit.Name,
-			}
-
-			jobs = append(jobs, newJob)
-		}
-	}
-
-	checkingdict := make(map[string]int)
-
-	for _, job := range jobs {
-		var data []string
-		err := DB.Table(job.TableName).Pluck(fmt.Sprintf("%q", job.X), &data).Error
-
-		if err != nil {
-			http.Error(res, "Could not read from target table", http.StatusInternalServerError)
-			return ""
-		}
-
-		/* Map all vars of this table and store it's count */
-		for _, vars := range data {
-			checkingdict[vars]++
-		}
-	}
-
-	Combos := make([]PossibleCombo, 0)
-
-	/* Build a dictionary of all 'strings' to be searched */
-	Dictionary := ConvertIntoStructArrayAndSort(checkingdict)
-	Amt := 0
-	SizeLimit := 100 // was 5
-	for _, dict := range Dictionary {
-		/* Some sanity is always good */
-		if len(dict.Key) < 3 {
-			continue
-		}
-
-		Amt++
-
-		/* To prevent HEAVY load on SQL server we only search for Finite number of 'keywords' */
-		if Amt > SizeLimit {
-			break
-		}
-
-		search := StringSearch{}
-		count := 0
-		err := DB.Model(&search).Where("value = ?", dict.Value).Count(&count).Error
-
-		check(err)
-
-		if count != 0 {
-			tablelist := make([]string, 0)
-
-			var data = []string{}
-			query := DB.Table("priv_onlinedata, priv_stringsearch, priv_index")
-			query = query.Where("priv_stringsearch.value = ?", dict.Value)
-			query = query.Where("priv_stringsearch.count > ?", 5) //Why?
-			query = query.Where("priv_stringsearch.tablename = priv_onlinedata.tablename")
-			query = query.Where("priv_onlinedata.guid = priv_index.guid")
-			err := query.Pluck("priv_onlinedata.guid", &data).Error
-
-			if err == gorm.RecordNotFound {
-				continue
-			} else if err != nil {
-				http.Error(res, "Could not read off data lookups", http.StatusInternalServerError)
-				return ""
-			}
-
-			for _, id := range data {
-				if !StringInSlice(id, tablelist) {
-					tablelist = append(tablelist, id)
-				}
-			}
-
-			Combo := PossibleCombo{
-				Match:  dict.Key,
-				Tables: tablelist,
-			}
-
-			Combos = append(Combos, Combo)
-		}
-	}
-
-	b, e := json.Marshal(Combos)
-	if e != nil {
-		http.Error(res, "JSON failed", http.StatusInternalServerError)
 		return ""
 	}
 

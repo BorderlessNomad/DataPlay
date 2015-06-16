@@ -153,25 +153,6 @@ func TestFindStringMatches(t *testing.T) {
 	})
 }
 
-func TestGetRelatedDatasetByStrings(t *testing.T) {
-	request, _ := http.NewRequest("POST", "/", nil)
-	response := httptest.NewRecorder()
-	params := map[string]string{
-		"guid": "",
-	}
-
-	result := GetRelatedDatasetByStrings(response, request, params)
-	Convey("When no guid parameter is provided", t, func() {
-		So(result, ShouldEqual, "")
-	})
-
-	Convey("When guid parameter is provided", t, func() {
-		params["guid"] = "hips"
-		result := GetRelatedDatasetByStrings(response, request, params)
-		So(result, ShouldNotBeBlank)
-	})
-}
-
 func TestConvertIntoStructArrayAndSort(t *testing.T) {
 	unsorted := map[string]int{
 		"b": 2,

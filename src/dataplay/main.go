@@ -180,7 +180,6 @@ func initApiServer() {
 	m.Get("/api/political/:type", GetPoliticalActivityHttp)
 	m.Get("/api/related/:tablename", GetRelatedChartsHttp)
 	m.Get("/api/related/:tablename/:offset/:count", GetRelatedChartsHttp)
-	m.Get("/api/relatedstrings/:guid", GetRelatedDatasetByStrings)
 	m.Get("/api/search/:keyword", SearchForDataHttp)
 	m.Get("/api/search/:keyword/:offset", SearchForDataHttp)
 	m.Get("/api/search/:keyword/:offset/:count", SearchForDataHttp)
@@ -307,16 +306,4 @@ func LogRequest(res http.ResponseWriter, req *http.Request, c martini.Context) {
 
 	// Send data for storage
 	go StoreMonitoringData(urlData[1], urlData[2], req.URL.Path, req.Method, rw.Status(), executionTime)
-}
-
-/**
- * @details Error Handler
- *
- * @param error
- * @print error
- */
-func check(e error) {
-	if e != nil {
-		Logger.Println(e.Error())
-	}
 }

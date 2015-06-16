@@ -104,7 +104,6 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, login UserForm) str
 		gErr := DB.Model(&user).Where("password = ?", GetMD5Hash(login.Password)).Count(&count).Error
 
 		if gErr != nil && gErr != gorm.RecordNotFound {
-			check(gErr)
 			http.Error(res, "Unable to find user with MD5.", http.StatusInternalServerError)
 			return ""
 		}
@@ -122,7 +121,6 @@ func HandleLogin(res http.ResponseWriter, req *http.Request, login UserForm) str
 
 		gErr = DB.Model(&user).Update("password", string(hashedPassword)).Error
 		if gErr != nil {
-			check(gErr)
 			http.Error(res, "Unable to update the password.", http.StatusInternalServerError)
 			return ""
 		}
