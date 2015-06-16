@@ -226,17 +226,14 @@ func GetHostName() (name string, err error) {
 func GetLocalIp() (address string, err error) {
 	addrs, err := net.InterfaceAddrs()
 
-	if err != nil {
-		return GetHostName()
-	}
-
-	for _, address := range addrs {
-		// check the address type and if it is not a loopback the display it
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				return ipnet.IP.String(), nil
+	if err == nil {
+		for _, address := range addrs {
+			// check the address type and if it is not a loopback the display it
+			if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+				if ipnet.IP.To4() != nil {
+					return ipnet.IP.String(), nil
+				}
 			}
-
 		}
 	}
 
