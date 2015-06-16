@@ -127,18 +127,20 @@ func AsyncMonitoringPush() {
 	ticker := time.NewTicker(10 * time.Second)
 	quit := make(chan struct{})
 
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				_, nanoTime := GetUnixNanoTimeStamp()
-				FlushMonitoringData(nanoTime)
-			case <-quit:
-				ticker.Stop()
-				return
-			}
+	go MonitoringPush(ticker, quit)
+}
+
+func MonitoringPush(ticker *time.Ticker, quit chan struct{}) {
+	for {
+		select {
+		case <-ticker.C:
+			_, nanoTime := GetUnixNanoTimeStamp()
+			FlushMonitoringData(nanoTime)
+		case <-quit:
+			ticker.Stop()
+			return
 		}
-	}()
+	}
 }
 
 func GetPerformanceInfo(res http.ResponseWriter, req *http.Request) string {
