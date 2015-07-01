@@ -9,6 +9,8 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
+GO_VERSION="go1.3.3"
+
 HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
 PORT="1938"
 
@@ -80,6 +82,24 @@ setup_haproxy_api () {
 	# curl -i -H "Accept: application/json" -X DELETE http://109.231.121.84:1937/master/109.231.121.94:3000
 }
 
+install_go () {
+	apt-get install -y mercurial bzr
+
+	mkdir -p /home/ubuntu && cd /home/ubuntu
+	mkdir -p gocode && mkdir -p www
+
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N https://storage.googleapis.com/golang/$GO_VERSION.linux-amd64.tar.gz
+	tar xf $GO_VERSION.linux-amd64.tar.gz
+
+	echo "export GOROOT=/home/ubuntu/go" >> /etc/profile.d/dataplay.sh
+	echo "PATH=\$PATH:\$GOROOT/bin" >> /etc/profile.d/dataplay.sh
+
+	echo "export GOPATH=/home/ubuntu/gocode" >> /etc/profile.d/dataplay.sh
+	echo "PATH=\$PATH:\$GOPATH/bin" >> /etc/profile.d/dataplay.sh
+
+	. /etc/profile
+}
+
 run_monitoring () {
 	URL="https://github.com"
 	USER="playgenhub"
@@ -147,13 +167,16 @@ install_haproxy
 echo "[$(timestamp)] ---- 3. Setup HAProxy API ----"
 setup_haproxy_api
 
-echo "[$(timestamp)] ---- 4. Export Variables ----"
+echo "[$(timestamp)] ---- 4. Install GO ----"
+install_go
+
+echo "[$(timestamp)] ---- 5. Export Variables ----"
 export_variables
 
-echo "[$(timestamp)] ---- 5. Run API Monitoring Probe ----"
+echo "[$(timestamp)] ---- 6. Run API Monitoring Probe ----"
 run_monitoring
 
-echo "[$(timestamp)] ---- 6. Update IPTables rules ----"
+echo "[$(timestamp)] ---- 7. Update IPTables rules ----"
 update_iptables
 
 echo "[$(timestamp)] ---- Completed ----"
