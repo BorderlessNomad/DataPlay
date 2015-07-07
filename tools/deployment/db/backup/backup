@@ -30,6 +30,7 @@ server {
 		allow 109.231.126.0/24; # Flexiant
 		allow 108.61.197.87/32; # Vultr
 		allow 82.12.167.192/32; # Mayur
+		allow 128.130.172.247/32; # TUW
 		deny all;
 
 		#auth_basic "Restricted Content";
