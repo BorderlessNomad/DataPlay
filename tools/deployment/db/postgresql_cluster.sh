@@ -32,7 +32,7 @@ install_pgpool () {
 	yum install -y epel-release http://yum.postgresql.org/9.4/redhat/rhel-7-x86_64/pgdg-centos94-9.4-1.noarch.rpm
 	yum install -y http://www.pgpool.net/yum/rpms/3.4/redhat/rhel-7-x86_64/pgpool-II-release-3.4-1.noarch.rpm
 
-	yum update -y
+	# yum update -y
 
 	yum install -y pgpool-II-94 pgpool-II-94-extensions postgresql94
 
