@@ -18,8 +18,8 @@ APP_PORT="3000"
 APP_TYPE="master"
 
 # DATABASE_HOST="109.231.121.13"
-DATABASE_HOST=$(ss-get --timeout 360 PostgreSQL.1:hostname)
-DATABASE_PORT="5432"
+DATABASE_HOST=$(ss-get --timeout 360 PGPool.1:hostname)
+DATABASE_PORT="9999"
 
 # REDIS_HOST="109.231.121.13"
 REDIS_HOST=$(ss-get --timeout 360 Redis.1:hostname)
