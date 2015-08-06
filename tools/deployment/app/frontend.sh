@@ -72,7 +72,7 @@ install_nginx () {
 }
 
 download_app () {
-	URL="https://github.com"
+	URL="https://codeload.github.com"
 	USER="playgenhub"
 	REPO="DataPlay"
 	BRANCH="master"
@@ -80,7 +80,7 @@ download_app () {
 
 	cd $DEST
 	echo "Fetching latest ZIP"
-	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/archive/$BRANCH.zip -O $BRANCH.zip
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/zip/$BRANCH -O $BRANCH.zip
 	echo "Extracting from $BRANCH.zip"
 	unzip -oq $BRANCH.zip
 	if [ -d $APP ]; then
@@ -120,15 +120,11 @@ inform_loadbalancer () {
 	done
 }
 
-fetch_service () {
-	URL="https://raw.githubusercontent.com"
-	USER="playgenhub"
-	REPO="DataPlay"
-	BRANCH="master"
-	SOURCE="$URL/$USER/$REPO/$BRANCH"
+setup_service_script () {
+	DEPLOYMENT="tools/deployment"
 	SERVICE="frontend.service.sh"
 
-	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/app/$SERVICE -O $DEST/$SERVICE
+	cp $DEST/$APP/$DEPLOYMENT/app/$SERVICE $DEST/$SERVICE
 
 	chmod +x $DEST/$SERVICE
 }
@@ -159,8 +155,8 @@ init_frontend
 echo "[$(timestamp)] ---- 6. Inform Load Balancer (Add) ----"
 inform_loadbalancer
 
-echo "[$(timestamp)] ---- 7. Fetch Service ----"
-fetch_service
+echo "[$(timestamp)] ---- 7. Setup Service Script ----"
+setup_service_script
 
 echo "[$(timestamp)] ---- Completed ----"
 
