@@ -1,21 +1,25 @@
 from locust import HttpLocust, TaskSet
 
 def login(l):
-    l.client.post("/login", {"username":"mayur", "password":"123456"})
+	response = l.client.post("/login", None, {"username":"mayur", "password":"123456"})
+	if response.status_code != 200
+		response.failure("Unable to login")
+
+	response_content = response.json()
 
 def home(l):
-    l.client.get("/home/data")
-    l.client.get("/chart/toprated")
-    l.client.get("/user/activitystream")
-    l.client.get("/recentobservations")
+	l.client.get("/home/data")
+	l.client.get("/chart/toprated")
+	l.client.get("/user/activitystream")
+	l.client.get("/recentobservations")
 
 def search(l):
-    l.client.get("/search/birth")
-    l.client.get("/search/death")
-    l.client.get("/search/population")
-    l.client.get("/search/health")
-    l.client.get("/search/newham")
-    l.client.get("/search/westminster")
+	l.client.get("/search/birth")
+	l.client.get("/search/death")
+	l.client.get("/search/population")
+	l.client.get("/search/health")
+	l.client.get("/search/newham")
+	l.client.get("/search/westminster")
 
 def news(l):
 	l.client.get("/news/search/births")
@@ -46,12 +50,12 @@ def activities(l):
 	l.client.get("/political/regions")
 
 class UserBehavior(TaskSet):
-    tasks = {home:1, search:1, news:1, related:1, correlated:1, activities:1}
+	tasks = {home:1, search:1, news:1, related:1, correlated:1, activities:1}
 
-    def on_start(self):
-        login(self)
+	def on_start(self):
+		login(self)
 
 class WebsiteUser(HttpLocust):
-    task_set = UserBehavior
-    min_wait=5000
-    max_wait=9000
+	task_set = UserBehavior
+	min_wait=5000
+	max_wait=9000
