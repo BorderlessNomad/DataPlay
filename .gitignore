@@ -43,3 +43,4 @@ src/newsfetch/config.go
 src/DP/main.go
 *.dmp
 src/newsfetch/embedly.txt
+*.pyc
