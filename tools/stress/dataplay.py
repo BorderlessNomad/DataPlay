@@ -1,59 +1,59 @@
 from locust import HttpLocust, TaskSet
 
-def login(l):
-	response = l.client.post("/login", None, {"username":"mayur", "password":"123456"})
-	if response.status_code != 200
-		response.failure("Unable to login")
-
-	response_content = response.json()
+global headers
+headers = {'X-API-SESSION': 'ubVBoLmwvBQoM5GXrb2lKuQWciAg6U0X1RBBBNz7vwv0bhd7RX4JC4n39ztBb2Kl'}
 
 def home(l):
-	l.client.get("/home/data")
-	l.client.get("/chart/toprated")
-	l.client.get("/user/activitystream")
-	l.client.get("/recentobservations")
+	l.client.get("/home/data", headers=headers)
+	l.client.get("/chart/toprated", headers=headers)
+	l.client.get("/user/activitystream", headers=headers)
+	l.client.get("/recentobservations", headers=headers)
 
 def search(l):
-	l.client.get("/search/birth")
-	l.client.get("/search/death")
-	l.client.get("/search/population")
-	l.client.get("/search/health")
-	l.client.get("/search/newham")
-	l.client.get("/search/westminster")
+	l.client.get("/search/birth", headers=headers)
+	l.client.get("/search/death", headers=headers)
+	l.client.get("/search/population", headers=headers)
+	l.client.get("/search/health", headers=headers)
+	l.client.get("/search/newham", headers=headers)
+	l.client.get("/search/westminster", headers=headers)
 
 def news(l):
-	l.client.get("/news/search/births")
-	l.client.get("/news/search/death")
-	l.client.get("/news/search/population")
-	l.client.get("/news/search/health")
-	l.client.get("/news/search/newham")
-	l.client.get("/news/search/westminster")
+	l.client.get("/news/search/births", headers=headers)
+	l.client.get("/news/search/death", headers=headers)
+	l.client.get("/news/search/population", headers=headers)
+	l.client.get("/news/search/health", headers=headers)
+	l.client.get("/news/search/newham", headers=headers)
+	l.client.get("/news/search/westminster", headers=headers)
 
 def related(l):
-	l.client.get("/related/births")
-	l.client.get("/related/mental-health-problems")
-	l.client.get("/related/deaths")
-	l.client.get("/related/gold-prices")
-	l.client.get("/related/jobs")
+	l.client.get("/related/births", headers=headers)
+	l.client.get("/related/job-density", headers=headers)
+	l.client.get("/related/deaths", headers=headers)
+	l.client.get("/related/gold-prices", headers=headers)
+	l.client.get("/related/jobs", headers=headers)
 
 def correlated(l):
-	l.client.get("/correlated/births")
-	l.client.get("/correlated/mental-health-problems")
-	l.client.get("/correlated/deaths")
-	l.client.get("/correlated/gold-prices")
-	l.client.get("/correlated/jobs")
+	l.client.get("/correlated/births", headers=headers)
+	l.client.get("/correlated/job-density", headers=headers)
+	l.client.get("/correlated/deaths", headers=headers)
+	l.client.get("/correlated/gold-prices", headers=headers)
+	l.client.get("/correlated/jobs", headers=headers)
+
+def correlated_generate(l):
+	l.client.get("/correlated/births/true", headers=headers)
+	l.client.get("/correlated/job-density/true", headers=headers)
+	l.client.get("/correlated/deaths/true", headers=headers)
+	l.client.get("/correlated/gold-prices/true", headers=headers)
+	l.client.get("/correlated/jobs/true", headers=headers)
 
 def activities(l):
-	l.client.get("/political/popular")
-	l.client.get("/political/keywords")
-	l.client.get("/political/mediapulse")
-	l.client.get("/political/regions")
+	l.client.get("/political/popular", headers=headers)
+	l.client.get("/political/keywords", headers=headers)
+	l.client.get("/political/mediapulse", headers=headers)
+	l.client.get("/political/regions", headers=headers)
 
 class UserBehavior(TaskSet):
-	tasks = {home:1, search:1, news:1, related:1, correlated:1, activities:1}
-
-	def on_start(self):
-		login(self)
+	tasks = {home:100, search:50, news:50, related:25, correlated:25, correlated_generate: 5, activities:10}
 
 class WebsiteUser(HttpLocust):
 	task_set = UserBehavior

@@ -1318,7 +1318,7 @@ func GetCorrelatedChartsHttp(res http.ResponseWriter, req *http.Request, params 
 	result, error := GetCorrelatedCharts(params["tablename"], search, offset, count, true)
 	if error != nil {
 		http.Error(res, error.Message, error.Code)
-		return error.Message
+		return ""
 	}
 
 	r, err1 := json.Marshal(result)
