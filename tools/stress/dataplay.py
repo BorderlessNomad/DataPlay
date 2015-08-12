@@ -1,7 +1,6 @@
 from locust import HttpLocust, TaskSet
 
-global headers
-headers = {'X-API-SESSION': 'ubVBoLmwvBQoM5GXrb2lKuQWciAg6U0X1RBBBNz7vwv0bhd7RX4JC4n39ztBb2Kl'}
+headers = {'X-API-SESSION': ''}
 
 def home(l):
 	l.client.get("/home/data", headers=headers)
@@ -53,7 +52,23 @@ def activities(l):
 	l.client.get("/political/regions", headers=headers)
 
 class UserBehavior(TaskSet):
-	tasks = {home:100, search:50, news:50, related:25, correlated:25, correlated_generate: 5, activities:10}
+	"""
+	Note: News, Activities are secondary system and doesn't respond to scaling
+	"""
+	# tasks = {home:100, search:50, news:50, related:25, correlated:25, correlated_generate: 15, activities:10}
+	tasks = {home:100, search:50, related:25, correlated:25, correlated_generate: 15}
+
+	def on_start(self):
+		self.login()
+
+	def login(self):
+		global headers
+
+		r = self.client.post("/login", json={'username': 'mayur', 'password': '123456'})
+
+		response = r.json()
+
+		headers = {'X-API-SESSION': response["session"]}
 
 class WebsiteUser(HttpLocust):
 	task_set = UserBehavior
