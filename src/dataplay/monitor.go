@@ -60,6 +60,10 @@ func StoreMonitoringData(httpEndPoint, httpRequest, httpUrl, httpMethod string, 
 	return nil
 }
 
+/**
+ * @todo Create connection pool with Redis and use same connection for all monitoring related pushes.
+ * Since it uses different DB than session will be faster and efficient.
+ */
 func FlushMonitoringData(lastFlush int64) error {
 	if len(MonitoringCollection) == 0 {
 		return nil
