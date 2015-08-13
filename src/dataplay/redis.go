@@ -1,7 +1,8 @@
 package main
 
 import (
-	"github.com/fzzy/radix/redis"
+	// "github.com/mediocregopher/radix.v2/pool"
+	"github.com/mediocregopher/radix.v2/redis"
 	"os"
 	"strconv"
 	"time"

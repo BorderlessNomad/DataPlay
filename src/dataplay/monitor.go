@@ -72,8 +72,8 @@ func FlushMonitoringData(lastFlush int64) error {
 
 	defer c.Close()
 
-	r := c.Cmd("SELECT", MonitoringRedisDB)
-	if r.Err != nil {
+	err := c.Cmd("SELECT", MonitoringRedisDB).Err
+	if err != nil {
 		return fmt.Errorf("Could not SELECT DB %d from Redis.", MonitoringRedisDB)
 	}
 
