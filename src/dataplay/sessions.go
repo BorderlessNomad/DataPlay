@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/rand"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -10,25 +11,22 @@ func IsUserLoggedIn(res http.ResponseWriter, req *http.Request) bool {
 	cookie, _ := req.Cookie("DPSession")
 
 	c, err := GetRedisConnection()
-	if cookie != nil && err == nil {
-		defer c.Close()
-
-		r := c.Cmd("GET", cookie.Value)
-		i, err := r.Int() // Get back from Redis the Int value of that cookie.
-		if err != nil {
-			return false
-		}
-
-		// There might be cases where redis could store 0 (meaning there is no logged in user)
-		// for that session, Meaning that we need to check for when this happens.
-		if i != 0 {
-			return true
-		} else {
-			return false // there is no zero user.
-		}
-	} else {
+	if cookie == nil || len(cookie.Value) < 1 || err != nil {
 		return false
 	}
+
+	defer c.Close()
+
+	r := c.Cmd("GET", cookie.Value)
+	user, err := r.Str()
+
+	// There might be cases where redis could store 0 (meaning there is no logged in user)
+	// for that session, Meaning that we need to check for when this happens.
+	if err != nil || user == "" || user == "0" {
+		return false
+	}
+
+	return true
 }
 
 func GetUserID(cookie string) (int, *appError) {
@@ -44,18 +42,19 @@ func GetUserID(cookie string) (int, *appError) {
 	defer c.Close()
 
 	r := c.Cmd("GET", cookie)
-	i, err := r.Int() // Get back from Redis the Int value of that cookie.
+	i, err := r.Str()
 	if err != nil {
-		return 0, &appError{err, "Unable to parse GET value", http.StatusInternalServerError}
+		return 0, &appError{err, "Unable to parse GET value (" + err.Error() + ")", http.StatusInternalServerError}
 	}
 
 	// There might be cases where redis could store 0 (meaning there is no logged in user)
 	// for that session, Meaning that we need to check for when this happens.
-	if i <= 0 {
+	if i == "" || i == "0" {
 		return 0, &appError{err, "No such session found.", http.StatusUnauthorized}
 	}
 
-	return i, nil
+	user, _ := strconv.Atoi(i)
+	return user, nil
 }
 
 func SetSession(userid int) (*http.Cookie, *appError) {
@@ -99,7 +98,7 @@ func ClearSession(cookie string) (*http.Cookie, *appError) {
 	}
 
 	get := c.Cmd("GET", cookie)
-	_, errg := get.Int() // Get back from Redis the Int value of that cookie.
+	_, errg := get.Str()
 	if errg != nil {
 		return nil, &appError{errg, "Unable to find session in Redis", http.StatusInternalServerError}
 	}
@@ -123,9 +122,12 @@ func ClearSession(cookie string) (*http.Cookie, *appError) {
 func randString(n int) string {
 	const alphanum = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	var bytes = make([]byte, n)
+
 	rand.Read(bytes)
+
 	for i, b := range bytes {
 		bytes[i] = alphanum[b%byte(len(alphanum))]
 	}
+
 	return string(bytes)
 }
