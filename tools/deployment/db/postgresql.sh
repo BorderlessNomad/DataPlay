@@ -15,6 +15,9 @@ APP_HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print
 PGPOOL_API_HOST=$(ss-get --timeout 360 pgpool.hostname)
 PGPOOL_API_PORT="1937"
 
+JCATASCOPIA_REPO="109.231.126.62"
+JCATASCOPIA_DASHBOARD="109.231.122.112"
+
 timestamp () {
 	date +"%F %T,%3N"
 }
@@ -166,6 +169,23 @@ inform_pgpool () {
 	done
 }
 
+#added to automate JCatascopiaAgent installation
+setup_JCatascopiaAgent(){
+	wget -q https://raw.githubusercontent.com/CELAR/celar-deployment/master/vm/jcatascopia-agent.sh
+
+	wget -q http://$JCATASCOPIA_REPO/JCatascopiaProbes/PostgresProbe.jar
+	mv ./PostgresProbe.jar /usr/local/bin/
+
+	bash ./jcatascopia-agent.sh > /tmp/JCata.txt 2>&1
+
+	echo "probes_external=PostgresProbe,/usr/local/bin/PostgresProbe.jar" | sudo -S tee -a /usr/local/bin/JCatascopiaAgentDir/resources/agent.properties
+	eval "sed -i 's/server_ip=.*/server_ip=$JCATASCOPIA_DASHBOARD/g' /usr/local/bin/JCatascopiaAgentDir/resources/agent.properties"
+
+	/etc/init.d/JCatascopia-Agent restart > /tmp/JCata.txt 2>&1
+
+	rm ./jcatascopia-agent.sh
+}
+
 echo "[$(timestamp)] ---- 1. Setup Host ----"
 setuphost
 
@@ -186,6 +206,9 @@ inform_pgpool
 
 echo "[$(timestamp)] ---- 7. Update IPTables rules ----"
 update_iptables
+
+echo "[$(timestamp)] ---- 8. Setting up JCatascopia Agent ----"
+setup_JCatascopiaAgent
 
 echo "[$(timestamp)] ---- Completed ----"
 
