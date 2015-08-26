@@ -1,16 +1,16 @@
 package main
 
 import (
-	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/mediocregopher/radix.v2/redis"
 	"os"
 	"strconv"
+	"time"
 )
 
 func GetRedisConnection() (client *redis.Client, err error) {
 	redisHost := "109.231.121.62"
 	redisPort := "6379"
-	redisPoolSize := 100
+	redisTimeout := time.Duration(10) * time.Second
 
 	if os.Getenv("DP_REDIS_HOST") != "" {
 		redisHost = os.Getenv("DP_REDIS_HOST")
@@ -20,25 +20,18 @@ func GetRedisConnection() (client *redis.Client, err error) {
 		redisPort = os.Getenv("DP_REDIS_PORT")
 	}
 
-	if os.Getenv("DP_REDIS_POOLSIZE") != "" {
-		redisPoolSize, _ = strconv.Atoi(os.Getenv("DP_REDIS_POOLSIZE"))
+	if os.Getenv("DP_REDIS_TIMEOUT") != "" {
+		timeout, _ := strconv.Atoi(os.Getenv("DP_REDIS_TIMEOUT"))
+		redisTimeout = time.Duration(timeout) * time.Second
 	}
 
 	Logger.Println("Connecting to Redis " + redisHost + ":" + redisPort)
+	client, err = redis.DialTimeout("tcp", redisHost+":"+redisPort, redisTimeout)
 
-	p, err := pool.New("tcp", redisHost+":"+redisPort, redisPoolSize)
 	if err != nil {
-		Logger.Println("Could not initiate Redis Pool.")
+		Logger.Println("Could not connect to the redis server.")
 		return nil, err
 	}
-
-	client, err = p.Get()
-	if err != nil {
-		Logger.Println("Could not connect to the Redis server.")
-		return nil, err
-	}
-
-	defer p.Put(client)
 
 	Logger.Println("Connected!")
 
