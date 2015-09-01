@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/mediocregopher/radix.v2/redis"
 	"math"
 	"net"
 	"net/http"
@@ -35,6 +36,7 @@ var MonitoringCollection []MonitoringData
 var MonitoringLastFlush int
 var MonitoringEndPoint string = "api"
 var MonitoringRedisDB int = 1
+var MonitoringRedisConn *redis.Client = nil
 
 func StoreMonitoringData(httpEndPoint, httpRequest, httpUrl, httpMethod string, httpCode int, executionTime int64) (e error) {
 	timeNow, nanoTime := GetUnixNanoTimeStamp()
@@ -61,22 +63,34 @@ func StoreMonitoringData(httpEndPoint, httpRequest, httpUrl, httpMethod string, 
 }
 
 /**
- * @todo Create connection pool with Redis and use same connection for all monitoring related pushes.
- * Since it uses different DB than session will be faster and efficient.
+ * Flush monitoring data into Redis.
+ * It re-uses Redis connection for all monitoring related pushes until connection is timed out
+ * or unavailable.
  */
 func FlushMonitoringData(lastFlush int64) error {
 	if len(MonitoringCollection) == 0 {
 		return nil
 	}
 
-	c, err := GetRedisConnection()
-	if err != nil {
-		return fmt.Errorf("Could not connect to Redis.")
+	var pong string
+	var err error
+
+	if MonitoringRedisConn == nil {
+		MonitoringRedisConn, err = GetRedisConnection()
+		if err != nil {
+			return fmt.Errorf("Could not connect to Redis.")
+		}
 	}
 
-	defer c.Close()
+	pong, err = MonitoringRedisConn.Cmd("PING").Str()
+	if err != nil || pong != "PONG" { // Reinitialise Redis connection
+		MonitoringRedisConn, err = GetRedisConnection()
+		if err != nil {
+			return fmt.Errorf("Could not connect to Redis.")
+		}
+	}
 
-	r := c.Cmd("SELECT", MonitoringRedisDB)
+	r := MonitoringRedisConn.Cmd("SELECT", MonitoringRedisDB)
 	if r.Err != nil {
 		return fmt.Errorf("Could not SELECT DB %d from Redis.", MonitoringRedisDB)
 	}
@@ -105,13 +119,13 @@ func FlushMonitoringData(lastFlush int64) error {
 			hash := strconv.FormatInt(monitor.Hash, 10)
 
 			// Store hash into DB
-			r = c.Cmd("HMSET", monitor.Host+":"+hash, monitor.Data)
+			r = MonitoringRedisConn.Cmd("HMSET", monitor.Host+":"+hash, monitor.Data)
 			if r.Err != nil {
 				return fmt.Errorf("Could not store HMSET in Redis.")
 			}
 
 			// Store pointer to hash's key in DB
-			r = c.Cmd("SADD", monitor.Url, hash)
+			r = MonitoringRedisConn.Cmd("SADD", monitor.Url, hash)
 			if r.Err != nil {
 				return fmt.Errorf("Could not store SADD in Redis.")
 			}

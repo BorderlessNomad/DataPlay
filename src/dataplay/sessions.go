@@ -57,8 +57,8 @@ func GetUserID(cookie string) (int, *appError) {
 	return user, nil
 }
 
-func SetSession(userid int) (*http.Cookie, *appError) {
-	if userid <= 0 {
+func SetSession(userId int) (*http.Cookie, *appError) {
+	if userId <= 0 {
 		return nil, &appError{nil, "No UserID specified.", http.StatusInternalServerError}
 	}
 
@@ -70,7 +70,7 @@ func SetSession(userid int) (*http.Cookie, *appError) {
 	defer c.Close()
 
 	NewSessionID := randString(64)
-	r := c.Cmd("SET", NewSessionID, userid)
+	r := c.Cmd("SET", NewSessionID, userId)
 	if r.Err != nil {
 		return nil, &appError{r.Err, "Unable to store session in Redis", http.StatusInternalServerError}
 	}
@@ -94,13 +94,13 @@ func ClearSession(cookie string) (*http.Cookie, *appError) {
 	defer c.Close()
 
 	if len(cookie) <= 0 {
-		return nil, &appError{errc, "No session found", http.StatusBadRequest}
+		return nil, &appError{errc, "Invalid or Empty session", http.StatusBadRequest}
 	}
 
 	get := c.Cmd("GET", cookie)
 	_, errg := get.Str()
 	if errg != nil {
-		return nil, &appError{errg, "Unable to find session in Redis", http.StatusInternalServerError}
+		return nil, &appError{errg, "No such session found", http.StatusNotFound}
 	}
 
 	set := c.Cmd("SET", cookie, 0)
