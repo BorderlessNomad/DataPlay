@@ -16,19 +16,19 @@ angular.module('dataplayApp')
 				params.email = username
 			else
 				params.username = username
-			$http.post config.api.base_url + "/login", params
+			$http.post "login", params
 
 		logOut: (token) ->
-			$http.delete config.api.base_url + "/logout"
+			$http.delete "logout"
 
 		register: (username, email, password) ->
-			$http.post config.api.base_url + "/register",
+			$http.post "register",
 				username: username
 				email: email
 				password: password
 
 		socialLogin: (data) ->
-			$http.post config.api.base_url + "/login/social",
+			$http.post "login/social",
 				'network': data['network'] or ''
 				'id': data['id'] or ''
 				'email': data['email'] or ''
@@ -38,28 +38,28 @@ angular.module('dataplayApp')
 				'image': data['image'] or ''
 
 		check: (email) ->
-			$http.post config.api.base_url + "/user/check",
+			$http.post "user/check",
 				email: email
 
 		forgotPassword: (email) ->
-			$http.post config.api.base_url + "/user/forgot",
+			$http.post "user/forgot",
 				email: email
 
 		token: (token, email, password) ->
 			if password?
-				$http.put config.api.base_url + "/user/reset/#{token}",
+				$http.put "user/reset/#{token}",
 					email: email
 					password: password
 			else
-				$http.get config.api.base_url + "/user/reset/#{token}/#{email}"
+				$http.get "user/reset/#{token}/#{email}"
 
 		resetPassword: (hash, password) ->
-			$http.post config.api.base_url + "/user/reset",
+			$http.post "user/reset",
 				hash: hash
 				password: password
 
 		visited: () ->
-			$http.get config.api.base_url + "/visited"
+			$http.get "visited"
 
 		search: (word, offset, count) ->
 			word = word.replace(/\/|\\/g, ' ')
@@ -68,14 +68,14 @@ angular.module('dataplayApp')
 				path += "/#{offset}"
 				if count?
 					path += "/#{count}"
-			$http.get config.api.base_url + path
+			$http.get path
 
 		searchTweets: (word) ->
-			$http.get config.api.base_url + "/tweets/#{word}"
+			$http.get "tweets/#{word}"
 
 		getNews: (query) ->
 			if query instanceof Array
 				query = query.join '_'
 			query = query.replace(/\s{1,}|\%20|\/|\\/g, '_')
-			$http.get config.api.base_url + "/news/search/#{query}"
+			$http.get "news/search/#{query}"
 	]

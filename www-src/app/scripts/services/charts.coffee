@@ -12,13 +12,13 @@ angular.module('dataplayApp')
 		related: (guid, key, type, x, y, z) ->
 			path = "/chart/#{guid}/#{key}/#{type}/#{x}/#{y}"
 			if z? then path += "/#{z}"
-			$http.get config.api.base_url + path
+			$http.get path
 
 		correlated: (key) ->
-			$http.get config.api.base_url + "/chartcorrelated/#{key}"
+			$http.get "chartcorrelated/#{key}"
 
 		bookmark: (bookmarks) ->
-			$http.post config.api.base_url + "/setbookmark",
+			$http.post "setbookmark",
 				data: bookmarks
 
 		creditChart: (type, chartId, valFlag) ->
@@ -26,22 +26,22 @@ angular.module('dataplayApp')
 			path += if type is 'rid' then chartId.replace /\//g, '_' else chartId
 			path += "/#{valFlag}"
 
-			$http.put config.api.base_url + path
+			$http.put path
 
 		getObservations: (id) ->
-			$http.get config.api.base_url + "/observations/#{id}"
+			$http.get "observations/#{id}"
 
 		createObservation: (did, x, y, message) ->
-			$http.put config.api.base_url + "/observations",
+			$http.put "observations",
 				did: '' + did
 				x: "#{x}"
 				y: "#{y}"
 				comment: message
 
 		creditObservation: (id, valFlag) ->
-			$http.put config.api.base_url + "/observations/#{id}/#{valFlag}"
+			$http.put "observations/#{id}/#{valFlag}"
 
 		flagObservation: (id) ->
-			$http.post config.api.base_url + "/observations/flag/#{id}"
+			$http.post "observations/flag/#{id}"
 
 	]
