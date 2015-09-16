@@ -1,7 +1,4 @@
 *.exe
-*.csv
-*.xls
-*.xlsx
 *.dunno
 *.log
 *.TMP

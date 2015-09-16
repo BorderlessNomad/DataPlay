@@ -1,0 +1,27 @@
+"Method","Name","# requests","# failures","Median response time","Average response time","Min response time","Max response time","Average Content Size","Requests/s"
+"GET","/api/chart/toprated",57223,20489,78,7290,29,266462,11084,0.98
+"GET","/api/correlated/births",12671,6663,19000,27022,671,206414,2810,0.22
+"GET","/api/correlated/births/true",5047,2711,19000,27481,690,210569,2811,0.09
+"GET","/api/correlated/deaths",13267,6037,19000,26158,650,217298,2820,0.23
+"GET","/api/correlated/deaths/true",5270,2479,19000,25694,661,208740,2819,0.09
+"GET","/api/correlated/gold-prices",10815,8461,6900,18715,302,205711,17517,0.18
+"GET","/api/correlated/gold-prices/true",4383,3359,6800,18193,314,233339,17518,0.07
+"GET","/api/correlated/job-density",13864,5453,19000,25550,852,202214,3024,0.24
+"GET","/api/correlated/job-density/true",5473,2279,19000,24943,858,178886,3023,0.09
+"GET","/api/correlated/jobs",12757,6503,19000,26339,625,224068,2862,0.22
+"GET","/api/correlated/jobs/true",5086,2647,19000,26409,802,207374,2862,0.09
+"GET","/api/home/data",55102,22627,55,8002,23,165344,98,0.94
+"GET","/api/recentobservations",62891,14724,250,5078,75,152589,757,1.07
+"GET","/api/related/births",19170,2,160,568,60,115084,635,0.33
+"GET","/api/related/deaths",19185,1,150,413,47,78276,618,0.33
+"GET","/api/related/gold-prices",19191,0,42,170,23,241375,5582,0.33
+"GET","/api/related/job-density",19181,0,160,463,46,71838,1060,0.33
+"GET","/api/related/jobs",19196,0,160,384,49,53105,675,0.33
+"GET","/api/search/birth",26548,12081,190,8746,56,397018,117,0.45
+"GET","/api/search/death",28997,9622,150,6666,56,510832,214,0.49
+"GET","/api/search/health",30004,8582,140,5674,55,411613,170,0.51
+"GET","/api/search/newham",30194,8361,140,5769,49,546190,869,0.51
+"GET","/api/search/population",29740,8863,150,6104,57,591491,421,0.51
+"GET","/api/search/westminster",30263,8273,140,5557,57,353227,874,0.52
+"GET","/api/user/activitystream",77579,73,1800,54798,291,470769,1244,1.32
+"None","Total",613097,160290,280,14342,23,591491,2456,10.45

@@ -1,0 +1,27 @@
+"Method","Name","# requests","# failures","Median response time","Average response time","Min response time","Max response time","Average Content Size","Requests/s"
+"GET","/api/chart/toprated",4984,971,240,5509,30,104240,11084,1.52
+"GET","/api/correlated/births",1167,389,11000,17819,1319,129918,2811,0.36
+"GET","/api/correlated/births/true",388,160,11000,17781,2228,105221,2811,0.12
+"GET","/api/correlated/deaths",1112,410,11000,18810,731,168444,2819,0.34
+"GET","/api/correlated/deaths/true",390,144,11000,19136,1177,90597,2820,0.12
+"GET","/api/correlated/gold-prices",1023,478,6500,16678,692,151765,17560,0.31
+"GET","/api/correlated/gold-prices/true",370,157,5800,14907,1366,151540,17560,0.11
+"GET","/api/correlated/job-density",1170,375,8400,14646,851,137854,3024,0.36
+"GET","/api/correlated/job-density/true",412,133,8600,14816,969,146809,3024,0.13
+"GET","/api/correlated/jobs",1124,357,11000,17462,1789,124363,2861,0.34
+"GET","/api/correlated/jobs/true",388,132,11000,17881,1928,107339,2861,0.12
+"GET","/api/home/data",4752,1204,86,6221,26,120959,98,1.45
+"GET","/api/recentobservations",5093,833,270,4405,80,133334,757,1.56
+"GET","/api/related/births",1452,0,180,350,53,1726,635,0.44
+"GET","/api/related/deaths",1452,0,170,331,65,1739,617,0.44
+"GET","/api/related/gold-prices",1452,0,69,137,25,954,5582,0.44
+"GET","/api/related/job-density",1452,0,170,330,62,2099,1060,0.44
+"GET","/api/related/jobs",1452,0,150,313,65,1990,676,0.44
+"GET","/api/search/birth",2428,674,280,7520,65,102865,117,0.74
+"GET","/api/search/death",2554,548,180,5313,65,122187,214,0.78
+"GET","/api/search/health",2640,447,170,4494,61,127766,170,0.81
+"GET","/api/search/newham",2621,457,160,4751,65,154562,869,0.80
+"GET","/api/search/population",2609,494,170,5577,65,398500,421,0.80
+"GET","/api/search/westminster",2610,451,160,4671,64,322380,874,0.80
+"GET","/api/user/activitystream",5914,30,1900,35013,311,343490,1325,1.81
+"None","Total",51009,8844,390,9802,25,398500,2528,15.60
