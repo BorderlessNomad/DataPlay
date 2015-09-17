@@ -5,10 +5,10 @@ import (
 	"github.com/codegangsta/martini"
 	"github.com/pmylund/sortutil"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
-	"regexp"
 )
 
 type NewsArticle struct {
@@ -48,7 +48,10 @@ func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
 	// now := time.Now()
 	// var Today = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC) // override today's date
 
-	session, _ := GetCassandraConnection("dataplay") // create connection to cassandra
+	session, err := GetCassandraConnection("dataplay") // create connection to cassandra
+	if err != nil {
+		return nil, &appError{err, "Unable to connect to Cassandra (" + err.Error() + ")", http.StatusInternalServerError}
+	}
 	defer session.Close()
 
 	newsArticles := []NewsArticle{}
@@ -97,6 +100,10 @@ func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
 		}
 	}
 
+	if err := iter2.Close(); err != nil {
+		return nil, &appError{err, "Cassandra query failed (SELECT title, url, date, description FROM response LIMIT 6000) (" + err.Error() + ")", http.StatusInternalServerError}
+	}
+
 	sortutil.DescByField(newsArticles, "Score")
 
 	n := len(newsArticles)
@@ -113,7 +120,12 @@ func SearchForNews(searchstring string) ([]NewsArticle, *appError) {
 				newsSlice[i].ImageUrl = imageUrl
 			}
 		}
+
+		if err := iter3.Close(); err != nil {
+			return nil, &appError{err, "Cassandra query failed (SELECT pic_url, url FROM image WHERE date = ? ALLOW FILTERING) (" + err.Error() + ")", http.StatusInternalServerError}
+		}
 	}
+
 	return newsSlice, nil
 }
 

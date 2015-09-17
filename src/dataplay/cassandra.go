@@ -10,7 +10,7 @@ import (
 func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
 	cassandraHost := "109.231.121.224"
 	cassandraPort := 9042
-	cassandraTimeout := 1 * time.Minute
+	cassandraTimeout := 10 * time.Second
 	cassandraMaxRetries := 5
 
 	if os.Getenv("DP_CASSANDRA_HOST") != "" {
@@ -23,7 +23,7 @@ func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
 
 	if os.Getenv("DP_CASSANDRA_TIMEOUT") != "" {
 		timeoutDuration, _ := strconv.Atoi(os.Getenv("DP_CASSANDRA_TIMEOUT"))
-		cassandraTimeout = time.Duration(timeoutDuration) * time.Minute
+		cassandraTimeout = time.Duration(timeoutDuration) * time.Second
 	}
 
 	if os.Getenv("DP_CASSANDRA_MAX_RETRIES") != "" {

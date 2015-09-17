@@ -178,18 +178,14 @@ func AddSearchTerm(str string, attempts int) *appError {
 			return &appError{err, "Database query failed (Add Search Term)", http.StatusInternalServerError}
 		}
 
-		errApp := AddSearchTerm(str, attempts+1)
-
-		return errApp
+		return AddSearchTerm(str, attempts+1)
 	} else if err == gorm.RecordNotFound {
 		searchterm.Count = 0
 		searchterm.Term = str
-		searchterm.Count++
-		err = DB.Save(&searchterm).Error
-	} else {
-		searchterm.Count++
-		err = DB.Save(&searchterm).Error
 	}
+
+	searchterm.Count++
+	err = DB.Save(&searchterm).Error
 
 	if err != nil {
 		return &appError{err, "Database query failed (Save Search Term)", http.StatusInternalServerError}
