@@ -37,16 +37,16 @@ angular.module('dataplayApp')
 			Math.floor(Math.random() * (max - min) + min)
 
 		info: (guid) ->
-			$http.get config.api.base_url + "/chartinfo/#{guid}"
+			$http.get "chartinfo/#{guid}"
 
 		related: (guid, offset, count) ->
 			offset = if offset? then offset else 0
 			count = if count? then count else 3
-			$http.get config.api.base_url + "/related/#{guid}/#{offset}/#{count}"
+			$http.get "related/#{guid}/#{offset}/#{count}"
 
 		correlated: (guid, offset, count, depth) ->
 			offset = if offset? then offset else 0
 			count = if count? then count else 3
 			depth = if depth? then depth else 100
-			$http.get config.api.base_url + "/correlated/#{guid}/true/#{offset}/#{count}"
+			$http.get "correlated/#{guid}/true/#{offset}/#{count}"
 	]

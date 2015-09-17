@@ -11,20 +11,20 @@ angular.module('dataplayApp')
 	.factory 'Home', ['$http', 'Auth', 'config', ($http, Auth, config) ->
 
 		getStats: () ->
-			$http.get config.api.base_url + "/home/data"
+			$http.get "home/data"
 
 		getTopRated: () ->
-			$http.get config.api.base_url + "/chart/toprated"
+			$http.get "chart/toprated"
 
 		getAwaitingCredit: () ->
-			$http.get config.api.base_url + "/chart/awaitingcredit"
+			$http.get "chart/awaitingcredit"
 
 		getActivityStream: () ->
-			$http.get config.api.base_url + "/user/activitystream"
+			$http.get "user/activitystream"
 
 		getRecentObservations: () ->
-			$http.get config.api.base_url + "/recentobservations"
+			$http.get "recentobservations"
 
 		getDataExperts: () ->
-			$http.get config.api.base_url + "/user/experts"
+			$http.get "user/experts"
 	]
