@@ -63,7 +63,7 @@ angular.module('dataplayApp')
 
 		search: (word, offset, count) ->
 			word = word.replace(/\/|\\/g, ' ')
-			path = "/search/#{word}"
+			path = "search/#{word}"
 			if offset?
 				path += "/#{offset}"
 				if count?

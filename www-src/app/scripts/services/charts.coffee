@@ -10,9 +10,9 @@
 angular.module('dataplayApp')
 	.factory 'Charts', ['$http', 'config', ($http, config) ->
 		related: (guid, key, type, x, y, z) ->
-			path = "/chart/#{guid}/#{key}/#{type}/#{x}/#{y}"
-			if z? then path += "/#{z}"
-			$http.get path
+			path = "chart/#{guid}/#{key}/#{type}/#{x}/#{y}"
+
+			$http.get if z? then "#{path}/#{z}" else path
 
 		correlated: (key) ->
 			$http.get "chartcorrelated/#{key}"
@@ -22,11 +22,10 @@ angular.module('dataplayApp')
 				data: bookmarks
 
 		creditChart: (type, chartId, valFlag) ->
-			path = '/chart/'
+			path = 'chart/'
 			path += if type is 'rid' then chartId.replace /\//g, '_' else chartId
-			path += "/#{valFlag}"
 
-			$http.put path
+			$http.put "#{path}/#{valFlag}"
 
 		getObservations: (id) ->
 			$http.get "observations/#{id}"
