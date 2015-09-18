@@ -20,12 +20,9 @@ typeDictionary =
 tickFormatFunc = (type) ->
 	(d) ->
 		if typeof type is 'string' then type = type.toLowerCase()
-		if type is 'none'
-			return ''
-		if type is 'date'
-			return d3.time.format("%d-%m-%Y") new Date d
-		if type is 'year'
-			return d3.time.format("%Y") new Date d
+		return '' if type is 'none'
+		return d3.time.format("%d-%m-%Y") new Date d if type is 'date'
+		return d3.time.format("%Y") new Date d if type is 'year'
 		return d3.format(",f") d
 
 optionsList =
@@ -143,8 +140,7 @@ class CorrelatedChart
 
 		if @options?.chart?
 			Object.keys(items).forEach (key) =>
-				if items[key]
-					@options.chart[key].tickFormat = tickFormatFunc items[key]
+				@options.chart[key].tickFormat = tickFormatFunc items[key] if items[key]
 
 	setPreview: (bool = false) =>
 		@preview = bool
@@ -172,12 +168,10 @@ class CorrelatedChart
 			if right? then @options.chart.margin.right = right
 
 	setLegend: (flag) =>
-		if @options?.chart? and flag? and typeof flag is 'boolean'
-			@options.chart.showLegend = flag
+		@options.chart.showLegend = flag if @options?.chart? and flag? and typeof flag is 'boolean'
 
 	setTooltips: (flag) =>
-		if @options?.chart? and flag? and typeof flag is 'boolean'
-			@options.chart.tooltips = flag
+		@options.chart.tooltips = flag if @options?.chart? and flag? and typeof flag is 'boolean'
 
 	setLabels: (chart) =>
 		if chart.type isnt 'pie'
@@ -198,24 +192,23 @@ class CorrelatedChart
 		if @labels.y2 and @options.chart.yAxis2
 			@options.chart.yAxis2.axisLabel = @labels.y2
 
-
-
 	translateData: (values, type) =>
 		normalise = (d) ->
 			if typeof d is 'string'
-				if not isNaN Date.parse d
-					return Date.parse d
-				if not isNaN parseFloat d
-					return parseFloat d
+				return Date.parse d if not isNaN Date.parse d
+				return parseFloat d if not isNaN parseFloat d
+
 			return d
 
 		values.map (v) ->
 			newV =
 				x: normalise v.x || 0
 				y: parseFloat v.y || 0
+
 			if type is 'scatter'
 				newV.size = 3
 				newV.shape = 'circle'
+
 			newV
 
 window.CorrelatedChart = CorrelatedChart
