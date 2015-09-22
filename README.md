@@ -40,7 +40,7 @@ DataPlay (Beta) contains a rudimentary selection of datasets drawn from [DATA.GO
 1. HAProxy Load Balancer [`tools/deployment/loadbalancer/haproxy.sh`](tools/deployment/loadbalancer/haproxy.sh)
 2. Gamification instances [`tools/deployment/app/frontend.sh`](tools/deployment/app/frontend.sh)
 3. Computation/API instances [`tools/deployment/app/master.sh`](tools/deployment/app/master.sh)
-5. PgPool-II instance [`tools/deployment/db/postgresql_cluster.sh`](tools/deployment/db/postgresql_cluster.sh)
+5. PgPool-II instance [`tools/deployment/db/pgpool.sh`](tools/deployment/db/pgpool.sh)
 4. PostgreSQL DB instance [`tools/deployment/db/postgresql.sh`](tools/deployment/db/postgresql.sh)
 5. Cassandra DB instance [`tools/deployment/db/cassandra.sh`](tools/deployment/db/cassandra.sh)
 6. Redis instance [`tools/deployment/db/redis.sh`](tools/deployment/db/redis.sh)

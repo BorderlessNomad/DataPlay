@@ -75,7 +75,7 @@
 
 			<div class="col-xs-12" ng-if="chartsRelated.length < 1 || loading.charts" ng-include="'views/loader.html'"></div>
 
-			<div class="col-md-12" ng-show="chartsRelated.length < 1 || !loading.charts">
+			<div class="col-md-12" ng-show="chartsRelated.length < 1 && !loading.charts">
 				<p class="text-center text-muted">Sorry we are unable to find any new chart.</p>
 			</div>
 		</div>
