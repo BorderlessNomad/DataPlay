@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This is Base Image setup script
+# This is Base Image setup script for Ubuntu 15.04
 
 set -ex
 
@@ -34,8 +34,7 @@ install_essentials () {
 }
 
 install_nodejs () {
-	apt-add-repository -y ppa:chris-lea/node.js
-	apt-get update
+	curl -sL https://deb.nodesource.com/setup_0.10 | sudo -E bash -
 	apt-get install -y python g++ make nodejs
 	npm install -g grunt-cli coffee-script bower forever
 }
