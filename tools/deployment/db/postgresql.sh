@@ -29,8 +29,6 @@ setuphost () {
 }
 
 install_postgres () {
-	echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/postgresql.list
-	wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 	apt-get update
 	apt-get install -y axel postgresql postgresql-contrib postgresql-client libpq-dev
 	apt-get autoclean
@@ -62,8 +60,6 @@ setup_database () {
 
 	# And add 'listen_addresses' to '/etc/postgresql/$DB_VERSION/main/postgresql.conf'
 	echo "listen_addresses='*'" >> /etc/postgresql/$DB_VERSION/main/postgresql.conf
-
-	service postgresql restart
 }
 
 import_data () {
@@ -195,19 +191,22 @@ install_postgres
 echo "[$(timestamp)] ---- 3. Setup Database ----"
 su postgres -c "$(typeset -f setup_database); setup_database" # Run function as user 'postgres'
 
-echo "[$(timestamp)] ---- 4. Import Data ----"
+echo "[$(timestamp)] ---- 4. Restart PostgreSQL as root ----"
+service postgres restart
+
+echo "[$(timestamp)] ---- 5. Import Data ----"
 su postgres -c "$(typeset -f import_data); import_data" # Run function as user 'postgres'
 
-echo "[$(timestamp)] ---- 5. Setup pgpool access ----"
+echo "[$(timestamp)] ---- 6. Setup pgpool access ----"
 setup_pgpool_access
 
-echo "[$(timestamp)] ---- 6. Inform pgpool (Add) ----"
+echo "[$(timestamp)] ---- 7. Inform pgpool (Add) ----"
 inform_pgpool
 
-echo "[$(timestamp)] ---- 7. Update IPTables rules ----"
+echo "[$(timestamp)] ---- 8. Update IPTables rules ----"
 update_iptables
 
-echo "[$(timestamp)] ---- 8. Setting up JCatascopia Agent ----"
+echo "[$(timestamp)] ---- 9. Setting up JCatascopia Agent ----"
 setup_JCatascopiaAgent
 
 echo "[$(timestamp)] ---- Completed ----"

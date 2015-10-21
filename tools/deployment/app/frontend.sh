@@ -57,9 +57,9 @@ install_nginx () {
 
 	mkdir -p $DEST/$APP/$WWW/dist
 
-	apt-add-repository -y ppa:nginx/stable && \
-	apt-get update && \
-	apt-get install -y nginx
+	apt-add-repository -y ppa:nginx/stable
+	apt-get update
+	apt-get install -y nginx-full
 
 	unixts="$(date +'%Y%m%d%H%M%S')"
 	keyword="<filesystem>"

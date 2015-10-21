@@ -33,7 +33,6 @@ setuphost () {
 
 install_haproxy () {
 	apt-add-repository -y ppa:vbernat/haproxy-1.5
-	sed -i "s/utopic/trusty/g" /etc/apt/sources.list.d/vbernat-ubuntu-haproxy-1_5-utopic.list # ppa doesn't have support for 14.10 yet
 	apt-get update
 	apt-get install -y haproxy
 

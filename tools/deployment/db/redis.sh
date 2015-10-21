@@ -25,7 +25,6 @@ setuphost () {
 install_redis () {
 	mkdir -p /home/ubuntu && cd /home/ubuntu
 
-	apt-add-repository -y ppa:rwky/redis
 	apt-get update
 	apt-get install -y redis-server
 
