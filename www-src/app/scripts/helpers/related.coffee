@@ -127,8 +127,7 @@ class RelatedCharts
 		else
 			chart.xAxis().ticks @xTicks
 
-		if @customMargin?
-			chart.margins @customMargin
+		chart.margins @customMargin if @customMargin?
 
 		chart.xAxisLabel false, 0
 		chart.yAxisLabel false, 0
@@ -159,8 +158,7 @@ class RelatedCharts
 		else
 			chart.xAxis().ticks @xTicks
 
-		if @customMargin?
-			chart.margins @customMargin
+		chart.margins @customMargin if @customMargin?
 
 		chart.x @getYScale data
 
@@ -190,8 +188,7 @@ class RelatedCharts
 		else
 			chart.xAxis().ticks @xTicks
 
-		if @customMargin?
-			chart.margins @customMargin
+		chart.margins @customMargin if @customMargin?
 
 		chart.x @getXScale data
 
@@ -204,8 +201,7 @@ class RelatedCharts
 
 		chart.renderlet (chart) ->
 			width = columnWidth - (columnSpacing * 2)
-			if width < 1
-				width = 3
+			width = 3 if width < 1
 
 			chart.selectAll "g.chart-body rect"
 				.attr "width", width
@@ -218,8 +214,7 @@ class RelatedCharts
 
 		data.entry = crossfilter data.values
 		data.dimension = data.entry.dimension (d) =>
-			if data.patterns[data.xLabel].valuePattern is 'date'
-				return @humanDate d.x
+			return @humanDate d.x if data.patterns[data.xLabel].valuePattern is 'date'
 			x = if d.x? and (d.x.length > 0 || data.patterns[data.xLabel].valuePattern is 'date') then d.x else "N/A"
 		data.groupSum = 0
 		data.group = data.dimension.group().reduceSum (d) ->
@@ -255,11 +250,9 @@ class RelatedCharts
 		data.dimension = data.entry.dimension (d) ->
 			d.z = normaliseNumber d.z
 
-			if not minR? or minR > d.z
-				minR = if d.z is 0 then 1 else d.z
+			minR = if d.z is 0 then 1 else d.z if not minR? or minR > d.z
 
-			if not maxR? or maxR <= d.z
-				maxR = if d.z is 0 then 1 else d.z
+			maxR = if d.z is 0 then 1 else d.zif not maxR? or maxR <= d.z
 
 			"#{d.x}|#{d.y}|#{d.z}"
 
@@ -269,8 +262,7 @@ class RelatedCharts
 		chart.group data.group
 
 		data.ordinals = []
-		for d in data.group.all() when d not in data.ordinals
-			data.ordinals.push d.key.split("|")[0]
+		data.ordinals.push d.key.split("|")[0] for d in data.group.all() when d not in data.ordinals
 
 		chart.keyAccessor (d) -> d.key.split("|")[0]
 		chart.valueAccessor (d) -> d.key.split("|")[1]
@@ -317,8 +309,7 @@ class RelatedCharts
 		else
 			chart.xAxis().ticks @xTicks
 
-		if @customMargin?
-			chart.margins @customMargin
+		chart.margins @customMargin if @customMargin?
 
 		# chart.label (d) -> x = d.key.split("|")[0]
 

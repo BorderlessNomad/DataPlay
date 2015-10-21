@@ -17,7 +17,7 @@ angular.module('dataplayApp')
 			reqConfig.headers[config.sessionHeader] = Auth.get config.sessionName
 
 			if reqConfig.url.substring(0, 6) isnt "views/"
-				reqConfig.url = config.api.base_url + "/" + reqConfig.url
+				reqConfig.url = "#{config.api.base_url}/#{reqConfig.url}"
 
 			reqConfig || $q.when reqConfig
 	]

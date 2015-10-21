@@ -16,6 +16,7 @@ angular.module('dataplayApp')
 				params.email = username
 			else
 				params.username = username
+
 			$http.post "login", params
 
 		logOut: (token) ->
@@ -66,16 +67,16 @@ angular.module('dataplayApp')
 			path = "search/#{word}"
 			if offset?
 				path += "/#{offset}"
-				if count?
-					path += "/#{count}"
+				path += "/#{count}" if count?
+
 			$http.get path
 
 		searchTweets: (word) ->
 			$http.get "tweets/#{word}"
 
 		getNews: (query) ->
-			if query instanceof Array
-				query = query.join '_'
+			query = query.join '_' if query instanceof Array
 			query = query.replace(/\s{1,}|\%20|\/|\\/g, '_')
+
 			$http.get "news/search/#{query}"
 	]
