@@ -192,7 +192,7 @@ echo "[$(timestamp)] ---- 3. Setup Database ----"
 su postgres -c "$(typeset -f setup_database); setup_database" # Run function as user 'postgres'
 
 echo "[$(timestamp)] ---- 4. Restart PostgreSQL as root ----"
-service postgres restart
+service postgresql restart
 
 echo "[$(timestamp)] ---- 5. Import Data ----"
 su postgres -c "$(typeset -f import_data); import_data" # Run function as user 'postgres'

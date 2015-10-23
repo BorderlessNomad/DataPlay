@@ -42,11 +42,11 @@ func GetCassandraConnection(keyspace string) (*gocql.Session, error) {
 	session, err := cluster.CreateSession()
 
 	if err != nil {
-		Logger.Println("Could not connect to the Cassandara server.")
+		Logger.Println("Could not connect to the Cassandara server. Error: " + err.Error())
 		return nil, err
 	}
 
-	Logger.Println("Connected!")
+	Logger.Println("Cassandara connected!")
 
 	return session, nil
 }

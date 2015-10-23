@@ -28,6 +28,8 @@ install_redis () {
 	apt-get update
 	apt-get install -y redis-server
 
+	sed -i "s/bind.*/bind: 0.0.0.0/" /etc/redis/redis.conf # Allow external connections
+
 	service redis-server restart
 }
 

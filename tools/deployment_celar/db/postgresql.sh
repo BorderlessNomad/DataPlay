@@ -12,8 +12,11 @@ fi
 APP_HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
 
 #PGPOOL_API_HOST="109.231.124.33"
-PGPOOL_API_HOST=$(ss-get --timeout 360 PGPool.1:hostname)
+PGPOOL_API_HOST=$(ss-get --timeout 360 pgpool.1:hostname)
 PGPOOL_API_PORT="1937"
+
+JCATASCOPIA_REPO="109.231.126.62"
+JCATASCOPIA_DASHBOARD="109.231.122.112"
 
 timestamp () {
 	date +"%F %T,%3N"
@@ -26,8 +29,6 @@ setuphost () {
 }
 
 install_postgres () {
-	echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/postgresql.list
-	wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 	apt-get update
 	apt-get install -y axel postgresql postgresql-contrib postgresql-client libpq-dev
 	apt-get autoclean
@@ -59,8 +60,6 @@ setup_database () {
 
 	# And add 'listen_addresses' to '/etc/postgresql/$DB_VERSION/main/postgresql.conf'
 	echo "listen_addresses='*'" >> /etc/postgresql/$DB_VERSION/main/postgresql.conf
-
-	service postgresql restart
 }
 
 import_data () {
@@ -166,6 +165,23 @@ inform_pgpool () {
 	done
 }
 
+#added to automate JCatascopiaAgent installation
+setup_JCatascopiaAgent(){
+	wget -q https://raw.githubusercontent.com/CELAR/celar-deployment/master/vm/jcatascopia-agent.sh
+
+	wget -q http://$JCATASCOPIA_REPO/JCatascopiaProbes/PostgresProbe.jar
+	mv ./PostgresProbe.jar /usr/local/bin/
+
+	bash ./jcatascopia-agent.sh > /tmp/JCata.txt 2>&1
+
+	echo "probes_external=PostgresProbe,/usr/local/bin/PostgresProbe.jar" | sudo -S tee -a /usr/local/bin/JCatascopiaAgentDir/resources/agent.properties
+	eval "sed -i 's/server_ip=.*/server_ip=$JCATASCOPIA_DASHBOARD/g' /usr/local/bin/JCatascopiaAgentDir/resources/agent.properties"
+
+	/etc/init.d/JCatascopia-Agent restart > /tmp/JCata.txt 2>&1
+
+	rm ./jcatascopia-agent.sh
+}
+
 echo "[$(timestamp)] ---- 1. Setup Host ----"
 setuphost
 
@@ -175,17 +191,23 @@ install_postgres
 echo "[$(timestamp)] ---- 3. Setup Database ----"
 su postgres -c "$(typeset -f setup_database); setup_database" # Run function as user 'postgres'
 
-echo "[$(timestamp)] ---- 4. Import Data ----"
+echo "[$(timestamp)] ---- 4. Restart PostgreSQL as root ----"
+service postgresql restart
+
+echo "[$(timestamp)] ---- 5. Import Data ----"
 su postgres -c "$(typeset -f import_data); import_data" # Run function as user 'postgres'
 
-echo "[$(timestamp)] ---- 5. Setup pgpool access ----"
+echo "[$(timestamp)] ---- 6. Setup pgpool access ----"
 setup_pgpool_access
 
-echo "[$(timestamp)] ---- 6. Inform pgpool (Add) ----"
+echo "[$(timestamp)] ---- 7. Inform pgpool (Add) ----"
 inform_pgpool
 
-echo "[$(timestamp)] ---- 7. Update IPTables rules ----"
+echo "[$(timestamp)] ---- 8. Update IPTables rules ----"
 update_iptables
+
+echo "[$(timestamp)] ---- 9. Setting up JCatascopia Agent ----"
+setup_JCatascopiaAgent
 
 echo "[$(timestamp)] ---- Completed ----"
 

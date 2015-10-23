@@ -29,11 +29,11 @@ func GetRedisConnection() (client *redis.Client, err error) {
 	client, err = redis.DialTimeout("tcp", redisHost+":"+redisPort, redisTimeout)
 
 	if err != nil {
-		Logger.Println("Could not connect to the redis server.")
+		Logger.Println("Could not connect to the Redis server. Error: " + err.Error())
 		return nil, err
 	}
 
-	Logger.Println("Connected!")
+	Logger.Println("Redis connected!")
 
 	return client, nil
 }

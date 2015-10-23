@@ -9,7 +9,7 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
-GO_VERSION="go1.3.3"
+GO_VERSION="go1.4.3"
 DEST="/home/ubuntu/www"
 APP="dataplay"
 
@@ -18,21 +18,24 @@ APP_PORT="3000"
 APP_TYPE="master"
 
 # DATABASE_HOST="109.231.121.13"
-DATABASE_HOST=$(ss-get --timeout 360 PGPool.1:hostname)
+DATABASE_HOST=$(ss-get --timeout 360 pgpool.1:hostname)
 DATABASE_PORT="9999"
 
 # REDIS_HOST="109.231.121.13"
-REDIS_HOST=$(ss-get --timeout 360 Redis.1:hostname)
+REDIS_HOST=$(ss-get --timeout 360 redis.1:hostname)
 REDIS_PORT="6379"
 
 # CASSANDRA_HOST="109.231.121.13"
-CASSANDRA_HOST=$(ss-get --timeout 360 Cassandra.1:hostname)
+CASSANDRA_HOST=$(ss-get --timeout 360 cassandra.1:hostname)
 CASSANDRA_PORT="9042"
 
 # LOADBALANCER_HOST="109.231.121.26"
-LOADBALANCER_HOST=$(ss-get --timeout 360 Load_Balancer.1:hostname)
+LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.1:hostname)
 LOADBALANCER_REQUEST_PORT="3000"
 LOADBALANCER_API_PORT="1937"
+
+JCATASCOPIA_REPO="109.231.126.62" # need to have a better repository for JCatascopia probes
+JCATASCOPIA_DASHBOARD="109.231.122.112" # now hardcoded, in future when Orchestrator deployed and running to get from Slipstream
 
 timestamp () {
 	date +"%F %T,%3N"
@@ -79,7 +82,7 @@ export_variables () {
 }
 
 run_master_server () {
-	URL="https://github.com"
+	URL="https://codeload.github.com"
 	USER="playgenhub"
 	REPO="DataPlay"
 	BRANCH="master"
@@ -96,7 +99,7 @@ run_master_server () {
 
 	cd $DEST
 	echo "Fetching latest ZIP"
-	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/archive/$BRANCH.zip -O $BRANCH.zip
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/zip/$BRANCH -O $BRANCH.zip
 	echo "Extracting from $BRANCH.zip"
 	unzip -oq $BRANCH.zip
 	if [ -d $APP ]; then
@@ -128,17 +131,30 @@ update_iptables () {
 	iptables-save
 }
 
-fetch_service () {
-	URL="https://raw.githubusercontent.com"
-	USER="playgenhub"
-	REPO="DataPlay"
-	BRANCH="master"
-	SOURCE="$URL/$USER/$REPO/$BRANCH"
+setup_service_script () {
+	DEPLOYMENT="tools/deployment"
 	SERVICE="master.service.sh"
 
-	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/app/$SERVICE -O $DEST/$SERVICE
+	cp $DEST/$APP/$DEPLOYMENT/app/$SERVICE $DEST/$SERVICE
 
 	chmod +x $DEST/$SERVICE
+}
+
+#added to automate JCatascopiaAgent installation
+setup_JCatascopiaAgent(){
+	wget -q https://raw.githubusercontent.com/CELAR/celar-deployment/master/vm/jcatascopia-agent.sh
+
+	wget -q http://$JCATASCOPIA_REPO/JCatascopiaProbes/DataPlayProbe.jar
+	mv ./DataPlayProbe.jar /usr/local/bin/
+
+	bash ./jcatascopia-agent.sh > /tmp/JCata.txt 2>&1
+
+	echo "probes_external=DataPlayProbe,/usr/local/bin/DataPlayProbe.jar" | sudo -S tee -a /usr/local/bin/JCatascopiaAgentDir/resources/agent.properties
+	eval "sed -i 's/server_ip=.*/server_ip=$JCATASCOPIA_DASHBOARD/g' /usr/local/bin/JCatascopiaAgentDir/resources/agent.properties"
+
+	/etc/init.d/JCatascopia-Agent restart > /tmp/JCata.txt 2>&1
+
+	rm ./jcatascopia-agent.sh
 }
 
 echo "[$(timestamp)] ---- 1. Setup Host ----"
@@ -159,8 +175,11 @@ inform_loadbalancer
 echo "[$(timestamp)] ---- 6. Update IPTables rules ----"
 update_iptables
 
-echo "[$(timestamp)] ---- 7. Fetch Service ----"
-fetch_service
+echo "[$(timestamp)] ---- 7. Setup Service Script ----"
+setup_service_script
+
+echo "[$(timestamp)] ---- 8. Setting up JCatascopia Agent ----"
+setup_JCatascopiaAgent
 
 echo "[$(timestamp)] ---- Completed ----"
 

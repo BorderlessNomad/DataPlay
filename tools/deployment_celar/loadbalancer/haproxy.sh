@@ -9,14 +9,17 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
-GO_VERSION="go1.3.3"
+GO_VERSION="go1.4.3"
 
 HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
 PORT="1938"
 
 # REDIS_HOST="109.231.121.13"
-REDIS_HOST=$(ss-get --timeout 360 Redis.1:hostname)
+REDIS_HOST=$(ss-get --timeout 360 redis.1:hostname)
 REDIS_PORT="6379"
+
+JCATASCOPIA_REPO="109.231.126.62"
+JCATASCOPIA_DASHBOARD="109.231.122.112"
 
 timestamp () {
 	date +"%F %T,%3N"
@@ -30,7 +33,6 @@ setuphost () {
 
 install_haproxy () {
 	apt-add-repository -y ppa:vbernat/haproxy-1.5
-	sed -i "s/utopic/trusty/g" /etc/apt/sources.list.d/vbernat-ubuntu-haproxy-1_5-utopic.list # ppa doesn't have support for 14.10 yet
 	apt-get update
 	apt-get install -y haproxy
 
@@ -154,6 +156,22 @@ update_iptables () {
 	iptables-save
 }
 
+setup_JCatascopiaAgent(){
+	wget -q https://raw.githubusercontent.com/CELAR/celar-deployment/master/vm/jcatascopia-agent.sh
+
+	wget -q http://$JCATASCOPIA_REPO/JCatascopiaProbes/HAProxyProbe.jar
+	mv ./HAProxyProbe.jar /usr/local/bin/
+
+	bash ./jcatascopia-agent.sh > /tmp/JCata.txt 2>&1
+
+	echo "probes_external=HAProxyProbe,/usr/local/bin/HAProxyProbe.jar" | sudo -S tee -a /usr/local/bin/JCatascopiaAgentDir/resources/agent.properties
+	eval "sed -i 's/server_ip=.*/server_ip=$JCATASCOPIA_DASHBOARD/g' /usr/local/bin/JCatascopiaAgentDir/resources/agent.properties"
+
+	/etc/init.d/JCatascopia-Agent restart > /tmp/JCata.txt 2>&1
+
+	rm ./jcatascopia-agent.sh
+}
+
 command -v node >/dev/null 2>&1 || { echo >&2 "Error: Command 'node' not found!"; exit 1; }
 
 command -v npm >/dev/null 2>&1 || { echo >&2 "Error: Command 'npm' not found!"; exit 1; }
@@ -178,6 +196,9 @@ run_monitoring
 
 echo "[$(timestamp)] ---- 7. Update IPTables rules ----"
 update_iptables
+
+echo "[$(timestamp)] ---- 8. Setting up JCatascopia Agent ----"
+setup_JCatascopiaAgent
 
 echo "[$(timestamp)] ---- Completed ----"
 

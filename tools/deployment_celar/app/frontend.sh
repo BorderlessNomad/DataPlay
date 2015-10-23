@@ -18,11 +18,14 @@ APP_PORT="80"
 APP_TYPE="gamification"
 
 # LOADBALANCER_HOST="109.231.121.26"
-LOADBALANCER_HOST=$(ss-get --timeout 360 Load_Balancer.1:hostname)
+LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.1:hostname)
 LOADBALANCER_REQUEST_PORT="80"
 LOADBALANCER_API_PORT="1937"
 # DOMAIN="dataplay.playgen.com"
 DOMAIN="${LOADBALANCER_HOST}:${LOADBALANCER_REQUEST_PORT}"
+
+JCATASCOPIA_REPO="109.231.126.62"
+JCATASCOPIA_DASHBOARD="109.231.122.112"
 
 timestamp () {
 	date +"%F %T,%3N"
@@ -54,9 +57,9 @@ install_nginx () {
 
 	mkdir -p $DEST/$APP/$WWW/dist
 
-	apt-add-repository -y ppa:nginx/stable && \
-	apt-get update && \
-	apt-get install -y nginx
+	apt-add-repository -y ppa:nginx/stable
+	apt-get update
+	apt-get install -y nginx-full
 
 	unixts="$(date +'%Y%m%d%H%M%S')"
 	keyword="<filesystem>"
@@ -72,7 +75,7 @@ install_nginx () {
 }
 
 download_app () {
-	URL="https://github.com"
+	URL="https://codeload.github.com"
 	USER="playgenhub"
 	REPO="DataPlay"
 	BRANCH="master"
@@ -80,7 +83,7 @@ download_app () {
 
 	cd $DEST
 	echo "Fetching latest ZIP"
-	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/archive/$BRANCH.zip -O $BRANCH.zip
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/zip/$BRANCH -O $BRANCH.zip
 	echo "Extracting from $BRANCH.zip"
 	unzip -oq $BRANCH.zip
 	if [ -d $APP ]; then
@@ -120,17 +123,26 @@ inform_loadbalancer () {
 	done
 }
 
-fetch_service () {
-	URL="https://raw.githubusercontent.com"
-	USER="playgenhub"
-	REPO="DataPlay"
-	BRANCH="master"
-	SOURCE="$URL/$USER/$REPO/$BRANCH"
+setup_service_script () {
+	DEPLOYMENT="tools/deployment"
 	SERVICE="frontend.service.sh"
 
-	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/app/$SERVICE -O $DEST/$SERVICE
+	cp $DEST/$APP/$DEPLOYMENT/app/$SERVICE $DEST/$SERVICE
 
 	chmod +x $DEST/$SERVICE
+}
+
+#added to automate JCatascopiaAgent installation
+setup_JCatascopiaAgent(){
+	wget -q https://raw.githubusercontent.com/CELAR/celar-deployment/master/vm/jcatascopia-agent.sh
+
+	bash ./jcatascopia-agent.sh > /tmp/JCata.txt 2>&1
+
+	eval "sed -i 's/server_ip=.*/server_ip=$JCATASCOPIA_DASHBOARD/g' /usr/local/bin/JCatascopiaAgentDir/resources/agent.properties"
+
+	/etc/init.d/JCatascopia-Agent restart > /tmp/JCata.txt 2>&1
+
+	rm ./jcatascopia-agent.sh
 }
 
 echo "[$(timestamp)] ---- 1. Setup Host ----"
@@ -159,8 +171,11 @@ init_frontend
 echo "[$(timestamp)] ---- 6. Inform Load Balancer (Add) ----"
 inform_loadbalancer
 
-echo "[$(timestamp)] ---- 7. Fetch Service ----"
-fetch_service
+echo "[$(timestamp)] ---- 7. Setup Service Script ----"
+setup_service_script
+
+echo "[$(timestamp)] ---- 8. Setting up JCatascopia Agent ----"
+setup_JCatascopiaAgent
 
 echo "[$(timestamp)] ---- Completed ----"
 

@@ -9,7 +9,7 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
-GO_VERSION="go1.3.3"
+GO_VERSION="go1.4.3"
 
 HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
 PORT="1938"

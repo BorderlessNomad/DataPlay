@@ -10,7 +10,7 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 #PGPOOL_API_HOST="109.231.124.33"
-PGPOOL_API_HOST=$(ss-get --timeout 360 PGPool.1:hostname)
+PGPOOL_API_HOST=$(ss-get --timeout 360 pgpool.1:hostname)
 PGPOOL_API_PORT="1937"
 
 APP_HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
