@@ -9,9 +9,6 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
-JCATASCOPIA_REPO="109.231.126.62"
-JCATASCOPIA_DASHBOARD="109.231.122.112"
-
 timestamp () {
 	date +"%F %T,%3N"
 }
@@ -46,21 +43,24 @@ update_iptables () {
 	iptables-save
 }
 
-#added to automate JCatascopiaAgent installation
-setup_JCatascopiaAgent(){
-	wget -q https://raw.githubusercontent.com/CELAR/celar-deployment/master/vm/jcatascopia-agent.sh
+setup_JCatascopiaAgent() {
+	PROBE_NAME=JCatascopia-Agent
 
-	bash ./jcatascopia-agent.sh > /tmp/JCata.txt 2>&1
+	CELAR_REPO=http://snf-175960.vm.okeanos.grnet.gr
+	PROBE_VERSION=LATEST
+	PROBE_GROUP=eu.celarcloud.cloud-ms
+	PROBE_TYPE=jar
+	PROBE_ENDPOINT=/usr/local/bin
+	JC_PATH=/usr/local/bin/JCatascopiaAgentDir
 
-	eval "sed -i 's/server_ip=.*/server_ip=$JCATASCOPIA_DASHBOARD/g' /usr/local/bin/JCatascopiaAgentDir/resources/agent.properties"
+	URL="$CELAR_REPO/nexus/service/local/artifact/maven/redirect?r=snapshots&g=$PROBE_GROUP&a=$PROBE_NAME&v=$PROBE_VERSION&p=$PROBE_TYPE"
+	wget -O $PROBE_NAME.jar $URL
+	mv $PROBE_NAME.jar $PROBE_ENDPOINT/$PROBE_NAME.jar
+	echo "" >> $JC_PATH/resources/agent.properties
+	echo "probes_external=$PROBE_NAME,$PROBE_ENDPOINT/$PROBE_NAME.jar" >> $JC_PATH/resources/agent.properties
 
-	#trying to solve issue with exists in restart and stop
-	#screen -dmS JCata bash -c '/etc/init.d/JCatascopia-Agent stop  > /tmp/JCata.txt 2>&1'
-	#sleep 2
-	#screen -dmS JCata bash -c '/etc/init.d/JCatascopia-Agent start > /tmp/JCata.txt 2>&1'
-	/etc/init.d/JCatascopia-Agent restart > /tmp/JCata.txt 2>&1
-
-	rm ./jcatascopia-agent.sh
+	#start the jcatascopia agent
+	/etc/init.d/JCatascopia-Agent restart
 }
 
 echo "[$(timestamp)] ---- 1. Setup Host ----"
