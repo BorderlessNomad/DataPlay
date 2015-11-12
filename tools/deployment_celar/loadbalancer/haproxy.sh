@@ -18,9 +18,6 @@ PORT="1938"
 REDIS_HOST=$(ss-get --timeout 360 redis.1:hostname)
 REDIS_PORT="6379"
 
-JCATASCOPIA_REPO="109.231.126.62"
-JCATASCOPIA_DASHBOARD="109.231.122.112"
-
 timestamp () {
 	date +"%F %T,%3N"
 }
@@ -157,19 +154,7 @@ update_iptables () {
 }
 
 setup_JCatascopiaAgent(){
-	wget -q https://raw.githubusercontent.com/CELAR/celar-deployment/master/vm/jcatascopia-agent.sh
 
-	wget -q http://$JCATASCOPIA_REPO/JCatascopiaProbes/HAProxyProbe.jar
-	mv ./HAProxyProbe.jar /usr/local/bin/
-
-	bash ./jcatascopia-agent.sh > /tmp/JCata.txt 2>&1
-
-	echo "probes_external=HAProxyProbe,/usr/local/bin/HAProxyProbe.jar" | sudo -S tee -a /usr/local/bin/JCatascopiaAgentDir/resources/agent.properties
-	eval "sed -i 's/server_ip=.*/server_ip=$JCATASCOPIA_DASHBOARD/g' /usr/local/bin/JCatascopiaAgentDir/resources/agent.properties"
-
-	/etc/init.d/JCatascopia-Agent restart > /tmp/JCata.txt 2>&1
-
-	rm ./jcatascopia-agent.sh
 }
 
 command -v node >/dev/null 2>&1 || { echo >&2 "Error: Command 'node' not found!"; exit 1; }

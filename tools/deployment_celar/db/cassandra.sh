@@ -13,9 +13,6 @@ IP=`ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'`
 MAX_RETRIES="200"
 TIMEOUT="5"
 
-JCATASCOPIA_REPO="109.231.126.62"
-JCATASCOPIA_DASHBOARD="109.231.122.112"
-
 timestamp () {
 	date +"%F %T,%3N"
 }
@@ -174,15 +171,7 @@ update_iptables () {
 
 #added to automate JCatascopiaAgent installation
 setup_JCatascopiaAgent(){
-	wget -q https://raw.githubusercontent.com/CELAR/celar-deployment/master/vm/jcatascopia-agent.sh
 
-	bash ./jcatascopia-agent.sh > /tmp/JCata.txt 2>&1
-
-	eval "sed -i 's/server_ip=.*/server_ip=$JCATASCOPIA_DASHBOARD/g' /usr/local/bin/JCatascopiaAgentDir/resources/agent.properties"
-
-	/etc/init.d/JCatascopia-Agent restart > /tmp/JCata.txt 2>&1
-
-	rm ./jcatascopia-agent.sh
 }
 
 echo "[$(timestamp)] ---- 1. Setup Host ----"
