@@ -22,15 +22,14 @@ server {
 
 		#satisfy any; # Either IP or Auth (default is satisfy all;)
 		allow 213.122.181.2/32; # PlayGen Dev
+		allow 149.11.102.50/32; # PlayGen Dev
 		allow 109.231.121.0/24; # Flexiant
 		allow 109.231.122.0/24; # Flexiant
 		allow 109.231.123.0/24; # Flexiant
 		allow 109.231.124.0/24; # Flexiant
 		allow 109.231.125.0/24; # Flexiant
 		allow 109.231.126.0/24; # Flexiant
-		allow 108.61.197.87/32; # Vultr
-		allow 82.12.167.192/32; # Mayur
-		allow 128.130.172.247/32; # TUW
+		allow 108.61.197.87/32; # Vultr London
 		deny all;
 
 		#auth_basic "Restricted Content";

@@ -57,6 +57,7 @@ setup_database () {
 	echo "host    all             all             109.231.125.0/24        md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf
 	echo "host    all             all             109.231.126.0/24        md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf
 	echo "host    all             all             213.122.181.2/32        md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf
+	echo "host    all             all             149.11.102.50/32        md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf
 
 	# And add 'listen_addresses' to '/etc/postgresql/$DB_VERSION/main/postgresql.conf'
 	echo "listen_addresses='*'" >> /etc/postgresql/$DB_VERSION/main/postgresql.conf
