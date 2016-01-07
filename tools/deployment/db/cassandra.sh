@@ -55,7 +55,8 @@ restart_cassandra() {
 }
 
 install_cassandra () {
-	echo "deb http://debian.datastax.com/community stable main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list && \
+	echo "deb http://debian.datastax.com/community 2.2 main" >> /etc/apt/sources.list.d/cassandra.sources.list && \
+	echo "deb-src http://debian.datastax.com/community 2.2 main" >> /etc/apt/sources.list.d/cassandra.sources.list && \
 	curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add - && \
 	apt-get update && \
 	apt-get install -y cassandra
