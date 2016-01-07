@@ -114,7 +114,7 @@ setup_pgpool_access() {
 	DB_USER="playgen"
 	DB_PASSWORD="aDam3ntiUm"
 	DB_NAME="dataplay"
-	PGPOOL_VERSION="3.4.2"
+	PGPOOL_VERSION="3.4.3"
 
 	cp /var/lib/postgresql/.pgpass ~/.pgpass
 
