@@ -17,20 +17,16 @@ APP_HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print
 APP_PORT="3000"
 APP_TYPE="master"
 
-# DATABASE_HOST="109.231.121.13"
-DATABASE_HOST=$(ss-get --timeout 360 pgpool.hostname)
+DATABASE_HOST="109.231.121.13"
 DATABASE_PORT="9999"
 
-# REDIS_HOST="109.231.121.13"
-REDIS_HOST=$(ss-get --timeout 360 redis.hostname)
+REDIS_HOST="109.231.121.13"
 REDIS_PORT="6379"
 
-# CASSANDRA_HOST="109.231.121.13"
-CASSANDRA_HOST=$(ss-get --timeout 360 cassandra.hostname)
+CASSANDRA_HOST="109.231.121.13"
 CASSANDRA_PORT="9042"
 
-# LOADBALANCER_HOST="109.231.121.26"
-LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
+LOADBALANCER_HOST="109.231.121.26"
 LOADBALANCER_REQUEST_PORT="3000"
 LOADBALANCER_API_PORT="1937"
 
@@ -137,26 +133,6 @@ setup_service_script () {
 	chmod +x $DEST/$SERVICE
 }
 
-setup_JCatascopiaAgent() {
-	PROBE_NAME=DataPlayProbe
-
-	CELAR_REPO=http://snf-175960.vm.okeanos.grnet.gr
-	PROBE_VERSION=LATEST
-	PROBE_GROUP=eu.celarcloud.cloud-ms
-	PROBE_TYPE=jar
-	PROBE_ENDPOINT=/usr/local/bin
-	JC_PATH=/usr/local/bin/JCatascopiaAgentDir
-
-	URL="$CELAR_REPO/nexus/service/local/artifact/maven/redirect?r=snapshots&g=$PROBE_GROUP&a=$PROBE_NAME&v=$PROBE_VERSION&p=$PROBE_TYPE"
-	wget -O $PROBE_NAME.jar $URL
-	mv $PROBE_NAME.jar $PROBE_ENDPOINT/$PROBE_NAME.jar
-	echo "" >> $JC_PATH/resources/agent.properties
-	echo "probes_external=$PROBE_NAME,$PROBE_ENDPOINT/$PROBE_NAME.jar" >> $JC_PATH/resources/agent.properties
-
-	#start the jcatascopia agent
-	/etc/init.d/JCatascopia-Agent restart
-}
-
 echo "[$(timestamp)] ---- 1. Setup Host ----"
 setuphost
 
@@ -170,16 +146,13 @@ echo "[$(timestamp)] ---- 4. Run API (Master) Server ----"
 run_master_server
 
 echo "[$(timestamp)] ---- 5. Inform Load Balancer (Add) ----"
-inform_loadbalancer
+# inform_loadbalancer
 
 echo "[$(timestamp)] ---- 6. Update IPTables rules ----"
 update_iptables
 
 echo "[$(timestamp)] ---- 7. Setup Service Script ----"
 setup_service_script
-
-echo "[$(timestamp)] ---- 8. Setting up JCatascopia Agent ----"
-setup_JCatascopiaAgent
 
 echo "[$(timestamp)] ---- Completed ----"
 

@@ -4,7 +4,7 @@
 #
 # Copy ssh keys before RSYNC
 # ssh-keygen
-# ssh-copy-id -i ~/.ssh/id_rsa.pub ubuntu@109.231.121.227
+# ssh-copy-id -i ~/.ssh/id_rsa.pub ubuntu@109.231.121.72
 # ssh-copy-id -i ~/.ssh/id_rsa.pub root@108.61.197.87
 #
 ###
@@ -15,7 +15,7 @@
 # # VULTR
 # 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r /var/lib/postgresql/backups/ root@108.61.197.87:~/backups/postgresql/ >> /var/lib/postgresql/rsync.vultr.log
 # # Flexiant
-# 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r /var/lib/postgresql/backups/ ubuntu@109.231.121.227:~/backups/postgresql/ >> /var/lib/postgresql/rsync.flexiant.log
+# 45      22      *       *       *       /usr/bin/rsync --stats --progress --whole-file -a --no-group --no-owner --no-perms -v -z -r /var/lib/postgresql/backups/ ubuntu@109.231.121.72:~/backups/postgresql/ >> /var/lib/postgresql/rsync.flexiant.log
 ###
 
 set -x

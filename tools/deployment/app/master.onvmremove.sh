@@ -9,8 +9,7 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
-# LOADBALANCER_HOST="109.231.121.47"
-LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
+LOADBALANCER_HOST="109.231.121.47"
 LOADBALANCER_API_PORT="1937"
 
 APP_HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
@@ -30,7 +29,7 @@ inform_loadbalancer () {
 }
 
 echo "[$(timestamp)] ---- 1. Inform Load Balancer (Remove) ----"
-inform_loadbalancer
+# inform_loadbalancer
 
 echo "[$(timestamp)] ---- Completed ----"
 

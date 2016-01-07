@@ -9,8 +9,7 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
-#PGPOOL_API_HOST="109.231.124.33"
-PGPOOL_API_HOST=$(ss-get --timeout 360 pgpool.hostname)
+PGPOOL_API_HOST="109.231.124.33"
 PGPOOL_API_PORT="1937"
 
 APP_HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
@@ -28,7 +27,7 @@ inform_pgpool () {
 }
 
 echo "[$(timestamp)] ---- 1. Inform pgpool (Remove) ----"
-inform_pgpool
+# inform_pgpool
 
 echo "[$(timestamp)] ---- Completed ----"
 

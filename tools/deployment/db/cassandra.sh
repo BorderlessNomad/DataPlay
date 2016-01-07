@@ -96,8 +96,7 @@ export_variables () {
 
 import_data () {
 	LASTDATE=$(date +%Y-%m-%d) # Today
-	BACKUP_HOST="109.231.121.227" # Flexiant C2
-	#BACKUP_HOST="108.61.197.87" # Vultr
+	BACKUP_HOST="109.231.121.72" # Flexiant
 	BACKUP_PORT="8080"
 	BACKUP_DIR="cassandra/$LASTDATE"
 	BACKUP_USER="playgen"
@@ -169,26 +168,6 @@ update_iptables () {
 	iptables-save
 }
 
-setup_JCatascopiaAgent() {
-	PROBE_NAME=JCatascopia-Agent
-
-	CELAR_REPO=http://snf-175960.vm.okeanos.grnet.gr
-	PROBE_VERSION=LATEST
-	PROBE_GROUP=eu.celarcloud.cloud-ms
-	PROBE_TYPE=jar
-	PROBE_ENDPOINT=/usr/local/bin
-	JC_PATH=/usr/local/bin/JCatascopiaAgentDir
-
-	URL="$CELAR_REPO/nexus/service/local/artifact/maven/redirect?r=snapshots&g=$PROBE_GROUP&a=$PROBE_NAME&v=$PROBE_VERSION&p=$PROBE_TYPE"
-	wget -O $PROBE_NAME.jar $URL
-	mv $PROBE_NAME.jar $PROBE_ENDPOINT/$PROBE_NAME.jar
-	echo "" >> $JC_PATH/resources/agent.properties
-	echo "probes_external=$PROBE_NAME,$PROBE_ENDPOINT/$PROBE_NAME.jar" >> $JC_PATH/resources/agent.properties
-
-	#start the jcatascopia agent
-	/etc/init.d/JCatascopia-Agent restart
-}
-
 echo "[$(timestamp)] ---- 1. Setup Host ----"
 setuphost
 
@@ -209,9 +188,6 @@ import_data
 
 echo "[$(timestamp)] ---- 7. Update IPTables rules ----"
 update_iptables
-
-echo "[$(timestamp)] ---- 8. Setting up JCatascopia Agent ----"
-setup_JCatascopiaAgent
 
 echo "[$(timestamp)] ---- Completed ----"
 
