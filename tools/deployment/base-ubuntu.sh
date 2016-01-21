@@ -13,6 +13,12 @@ timestamp () {
 	date +"%F %T,%3N"
 }
 
+setuphost () {
+	HOSTNAME=$(hostname)
+	HOSTLOCAL="127.0.0.1"
+	echo "$HOSTLOCAL $HOSTNAME" >> /etc/hosts
+}
+
 setup_ssh_keys () {
 	URL="https://raw.githubusercontent.com"
 	USER="playgenhub"
@@ -30,11 +36,11 @@ update () {
 }
 
 install_essentials () {
-	apt-get install -y build-essential sudo vim openssh-server gcc curl git mercurial bzr make binutils bison wget axel python-software-properties htop unzip
+	apt-get install -y build-essential sudo ntpdate vim openssh-server gcc curl git mercurial bzr make binutils bison wget axel python-software-properties htop unzip
 }
 
 install_nodejs () {
-	curl -sL https://deb.nodesource.com/setup_0.10 | sudo -E bash -
+	curl -sL https://raw.githubusercontent.com/playgenhub/DataPlay/master/tools/deployment/nodejs.sh | bash -
 	apt-get install -y python g++ make nodejs
 	npm install -g grunt-cli coffee-script bower forever
 }
@@ -51,19 +57,22 @@ update_iptables () {
 	iptables-save
 }
 
-echo "[$(timestamp)] ---- 1. Setup SSH Access Keys ----"
+echo "[$(timestamp)] ---- 1. Setup Host ----"
+setuphost
+
+echo "[$(timestamp)] ---- 2. Setup SSH Access Keys ----"
 setup_ssh_keys
 
-echo "[$(timestamp)] ---- 2. Update system ----"
+echo "[$(timestamp)] ---- 3. Update system ----"
 update
 
-echo "[$(timestamp)] ---- 3. Install essential packages ----"
+echo "[$(timestamp)] ---- 4. Install essential packages ----"
 install_essentials
 
-echo "[$(timestamp)] ---- 4. Install Node.js ----"
+echo "[$(timestamp)] ---- 5. Install Node.js ----"
 install_nodejs
 
-echo "[$(timestamp)] ---- 5. Update IPTables rules ----"
+echo "[$(timestamp)] ---- 6. Update IPTables rules ----"
 update_iptables
 
 echo "[$(timestamp)] ---- Completed ----"
