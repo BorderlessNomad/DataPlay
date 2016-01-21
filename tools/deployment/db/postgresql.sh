@@ -11,7 +11,7 @@ fi
 
 APP_HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}')
 
-PGPOOL_API_HOST="109.231.124.33"
+PGPOOL_API_HOST=$(ss-get --timeout 360 pgpool.hostname)
 PGPOOL_API_PORT="1937"
 
 JCATASCOPIA_REPO="109.231.126.62"
@@ -183,7 +183,7 @@ echo "[$(timestamp)] ---- 6. Setup pgpool access ----"
 setup_pgpool_access
 
 echo "[$(timestamp)] ---- 7. Inform pgpool (Add) ----"
-# inform_pgpool
+inform_pgpool
 
 echo "[$(timestamp)] ---- 8. Update IPTables rules ----"
 update_iptables

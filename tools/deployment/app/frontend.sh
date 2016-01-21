@@ -17,7 +17,7 @@ APP_HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print
 APP_PORT="80"
 APP_TYPE="gamification"
 
-LOADBALANCER_HOST="109.231.121.26"
+LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
 LOADBALANCER_REQUEST_PORT="80"
 LOADBALANCER_API_PORT="1937"
 # DOMAIN="dataplay.playgen.com"
@@ -146,7 +146,7 @@ echo "[$(timestamp)] ---- 5. Init Frotnend ----"
 init_frontend
 
 echo "[$(timestamp)] ---- 6. Inform Load Balancer (Add) ----"
-# inform_loadbalancer
+inform_loadbalancer
 
 echo "[$(timestamp)] ---- 7. Setup Service Script ----"
 setup_service_script

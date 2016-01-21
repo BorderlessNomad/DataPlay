@@ -17,16 +17,16 @@ APP_HOST=$(ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print
 APP_PORT="3000"
 APP_TYPE="master"
 
-DATABASE_HOST="109.231.121.13"
+DATABASE_HOST=$(ss-get --timeout 360 pgpool.hostname)
 DATABASE_PORT="9999"
 
-REDIS_HOST="109.231.121.13"
+REDIS_HOST=$(ss-get --timeout 360 redis.hostname)
 REDIS_PORT="6379"
 
-CASSANDRA_HOST="109.231.121.13"
+CASSANDRA_HOST=$(ss-get --timeout 360 cassandra.hostname)
 CASSANDRA_PORT="9042"
 
-LOADBALANCER_HOST="109.231.121.26"
+LOADBALANCER_HOST=$(ss-get --timeout 360 loadbalancer.hostname)
 LOADBALANCER_REQUEST_PORT="3000"
 LOADBALANCER_API_PORT="1937"
 
@@ -146,7 +146,7 @@ echo "[$(timestamp)] ---- 4. Run API (Master) Server ----"
 run_master_server
 
 echo "[$(timestamp)] ---- 5. Inform Load Balancer (Add) ----"
-# inform_loadbalancer
+inform_loadbalancer
 
 echo "[$(timestamp)] ---- 6. Update IPTables rules ----"
 update_iptables
