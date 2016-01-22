@@ -45,14 +45,10 @@ install_nodejs () {
 	npm install -g grunt-cli coffee-script bower forever
 }
 
-update_iptables () {
-	# Monitoring ports 80, 8080, 4242, 4243, 4245 for JCatascopia
+update_firewall () {
 	iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 	iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 	iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
-	iptables -A INPUT -p tcp --dport 4242 -j ACCEPT
-	iptables -A INPUT -p tcp --dport 4243 -j ACCEPT
-	iptables -A INPUT -p tcp --dport 4245 -j ACCEPT
 
 	iptables-save
 }
@@ -60,20 +56,20 @@ update_iptables () {
 echo "[$(timestamp)] ---- 1. Setup Host ----"
 setuphost
 
-echo "[$(timestamp)] ---- 2. Setup SSH Access Keys ----"
-setup_ssh_keys
-
-echo "[$(timestamp)] ---- 3. Update system ----"
+echo "[$(timestamp)] ---- 2. Update system ----"
 update
 
-echo "[$(timestamp)] ---- 4. Install essential packages ----"
+echo "[$(timestamp)] ---- 3. Install essential packages ----"
 install_essentials
+
+echo "[$(timestamp)] ---- 4. Setup SSH Access Keys ----"
+setup_ssh_keys
 
 echo "[$(timestamp)] ---- 5. Install Node.js ----"
 install_nodejs
 
-echo "[$(timestamp)] ---- 6. Update IPTables rules ----"
-update_iptables
+echo "[$(timestamp)] ---- 6. Update Firewall rules ----"
+update_firewall
 
 echo "[$(timestamp)] ---- Completed ----"
 

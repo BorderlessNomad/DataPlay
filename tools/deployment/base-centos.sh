@@ -13,6 +13,12 @@ timestamp () {
 	date +"%F %T,%3N"
 }
 
+setuphost () {
+	HOSTNAME=$(hostname)
+	HOSTLOCAL="127.0.0.1"
+	echo "$HOSTLOCAL $HOSTNAME" >> /etc/hosts
+}
+
 setup_ssh_keys () {
 	URL="https://raw.githubusercontent.com"
 	USER="playgenhub"
@@ -43,18 +49,15 @@ install_nodejs () {
 }
 
 update_firewall () {
-	# JCatascopia
 	firewall-cmd --permanent --add-port=80/tcp
+	firewall-cmd --permanent --add-port=443/tcp
 	firewall-cmd --permanent --add-port=8080/tcp
-	firewall-cmd --permanent --add-port=4242/tcp
-	firewall-cmd --permanent --add-port=4243/tcp
-	firewall-cmd --permanent --add-port=4245/tcp
 
 	firewall-cmd --reload
 }
 
-echo "[$(timestamp)] ---- 1. Setup SSH Access Keys ----"
-setup_ssh_keys
+echo "[$(timestamp)] ---- 1. Setup Host ----"
+setuphost
 
 echo "[$(timestamp)] ---- 2. Update system ----"
 update
@@ -62,10 +65,13 @@ update
 echo "[$(timestamp)] ---- 3. Install essential packages ----"
 install_essentials
 
-echo "[$(timestamp)] ---- 4. Install Node.js ----"
+echo "[$(timestamp)] ---- 4. Setup SSH Access Keys ----"
+setup_ssh_keys
+
+echo "[$(timestamp)] ---- 5. Install Node.js ----"
 install_nodejs
 
-echo "[$(timestamp)] ---- 5. Update Firewall rules ----"
+echo "[$(timestamp)] ---- 6. Update Firewall rules ----"
 update_firewall
 
 echo "[$(timestamp)] ---- Completed ----"
