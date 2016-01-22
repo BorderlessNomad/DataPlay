@@ -58,7 +58,7 @@ init_frontend () {
 }
 
 reload_nginx () {
-	service nginx reload
+	/etc/init.d/nginx reload
 }
 
 inform_loadbalancer () {

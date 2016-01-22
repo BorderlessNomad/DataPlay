@@ -31,7 +31,7 @@ install_postgres () {
 	apt-get update
 	apt-get install -y axel postgresql postgresql-contrib postgresql-client libpq-dev
 	apt-get autoclean
-	service postgresql restart
+	/etc/init.d/postgresql restart
 }
 
 setup_database () {
@@ -122,7 +122,7 @@ setup_pgpool_access() {
 
 	echo "host    all             playgen         $PGPOOL_API_HOST/32       md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf
 
-	service postgresql restart
+	/etc/init.d/postgresql restart
 
 	apt-get install -y postgresql-9.4-pgpool2
 
@@ -155,7 +155,7 @@ setup_pgpool_access() {
 	psql -h $DB_HOST -U $DB_USER -d $DB_NAME -f ~/pgpool-local/pgpool-recovery.sql
 	psql -h $DB_HOST -U $DB_USER -d $DB_NAME -f ~/pgpool-local/pgpool-regclass.sql
 
-	service postgresql restart
+	/etc/init.d/postgresql restart
 }
 
 inform_pgpool () {
@@ -176,7 +176,7 @@ echo "[$(timestamp)] ---- 3. Setup Database ----"
 su postgres -c "$(typeset -f setup_database); setup_database" # Run function as user 'postgres'
 
 echo "[$(timestamp)] ---- 4. Restart PostgreSQL as root ----"
-service postgresql restart
+/etc/init.d/postgresql restart
 
 echo "[$(timestamp)] ---- 5. Import Data ----"
 su postgres -c "$(typeset -f import_data); import_data" # Run function as user 'postgres'

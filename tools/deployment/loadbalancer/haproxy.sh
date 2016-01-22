@@ -38,8 +38,8 @@ install_haproxy () {
 	echo '$UDPServerAddress 127.0.0.1' >> /etc/rsyslog.conf
 	echo '$UDPServerRun 514' >> /etc/rsyslog.conf
 
-	service rsyslog restart
-	service haproxy restart
+	/etc/init.d/rsyslog restart
+	/etc/init.d/haproxy restart
 }
 
 setup_haproxy_api () {

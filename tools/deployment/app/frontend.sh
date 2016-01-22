@@ -67,7 +67,7 @@ install_nginx () {
 
 	chown ubuntu:www-data $DEST/$APP/$WWW
 
-	service nginx reload
+	/etc/init.d/nginx reload
 }
 
 download_app () {

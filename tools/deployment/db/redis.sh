@@ -28,7 +28,7 @@ install_redis () {
 	cp /etc/redis/redis.conf /etc/redis/redis.conf.backup
 	sed -i "s/bind 127.0.0.1/bind 0.0.0.0/" /etc/redis/redis.conf # Allow external connections
 
-	service redis-server restart
+	/etc/init.d/redis-server restart
 }
 
 install_redis_admin () {

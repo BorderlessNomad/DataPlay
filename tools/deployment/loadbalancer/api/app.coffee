@@ -49,7 +49,7 @@ compileTemplate = (data) ->
 		console.log "[Copy] - Replace -", "haproxy.cfg => /etc/haproxy/haproxy.cfg"
 
 		console.log "[Service] - Reload -", "Start"
-		exec "service haproxy reload", puts
+		exec "/etc/init.d/haproxy reload", puts
 		console.log "[Service] - Reload -", "Success"
 
 router = express.Router()

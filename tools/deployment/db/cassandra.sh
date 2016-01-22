@@ -48,7 +48,7 @@ check_cassandra() {
 }
 
 restart_cassandra() {
-	service cassandra restart
+	/etc/init.d/cassandra restart
 	echo "Waiting for Cassandra restart..."
 	check_cassandra
 	echo "Cassandra is UP!"
@@ -84,7 +84,7 @@ configure_cassandra () {
 
 install_opscenter () {
 	apt-get install -y opscenter && \
-	service opscenterd start
+	/etc/init.d/opscenterd start
 
 	# Connect using http://<IP>:8888
 }
@@ -138,7 +138,7 @@ import_data () {
 
 	cqlsh $IP -f $BACKUP_SCHEMA_FILE
 
-	service cassandra stop
+	/etc/init.d/cassandra stop
 
 	mkdir -p $SOURCE_DIR
 	tar -xzvf $BACKUP_DATA_FILE -C $SOURCE_DIR
