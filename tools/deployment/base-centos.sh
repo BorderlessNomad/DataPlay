@@ -26,7 +26,7 @@ setup_ssh_keys () {
 	BRANCH="master"
 	SOURCE="$URL/$USER/$REPO/$BRANCH"
 
-	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -N $SOURCE/tools/deployment/authorized_keys
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 $SOURCE/tools/deployment/authorized_keys
 	cat authorized_keys >> /home/centos/.ssh/authorized_keys
 }
 
@@ -56,6 +56,17 @@ update_firewall () {
 	firewall-cmd --reload
 }
 
+download_scripts () {
+	mkdir -p scripts && cd scripts
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 $SOURCE/tools/deployment/db/cassandra.sh && chmod +x cassandra.sh
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 $SOURCE/tools/deployment/db/pgpool.sh && chmod +x pgpool.sh
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 $SOURCE/tools/deployment/db/redis.sh && chmod +x redis.sh
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 $SOURCE/tools/deployment/db/postgresql.sh && chmod +x postgresql.sh
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 $SOURCE/tools/deployment/app/master.sh && chmod +x master.sh
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 $SOURCE/tools/deployment/app/frontend.sh && chmod +x frontend.sh
+	wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 $SOURCE/tools/deployment/loadbalancer/haproxy.sh && chmod +x haproxy.sh
+}
+
 echo "[$(timestamp)] ---- 1. Setup Host ----"
 setuphost
 
@@ -73,6 +84,9 @@ install_nodejs
 
 echo "[$(timestamp)] ---- 6. Update Firewall rules ----"
 update_firewall
+
+echo "[$(timestamp)] ---- 7. Download Application Scripts ----"
+download_scripts
 
 echo "[$(timestamp)] ---- Completed ----"
 
