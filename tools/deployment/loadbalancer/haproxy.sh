@@ -32,11 +32,9 @@ install_haproxy () {
 	apt-get update
 	apt-get install -y haproxy
 
-	# Using single quotes to avoid bash $ variable expansion
-	echo '# HAProxy' >> /etc/rsyslog.conf
-	echo '$ModLoad imudp' >> /etc/rsyslog.conf
-	echo '$UDPServerAddress 127.0.0.1' >> /etc/rsyslog.conf
-	echo '$UDPServerRun 514' >> /etc/rsyslog.conf
+	# Enable UDP syslog reception
+	sed -i 's/^#module(load="imudp")/module(load="imudp")/g' /etc/rsyslog.conf
+	sed -i 's/^#input(type="imudp" port="514")/input(type="imudp" port="514")/g' /etc/rsyslog.conf
 
 	/etc/init.d/rsyslog restart
 	/etc/init.d/haproxy restart

@@ -57,14 +57,16 @@ defaults
 frontend web
     bind *:80
 
+    reqadd X-Forwarded-Proto:\ http
+
     # API traffic goes to Master cluster
     acl api path_beg /api
-    use_backend masters if api
+    use_backend api-masters if api
 
     # Other traffic goes to Gamification server
-    default_backend gamification
+    default_backend www-gamification
 
-backend gamification
+backend www-gamification
     http-request set-header X-Forwarded-Port %[dst_port]
     http-request add-header X-Forwarded-Proto https if { ssl_fc }
     option httpchk HEAD / HTTP/1.1\r\nHost:localhost
@@ -73,7 +75,7 @@ backend gamification
     server {{ node.id|lower }} {{ node.endpoint }} cookie {{ node.id|upper }} check # added on {{ node.timestamp|date('r') }}
     {% endfor %}
 
-backend masters
+backend api-masters
     http-request set-header X-Forwarded-Port %[dst_port]
     http-request add-header X-Forwarded-Proto https if { ssl_fc }
     option httpchk HEAD /api/ping HTTP/1.1\r\nHost:localhost
