@@ -29,18 +29,22 @@ install_pgpool () {
 	DB_USER="playgen"
 	DB_PASSWORD="aDam3ntiUm"
 
-	yum install -y epel-release http://yum.postgresql.org/9.4/redhat/rhel-7-x86_64/pgdg-centos94-9.4-1.noarch.rpm
+	yum install -y epel-release http://yum.postgresql.org/9.4/redhat/rhel-7-x86_64/pgdg-centos94-9.4-2.noarch.rpm
 	yum install -y http://www.pgpool.net/yum/rpms/3.4/redhat/rhel-7-x86_64/pgpool-II-release-3.4-1.noarch.rpm
-
-	# yum update -y
 
 	yum install -y pgpool-II-94 pgpool-II-94-extensions postgresql94
 
+	# Provides UDP syslog reception
 	sed -i 's/^#$ModLoad imudp/$ModLoad imudp/g' /etc/rsyslog.conf
 	sed -i 's/^#$UDPServerRun 514/$UDPServerRun 514/g' /etc/rsyslog.conf
+
+	# Provides TCP syslog reception
 	sed -i 's/^#$ModLoad imtcp/$ModLoad imtcp/g' /etc/rsyslog.conf
 	sed -i 's/^#$InputTCPServerRun 514/$InputTCPServerRun 514/g' /etc/rsyslog.conf
-	echo "local0.*                                                /var/log/pgpool.log" >> /etc/rsyslog.conf
+
+	echo "
+	# Save PgPool-II log to pgpool.log
+	local0.*                                                /var/log/pgpool.log" >> /etc/rsyslog.conf
 
 	systemctl restart rsyslog.service
 	systemctl enable rsyslog.service
