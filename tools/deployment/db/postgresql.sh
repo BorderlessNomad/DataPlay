@@ -55,6 +55,7 @@ setup_database () {
 	echo "host    all             all             109.231.124.0/24        md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf
 	echo "host    all             all             109.231.125.0/24        md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf
 	echo "host    all             all             109.231.126.0/24        md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf
+	echo "host    all             all             109.231.127.0/24        md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf
 	echo "host    all             all             213.122.181.2/32        md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf
 	echo "host    all             all             149.11.102.50/32        md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf
 	echo "host    all             all             134.60.64.0/24        md5" >> /etc/postgresql/$DB_VERSION/main/pg_hba.conf

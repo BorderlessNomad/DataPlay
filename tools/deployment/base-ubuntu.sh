@@ -41,6 +41,7 @@ install_essentials () {
 install_nodejs () {
 	curl -sL https://raw.githubusercontent.com/playgenhub/DataPlay/master/tools/deployment/nodejs.sh | bash -
 	apt-get install -y python g++ make nodejs
+	npm -g install npm@latest
 	npm install -g grunt-cli coffee-script bower forever
 }
 

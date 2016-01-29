@@ -29,6 +29,7 @@ server {
 		allow 109.231.124.0/24; # Flexiant
 		allow 109.231.125.0/24; # Flexiant
 		allow 109.231.126.0/24; # Flexiant
+		allow 109.231.127.0/24; # Flexiant
 		allow 108.61.197.87/32; # Vultr London
 		allow 192.168.0.0/24; # Ulm OpenStack Private
 		allow 134.60.64.0/24; # Ulm OpenStack Public
