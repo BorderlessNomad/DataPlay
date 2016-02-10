@@ -51,7 +51,7 @@ setup_haproxy_api () {
 
 	command -v npm >/dev/null 2>&1 || { echo >&2 'Error: Command "npm" not found!'; exit 1; }
 
-	command -v forever >/dev/null 2>&1 || { echo >&2 "Error: 'forever' is not installed!"; exit 1; }
+	command -v pm2 >/dev/null 2>&1 || { echo >&2 "Error: 'pm2' is not installed!"; exit 1; }
 
 	command -v coffee >/dev/null 2>&1 || { echo >&2 "Error: 'coffee-script' is not installed!"; exit 1; }
 
@@ -67,7 +67,11 @@ setup_haproxy_api () {
 
 	coffee -cb app.coffee > app.js
 
-	forever start -l forever.log -o output.log -e errors.log app.js >/dev/null 2>&1
+	pm2 startup
+
+	pm2 start app.js --name="haproxy-api" -o output.log -e errors.log
+
+	pm2 save
 
 	# Gamification:
 	# curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"ip":"109.231.121.55:80"}' http://109.231.121.84:1937/gamification

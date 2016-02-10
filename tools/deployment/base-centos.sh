@@ -46,7 +46,7 @@ install_nodejs () {
 	curl -sL https://rpm.nodesource.com/setup | bash -
 	yum install -y nodejs
 	npm -g install npm@latest
-	npm install -g grunt-cli coffee-script bower forever
+	npm install -g grunt-cli coffee-script bower forever pm2
 }
 
 update_firewall () {
