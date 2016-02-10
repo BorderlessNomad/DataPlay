@@ -71,6 +71,8 @@ setup_pgpool_api () {
 
 	command -v npm >/dev/null 2>&1 || { echo >&2 'Error: Command "npm" not found!'; exit 1; }
 
+	npm install -g pm2 # Remove after Base script update
+
 	command -v pm2 >/dev/null 2>&1 || { echo >&2 "Error: 'pm2' is not installed!"; exit 1; }
 
 	command -v coffee >/dev/null 2>&1 || { echo >&2 'Error: "coffee-script" is not installed!'; exit 1; }
