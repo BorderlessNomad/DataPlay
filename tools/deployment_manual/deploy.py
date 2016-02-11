@@ -4,6 +4,7 @@ import getpass
 import os
 import paramiko
 import re
+import select
 import stat
 import sys
 import time
@@ -78,23 +79,6 @@ def replace_string(directory, file, variable, value):
     os.rename(file, file + ".old")
     os.rename(tempFile, file)
 
-def send_string_and_wait(ssh, command, wait_time, should_print):
-    # Create a raw shell
-    shell = ssh.invoke_shell()
-
-    # Send the su command
-    shell.send(command)
-
-    # Wait a bit, if necessary
-    time.sleep(wait_time)
-
-    # Flush the receive buffer
-    receive_buffer = shell.recv(1024)
-
-    # Print the receive buffer, if necessary
-    if should_print:
-        print receive_buffer
-
 def connect_ssh(hostname, username):
     print 'CONNECT SSH, %s@%s' % (username, hostname)
     # Create an SSH client
@@ -108,18 +92,19 @@ def connect_ssh(hostname, username):
 
     return ssh
 
-def send_command(ssh, command):
-    # Create a raw shell
-    shell = ssh.invoke_shell()
+def send_command(ssh, command, wait_time, should_print):
+    transport = ssh.get_transport()
 
-    # Send the su command
-    # send_string_and_wait(ssh, "sudo su\n", 1, True)
+    channel = transport.open_session()
+    channel.exec_command(command)
 
-    # Send command on root
-    # send_string_and_wait(ssh, root_command, 1, True)
-
-    # Close the SSH connection
-    # ssh.close()
+    # Print the receive buffer, if necessary
+    if should_print:
+        while True:
+            rl, wl, xl = select.select([channel],[],[],0.0)
+            if len(rl) > 0:
+                # Must be stdout
+                print channel.recv(1024)
 
 def send_file(ssh, source_dir, source_file, dest_file, make_executable=True):
     print 'SENDING FILE, %s/%s -> %s' % (source_dir, source_file, dest_file)
@@ -149,6 +134,7 @@ def main():
     download_file(directory, CASSANDRA_SCRIPT_URL)
     ssh = connect_ssh(CASSANDRA_HOST, 'ubuntu')
     send_file(ssh, directory, 'cassandra.sh', '/home/ubuntu/cassandra.sh')
+    send_command(ssh, 'sudo bash /home/ubuntu/cassandra.sh', 1, True)
     ssh.close()
     print
 
@@ -156,6 +142,7 @@ def main():
     download_file(directory, PGPOOL_SCRIPT_URL)
     ssh = connect_ssh(DATABASE_HOST, 'centos')
     send_file(ssh, directory, 'pgpool.sh', '/home/centos/pgpool.sh')
+    send_command(ssh, 'sudo bash /home/ubuntu/pgpool.sh', 1, True)
     ssh.close()
     print
 
@@ -163,6 +150,7 @@ def main():
     download_file(directory, REDIS_SCRIPT_URL)
     ssh = connect_ssh(REDIS_HOST, 'ubuntu')
     send_file(ssh, directory, 'redis.sh', '/home/ubuntu/redis.sh')
+    send_command(ssh, 'sudo bash /home/ubuntu/redis.sh', 1, True)
     ssh.close()
     print
 
