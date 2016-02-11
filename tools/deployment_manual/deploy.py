@@ -12,14 +12,14 @@ import urllib2
 __author__ = 'Mayur Ahir'
 
 # IPs of Servers
-REDIS_HOST = '109.231.121.5'
+REDIS_HOST = '109.231.121.56'
 DATABASE_HOST = '109.231.121.123'
-CASSANDRA_HOST = '109.231.121.56'
+CASSANDRA_HOST = '109.231.121.5'
 
 LOADBALANCER_HOST = '109.231.121.141'
-POSTGRESQL_HOSTS = ['109.231.121.87']
-FRONTEND_HOSTS = ['109.231.121.107']
-MASTER_HOSTS = ['109.231.121.212']
+POSTGRESQL_HOSTS = ['109.231.121.107']
+FRONTEND_HOSTS = ['109.231.121.212']
+MASTER_HOSTS = ['109.231.121.87']
 
 # URLs of Deployment scripts
 REDIS_SCRIPT_URL = 'https://raw.githubusercontent.com/playgenhub/DataPlay/master/tools/deployment/db/redis.sh'
@@ -30,6 +30,14 @@ LOADBALANCER_SCRIPT_URL = 'https://raw.githubusercontent.com/playgenhub/DataPlay
 POSTGRESQL_SCRIPT_URL = 'https://raw.githubusercontent.com/playgenhub/DataPlay/master/tools/deployment/db/postgresql.sh'
 FRONTEND_SCRIPT_URL = 'https://raw.githubusercontent.com/playgenhub/DataPlay/master/tools/deployment/app/frontend.sh'
 MASTER_SCRIPT_URL = 'https://raw.githubusercontent.com/playgenhub/DataPlay/master/tools/deployment/app/master.sh'
+
+# Other local variables
+DIRECTORY = 'scripts'
+
+paramiko.util.log_to_file('deployment.log')
+root_command = "whoami\n"
+root_command_result = "root"
+ssh_pass = getpass.getpass(prompt="Private Key Password? ")
 
 def download_file(directory, url):
     print "DOWNLOADING FILE " + url
@@ -87,8 +95,8 @@ def send_string_and_wait(ssh, command, wait_time, should_print):
     if should_print:
         print receive_buffer
 
-def send_file(hostname, username, source_dir, source_file, dest_file, make_executable=True):
-    print 'SENDING FILE, %s/%s -> %s = %s@%s' % (source_dir, source_file, dest_file, username, hostname)
+def connect_ssh(hostname, username):
+    print 'CONNECT SSH, %s@%s' % (username, hostname)
     # Create an SSH client
     ssh = paramiko.SSHClient()
 
@@ -98,6 +106,9 @@ def send_file(hostname, username, source_dir, source_file, dest_file, make_execu
     # Connect to the client
     ssh.connect(hostname, username=username, password=ssh_pass)
 
+    return ssh
+
+def send_command(ssh, command):
     # Create a raw shell
     shell = ssh.invoke_shell()
 
@@ -106,6 +117,12 @@ def send_file(hostname, username, source_dir, source_file, dest_file, make_execu
 
     # Send command on root
     # send_string_and_wait(ssh, root_command, 1, True)
+
+    # Close the SSH connection
+    # ssh.close()
+
+def send_file(ssh, source_dir, source_file, dest_file, make_executable=True):
+    print 'SENDING FILE, %s/%s -> %s' % (source_dir, source_file, dest_file)
 
     # Connect to SFTP client
     sftp = ssh.open_sftp()
@@ -121,9 +138,6 @@ def send_file(hostname, username, source_dir, source_file, dest_file, make_execu
     # Close the SFTP connection
     sftp.close()
 
-    # Close the SSH connection
-    ssh.close()
-
 def main():
     ssh_pass = ''
 
@@ -133,23 +147,31 @@ def main():
 
     # Cassandra
     download_file(directory, CASSANDRA_SCRIPT_URL)
-    send_file(CASSANDRA_HOST, 'ubuntu', directory, 'cassandra.sh', '/home/ubuntu/cassandra.sh')
+    ssh = connect_ssh(CASSANDRA_HOST, 'ubuntu')
+    send_file(ssh, directory, 'cassandra.sh', '/home/ubuntu/cassandra.sh')
+    ssh.close()
     print
 
     # PgPool-II
     download_file(directory, PGPOOL_SCRIPT_URL)
-    send_file(DATABASE_HOST, 'centos', directory, 'pgpool.sh', '/home/centos/pgpool.sh')
+    ssh = connect_ssh(DATABASE_HOST, 'centos')
+    send_file(ssh, directory, 'pgpool.sh', '/home/centos/pgpool.sh')
+    ssh.close()
     print
 
     # Redis
     download_file(directory, REDIS_SCRIPT_URL)
-    send_file(REDIS_HOST, 'ubuntu', directory, 'redis.sh', '/home/ubuntu/redis.sh')
+    ssh = connect_ssh(REDIS_HOST, 'ubuntu')
+    send_file(ssh, directory, 'redis.sh', '/home/ubuntu/redis.sh')
+    ssh.close()
     print
 
     # HAProxy
     download_file(directory, LOADBALANCER_SCRIPT_URL)
     replace_string(directory, 'haproxy.sh', 'REDIS_HOST', REDIS_HOST)
-    send_file(LOADBALANCER_HOST, 'ubuntu', directory, 'haproxy.sh', '/home/ubuntu/haproxy.sh')
+    ssh = connect_ssh(LOADBALANCER_HOST, 'ubuntu')
+    send_file(ssh, directory, 'haproxy.sh', '/home/ubuntu/haproxy.sh')
+    ssh.close()
     print
 
     # PostgreSQL
@@ -172,14 +194,6 @@ def main():
     replace_string(directory, 'master.sh', 'LOADBALANCER_HOST', LOADBALANCER_HOST)
     # send_file(REDIS_HOST, 'ubuntu', directory, 'redis.sh', '/home/ubuntu/redis.sh')
     print
-
-# Other local variables
-DIRECTORY = 'scripts'
-
-paramiko.util.log_to_file('demo.log')
-root_command = "whoami\n"
-root_command_result = "root"
-ssh_pass = getpass.getpass(prompt="Private Key Password? ")
 
 if __name__ == "__main__":
     main()
