@@ -136,7 +136,7 @@ def download_send(directory, script_url, host, username, script, dest_path):
 
     ssh = connect_ssh(host, username)
     send_file(ssh, directory, script, dest_path)
-    send_command(ssh, 'sudo ' + dest_path, 1, True)
+    send_command(ssh, 'sudo bash ' + dest_path, 1, True)
     ssh.close()
     print
 
@@ -179,17 +179,17 @@ def main():
         os.makedirs(directory)
 
     ### http://stackoverflow.com/a/8242359/523747
-    # cassandra = threading.Thread(target = download_send, args = (directory, CASSANDRA_SCRIPT_URL, CASSANDRA_HOST, 'ubuntu', 'cassandra.sh', 'bash /home/ubuntu/cassandra.sh'))
-    # pgpool = threading.Thread(target = download_send, args = (directory, PGPOOL_SCRIPT_URL, DATABASE_HOST, 'centos', 'pgpool.sh', 'bash /home/centos/pgpool.sh'))
-    # redis = threading.Thread(target = download_send, args = (directory, REDIS_SCRIPT_URL, REDIS_HOST, 'ubuntu', 'redis.sh', 'bash /home/ubuntu/redis.sh'))
+    cassandra = threading.Thread(target = download_send, args = (directory, CASSANDRA_SCRIPT_URL, CASSANDRA_HOST, 'ubuntu', 'cassandra.sh', '/home/ubuntu/cassandra.sh'))
+    pgpool = threading.Thread(target = download_send, args = (directory, PGPOOL_SCRIPT_URL, DATABASE_HOST, 'centos', 'pgpool.sh', '/home/centos/pgpool.sh'))
+    redis = threading.Thread(target = download_send, args = (directory, REDIS_SCRIPT_URL, REDIS_HOST, 'ubuntu', 'redis.sh', '/home/ubuntu/redis.sh'))
 
-    # cassandra.start()
-    # pgpool.start()
-    # redis.start()
+    cassandra.start()
+    pgpool.start()
+    redis.start()
 
-    # cassandra.join()
-    # pgpool.join()
-    # redis.join()
+    cassandra.join()
+    pgpool.join()
+    redis.join()
 
     haproxy = threading.Thread(target = task_haproxy, args = (directory,))
     postgresql = threading.Thread(target = task_postgresql, args = (directory,))
