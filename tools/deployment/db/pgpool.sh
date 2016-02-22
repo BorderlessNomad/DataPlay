@@ -88,7 +88,7 @@ setup_pgpool_api () {
 
 	coffee -cb app.coffee > app.js
 
-	pm2 startup
+	pm2 startup centos
 
 	pm2 start app.js --name="pgpool-api" -o output.log -e errors.log
 

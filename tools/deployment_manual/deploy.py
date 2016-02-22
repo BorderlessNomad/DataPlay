@@ -14,14 +14,14 @@ import urllib2
 __author__ = 'Mayur Ahir'
 
 # IPs of Servers
-REDIS_HOST = '109.231.121.56'
+REDIS_HOST = '109.231.121.17'
 DATABASE_HOST = '109.231.121.123'
-CASSANDRA_HOST = '109.231.121.5'
+CASSANDRA_HOST = '109.231.121.6'
 
 LOADBALANCER_HOST = '109.231.121.141'
-POSTGRESQL_HOSTS = ['109.231.121.107']
-FRONTEND_HOSTS = ['109.231.121.212']
-MASTER_HOSTS = ['109.231.121.87']
+POSTGRESQL_HOSTS = ['109.231.121.56', '109.231.121.46']
+FRONTEND_HOSTS = ['109.231.121.5']
+MASTER_HOSTS = ['109.231.121.10', '109.231.121.71']
 
 # URLs of Deployment scripts
 REDIS_SCRIPT_URL = 'https://raw.githubusercontent.com/playgenhub/DataPlay/master/tools/deployment/db/redis.sh'
@@ -135,58 +135,68 @@ def send_file(ssh, source_dir, source_file, dest_file, make_executable=True):
     # Close the SFTP connection
     sftp.close()
 
-def download_send(directory, script_url, host, username, script, dest_path):
+def download_send(directory, script_url, host, username, script, dest_path, update_system = False, log_to_file = False):
+    if update_system:
+        if username is 'centos':
+            send_command(ssh, "sudo yum update", 1, True)
+        elif username is 'ubuntu':
+            send_command(ssh, "sudo apt-get update", 1, True)
+        else:
+            print 'Invalid OS'
+
     download_file(directory, script_url)
 
     ssh = connect_ssh(host, username)
     send_file(ssh, directory, script, dest_path)
-    send_command(ssh, 'sudo bash ' + dest_path, 1, True)
+
+    if log_to_file:
+        cmd = 'sudo bash ' + dest_path + ' > ' + script + '.log 2>&1 &'
+    else:
+        cmd = 'sudo bash ' + dest_path
+    send_command(ssh, cmd, 1, True)
     ssh.close()
     print
+
+def send(script_url, host, username, script, dest_path, log_to_file = True):
+    ssh = connect_ssh(host, username)
+    send_file(ssh, directory, script, dest_path)
+
+    send_command(ssh, "sudo apt-get install dos2unix", 1, True)
+    send_command(ssh, "dos2unix -k -o " + dest_path, 1, True)
+
+    if log_to_file:
+        cmd = 'sudo bash ' + dest_path + ' > ' + script + '.log 2>&1 &'
+    else:
+        cmd = 'sudo bash ' + dest_path
+    send_command(ssh, cmd, 1, True)
+
+    ssh.close()
 
 def task_haproxy(directory):
     download_file(directory, LOADBALANCER_SCRIPT_URL)
     replace_string(directory, 'haproxy.sh', 'REDIS_HOST', REDIS_HOST)
 
-    ssh = connect_ssh(LOADBALANCER_HOST, 'ubuntu')
-    send_file(ssh, directory, 'haproxy.sh', '/home/ubuntu/haproxy.sh')
-
-    send_command(ssh, "sudo apt-get install dos2unix", 1, True)
-    send_command(ssh, "dos2unix -k -o /home/ubuntu/haproxy.sh", 1, True)
-
-    send_command(ssh, 'sudo bash /home/ubuntu/haproxy.sh > haproxy.log 2>&1 &', 1, True)
-
-    ssh.close()
+    cmd = threading.Thread(target = send, args = (LOADBALANCER_SCRIPT_URL, LOADBALANCER_HOST, 'ubuntu', 'haproxy.sh', '/home/ubuntu/haproxy.sh'))
+    cmd.start()
+    cmd.join()
 
 def task_postgresql(directory):
     download_file(directory, POSTGRESQL_SCRIPT_URL)
     replace_string(directory, 'postgresql.sh', 'PGPOOL_API_HOST', DATABASE_HOST)
 
     for POSTGRESQL_HOST in POSTGRESQL_HOSTS:
-        ssh = connect_ssh(POSTGRESQL_HOST, 'ubuntu')
-        send_file(ssh, directory, 'postgresql.sh', '/home/ubuntu/postgresql.sh')
-
-        send_command(ssh, "sudo apt-get install dos2unix", 1, True)
-        send_command(ssh, "dos2unix -k -o /home/ubuntu/postgresql.sh", 1, True)
-
-        send_command(ssh, 'sudo bash /home/ubuntu/postgresql.sh > postgresql.log 2>&1 &', 1, True)
-
-        ssh.close()
+        cmd = threading.Thread(target = send, args = (POSTGRESQL_SCRIPT_URL, POSTGRESQL_HOST, 'ubuntu', 'postgresql.sh', '/home/ubuntu/postgresql.sh'))
+        cmd.start()
+        cmd.join()
 
 def task_frontend(directory):
     download_file(directory, FRONTEND_SCRIPT_URL)
     replace_string(directory, 'frontend.sh', 'LOADBALANCER_HOST', LOADBALANCER_HOST)
 
     for FRONTEND_HOST in FRONTEND_HOSTS:
-        ssh = connect_ssh(FRONTEND_HOST, 'ubuntu')
-        send_file(ssh, directory, 'frontend.sh', '/home/ubuntu/frontend.sh')
-
-        send_command(ssh, "sudo apt-get install dos2unix", 1, True)
-        send_command(ssh, "dos2unix -k -o /home/ubuntu/frontend.sh", 1, True)
-
-        send_command(ssh, 'sudo bash /home/ubuntu/frontend.sh > frontend.log 2>&1 &', 1, True)
-
-        ssh.close()
+        cmd = threading.Thread(target = send, args = (FRONTEND_SCRIPT_URL, FRONTEND_HOST, 'ubuntu', 'frontend.sh', '/home/ubuntu/frontend.sh'))
+        cmd.start()
+        cmd.join()
 
 def task_master(directory):
     download_file(directory, MASTER_SCRIPT_URL)
@@ -196,15 +206,9 @@ def task_master(directory):
     replace_string(directory, 'master.sh', 'LOADBALANCER_HOST', LOADBALANCER_HOST)
 
     for MASTER_HOST in MASTER_HOSTS:
-        ssh = connect_ssh(MASTER_HOST, 'ubuntu')
-        send_file(ssh, directory, 'master.sh', '/home/ubuntu/master.sh')
-
-        send_command(ssh, "sudo apt-get install dos2unix", 1, True)
-        send_command(ssh, "dos2unix -k -o /home/ubuntu/master.sh", 1, True)
-
-        send_command(ssh, 'sudo bash /home/ubuntu/master.sh > master.log 2>&1 &', 1, True)
-
-        ssh.close()
+        cmd = threading.Thread(target = send, args = (MASTER_SCRIPT_URL, MASTER_HOST, 'ubuntu', 'master.sh', '/home/ubuntu/master.sh'))
+        cmd.start()
+        cmd.join()
 
 def main():
     ssh_pass = ''
@@ -213,10 +217,9 @@ def main():
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    ### http://stackoverflow.com/a/8242359/523747
     # Step 1
-    cassandra = threading.Thread(target = download_send, args = (directory, CASSANDRA_SCRIPT_URL, CASSANDRA_HOST, 'ubuntu', 'cassandra.sh', '/home/ubuntu/cassandra.sh'))
-    pgpool = threading.Thread(target = download_send, args = (directory, PGPOOL_SCRIPT_URL, DATABASE_HOST, 'centos', 'pgpool.sh', '/home/centos/pgpool.sh'))
+    cassandra = threading.Thread(target = download_send, args = (directory, CASSANDRA_SCRIPT_URL, CASSANDRA_HOST, 'ubuntu', 'cassandra.sh', '/home/ubuntu/cassandra.sh', False, True))
+    pgpool = threading.Thread(target = download_send, args = (directory, PGPOOL_SCRIPT_URL, DATABASE_HOST, 'centos', 'pgpool.sh', '/home/centos/pgpool.sh', True))
     redis = threading.Thread(target = download_send, args = (directory, REDIS_SCRIPT_URL, REDIS_HOST, 'ubuntu', 'redis.sh', '/home/ubuntu/redis.sh'))
 
     cassandra.start()
