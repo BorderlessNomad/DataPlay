@@ -42,7 +42,7 @@ root_command_result = "root"
 ssh_pass = getpass.getpass(prompt="Private Key Password? ")
 
 def download_file(directory, url):
-    print "DOWNLOADING FILE " + url
+    print "DOWNLOADING FILE %s\n" % (url)
     os.chdir(directory)
 
     # file to be written to
@@ -59,7 +59,7 @@ def download_file(directory, url):
     file.close()
 
 def replace_string(directory, file, variable, value):
-    print "REPLACE %s with %s in %s" % (variable, value, file)
+    print "REPLACE %s with %s in %s\n" % (variable, value, file)
     os.chdir(directory)
 
     tempFile = file + '.tmp'
@@ -70,7 +70,7 @@ def replace_string(directory, file, variable, value):
     regex = re.compile(r'^{}=(.*)$'.format(variable), re.MULTILINE)
     outText = regex.sub(variable + "=\"" + value + "\"", fContent)
 
-    outputFile.write((outText.encode("utf-8")))
+    outputFile.write((outText))
 
     outputFile.close()
     inputFile.close()
@@ -81,7 +81,7 @@ def replace_string(directory, file, variable, value):
     os.rename(tempFile, file)
 
 def connect_ssh(hostname, username):
-    print 'CONNECT SSH, %s@%s' % (username, hostname)
+    print 'CONNECT SSH, %s@%s\n' % (username, hostname)
     # Create an SSH client
     ssh = paramiko.SSHClient()
 
@@ -93,22 +93,29 @@ def connect_ssh(hostname, username):
 
     return ssh
 
-def send_command(ssh, command, wait_time, should_print):
+def send_command(ssh, cmd, wait_time, should_print):
+    out = ""
+
     transport = ssh.get_transport()
 
     channel = transport.open_session()
-    channel.exec_command(command)
+    channel.exec_command(cmd)
 
-    # Print the receive buffer, if necessary
-    if should_print:
-        while True:
-            rl, wl, xl = select.select([channel],[],[],0.0)
+    # Wait for the command to terminate & Print the receive buffer, if necessary
+    while should_print and True:
+        try:
+            rl, wl, xl = select.select([channel], [], [], 0.0)
             if len(rl) > 0:
-                # Must be stdout
-                print channel.recv(1024)
+                out = channel.recv(1024)
+                if out and out.strip() and not out.isspace():
+                    print out
+        except KeyboardInterrupt:
+            print("Caught CTRL+C")
+            channel.close()
+            exit(0)
 
 def send_file(ssh, source_dir, source_file, dest_file, make_executable=True):
-    print 'SENDING FILE, %s/%s -> %s' % (source_dir, source_file, dest_file)
+    print 'SENDING FILE, %s/%s -> %s\n' % (source_dir, source_file, dest_file)
 
     # Connect to SFTP client
     sftp = ssh.open_sftp()
@@ -117,7 +124,7 @@ def send_file(ssh, source_dir, source_file, dest_file, make_executable=True):
     sftp.put(source_dir + "/" + source_file, dest_file)
 
     if make_executable:
-        print 'SENDING FILE, chmod +x'
+        print 'SENDING FILE, chmod +x\n'
         # Make file executable
         sftp.chmod(dest_file, stat.S_IRWXU | stat.S_IRWXG | stat.S_IROTH)
 
@@ -126,11 +133,43 @@ def send_file(ssh, source_dir, source_file, dest_file, make_executable=True):
 
 def download_send(directory, script_url, host, username, script, dest_path):
     download_file(directory, script_url)
+
     ssh = connect_ssh(host, username)
     send_file(ssh, directory, script, dest_path)
-    send_command(ssh, 'sudo bash ' + dest_path, 1, True)
+    send_command(ssh, 'sudo ' + dest_path, 1, True)
     ssh.close()
     print
+
+def task_haproxy(directory):
+    download_file(directory, LOADBALANCER_SCRIPT_URL)
+    replace_string(directory, 'haproxy.sh', 'REDIS_HOST', REDIS_HOST)
+
+    ssh = connect_ssh(LOADBALANCER_HOST, 'ubuntu')
+    send_file(ssh, directory, 'haproxy.sh', '/home/ubuntu/haproxy.sh')
+    print "file sent haproxy"
+
+    send_command(ssh, "sed -i -e 's/\r$//' /home/ubuntu/haproxy.sh", 1, True)
+    print "sed sent haproxy"
+
+    send_command(ssh, 'sudo bash /home/ubuntu/haproxy.sh', 1, True)
+    print "bash sent haproxy"
+    ssh.close()
+
+def task_postgresql(directory):
+    download_file(directory, POSTGRESQL_SCRIPT_URL)
+    replace_string(directory, 'postgresql.sh', 'PGPOOL_API_HOST', DATABASE_HOST)
+
+    for POSTGRESQL_HOST in POSTGRESQL_HOSTS:
+        ssh = connect_ssh(POSTGRESQL_HOST, 'ubuntu')
+        send_file(ssh, directory, 'postgresql.sh', '/home/ubuntu/postgresql.sh')
+        print "file sent postgresql"
+
+        send_command(ssh, "sed -i -e 's/\r$//' /home/ubuntu/postgresql.sh", 1, True)
+        print "sed sent postgresql"
+
+        send_command(ssh, 'sudo bash /home/ubuntu/postgresql.sh', 1, True)
+        print "bash sent postgresql"
+        ssh.close()
 
 def main():
     ssh_pass = ''
@@ -140,38 +179,28 @@ def main():
         os.makedirs(directory)
 
     ### http://stackoverflow.com/a/8242359/523747
-    # Cassandra
-    cassandra = threading.Thread(target = download_send, args = (directory, CASSANDRA_SCRIPT_URL, CASSANDRA_HOST, 'ubuntu', 'cassandra.sh', '/home/ubuntu/cassandra.sh'))
+    # cassandra = threading.Thread(target = download_send, args = (directory, CASSANDRA_SCRIPT_URL, CASSANDRA_HOST, 'ubuntu', 'cassandra.sh', 'bash /home/ubuntu/cassandra.sh'))
+    # pgpool = threading.Thread(target = download_send, args = (directory, PGPOOL_SCRIPT_URL, DATABASE_HOST, 'centos', 'pgpool.sh', 'bash /home/centos/pgpool.sh'))
+    # redis = threading.Thread(target = download_send, args = (directory, REDIS_SCRIPT_URL, REDIS_HOST, 'ubuntu', 'redis.sh', 'bash /home/ubuntu/redis.sh'))
 
-    # PgPool-II
-    pgpool = threading.Thread(target = download_send, args = (directory, PGPOOL_SCRIPT_URL, DATABASE_HOST, 'centos', 'pgpool.sh', '/home/centos/pgpool.sh'))
+    # cassandra.start()
+    # pgpool.start()
+    # redis.start()
 
-    # Redis
-    redis = threading.Thread(target = download_send, args = (directory, REDIS_SCRIPT_URL, REDIS_HOST, 'ubuntu', 'redis.sh', '/home/ubuntu/redis.sh'))
+    # cassandra.join()
+    # pgpool.join()
+    # redis.join()
 
-    cassandra.start()
-    pgpool.start()
-    redis.start()
+    haproxy = threading.Thread(target = task_haproxy, args = (directory,))
+    postgresql = threading.Thread(target = task_postgresql, args = (directory,))
 
-    cassandra.join()
-    pgpool.join()
-    redis.join()
+    haproxy.start()
+    postgresql.start()
+
+    haproxy.join()
+    postgresql.join()
 
     '''
-    # HAProxy
-    download_file(directory, LOADBALANCER_SCRIPT_URL)
-    replace_string(directory, 'haproxy.sh', 'REDIS_HOST', REDIS_HOST)
-    ssh = connect_ssh(LOADBALANCER_HOST, 'ubuntu')
-    send_file(ssh, directory, 'haproxy.sh', '/home/ubuntu/haproxy.sh')
-    ssh.close()
-    print
-
-    # PostgreSQL
-    download_file(directory, POSTGRESQL_SCRIPT_URL)
-    replace_string(directory, 'postgresql.sh', 'PGPOOL_API_HOST', DATABASE_HOST)
-    # send_file(REDIS_HOST, 'ubuntu', directory, 'redis.sh', '/home/ubuntu/redis.sh')
-    print
-
     # Frontend
     download_file(directory, FRONTEND_SCRIPT_URL)
     replace_string(directory, 'frontend.sh', 'LOADBALANCER_HOST', LOADBALANCER_HOST)
