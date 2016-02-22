@@ -7,6 +7,7 @@ import re
 import select
 import stat
 import sys
+import threading
 import time
 import urllib2
 
@@ -123,6 +124,14 @@ def send_file(ssh, source_dir, source_file, dest_file, make_executable=True):
     # Close the SFTP connection
     sftp.close()
 
+def download_send(directory, script_url, host, username, script, dest_path):
+    download_file(directory, script_url)
+    ssh = connect_ssh(host, username)
+    send_file(ssh, directory, script, dest_path)
+    send_command(ssh, 'sudo bash ' + dest_path, 1, True)
+    ssh.close()
+    print
+
 def main():
     ssh_pass = ''
 
@@ -130,30 +139,25 @@ def main():
     if not os.path.exists(directory):
         os.makedirs(directory)
 
+    ### http://stackoverflow.com/a/8242359/523747
     # Cassandra
-    download_file(directory, CASSANDRA_SCRIPT_URL)
-    ssh = connect_ssh(CASSANDRA_HOST, 'ubuntu')
-    send_file(ssh, directory, 'cassandra.sh', '/home/ubuntu/cassandra.sh')
-    send_command(ssh, 'sudo bash /home/ubuntu/cassandra.sh', 1, True)
-    ssh.close()
-    print
+    cassandra = threading.Thread(target = download_send, args = (directory, CASSANDRA_SCRIPT_URL, CASSANDRA_HOST, 'ubuntu', 'cassandra.sh', '/home/ubuntu/cassandra.sh'))
 
     # PgPool-II
-    download_file(directory, PGPOOL_SCRIPT_URL)
-    ssh = connect_ssh(DATABASE_HOST, 'centos')
-    send_file(ssh, directory, 'pgpool.sh', '/home/centos/pgpool.sh')
-    send_command(ssh, 'sudo bash /home/ubuntu/pgpool.sh', 1, True)
-    ssh.close()
-    print
+    pgpool = threading.Thread(target = download_send, args = (directory, PGPOOL_SCRIPT_URL, DATABASE_HOST, 'centos', 'pgpool.sh', '/home/centos/pgpool.sh'))
 
     # Redis
-    download_file(directory, REDIS_SCRIPT_URL)
-    ssh = connect_ssh(REDIS_HOST, 'ubuntu')
-    send_file(ssh, directory, 'redis.sh', '/home/ubuntu/redis.sh')
-    send_command(ssh, 'sudo bash /home/ubuntu/redis.sh', 1, True)
-    ssh.close()
-    print
+    redis = threading.Thread(target = download_send, args = (directory, REDIS_SCRIPT_URL, REDIS_HOST, 'ubuntu', 'redis.sh', '/home/ubuntu/redis.sh'))
 
+    cassandra.start()
+    pgpool.start()
+    redis.start()
+
+    cassandra.join()
+    pgpool.join()
+    redis.join()
+
+    '''
     # HAProxy
     download_file(directory, LOADBALANCER_SCRIPT_URL)
     replace_string(directory, 'haproxy.sh', 'REDIS_HOST', REDIS_HOST)
@@ -182,6 +186,7 @@ def main():
     replace_string(directory, 'master.sh', 'LOADBALANCER_HOST', LOADBALANCER_HOST)
     # send_file(REDIS_HOST, 'ubuntu', directory, 'redis.sh', '/home/ubuntu/redis.sh')
     print
+    '''
 
 if __name__ == "__main__":
     main()
