@@ -104,6 +104,8 @@ def send_command(ssh, cmd, wait_time, should_print):
     # Wait for the command to terminate & Print the receive buffer, if necessary
     while should_print and True:
         try:
+            if channel.exit_status_ready():
+                break
             rl, wl, xl = select.select([channel], [], [], 0.0)
             if len(rl) > 0:
                 out = channel.recv(1024)
@@ -113,6 +115,8 @@ def send_command(ssh, cmd, wait_time, should_print):
             print("Caught CTRL+C")
             channel.close()
             exit(0)
+
+    return out
 
 def send_file(ssh, source_dir, source_file, dest_file, make_executable=True):
     print 'SENDING FILE, %s/%s -> %s\n' % (source_dir, source_file, dest_file)
@@ -146,13 +150,12 @@ def task_haproxy(directory):
 
     ssh = connect_ssh(LOADBALANCER_HOST, 'ubuntu')
     send_file(ssh, directory, 'haproxy.sh', '/home/ubuntu/haproxy.sh')
-    print "file sent haproxy"
 
-    send_command(ssh, "sed -i -e 's/\r$//' /home/ubuntu/haproxy.sh", 1, True)
-    print "sed sent haproxy"
+    send_command(ssh, "sudo apt-get install dos2unix", 1, True)
+    send_command(ssh, "dos2unix -k -o /home/ubuntu/haproxy.sh", 1, True)
 
-    send_command(ssh, 'sudo bash /home/ubuntu/haproxy.sh', 1, True)
-    print "bash sent haproxy"
+    send_command(ssh, 'sudo bash /home/ubuntu/haproxy.sh > haproxy.log 2>&1 &', 1, True)
+
     ssh.close()
 
 def task_postgresql(directory):
@@ -162,13 +165,45 @@ def task_postgresql(directory):
     for POSTGRESQL_HOST in POSTGRESQL_HOSTS:
         ssh = connect_ssh(POSTGRESQL_HOST, 'ubuntu')
         send_file(ssh, directory, 'postgresql.sh', '/home/ubuntu/postgresql.sh')
-        print "file sent postgresql"
 
-        send_command(ssh, "sed -i -e 's/\r$//' /home/ubuntu/postgresql.sh", 1, True)
-        print "sed sent postgresql"
+        send_command(ssh, "sudo apt-get install dos2unix", 1, True)
+        send_command(ssh, "dos2unix -k -o /home/ubuntu/postgresql.sh", 1, True)
 
-        send_command(ssh, 'sudo bash /home/ubuntu/postgresql.sh', 1, True)
-        print "bash sent postgresql"
+        send_command(ssh, 'sudo bash /home/ubuntu/postgresql.sh > postgresql.log 2>&1 &', 1, True)
+
+        ssh.close()
+
+def task_frontend(directory):
+    download_file(directory, FRONTEND_SCRIPT_URL)
+    replace_string(directory, 'frontend.sh', 'LOADBALANCER_HOST', LOADBALANCER_HOST)
+
+    for FRONTEND_HOST in FRONTEND_HOSTS:
+        ssh = connect_ssh(FRONTEND_HOST, 'ubuntu')
+        send_file(ssh, directory, 'frontend.sh', '/home/ubuntu/frontend.sh')
+
+        send_command(ssh, "sudo apt-get install dos2unix", 1, True)
+        send_command(ssh, "dos2unix -k -o /home/ubuntu/frontend.sh", 1, True)
+
+        send_command(ssh, 'sudo bash /home/ubuntu/frontend.sh > frontend.log 2>&1 &', 1, True)
+
+        ssh.close()
+
+def task_master(directory):
+    download_file(directory, MASTER_SCRIPT_URL)
+    replace_string(directory, 'master.sh', 'DATABASE_HOST', DATABASE_HOST)
+    replace_string(directory, 'master.sh', 'REDIS_HOST', REDIS_HOST)
+    replace_string(directory, 'master.sh', 'CASSANDRA_HOST', CASSANDRA_HOST)
+    replace_string(directory, 'master.sh', 'LOADBALANCER_HOST', LOADBALANCER_HOST)
+
+    for MASTER_HOST in MASTER_HOSTS:
+        ssh = connect_ssh(MASTER_HOST, 'ubuntu')
+        send_file(ssh, directory, 'master.sh', '/home/ubuntu/master.sh')
+
+        send_command(ssh, "sudo apt-get install dos2unix", 1, True)
+        send_command(ssh, "dos2unix -k -o /home/ubuntu/master.sh", 1, True)
+
+        send_command(ssh, 'sudo bash /home/ubuntu/master.sh > master.log 2>&1 &', 1, True)
+
         ssh.close()
 
 def main():
@@ -179,6 +214,7 @@ def main():
         os.makedirs(directory)
 
     ### http://stackoverflow.com/a/8242359/523747
+    # Step 1
     cassandra = threading.Thread(target = download_send, args = (directory, CASSANDRA_SCRIPT_URL, CASSANDRA_HOST, 'ubuntu', 'cassandra.sh', '/home/ubuntu/cassandra.sh'))
     pgpool = threading.Thread(target = download_send, args = (directory, PGPOOL_SCRIPT_URL, DATABASE_HOST, 'centos', 'pgpool.sh', '/home/centos/pgpool.sh'))
     redis = threading.Thread(target = download_send, args = (directory, REDIS_SCRIPT_URL, REDIS_HOST, 'ubuntu', 'redis.sh', '/home/ubuntu/redis.sh'))
@@ -191,6 +227,7 @@ def main():
     pgpool.join()
     redis.join()
 
+    # Step 2
     haproxy = threading.Thread(target = task_haproxy, args = (directory,))
     postgresql = threading.Thread(target = task_postgresql, args = (directory,))
 
@@ -200,22 +237,15 @@ def main():
     haproxy.join()
     postgresql.join()
 
-    '''
-    # Frontend
-    download_file(directory, FRONTEND_SCRIPT_URL)
-    replace_string(directory, 'frontend.sh', 'LOADBALANCER_HOST', LOADBALANCER_HOST)
-    # send_file(REDIS_HOST, 'ubuntu', directory, 'redis.sh', '/home/ubuntu/redis.sh')
-    print
+    # Step 3
+    frontend = threading.Thread(target = task_frontend, args = (directory,))
+    master = threading.Thread(target = task_master, args = (directory,))
 
-    # Master
-    download_file(directory, MASTER_SCRIPT_URL)
-    replace_string(directory, 'master.sh', 'DATABASE_HOST', DATABASE_HOST)
-    replace_string(directory, 'master.sh', 'REDIS_HOST', REDIS_HOST)
-    replace_string(directory, 'master.sh', 'CASSANDRA_HOST', CASSANDRA_HOST)
-    replace_string(directory, 'master.sh', 'LOADBALANCER_HOST', LOADBALANCER_HOST)
-    # send_file(REDIS_HOST, 'ubuntu', directory, 'redis.sh', '/home/ubuntu/redis.sh')
-    print
-    '''
+    frontend.start()
+    master.start()
+
+    frontend.join()
+    master.join()
 
 if __name__ == "__main__":
     main()

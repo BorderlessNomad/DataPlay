@@ -36,7 +36,7 @@ update () {
 }
 
 install_essentials () {
-	yum install -y htop wget rsyslog gcc-c++ make firewalld
+	yum install -y htop wget rsyslog gcc-c++ make firewalld dos2unix
 
 	systemctl start firewalld.service
 	systemctl enable firewalld.service

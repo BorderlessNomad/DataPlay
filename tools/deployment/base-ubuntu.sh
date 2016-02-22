@@ -35,7 +35,7 @@ update () {
 }
 
 install_essentials () {
-	apt-get install -y build-essential sudo ntpdate vim openssh-server gcc curl git mercurial bzr make binutils bison wget axel python-software-properties htop unzip
+	apt-get install -y build-essential sudo ntpdate vim openssh-server gcc curl git mercurial bzr make binutils bison wget axel python-software-properties htop unzip dos2unix
 }
 
 install_nodejs () {
