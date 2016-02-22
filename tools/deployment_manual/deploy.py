@@ -136,6 +136,11 @@ def send_file(ssh, source_dir, source_file, dest_file, make_executable=True):
     sftp.close()
 
 def download_send(directory, script_url, host, username, script, dest_path, update_system = False, log_to_file = False):
+    download_file(directory, script_url)
+
+    ssh = connect_ssh(host, username)
+    send_file(ssh, directory, script, dest_path)
+
     if update_system:
         if username is 'centos':
             send_command(ssh, "sudo yum update", 1, True)
@@ -143,11 +148,6 @@ def download_send(directory, script_url, host, username, script, dest_path, upda
             send_command(ssh, "sudo apt-get update", 1, True)
         else:
             print 'Invalid OS'
-
-    download_file(directory, script_url)
-
-    ssh = connect_ssh(host, username)
-    send_file(ssh, directory, script, dest_path)
 
     if log_to_file:
         cmd = 'sudo bash ' + dest_path + ' > ' + script + '.log 2>&1 &'
@@ -157,7 +157,7 @@ def download_send(directory, script_url, host, username, script, dest_path, upda
     ssh.close()
     print
 
-def send(script_url, host, username, script, dest_path, log_to_file = True):
+def send(directory, script_url, host, username, script, dest_path, log_to_file = True):
     ssh = connect_ssh(host, username)
     send_file(ssh, directory, script, dest_path)
 
@@ -176,7 +176,7 @@ def task_haproxy(directory):
     download_file(directory, LOADBALANCER_SCRIPT_URL)
     replace_string(directory, 'haproxy.sh', 'REDIS_HOST', REDIS_HOST)
 
-    cmd = threading.Thread(target = send, args = (LOADBALANCER_SCRIPT_URL, LOADBALANCER_HOST, 'ubuntu', 'haproxy.sh', '/home/ubuntu/haproxy.sh'))
+    cmd = threading.Thread(target = send, args = (directory, LOADBALANCER_SCRIPT_URL, LOADBALANCER_HOST, 'ubuntu', 'haproxy.sh', '/home/ubuntu/haproxy.sh'))
     cmd.start()
     cmd.join()
 
@@ -185,7 +185,7 @@ def task_postgresql(directory):
     replace_string(directory, 'postgresql.sh', 'PGPOOL_API_HOST', DATABASE_HOST)
 
     for POSTGRESQL_HOST in POSTGRESQL_HOSTS:
-        cmd = threading.Thread(target = send, args = (POSTGRESQL_SCRIPT_URL, POSTGRESQL_HOST, 'ubuntu', 'postgresql.sh', '/home/ubuntu/postgresql.sh'))
+        cmd = threading.Thread(target = send, args = (directory, POSTGRESQL_SCRIPT_URL, POSTGRESQL_HOST, 'ubuntu', 'postgresql.sh', '/home/ubuntu/postgresql.sh'))
         cmd.start()
         cmd.join()
 
@@ -194,7 +194,7 @@ def task_frontend(directory):
     replace_string(directory, 'frontend.sh', 'LOADBALANCER_HOST', LOADBALANCER_HOST)
 
     for FRONTEND_HOST in FRONTEND_HOSTS:
-        cmd = threading.Thread(target = send, args = (FRONTEND_SCRIPT_URL, FRONTEND_HOST, 'ubuntu', 'frontend.sh', '/home/ubuntu/frontend.sh'))
+        cmd = threading.Thread(target = send, args = (directory, FRONTEND_SCRIPT_URL, FRONTEND_HOST, 'ubuntu', 'frontend.sh', '/home/ubuntu/frontend.sh'))
         cmd.start()
         cmd.join()
 
@@ -206,7 +206,7 @@ def task_master(directory):
     replace_string(directory, 'master.sh', 'LOADBALANCER_HOST', LOADBALANCER_HOST)
 
     for MASTER_HOST in MASTER_HOSTS:
-        cmd = threading.Thread(target = send, args = (MASTER_SCRIPT_URL, MASTER_HOST, 'ubuntu', 'master.sh', '/home/ubuntu/master.sh'))
+        cmd = threading.Thread(target = send, args = (directory, MASTER_SCRIPT_URL, MASTER_HOST, 'ubuntu', 'master.sh', '/home/ubuntu/master.sh'))
         cmd.start()
         cmd.join()
 
@@ -220,7 +220,7 @@ def main():
     # Step 1
     cassandra = threading.Thread(target = download_send, args = (directory, CASSANDRA_SCRIPT_URL, CASSANDRA_HOST, 'ubuntu', 'cassandra.sh', '/home/ubuntu/cassandra.sh', False, True))
     pgpool = threading.Thread(target = download_send, args = (directory, PGPOOL_SCRIPT_URL, DATABASE_HOST, 'centos', 'pgpool.sh', '/home/centos/pgpool.sh', True))
-    redis = threading.Thread(target = download_send, args = (directory, REDIS_SCRIPT_URL, REDIS_HOST, 'ubuntu', 'redis.sh', '/home/ubuntu/redis.sh'))
+    redis = threading.Thread(target = download_send, args = (directory, REDIS_SCRIPT_URL, REDIS_HOST, 'ubuntu', 'redis.sh', '/home/ubuntu/redis.sh', False, True))
 
     cassandra.start()
     pgpool.start()
