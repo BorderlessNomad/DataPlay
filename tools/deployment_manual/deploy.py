@@ -15,30 +15,30 @@ __author__ = 'Mayur Ahir'
 
 # IPs of Servers
 REDIS_HOST = '109.231.121.17'
-DATABASE_HOST = '109.231.121.123'
-CASSANDRA_HOST = '109.231.121.6'
+DATABASE_HOST = '109.231.121.10'
+CASSANDRA_HOST = '109.231.121.64'
 
-LOADBALANCER_HOST = '109.231.121.141'
-POSTGRESQL_HOSTS = ['109.231.121.56', '109.231.121.46']
-FRONTEND_HOSTS = ['109.231.121.5']
-MASTER_HOSTS = ['109.231.121.10', '109.231.121.71']
+LOADBALANCER_HOST = '109.231.121.5'
+POSTGRESQL_HOSTS = ['109.231.121.52', '109.231.121.6']
+FRONTEND_HOSTS = ['109.231.121.141']
+MASTER_HOSTS = ['109.231.121.56', '109.231.121.123']
 
 # URLs of Deployment scripts
-REDIS_SCRIPT_URL = 'https://raw.githubusercontent.com/playgenhub/DataPlay/master/tools/deployment/db/redis.sh'
-PGPOOL_SCRIPT_URL = 'https://raw.githubusercontent.com/playgenhub/DataPlay/master/tools/deployment/db/pgpool.sh'
-CASSANDRA_SCRIPT_URL = 'https://raw.githubusercontent.com/playgenhub/DataPlay/master/tools/deployment/db/cassandra.sh'
+SCRIPT_URL_BASE = 'https://raw.githubusercontent.com/playgenhub/DataPlay/master/tools/deployment'
+REDIS_SCRIPT_URL = SCRIPT_URL_BASE + '/db/redis.sh'
+PGPOOL_SCRIPT_URL = SCRIPT_URL_BASE + '/db/pgpool.sh'
+CASSANDRA_SCRIPT_URL = SCRIPT_URL_BASE + '/db/cassandra.sh'
 
-LOADBALANCER_SCRIPT_URL = 'https://raw.githubusercontent.com/playgenhub/DataPlay/master/tools/deployment/loadbalancer/haproxy.sh'
-POSTGRESQL_SCRIPT_URL = 'https://raw.githubusercontent.com/playgenhub/DataPlay/master/tools/deployment/db/postgresql.sh'
-FRONTEND_SCRIPT_URL = 'https://raw.githubusercontent.com/playgenhub/DataPlay/master/tools/deployment/app/frontend.sh'
-MASTER_SCRIPT_URL = 'https://raw.githubusercontent.com/playgenhub/DataPlay/master/tools/deployment/app/master.sh'
+LOADBALANCER_SCRIPT_URL = SCRIPT_URL_BASE + '/loadbalancer/haproxy.sh'
+POSTGRESQL_SCRIPT_URL = SCRIPT_URL_BASE + '/db/postgresql.sh'
+FRONTEND_SCRIPT_URL = SCRIPT_URL_BASE + '/app/frontend.sh'
+MASTER_SCRIPT_URL = SCRIPT_URL_BASE + '/app/master.sh'
 
 # Other local variables
 DIRECTORY = 'scripts'
 
 paramiko.util.log_to_file('deployment.log')
-root_command = "whoami\n"
-root_command_result = "root"
+
 ssh_pass = getpass.getpass(prompt="Private Key Password? ")
 
 def download_file(directory, url):
