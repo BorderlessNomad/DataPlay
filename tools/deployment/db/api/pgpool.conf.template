@@ -22,7 +22,7 @@ pcp_socket_dir = '/tmp'
 # - Backend Connection Settings -
 {% for node in cluster %}
 backend_hostname{{ node.id }} = '{{ node.endpoint }}'
-backend_port{{ node.id }} = 5432
+backend_port{{ node.id }} = '{{ node.port }}'
 backend_weight{{ node.id }} = 1
 backend_data_directory{{ node.id }} = '/var/lib/postgresql/9.4/main'
 backend_flag{{ node.id }} = 'ALLOW_TO_FAILOVER'

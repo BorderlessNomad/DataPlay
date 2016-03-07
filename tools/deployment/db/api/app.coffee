@@ -44,19 +44,19 @@ compileTemplate = (data) ->
 
 		console.log "[Compile] - Generated -", "pgpool.conf on #{new Date(timestamp)}"
 
-		exec "cp -rf /etc/pgpool-II-94/pgpool.conf /etc/pgpool-II-94/pgpool.conf.#{timestamp}", puts
-		console.log "[Copy] - Backup -", "/etc/pgpool-II-94/pgpool.conf => /etc/pgpool-II-94/pgpool.conf.#{timestamp}"
+		exec "cp -rf /etc/pgpool2/pgpool.conf /etc/pgpool2/pgpool.conf.#{timestamp}", puts
+		console.log "[Copy] - Backup -", "/etc/pgpool2/pgpool.conf => /etc/pgpool2/pgpool.conf.#{timestamp}"
 
-		exec "cp -rf pgpool.conf /etc/pgpool-II-94/pgpool.conf", puts
-		console.log "[Copy] - Replace -", "pgpool.conf => /etc/pgpool-II-94/pgpool.conf"
+		exec "cp -rf pgpool.conf /etc/pgpool2/pgpool.conf", puts
+		console.log "[Copy] - Replace -", "pgpool.conf => /etc/pgpool2/pgpool.conf"
 
 		if isFirstRun
 			console.log "[Service] - Restart -", "Start"
-			exec "systemctl restart pgpool-II-94", puts
+			exec "/etc/init.d/pgpool2 restart", puts
 			console.log "[Service] - Restart -", "Success"
 		else
 			console.log "[Service] - Reload -", "Start"
-			exec "/usr/pgpool-9.4/bin/pgpool reload", puts
+			exec "/etc/init.d/pgpool2 reload", puts
 			console.log "[Service] - Reload -", "Success"
 
 router = express.Router()
@@ -84,13 +84,15 @@ router.route("/").post (req, res) ->
 			return res.status(409).json error: "IP already exists!" if value.endpoint is req.body.ip
 
 		timestamp = Date.now()
+		port = req.body.port ? 5432
 
 		file.data[datakey].push
 			endpoint: req.body.ip
+			port: port
 			timestamp: timestamp
 
 		file.save().then (->
-			console.log "[API] - POST - Success", req.body.ip
+			console.log "[API] - POST - Success", "#{req.body.ip}:#{port}"
 
 			compileTemplate file.data
 
