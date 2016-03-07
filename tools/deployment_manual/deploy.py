@@ -9,6 +9,7 @@ import stat
 import sys
 import threading
 import time
+import traceback
 import urllib2
 
 __author__ = 'Mayur Ahir'
@@ -104,18 +105,15 @@ def send_command(ssh, cmd, wait_time, should_print):
 
     # Wait for the command to terminate & Print the receive buffer, if necessary
     while should_print and True:
-        try:
-            if channel.exit_status_ready():
-                break
-            rl, wl, xl = select.select([channel], [], [], 0.0)
-            if len(rl) > 0:
-                out = channel.recv(1024)
-                if out and out.strip() and not out.isspace():
-                    print out
-        except KeyboardInterrupt:
-            print("Caught CTRL+C")
-            channel.close()
-            exit(0)
+        if channel.exit_status_ready():
+            break
+
+        rl, wl, xl = select.select([channel], [], [], 0.0)
+
+        if len(rl) > 0:
+            out = channel.recv(1024)
+            if out and out.strip() and not out.isspace():
+                print out
 
     return out
 
@@ -247,4 +245,14 @@ def main():
     master.join()
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print "Shutdown requested...exiting"
+    except Exception:
+        traceback.print_exc(file=sys.stdout)
+
+    try:
+        sys.exit(0)
+    except SystemExit:
+        os._exit(0)
