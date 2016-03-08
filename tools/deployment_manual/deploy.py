@@ -9,22 +9,24 @@ import stat
 import sys
 import threading
 import time
+import traceback
 import urllib2
 
 __author__ = 'Mayur Ahir'
 
 # IPs of Servers
-REDIS_HOST = '109.231.121.17'
-DATABASE_HOST = '109.231.121.10'
-CASSANDRA_HOST = '109.231.121.64'
+REDIS_HOST = '109.231.121.141'
+PGPOOL_HOST = '109.231.121.17'
+CASSANDRA_HOST = '109.231.121.5'
 
-LOADBALANCER_HOST = '109.231.121.5'
-POSTGRESQL_HOSTS = ['109.231.121.52', '109.231.121.6']
-FRONTEND_HOSTS = ['109.231.121.141']
-MASTER_HOSTS = ['109.231.121.56', '109.231.121.123']
+LOADBALANCER_HOST = '109.231.121.52'
+POSTGRESQL_HOSTS = ['109.231.121.150', '109.231.121.56']
+FRONTEND_HOSTS = ['109.231.121.95']
+MASTER_HOSTS = ['109.231.121.6', '109.231.121.10']
 
 # URLs of Deployment scripts
 SCRIPT_URL_BASE = 'https://raw.githubusercontent.com/playgenhub/DataPlay/master/tools/deployment'
+
 REDIS_SCRIPT_URL = SCRIPT_URL_BASE + '/db/redis.sh'
 PGPOOL_SCRIPT_URL = SCRIPT_URL_BASE + '/db/pgpool.sh'
 CASSANDRA_SCRIPT_URL = SCRIPT_URL_BASE + '/db/cassandra.sh'
@@ -103,18 +105,15 @@ def send_command(ssh, cmd, wait_time, should_print):
 
     # Wait for the command to terminate & Print the receive buffer, if necessary
     while should_print and True:
-        try:
-            if channel.exit_status_ready():
-                break
-            rl, wl, xl = select.select([channel], [], [], 0.0)
-            if len(rl) > 0:
-                out = channel.recv(1024)
-                if out and out.strip() and not out.isspace():
-                    print out
-        except KeyboardInterrupt:
-            print("Caught CTRL+C")
-            channel.close()
-            exit(0)
+        if channel.exit_status_ready():
+            break
+
+        rl, wl, xl = select.select([channel], [], [], 0.0)
+
+        if len(rl) > 0:
+            out = channel.recv(1024)
+            if out and out.strip() and not out.isspace():
+                print out
 
     return out
 
@@ -142,12 +141,7 @@ def download_send(directory, script_url, host, username, script, dest_path, upda
     send_file(ssh, directory, script, dest_path)
 
     if update_system:
-        if username is 'centos':
-            send_command(ssh, "sudo yum update", 1, True)
-        elif username is 'ubuntu':
-            send_command(ssh, "sudo apt-get update", 1, True)
-        else:
-            print 'Invalid OS'
+        send_command(ssh, "sudo apt-get update", 1, True)
 
     if log_to_file:
         cmd = 'sudo bash ' + dest_path + ' > ' + script + '.log 2>&1 &'
@@ -182,7 +176,7 @@ def task_haproxy(directory):
 
 def task_postgresql(directory):
     download_file(directory, POSTGRESQL_SCRIPT_URL)
-    replace_string(directory, 'postgresql.sh', 'PGPOOL_API_HOST', DATABASE_HOST)
+    replace_string(directory, 'postgresql.sh', 'PGPOOL_API_HOST', PGPOOL_HOST)
 
     for POSTGRESQL_HOST in POSTGRESQL_HOSTS:
         cmd = threading.Thread(target = send, args = (directory, POSTGRESQL_SCRIPT_URL, POSTGRESQL_HOST, 'ubuntu', 'postgresql.sh', '/home/ubuntu/postgresql.sh'))
@@ -198,15 +192,15 @@ def task_frontend(directory):
         cmd.start()
         cmd.join()
 
-def task_master(directory):
-    download_file(directory, MASTER_SCRIPT_URL)
-    replace_string(directory, 'master.sh', 'DATABASE_HOST', DATABASE_HOST)
-    replace_string(directory, 'master.sh', 'REDIS_HOST', REDIS_HOST)
-    replace_string(directory, 'master.sh', 'CASSANDRA_HOST', CASSANDRA_HOST)
-    replace_string(directory, 'master.sh', 'LOADBALANCER_HOST', LOADBALANCER_HOST)
+def task_master(directory, script_url, hosts, username, script, dest_path):
+    download_file(directory, script_url)
+    replace_string(directory, script, 'DATABASE_HOST', PGPOOL_HOST)
+    replace_string(directory, script, 'REDIS_HOST', REDIS_HOST)
+    replace_string(directory, script, 'CASSANDRA_HOST', CASSANDRA_HOST)
+    replace_string(directory, script, 'LOADBALANCER_HOST', LOADBALANCER_HOST)
 
-    for MASTER_HOST in MASTER_HOSTS:
-        cmd = threading.Thread(target = send, args = (directory, MASTER_SCRIPT_URL, MASTER_HOST, 'ubuntu', 'master.sh', '/home/ubuntu/master.sh'))
+    for host in hosts:
+        cmd = threading.Thread(target = send, args = (directory, script_url, host, username, script, dest_path))
         cmd.start()
         cmd.join()
 
@@ -219,7 +213,7 @@ def main():
 
     # Step 1
     cassandra = threading.Thread(target = download_send, args = (directory, CASSANDRA_SCRIPT_URL, CASSANDRA_HOST, 'ubuntu', 'cassandra.sh', '/home/ubuntu/cassandra.sh', False, True))
-    pgpool = threading.Thread(target = download_send, args = (directory, PGPOOL_SCRIPT_URL, DATABASE_HOST, 'centos', 'pgpool.sh', '/home/centos/pgpool.sh', True))
+    pgpool = threading.Thread(target = download_send, args = (directory, PGPOOL_SCRIPT_URL, PGPOOL_HOST, 'ubuntu', 'pgpool.sh', '/home/ubuntu/pgpool.sh', False, True))
     redis = threading.Thread(target = download_send, args = (directory, REDIS_SCRIPT_URL, REDIS_HOST, 'ubuntu', 'redis.sh', '/home/ubuntu/redis.sh', False, True))
 
     cassandra.start()
@@ -242,7 +236,7 @@ def main():
 
     # Step 3
     frontend = threading.Thread(target = task_frontend, args = (directory,))
-    master = threading.Thread(target = task_master, args = (directory,))
+    master = threading.Thread(target = task_master, args = (directory, MASTER_SCRIPT_URL, MASTER_HOSTS, 'ubuntu', 'master.sh', '/home/ubuntu/master.sh'))
 
     frontend.start()
     master.start()
@@ -251,4 +245,14 @@ def main():
     master.join()
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print "Shutdown requested...exiting"
+    except Exception:
+        traceback.print_exc(file=sys.stdout)
+
+    try:
+        sys.exit(0)
+    except SystemExit:
+        os._exit(0)
