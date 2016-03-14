@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/jinzhu/gorm"
+	"github.com/ahirmayur/gorm"
 	"math"
 	"math/rand"
 	"net/http"
