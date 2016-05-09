@@ -41,7 +41,7 @@ setuphost () {
 }
 
 install_go () {
-	apt-get install -y mercurial bzr
+	apt-get install -y --allow-unauthenticated mercurial bzr
 
 	mkdir -p /home/ubuntu && cd /home/ubuntu
 	mkdir -p gocode && mkdir -p www

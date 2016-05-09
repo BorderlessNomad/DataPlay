@@ -67,13 +67,24 @@ class UserBehavior(TaskSet):
 	"""
 	Note: News, Activities are secondary system and doesn't respond to scaling
 	"""
-	# tasks = {home:100, search:50, news:50, related:25, correlated:25, correlated_generate: 15, activities:10}
+
+	# comment/uncomment tasks declaration to suit requirement
+
+	# pick activity randomly according to weighting
 	tasks = {home:100, search:50, related:25, correlated:25, correlated_generate:10}
+
+	# execute one activity only for predictable load generation
+	#tasks = {home:100}
+	#tasks = {search:100}
+	#tasks = {related:100}
+	#tasks = {correlated:100}
+	#tasks = {correlated_generate:100}
 
 	def on_start(self):
 		login(self)
 
 class WebsiteUser(HttpLocust):
 	task_set = UserBehavior
+	# make min wait and max weight equal for predictable load generation
 	min_wait=5000
 	max_wait=9000

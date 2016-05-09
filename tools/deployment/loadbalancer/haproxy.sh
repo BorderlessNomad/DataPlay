@@ -29,8 +29,8 @@ setuphost () {
 
 install_haproxy () {
 	apt-add-repository -y ppa:vbernat/haproxy-1.5
-	apt-get update
-	apt-get install -y haproxy
+	apt-get --allow-unauthenticated update
+	apt-get install -y --allow-unauthenticated haproxy
 
 	# Enable UDP syslog reception
 	sed -i 's/^#module(load="imudp")/module(load="imudp")/g' /etc/rsyslog.conf

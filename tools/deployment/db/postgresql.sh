@@ -27,10 +27,10 @@ setuphost () {
 
 install_postgres () {
 	echo "deb http://apt.postgresql.org/pub/repos/apt/ wily-pgdg main" > /etc/apt/sources.list.d/pgdg.list
-	apt-get install -y wget ca-certificates
+	apt-get install -y --allow-unauthenticated wget ca-certificates
 	wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-	apt-get update
-	apt-get install -y axel postgresql-9.4 postgresql-contrib-9.4 postgresql-client-9.4 libpq-dev
+	apt-get --allow-unauthenticated update
+	apt-get install -y --allow-unauthenticated axel postgresql-9.4 postgresql-contrib-9.4 postgresql-client-9.4 libpq-dev
 	/etc/init.d/postgresql restart
 }
 

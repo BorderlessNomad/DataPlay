@@ -30,10 +30,10 @@ install_pgpool () {
 	DB_PASSWORD="aDam3ntiUm"
 
 	echo "deb http://apt.postgresql.org/pub/repos/apt/ wily-pgdg main" > /etc/apt/sources.list.d/pgdg.list
-	apt-get install -y wget ca-certificates rsyslog
+	apt-get install -y --allow-unauthenticated wget ca-certificates rsyslog
 	wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-	apt-get update
-	apt-get install -y axel postgresql-client-9.4 pgpool2
+	apt-get --allow-unauthenticated update
+	apt-get install -y --allow-unauthenticated axel postgresql-client-9.4 pgpool2
 
 	# Provides UDP syslog reception
 	sed -i 's/^#module(load="imudp")/module(load="imudp")/g' /etc/rsyslog.conf
@@ -82,7 +82,7 @@ setup_pgpool_api () {
 
 	pm2 startup
 
-	pm2 start app.js --name="pgpool-api" -o output.log -e errors.log
+	pm2 start app.js --name="pgpool-api" -o output.log -e errors.log -f
 
 	pm2 save
 
