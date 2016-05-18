@@ -15,20 +15,20 @@ def login(l):
 		headers = {'X-API-SESSION': session}
 
 def search(l):
-	l.client.get("/search/birth", headers=headers)
-	l.client.get("/search/death", headers=headers)
-	l.client.get("/search/population", headers=headers)
-	l.client.get("/search/health", headers=headers)
-	l.client.get("/search/newham", headers=headers)
-	l.client.get("/search/westminster", headers=headers)
+	l.client.get("/api/search/birth", headers=headers)
+	l.client.get("/api/search/death", headers=headers)
+	l.client.get("/api/search/population", headers=headers)
+	l.client.get("/api/search/health", headers=headers)
+	l.client.get("/api/search/newham", headers=headers)
+	l.client.get("/api/search/westminster", headers=headers)
 
 class UserBehavior(TaskSet):
-	tasks = {search:100}
+	tasks = {search}
 
 	def on_start(self):
 		login(self)
 
 class WebsiteUser(HttpLocust):
 	task_set = UserBehavior
-	min_wait=500
-	max_wait=500
+	min_wait=1000
+	max_wait=1000

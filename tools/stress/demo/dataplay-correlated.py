@@ -22,12 +22,12 @@ def correlated(l):
 	l.client.get("/api/correlated/jobs", headers=headers)
 
 class UserBehavior(TaskSet):
-	tasks = {correlated:100}
+	tasks = {correlated}
 
 	def on_start(self):
 		login(self)
 
 class WebsiteUser(HttpLocust):
 	task_set = UserBehavior
-	min_wait=500
-	max_wait=500
+	min_wait=1000
+	max_wait=1000

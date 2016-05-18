@@ -22,12 +22,12 @@ def related(l):
 	l.client.get("/api/related/jobs", headers=headers)
 
 class UserBehavior(TaskSet):
-	tasks = {related:100}
+	tasks = {related}
 
 	def on_start(self):
 		login(self)
 
 class WebsiteUser(HttpLocust):
 	task_set = UserBehavior
-	min_wait=500
-	max_wait=500
+	min_wait=1000
+	max_wait=1000
