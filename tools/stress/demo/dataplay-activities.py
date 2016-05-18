@@ -15,10 +15,10 @@ def login(l):
 		headers = {'X-API-SESSION': session}
 
 def activities(l):
-	l.client.get("/political/popular", headers=headers)
-	l.client.get("/political/keywords", headers=headers)
-	l.client.get("/political/mediapulse", headers=headers)
-	l.client.get("/political/regions", headers=headers)
+	l.client.get("/api/political/popular", headers=headers)
+	l.client.get("/api/political/keywords", headers=headers)
+	l.client.get("/api/political/mediapulse", headers=headers)
+	l.client.get("/api/political/regions", headers=headers)
 
 class UserBehavior(TaskSet):
 	tasks = {activities:100}

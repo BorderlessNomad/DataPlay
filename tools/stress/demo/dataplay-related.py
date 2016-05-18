@@ -15,11 +15,11 @@ def login(l):
 		headers = {'X-API-SESSION': session}
 
 def related(l):
-	l.client.get("/related/births", headers=headers)
-	l.client.get("/related/job-density", headers=headers)
-	l.client.get("/related/deaths", headers=headers)
-	l.client.get("/related/gold-prices", headers=headers)
-	l.client.get("/related/jobs", headers=headers)
+	l.client.get("/api/related/births", headers=headers)
+	l.client.get("/api/related/job-density", headers=headers)
+	l.client.get("/api/related/deaths", headers=headers)
+	l.client.get("/api/related/gold-prices", headers=headers)
+	l.client.get("/api/related/jobs", headers=headers)
 
 class UserBehavior(TaskSet):
 	tasks = {related:100}

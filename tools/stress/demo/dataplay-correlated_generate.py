@@ -15,11 +15,11 @@ def login(l):
 		headers = {'X-API-SESSION': session}
 
 def correlated_generate(l):
-	l.client.get("/correlated/births/true", headers=headers)
-	l.client.get("/correlated/job-density/true", headers=headers)
-	l.client.get("/correlated/deaths/true", headers=headers)
-	l.client.get("/correlated/gold-prices/true", headers=headers)
-	l.client.get("/correlated/jobs/true", headers=headers)
+	l.client.get("/api/correlated/births/true", headers=headers)
+	l.client.get("/api/correlated/job-density/true", headers=headers)
+	l.client.get("/api/correlated/deaths/true", headers=headers)
+	l.client.get("/api/correlated/gold-prices/true", headers=headers)
+	l.client.get("/api/correlated/jobs/true", headers=headers)
 
 class UserBehavior(TaskSet):
 	tasks = {correlated_generate:100}
