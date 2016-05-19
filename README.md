@@ -97,11 +97,8 @@ See [CHANGELOG](CHANGELOG.md)
 
 ## Authors
 
-Mayur Ahir [mayur@playgen.com]
-
-Jack Cannon [jack@playgen.com]
-
-Lex Robinson [lex@playgen.com]
+The original authors of this application are no longer employed at PlayGen. 
+This software is no longer being maintained by PlayGen, use at your own risk.  
 
 ## [License](LICENSE.md)
 
