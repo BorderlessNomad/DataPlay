@@ -11,6 +11,7 @@ import (
 	"playgen/database"
 	"strings"
 	"time"
+	"runtime"
 )
 
 var Logger *log.Logger = log.New(os.Stdout, "[API] ", log.Lshortfile)
@@ -43,6 +44,7 @@ func DBSetup() error {
  *   init Martini API
  */
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	initApiServer()
 }
 
